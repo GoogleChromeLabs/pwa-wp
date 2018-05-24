@@ -1,0 +1,19 @@
+{
+ "name": "wp-pwa",
+ "title": "PWA feature plugin for WordPress Core",
+ "homepage": "https://github.com/xwp/wp-pwa",
+ "repository": {
+  "type": "git",
+  "url": "https://github.com/xwp/wp-pwa.git"
+ },
+ "version": "0.1.1",
+ "license": "GPL-2.0+",
+ "private": true,
+ "devDependencies": {
+  "wp-dev-lib": "github:xwp/wp-dev-lib"
+ },
+ "scripts": {
+  "precommit": "./node_modules/wp-dev-lib/pre-commit",
+  "generate-readme": "./node_modules/wp-dev-lib/generate-markdown-readme"
+ }
+}
