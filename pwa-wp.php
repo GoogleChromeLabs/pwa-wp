@@ -12,8 +12,8 @@
  * Plugin URI:        https://github.com/xwp/pwa-wp
  * Description:       Feature plugin to bring Progressive Web Apps (PWA) to Core
  * Version:           0.1.0-alpha
- * Author:            XWP
- * Author URI:        https://xwp.co
+ * Author:            XWP and contributors
+ * Author URI:        https://github.com/xwp/pwa-wp/graphs/contributors
  * Text Domain:       pwa-wp
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
