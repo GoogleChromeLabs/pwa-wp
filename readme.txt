@@ -1,4 +1,4 @@
-=== WP PWA ===
+=== PWA-WP ===
 Contributors:      xwp
 Tags:              pwa, progressive web apps, service workers, web app manifest, https
 Requires at least: 4.9.0
