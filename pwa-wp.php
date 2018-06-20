@@ -25,3 +25,20 @@
 define( 'PWAWP_VERSION', '0.1.0-alpha' );
 define( 'PWAWP_PLUGIN_FILE', __FILE__ );
 define( 'PWAWP_PLUGIN_DIR', dirname( __FILE__ ) );
+
+pwawp_init();
+
+/**
+ * Loads and instantiates the classes.
+ */
+function pwawp_init() {
+	$classes = array(
+		'pwawp-app-manifest',
+	);
+	foreach ( $classes as $class ) {
+		require PWAWP_PLUGIN_DIR . "/php/class-{$class}.php";
+	}
+
+	$pwawp_app_manifest = new PWAWP_APP_Manifest();
+	$pwawp_app_manifest->init();
+}
