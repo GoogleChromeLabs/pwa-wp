@@ -13,7 +13,7 @@
  * @since ?
  *
  * @see WP_Dependencies
- * @todo Does it make sense to extend WP_Scripts?
+ * @todo Does it make sense to extend WP_Scripts, maybe WP_Dependencies is enough?
  */
 class WP_Service_Workers extends WP_Scripts {
 
