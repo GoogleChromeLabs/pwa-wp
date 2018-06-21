@@ -71,6 +71,7 @@ class WP_Service_Workers extends WP_Scripts {
 
 		// @todo Consider deps.
 		header( 'Content-Type: text/javascript; charset=utf-8' );
+		header( 'Cache-Control: no-cache' );
 		$output = '';
 		if ( ! isset( $this->scopes[ $scope ] ) ) {
 			echo $output;
@@ -81,6 +82,15 @@ class WP_Service_Workers extends WP_Scripts {
 		foreach ( $this->scopes[ $scope ] as $path ) {
 			$output .= @file_get_contents( site_url() . $path ) . '
 ';
+		}
+
+		$file_hash = md5( $output );
+		header( "Etag: $file_hash" );
+
+		$etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? trim( $_SERVER['HTTP_IF_NONE_MATCH'] ) : false;
+		if ( $file_hash === $etag_header ) {
+			header( 'HTTP/1.1 304 Not Modified' );
+			exit;
 		}
 		echo $output;
 		exit;
