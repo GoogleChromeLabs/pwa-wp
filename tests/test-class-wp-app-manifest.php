@@ -138,7 +138,7 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		$_GET[ WP_APP_Manifest::MANIFEST_QUERY_ARG ] = 1;
 		add_filter( 'pwa_background_color', array( $this, 'mock_background_color' ) );
 		$this->mock_site_icon();
-		$actual_manifest   = $this->instance->get_manifest();
+		$actual_manifest = $this->instance->get_manifest();
 
 		preg_match( '/^.{0,12}(?= |$)/', get_bloginfo( 'name' ), $short_name_matches );
 		$expected_manifest = array(
