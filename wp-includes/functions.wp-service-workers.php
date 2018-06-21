@@ -68,7 +68,6 @@ function wp_get_service_worker_url( $scope ) {
  */
 function wp_print_service_workers() {
 
-	// @todo Get actual scopes, this is a placeholder.
 	foreach ( wp_service_workers()->scopes as $scope => $path ) {
 	?>
 	<script>
