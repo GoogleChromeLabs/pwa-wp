@@ -20,6 +20,13 @@ class WP_APP_Manifest {
 	const MANIFEST_QUERY_ARG = 'pwa_manifest';
 
 	/**
+-	 * The theme color to use if no dynamic values are present.
+-	 *
+-	 * @var string
+-	 */
+	const FALLBACK_THEME_COLOR = '#fff';
+
+	/**
 	 * The default manifest icon sizes.
 	 *
 	 * Copied from Jetpack_PWA_Helpers::get_default_manifest_icon_sizes().
@@ -61,12 +68,15 @@ class WP_APP_Manifest {
 	 * @return string $theme_color The theme color for the manifest.json file, as a hex value.
 	 */
 	public function get_theme_color() {
-		$theme_color = '';
 		if ( current_theme_supports( 'custom-background' ) ) {
 			$background_color = get_background_color(); // This returns a hex value without the leading #, or an empty string.
 			if ( $background_color ) {
 				$theme_color = "#$background_color";
 			}
+		}
+
+		if ( ! isset( $theme_color ) ) {
+			$theme_color = self::FALLBACK_THEME_COLOR;
 		}
 
 		/**

@@ -109,9 +109,9 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		set_theme_mod( 'background_color', $test_background_color );
 		$this->assertEquals( "#{$test_background_color}", $this->instance->get_theme_color() );
 
-		// If the theme mod is an empty string, this should simply return that.
+		// If the theme mod is an empty string, this should return the fallback theme color.
 		set_theme_mod( 'background_color', '' );
-		$this->assertEmpty( $this->instance->get_theme_color() );
+		$this->assertEquals( WP_APP_Manifest::FALLBACK_THEME_COLOR, $this->instance->get_theme_color() );
 
 		// Ensure the filter at the end of the method works.
 		add_filter( 'pwa_background_color', array( $this, 'mock_background_color' ) );
