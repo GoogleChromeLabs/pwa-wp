@@ -51,9 +51,11 @@ function pwawp_init() {
  */
 function pwawp_maybe_display_sw_script() {
 
-
 	// @todo For testing. Register rewrite instead.
-	if ( isset( $_GET['wp_service_workers'] ) && strlen( $_GET['scope'] ) ) {
-		wp_service_workers()->do_service_worker( $_GET['scope'] );
+	if (
+		true === filter_var( get_query_var( 'wp_service_worker' ), FILTER_VALIDATE_BOOLEAN ) &&
+		strlen( get_query_var( 'scope' ) )
+	) {
+		wp_service_workers()->do_service_worker( get_query_var( 'scope' ) );
 	}
 }

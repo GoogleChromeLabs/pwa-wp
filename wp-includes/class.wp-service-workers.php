@@ -18,11 +18,24 @@
 class WP_Service_Workers extends WP_Scripts {
 
 	/**
+	 * Param for service workers.
+	 *
+	 * @var string
+	 */
+	public $query_var = 'wp_service_worker';
+
+	/**
 	 * Array of scopes.
 	 *
 	 * @var array
 	 */
 	public $scopes = array();
+
+	public function __construct() {
+		parent::__construct();
+		add_action( 'init', array( $this, 'add_sw_rewrite_tags' ) );
+		add_action( 'init', array( $this, 'add_sw_rewrite_rules' ) );
+	}
 
 	/**
 	 * Initialize the class.
@@ -34,6 +47,21 @@ class WP_Service_Workers extends WP_Scripts {
 		 * @param WP_Service_Workers $this WP_Service_Workers instance (passed by reference).
 		 */
 		do_action_ref_array( 'wp_default_service_workers', array( &$this ) );
+	}
+
+	/**
+	 * Add rewrite tags for seeing Service Worker as query vars.
+	 */
+	public function add_sw_rewrite_tags() {
+		add_rewrite_tag( '%wp_service_worker%', '(0|1)' );
+		add_rewrite_tag( '%scope%', '([^&]+)' );
+	}
+
+	/**
+	 * Add rewrite rules for Service Worker concatenated scripts.
+	 */
+	public function add_sw_rewrite_rules() {
+		add_rewrite_rule( '^wp-service-worker.js?', "index.php?$this->query_var=1", 'top' ) ;
 	}
 
 	/**
@@ -53,7 +81,7 @@ class WP_Service_Workers extends WP_Scripts {
 			return false;
 		}
 
-		// @todo Check later if registering scopes this way makes sense.
+		// @todo Check later if registering scopes this way makes sense. This would probably also need to include $deps.
 		if ( ! isset( $this->scopes[ $scope ] ) ) {
 			$this->scopes[ $scope ] = array( $path );
 		} elseif ( ! in_array( $path, $this->scopes, true ) ) {

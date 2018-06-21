@@ -59,8 +59,10 @@ function wp_register_service_worker( $handle, $path, $deps = array(), $scope = n
  */
 function wp_get_service_worker_url( $scope ) {
 
-	// @todo This is just a placeholder.
-	return '?wp_service_workers=1&scope=' . $scope;
+	if ( get_option('permalink_structure') ) {
+		return '/wp-service-worker.js&scope=' . $scope;
+	}
+	return '?' . wp_service_workers()->query_var . '=1&scope=' . $scope;
 }
 
 /**
