@@ -32,6 +32,13 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 	const MOCK_THEME_COLOR = '#422508';
 
 	/**
+	 * Image mime_type.
+	 *
+	 * @var string
+	 */
+	const MIME_TYPE = 'image/jpeg';
+
+	/**
 	 * The site icon image url that's expected, based on the mock site icon.
 	 *
 	 * @var string
@@ -177,12 +184,17 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 	 * @covers PWAWP_APP_Manifest::build_icon_object()
 	 */
 	public function test_build_icon_object() {
+
+		// There's no site icon yet, so this should return null.
+		$this->assertEquals( null, $this->instance->build_icon_object( 512 ) );
+
 		$this->mock_site_icon();
 		$sizes = array( 192, 250, 512 );
 		foreach ( $sizes as $size ) {
 			$expected_icon_object = array(
 				'src'   => $this->expected_site_icon_img_url,
 				'sizes' => sprintf( '%1$dx%1$d', $size ),
+				'type'  => self::MIME_TYPE,
 			);
 			$this->assertEquals( $expected_icon_object, $this->instance->build_icon_object( $size ) );
 		}
@@ -213,11 +225,12 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 	 */
 	public function mock_site_icon() {
 		$mock_site_icon_id = $this->factory()->attachment->create_object( array(
-			'file' => 'foo/site-icon.jpeg',
+			'file'           => 'foo/site-icon.jpeg',
+			'post_mime_type' => self::MIME_TYPE,
 		) );
 		update_option( 'site_icon', $mock_site_icon_id );
 
-		$attachment_image                 = wp_get_attachment_image_src( $mock_site_icon_id, 'full', false );
+		$attachment_image                 = wp_get_attachment_image_src( $mock_site_icon_id, 'full' );
 		$this->expected_site_icon_img_url = $attachment_image[0];
 	}
 }

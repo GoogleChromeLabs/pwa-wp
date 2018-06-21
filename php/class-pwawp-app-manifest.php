@@ -141,12 +141,18 @@ class PWAWP_APP_Manifest {
 	 * Copied from Jetpack_PWA_Manifest::build_icon_object() and Jetpack_PWA_Helpers::site_icon_url().
 	 *
 	 * @param int $size The size of the icon, like 512.
-	 * @return array $icon_object The icon object data.
+	 * @return array|null $icon_object The icon object data, or null if there's no site icon.
 	 */
 	public function build_icon_object( $size ) {
+		$site_icon_id = get_option( 'site_icon' );
+		if ( ! $site_icon_id ) {
+			return null;
+		}
+
 		return array(
 			'src'   => get_site_icon_url( $size ),
 			'sizes' => sprintf( '%1$dx%1$d', $size ),
+			'type'  => get_post_mime_type( $site_icon_id ),
 		);
 	}
 }
