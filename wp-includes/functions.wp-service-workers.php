@@ -70,7 +70,7 @@ function wp_get_service_worker_url( $scope ) {
  */
 function wp_print_service_workers() {
 
-	foreach ( wp_service_workers()->scopes as $scope => $path ) {
+	foreach ( wp_service_workers()->scopes as $scope ) {
 		?>
 	<script>
 		if ( navigator.serviceWorker ) {

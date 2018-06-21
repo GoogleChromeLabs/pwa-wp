@@ -31,8 +31,20 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public $scopes = array();
 
+	/**
+	 * Output for service worker scope script.
+	 *
+	 * @var string
+	 */
+	public $output = '';
+
+	/**
+	 * WP_Service_Workers constructor.
+	 */
 	public function __construct() {
 		parent::__construct();
+
+		// This is outside of 'init' since priority 0 runs the methods when rewrite isn't inited yet.
 		add_action( 'init', array( $this, 'add_sw_rewrite_tags' ) );
 		add_action( 'init', array( $this, 'add_sw_rewrite_rules' ) );
 	}
@@ -81,11 +93,8 @@ class WP_Service_Workers extends WP_Scripts {
 			return false;
 		}
 
-		// @todo Check later if registering scopes this way makes sense. This would probably also need to include $deps.
 		if ( ! isset( $this->scopes[ $scope ] ) ) {
-			$this->scopes[ $scope ] = array( $path );
-		} elseif ( ! in_array( $path, $this->scopes, true ) ) {
-			$this->scopes[ $scope ][] = $path;
+			$this->scopes[ $scope ] = true;
 		}
 		return true;
 	}
@@ -97,22 +106,27 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function do_service_worker( $scope ) {
 
-		// @todo Consider deps.
 		header( 'Content-Type: text/javascript; charset=utf-8' );
 		header( 'Cache-Control: no-cache' );
-		$output = '';
+
 		if ( ! isset( $this->scopes[ $scope ] ) ) {
-			echo $output;
+			echo '';
 			exit;
 		}
 
-		// @todo Is there a better way?
-		foreach ( $this->scopes[ $scope ] as $path ) {
-			$output .= @file_get_contents( site_url() . $path ) . '
-';
+		$scope_items = array();
+
+		// Get handles from the relevant scope only.
+		foreach ( $this->registered as $handle => $item ) {
+			if ( $scope === $item->args ) {
+				$scope_items[] = $handle;
+			}
 		}
 
-		$file_hash = md5( $output );
+		$this->output = '';
+		$this->do_items( $scope_items );
+
+		$file_hash = md5( $this->output );
 		header( "Etag: $file_hash" );
 
 		$etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? trim( $_SERVER['HTTP_IF_NONE_MATCH'] ) : false;
@@ -120,7 +134,20 @@ class WP_Service_Workers extends WP_Scripts {
 			header( 'HTTP/1.1 304 Not Modified' );
 			exit;
 		}
-		echo $output;
+		echo $this->output;
 		exit;
+	}
+
+	/**
+	 * Process one registered script.
+	 *
+	 * @param string $handle Handle.
+	 * @param bool $group Group.
+	 * @return void
+	 */
+	public function do_item( $handle, $group = false ) {
+		$obj = $this->registered[ $handle ];
+		$this->output .= @file_get_contents( site_url() . $obj->src ) . '
+';
 	}
 }
