@@ -92,6 +92,7 @@ class PWAWP_APP_Manifest {
 				'start_url' => get_home_url(),
 				'display'   => 'minimal-ui',
 				'lang'      => get_locale(),
+				'dir'       => is_rtl() ? 'rtl' : 'ltr',
 			);
 
 			if ( $theme_color ) {
