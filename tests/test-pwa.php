@@ -25,6 +25,6 @@ class Test_PWA extends WP_UnitTestCase {
 	 * @covers pwawp_init()
 	 */
 	public function test_pwawp_init() {
-		$this->assertTrue( class_exists( 'PWAWP_APP_Manifest' ) );
+		$this->assertTrue( class_exists( 'WP_APP_Manifest' ) );
 	}
 }

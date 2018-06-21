@@ -33,12 +33,12 @@ pwawp_init();
  */
 function pwawp_init() {
 	$classes = array(
-		'pwawp-app-manifest',
+		'wp-app-manifest',
 	);
 	foreach ( $classes as $class ) {
 		require PWAWP_PLUGIN_DIR . "/php/class-{$class}.php";
 	}
 
-	$pwawp_app_manifest = new PWAWP_APP_Manifest();
-	$pwawp_app_manifest->init();
+	$wp_app_manifest = new WP_APP_Manifest();
+	$wp_app_manifest->init();
 }

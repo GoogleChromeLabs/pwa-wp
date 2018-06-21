@@ -1,19 +1,19 @@
 <?php
 /**
- * Tests for class PWAWP_APP_Manifest.
+ * Tests for class WP_APP_Manifest.
  *
  * @package PWA
  */
 
 /**
- * Tests for class PWAWP_APP_Manifest.
+ * Tests for class WP_APP_Manifest.
  */
-class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
+class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tested instance.
 	 *
-	 * @var PWAWP_APP_Manifest
+	 * @var WP_APP_Manifest
 	 */
 	public $instance;
 
@@ -52,7 +52,7 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 	 */
 	public function setUp() {
 		parent::setUp();
-		$this->instance = new PWAWP_APP_Manifest();
+		$this->instance = new WP_APP_Manifest();
 	}
 
 	/**
@@ -67,18 +67,18 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		unset( $_wp_theme_features['custom-background'] );
 		set_theme_mod( 'background_color', null );
 		delete_option( 'site_icon' );
-		remove_filter( 'pwawp_background_color', array( $this, 'mock_background_color' ) );
+		remove_filter( 'pwa_background_color', array( $this, 'mock_background_color' ) );
 		parent::tearDown();
 	}
 
 	/**
 	 * Test init().
 	 *
-	 * @covers PWAWP_APP_Manifest::init()
+	 * @covers WP_APP_Manifest::init()
 	 */
 	public function test_init() {
 		$this->instance->init();
-		$this->assertEquals( 'PWAWP_APP_Manifest', get_class( $this->instance ) );
+		$this->assertEquals( 'WP_APP_Manifest', get_class( $this->instance ) );
 		$this->assertEquals( 10, has_action( 'wp_head', array( $this->instance, 'manifest_link_and_meta' ) ) );
 		$this->assertEquals( 2, has_action( 'template_redirect', array( $this->instance, 'send_manifest_json' ) ) );
 	}
@@ -86,7 +86,7 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test manifest_link_and_meta().
 	 *
-	 * @covers PWAWP_APP_Manifest::manifest_link_and_meta()
+	 * @covers WP_APP_Manifest::manifest_link_and_meta()
 	 */
 	public function test_manifest_link_and_meta() {
 		ob_start();
@@ -94,14 +94,14 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertContains( '<link rel="manifest"', $output );
-		$this->assertContains( add_query_arg( PWAWP_APP_Manifest::MANIFEST_QUERY_ARG, '1', home_url( '/' ) ), $output );
+		$this->assertContains( add_query_arg( WP_APP_Manifest::MANIFEST_QUERY_ARG, '1', home_url( '/' ) ), $output );
 		$this->assertContains( '<meta name="theme-color" content="', $output );
 	}
 
 	/**
 	 * Test get_theme_color().
 	 *
-	 * @covers PWAWP_APP_Manifest::get_theme_color()
+	 * @covers WP_APP_Manifest::get_theme_color()
 	 */
 	public function test_get_theme_color() {
 		$test_background_color = '2a7230';
@@ -114,14 +114,14 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		$this->assertEmpty( $this->instance->get_theme_color() );
 
 		// Ensure the filter at the end of the method works.
-		add_filter( 'pwawp_background_color', array( $this, 'mock_background_color' ) );
+		add_filter( 'pwa_background_color', array( $this, 'mock_background_color' ) );
 		$this->assertEquals( self::MOCK_BACKGROUND_COLOR, $this->instance->get_theme_color() );
 	}
 
 	/**
 	 * Test send_manifest_json().
 	 *
-	 * @covers PWAWP_APP_Manifest::send_manifest_json()
+	 * @covers WP_APP_Manifest::send_manifest_json()
 	 */
 	public function test_send_manifest_json() {
 		global $wp_query;
@@ -139,8 +139,8 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		$this->assertEmpty( ob_get_clean() );
 
 		// This now has the query arg and is_front_page() is true, so it should send the manifest.
-		$_GET[ PWAWP_APP_Manifest::MANIFEST_QUERY_ARG ] = 1;
-		add_filter( 'pwawp_background_color', array( $this, 'mock_background_color' ) );
+		$_GET[ WP_APP_Manifest::MANIFEST_QUERY_ARG ] = 1;
+		add_filter( 'pwa_background_color', array( $this, 'mock_background_color' ) );
 		$this->mock_site_icon();
 		ob_start();
 		try {
@@ -169,7 +169,7 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		$this->assertEquals( $expected_manifest, $actual_manifest );
 
 		// Test that the filter at the end of the method works.
-		add_filter( 'pwawp_manifest_json', array( $this, 'mock_manifest' ) );
+		add_filter( 'pwa_manifest_json', array( $this, 'mock_manifest' ) );
 		ob_start();
 		try {
 			$this->instance->send_manifest_json();
@@ -183,7 +183,7 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test build_icon_object().
 	 *
-	 * @covers PWAWP_APP_Manifest::build_icon_object()
+	 * @covers WP_APP_Manifest::build_icon_object()
 	 */
 	public function test_build_icon_object() {
 

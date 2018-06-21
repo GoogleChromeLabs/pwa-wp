@@ -1,23 +1,23 @@
 <?php
 /**
- * PWAWP_APP_Manifest class.
+ * WP_APP_Manifest class.
  *
  * @package PWA
  */
 
 /**
- * PWAWP_APP_Manifest class.
+ * WP_APP_Manifest class.
  *
  * Mainly copied from Jetpack_PWA_Manifest and Jetpack_PWA_Helpers.
  */
-class PWAWP_APP_Manifest {
+class WP_APP_Manifest {
 
 	/**
 	 * The query arg that is present in a request for the app manifest.
 	 *
 	 * @var string
 	 */
-	const MANIFEST_QUERY_ARG = 'pwawp_manifest';
+	const MANIFEST_QUERY_ARG = 'pwa_manifest';
 
 	/**
 	 * The default manifest icon sizes.
@@ -74,7 +74,7 @@ class PWAWP_APP_Manifest {
 		 *
 		 * @param string $theme_color Hex color value.
 		 */
-		return apply_filters( 'pwawp_background_color', $theme_color );
+		return apply_filters( 'pwa_background_color', $theme_color );
 	}
 
 	/**
@@ -131,7 +131,7 @@ class PWAWP_APP_Manifest {
 			 *
 			 * @param array $manifest The manifest to send in the json response.
 			 */
-			$manifest = apply_filters( 'pwawp_manifest_json', $manifest );
+			$manifest = apply_filters( 'pwa_manifest_json', $manifest );
 
 			wp_send_json( $manifest );
 		}
