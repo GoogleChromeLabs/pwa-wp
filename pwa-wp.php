@@ -25,3 +25,35 @@
 define( 'PWAWP_VERSION', '0.1.0-alpha' );
 define( 'PWAWP_PLUGIN_FILE', __FILE__ );
 define( 'PWAWP_PLUGIN_DIR', dirname( __FILE__ ) );
+
+pwawp_init();
+
+/**
+ * Loads and instantiates the classes.
+ */
+function pwawp_init() {
+
+	// These could be in ABSPATH . WPINC . '/script-loader.php' file.
+	/** WordPress Service Workers Class */
+	require PWAWP_PLUGIN_DIR . '/wp-includes/class.wp-service-workers.php';
+
+	/** WordPress Scripts Functions */
+	require PWAWP_PLUGIN_DIR . '/wp-includes/functions.wp-service-workers.php';
+
+	add_action( 'wp_print_footer_scripts', 'wp_print_service_workers' );
+
+	// Alternative for this could be in wp-includes/functions.php.
+	add_action( 'template_redirect', 'pwawp_maybe_display_sw_script' );
+}
+
+/**
+ * If it's a service worker script page, display that.
+ */
+function pwawp_maybe_display_sw_script() {
+
+
+	// @todo For testing. Register rewrite instead.
+	if ( isset( $_GET['wp_service_workers'] ) && strlen( $_GET['scope'] ) ) {
+		wp_service_workers()->do_service_worker( $_GET['scope'] );
+	}
+}
