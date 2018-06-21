@@ -20,13 +20,6 @@ class PWAWP_APP_Manifest {
 	const MANIFEST_QUERY_ARG = 'pwawp_manifest';
 
 	/**
-	 * The theme color to use if no dynamic values are present.
-	 *
-	 * @var string
-	 */
-	const FALLBACK_THEME_COLOR = '#fff';
-
-	/**
 	 * The default manifest icon sizes.
 	 *
 	 * Copied from Jetpack_PWA_Helpers::get_default_manifest_icon_sizes().
@@ -43,7 +36,6 @@ class PWAWP_APP_Manifest {
 	 */
 	public function init() {
 		add_action( 'wp_head', array( $this, 'manifest_link_and_meta' ) );
-		add_action( 'amp_post_template_head', array( $this, 'manifest_link_and_meta' ) );
 		add_action( 'template_redirect', array( $this, 'send_manifest_json' ), 2 );
 	}
 
@@ -69,26 +61,12 @@ class PWAWP_APP_Manifest {
 	 * @return string $theme_color The theme color for the manifest.json file, as a hex value.
 	 */
 	public function get_theme_color() {
-		if ( class_exists( 'AMP_Customizer_Settings' ) ) {
-			/* This filter is documented in wp-content/plugins/amp/includes/class-amp-post-template.php */
-			$amp_settings = apply_filters(
-				'amp_post_template_customizer_settings',
-				AMP_Customizer_Settings::get_settings(),
-				null
-			);
-
-			if ( isset( $amp_settings['header_background_color'] ) ) {
-				$theme_color = $amp_settings['header_background_color'];
-			}
-		} elseif ( current_theme_supports( 'custom-background' ) ) {
+		$theme_color = '';
+		if ( current_theme_supports( 'custom-background' ) ) {
 			$background_color = get_background_color(); // This returns a hex value without the leading #, or an empty string.
 			if ( $background_color ) {
 				$theme_color = "#$background_color";
 			}
-		}
-
-		if ( ! isset( $theme_color ) ) {
-			$theme_color = self::FALLBACK_THEME_COLOR;
 		}
 
 		/**
@@ -110,12 +88,15 @@ class PWAWP_APP_Manifest {
 		if ( is_front_page() && ! empty( $_GET[ self::MANIFEST_QUERY_ARG ] ) ) { // WPCS: CSRF ok.
 			$theme_color = $this->get_theme_color();
 			$manifest    = array(
-				'name'             => get_bloginfo( 'name' ),
-				'start_url'        => get_home_url(),
-				'display'          => 'standalone',
-				'background_color' => $theme_color,
-				'theme_color'      => $theme_color,
+				'name'      => get_bloginfo( 'name' ),
+				'start_url' => get_home_url(),
+				'display'   => 'standalone',
 			);
+
+			if ( $theme_color ) {
+				$manifest['background_color'] = $theme_color;
+				$manifest['theme_color']      = $theme_color;
+			}
 
 			/**
 			 * Gets the 'short_name' by cutting off the blog name at the first space after the 12th character.

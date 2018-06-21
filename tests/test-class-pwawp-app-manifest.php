@@ -60,6 +60,7 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		unset( $_wp_theme_features['custom-background'] );
 		set_theme_mod( 'background_color', null );
 		delete_option( 'site_icon' );
+		remove_filter( 'pwawp_background_color', array( $this, 'mock_background_color' ) );
 		parent::tearDown();
 	}
 
@@ -72,7 +73,6 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		$this->instance->init();
 		$this->assertEquals( 'PWAWP_APP_Manifest', get_class( $this->instance ) );
 		$this->assertEquals( 10, has_action( 'wp_head', array( $this->instance, 'manifest_link_and_meta' ) ) );
-		$this->assertEquals( 10, has_action( 'amp_post_template_head', array( $this->instance, 'manifest_link_and_meta' ) ) );
 		$this->assertEquals( 2, has_action( 'template_redirect', array( $this->instance, 'send_manifest_json' ) ) );
 	}
 
@@ -89,7 +89,6 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		$this->assertContains( '<link rel="manifest"', $output );
 		$this->assertContains( add_query_arg( PWAWP_APP_Manifest::MANIFEST_QUERY_ARG, '1', home_url( '/' ) ), $output );
 		$this->assertContains( '<meta name="theme-color" content="', $output );
-		$this->assertContains( PWAWP_APP_Manifest::FALLBACK_THEME_COLOR, $output );
 	}
 
 	/**
@@ -103,9 +102,9 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		set_theme_mod( 'background_color', $test_background_color );
 		$this->assertEquals( "#{$test_background_color}", $this->instance->get_theme_color() );
 
-		// If the theme mod is an empty string, this should return the fallback color.
+		// If the theme mod is an empty string, this should simply return that.
 		set_theme_mod( 'background_color', '' );
-		$this->assertEquals( PWAWP_APP_Manifest::FALLBACK_THEME_COLOR, $this->instance->get_theme_color() );
+		$this->assertEmpty( $this->instance->get_theme_color() );
 
 		// Ensure the filter at the end of the method works.
 		add_filter( 'pwawp_background_color', array( $this, 'mock_background_color' ) );
@@ -134,6 +133,7 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 
 		// This now has the query arg and is_front_page() is true, so it should send the manifest.
 		$_GET[ PWAWP_APP_Manifest::MANIFEST_QUERY_ARG ] = 1;
+		add_filter( 'pwawp_background_color', array( $this, 'mock_background_color' ) );
 		$this->mock_site_icon();
 		ob_start();
 		try {
@@ -145,13 +145,13 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 
 		$actual_manifest   = json_decode( $this->_last_response, true );
 		$expected_manifest = array(
-			'background_color' => PWAWP_APP_Manifest::FALLBACK_THEME_COLOR,
+			'background_color' => self::MOCK_BACKGROUND_COLOR,
 			'description'      => get_bloginfo( 'description' ),
 			'display'          => 'standalone',
 			'name'             => get_bloginfo( 'name' ),
 			'short_name'       => substr( get_bloginfo( 'name' ), 0, 12 ),
 			'start_url'        => get_home_url(),
-			'theme_color'      => PWAWP_APP_Manifest::FALLBACK_THEME_COLOR,
+			'theme_color'      => self::MOCK_BACKGROUND_COLOR,
 			'icons'            => array_map(
 				array( $this->instance, 'build_icon_object' ),
 				$this->instance->default_manifest_icon_sizes
