@@ -90,7 +90,7 @@ class PWAWP_APP_Manifest {
 			$manifest    = array(
 				'name'      => get_bloginfo( 'name' ),
 				'start_url' => get_home_url(),
-				'display'   => 'standalone',
+				'display'   => 'minimal-ui',
 			);
 
 			if ( $theme_color ) {
