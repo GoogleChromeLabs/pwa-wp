@@ -56,7 +56,7 @@ class WP_Service_Workers extends WP_Scripts {
 		// @todo Check later if registering scopes this way makes sense.
 		if ( ! isset( $this->scopes[ $scope ] ) ) {
 			$this->scopes[ $scope ] = array( $path );
-		} else if ( ! in_array( $path, $this->scopes, true ) ) {
+		} elseif ( ! in_array( $path, $this->scopes, true ) ) {
 			$this->scopes[ $scope ][] = $path;
 		}
 		return true;
@@ -79,7 +79,7 @@ class WP_Service_Workers extends WP_Scripts {
 
 		// @todo Is there a better way?
 		foreach ( $this->scopes[ $scope ] as $path ) {
-			$output .= @file_get_contents( site_url() . $path ) .'
+			$output .= @file_get_contents( site_url() . $path ) . '
 ';
 		}
 		echo $output;

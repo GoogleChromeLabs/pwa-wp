@@ -37,7 +37,7 @@ function wp_register_service_worker( $handle, $path, $deps = array(), $scope = n
 
 	// If the path is not relative. @todo should we try formatting it instead?
 	if ( ! preg_match( '/^\//', $path ) ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Service worker should be registered with relative path.' ), '0.1' );
+		_doing_it_wrong( __FUNCTION__, esc_html__( 'Service worker should be registered with relative path.', 'pwawp' ), '0.1' );
 	}
 
 	// Set default scope if missing.
@@ -69,7 +69,7 @@ function wp_get_service_worker_url( $scope ) {
 function wp_print_service_workers() {
 
 	foreach ( wp_service_workers()->scopes as $scope => $path ) {
-	?>
+		?>
 	<script>
 		if ( navigator.serviceWorker ) {
 			navigator.serviceWorker.register(
@@ -78,6 +78,6 @@ function wp_print_service_workers() {
 			);
 		}
 	</script>
-	<?php
+		<?php
 	}
 }
