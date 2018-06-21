@@ -20,11 +20,25 @@ class WP_APP_Manifest {
 	const MANIFEST_QUERY_ARG = 'pwa_manifest';
 
 	/**
--	 * The theme color to use if no dynamic values are present.
--	 *
--	 * @var string
--	 */
+	 * The theme color to use if no dynamic values are present.
+	 *
+	 * @var string
+	 */
 	const FALLBACK_THEME_COLOR = '#fff';
+
+	/**
+	 * The REST API namespace for the manifest request.
+	 *
+	 * @var string
+	 */
+	const REST_NAMESPACE = 'wp/v2';
+
+	/**
+	 * The REST API route for the manifest request.
+	 *
+	 * @var string
+	 */
+	const REST_ROUTE = '/pwa-manifest';
 
 	/**
 	 * The default manifest icon sizes.
@@ -43,7 +57,7 @@ class WP_APP_Manifest {
 	 */
 	public function init() {
 		add_action( 'wp_head', array( $this, 'manifest_link_and_meta' ) );
-		add_action( 'template_redirect', array( $this, 'send_manifest_json' ), 2 );
+		add_action( 'rest_api_init', array( $this, 'register_manifest_rest_route' ) );
 	}
 
 	/**
@@ -53,7 +67,7 @@ class WP_APP_Manifest {
 	 */
 	public function manifest_link_and_meta() {
 		?>
-		<link rel="manifest" href="<?php echo esc_url( add_query_arg( self::MANIFEST_QUERY_ARG, '1', home_url( '/' ) ) ); ?>">
+		<link rel="manifest" href="<?php echo esc_url( rest_url( self::REST_NAMESPACE . self::REST_ROUTE ) ); ?>">
 		<meta name="theme-color" content="<?php echo esc_attr( $this->get_theme_color() ); ?>">
 		<?php
 	}
@@ -88,83 +102,106 @@ class WP_APP_Manifest {
 	}
 
 	/**
-	 * Sends the json response of the manifest.
+	 * Gets the manifest data for the REST API response.
 	 *
 	 * Mainly copied from Jetpack_PWA_Helpers::render_manifest_json().
 	 */
-	public function send_manifest_json() {
+	public function get_manifest() {
+		$manifest = array(
+			'name'      => get_bloginfo( 'name' ),
+			'start_url' => get_home_url(),
+			'display'   => 'minimal-ui',
+			'lang'      => get_locale(),
+			'dir'       => is_rtl() ? 'rtl' : 'ltr',
+		);
 
-		// Don't load the manifest in multiple locations.
-		if ( is_front_page() && ! empty( $_GET[ self::MANIFEST_QUERY_ARG ] ) ) { // WPCS: CSRF ok.
-			$theme_color = $this->get_theme_color();
-			$manifest    = array(
-				'name'      => get_bloginfo( 'name' ),
-				'start_url' => get_home_url(),
-				'display'   => 'minimal-ui',
-				'lang'      => get_locale(),
-				'dir'       => is_rtl() ? 'rtl' : 'ltr',
-			);
-
-			if ( $theme_color ) {
-				$manifest['background_color'] = $theme_color;
-				$manifest['theme_color']      = $theme_color;
-			}
-
-			/**
-			 * Gets the 'short_name' by cutting off the blog name at the first space after the 12th character.
-			 * This prevents cutting a word off in the middle.
-			 *
-			 * @todo: consider another source for this, as this short name could still be awkward.
-			 */
-			preg_match( '/^(.{1,12}[^\s]*)/', get_bloginfo( 'name' ), $short_name_matches );
-			if ( $short_name_matches ) {
-				$manifest['short_name'] = $short_name_matches[1];
-			}
-
-			$description = get_bloginfo( 'description' );
-			if ( $description ) {
-				$manifest['description'] = $description;
-			}
-
-			if ( function_exists( 'get_site_icon_url' ) ) {
-				$manifest['icons'] = array_map(
-					array( $this, 'build_icon_object' ),
-					$this->default_manifest_icon_sizes
-				);
-			}
-
-			/**
-			 * Enables overriding the manifest json.
-			 *
-			 * There are more possible values for this, including 'orientation' and 'scope.'
-			 * See the documentation: https://developers.google.com/web/fundamentals/web-app-manifest/
-			 *
-			 * @param array $manifest The manifest to send in the json response.
-			 */
-			$manifest = apply_filters( 'pwa_manifest_json', $manifest );
-
-			wp_send_json( $manifest );
+		/**
+		 * Gets the 'short_name' by cutting off the blog name at the first space after the 12th character.
+		 * This prevents cutting a word off in the middle.
+		 *
+		 * @todo: consider another source for this, as this short name could still be awkward.
+		 */
+		preg_match( '/^(.{1,12}[^\s]*)/', get_bloginfo( 'name' ), $short_name_matches );
+		if ( $short_name_matches ) {
+			$manifest['short_name'] = $short_name_matches[1];
 		}
+
+		$theme_color = $this->get_theme_color();
+		if ( $theme_color ) {
+			$manifest['background_color'] = $theme_color;
+			$manifest['theme_color']      = $theme_color;
+		}
+
+		$description = get_bloginfo( 'description' );
+		if ( $description ) {
+			$manifest['description'] = $description;
+		}
+
+		$manifest_icons = $this->get_icons();
+		if ( $manifest_icons ) {
+			$manifest['icons'] = $manifest_icons;
+		}
+
+		/**
+		 * Enables overriding the manifest json.
+		 *
+		 * There are more possible values for this, including 'orientation' and 'scope.'
+		 * See the documentation: https://developers.google.com/web/fundamentals/web-app-manifest/
+		 *
+		 * @param array $manifest The manifest to send in the REST API response.
+		 */
+		return apply_filters( 'pwa_manifest_json', $manifest );
 	}
 
 	/**
-	 * Gets an icon object, based on its size (dimension).
-	 *
-	 * Copied from Jetpack_PWA_Manifest::build_icon_object() and Jetpack_PWA_Helpers::site_icon_url().
-	 *
-	 * @param int $size The size of the icon, like 512.
-	 * @return array|null $icon_object The icon object data, or null if there's no site icon.
+	 * Registers the rest route to get the manifest.
 	 */
-	public function build_icon_object( $size ) {
+	public function register_manifest_rest_route() {
+		register_rest_route( self::REST_NAMESPACE, self::REST_ROUTE, array(
+			'methods'             => 'GET',
+			'callback'            => array( $this, 'get_manifest' ),
+			'permission_callback' => array( $this, 'rest_permission' ),
+		) );
+	}
+
+	/**
+	 * Registers the rest route to get the manifest.
+	 *
+	 * Mainly copied from WP_REST_Posts_Controller::get_items_permissions_check().
+	 * This should ndt allow a request in the 'edit' context.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request is allowed, WP_Error if the request is in the 'edit' context.
+	 */
+	public function rest_permission( WP_REST_Request $request ) {
+		if ( 'edit' === $request['context'] ) {
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit the manifest.', 'default' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Gets the manifest icons.
+	 *
+	 * Mainly copied from Jetpack_PWA_Manifest::build_icon_object() and Jetpack_PWA_Helpers::site_icon_url().
+	 *
+	 * @return array|null $icon_object An array of icons, or null if there's no site icon.
+	 */
+	public function get_icons() {
 		$site_icon_id = get_option( 'site_icon' );
-		if ( ! $site_icon_id ) {
+		if ( ! $site_icon_id || ! function_exists( 'get_site_icon_url' ) ) {
 			return null;
 		}
 
-		return array(
-			'src'   => get_site_icon_url( $size ),
-			'sizes' => sprintf( '%1$dx%1$d', $size ),
-			'type'  => get_post_mime_type( $site_icon_id ),
-		);
+		$icons     = array();
+		$mime_type = get_post_mime_type( $site_icon_id );
+		foreach ( $this->default_manifest_icon_sizes as $size ) {
+			$icons[] = array(
+				'src'   => get_site_icon_url( $size ),
+				'sizes' => sprintf( '%1$dx%1$d', $size ),
+				'type'  => $mime_type,
+			);
+		}
+		return $icons;
 	}
 }

@@ -32,6 +32,13 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 	const MOCK_THEME_COLOR = '#422508';
 
 	/**
+	 * The expected REST API route.
+	 *
+	 * @var string
+	 */
+	const EXPECTED_ROUTE = '/wp/v2/pwa-manifest';
+
+	/**
 	 * Image mime_type.
 	 *
 	 * @var string
@@ -80,7 +87,7 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		$this->instance->init();
 		$this->assertEquals( 'WP_APP_Manifest', get_class( $this->instance ) );
 		$this->assertEquals( 10, has_action( 'wp_head', array( $this->instance, 'manifest_link_and_meta' ) ) );
-		$this->assertEquals( 2, has_action( 'template_redirect', array( $this->instance, 'send_manifest_json' ) ) );
+		$this->assertEquals( 10, has_action( 'rest_api_init', array( $this->instance, 'register_manifest_rest_route' ) ) );
 	}
 
 	/**
@@ -94,7 +101,7 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertContains( '<link rel="manifest"', $output );
-		$this->assertContains( add_query_arg( WP_APP_Manifest::MANIFEST_QUERY_ARG, '1', home_url( '/' ) ), $output );
+		$this->assertContains( rest_url( WP_APP_Manifest::REST_NAMESPACE . WP_APP_Manifest::REST_ROUTE ), $output );
 		$this->assertContains( '<meta name="theme-color" content="', $output );
 	}
 
@@ -119,38 +126,18 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Test send_manifest_json().
+	 * Test get_manifest().
 	 *
-	 * @covers WP_APP_Manifest::send_manifest_json()
+	 * @covers WP_APP_Manifest::get_manifest()
 	 */
-	public function test_send_manifest_json() {
+	public function test_get_manifest() {
 		global $wp_query;
-
-		// This isn't on the front page, and the query arg isn't present, so it shouldn't send the manifest.
-		ob_start();
-		$this->instance->send_manifest_json();
-		$this->assertEmpty( ob_get_clean() );
-
-		// Even though is_front_page() is true, this still shouldn't send the manifest because the query arg isn't present.
-		update_option( 'show_on_front', 'posts' );
-		$wp_query->is_home = true;
-		ob_start();
-		$this->instance->send_manifest_json();
-		$this->assertEmpty( ob_get_clean() );
 
 		// This now has the query arg and is_front_page() is true, so it should send the manifest.
 		$_GET[ WP_APP_Manifest::MANIFEST_QUERY_ARG ] = 1;
 		add_filter( 'pwa_background_color', array( $this, 'mock_background_color' ) );
 		$this->mock_site_icon();
-		ob_start();
-		try {
-			$this->instance->send_manifest_json();
-			$this->_last_response = ob_get_clean();
-		} catch ( Exception $e ) {
-			unset( $e );
-		}
-
-		$actual_manifest   = json_decode( $this->_last_response, true );
+		$actual_manifest   = $this->instance->get_manifest();
 		$expected_manifest = array(
 			'background_color' => self::MOCK_BACKGROUND_COLOR,
 			'description'      => get_bloginfo( 'description' ),
@@ -161,45 +148,71 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 			'dir'              => is_rtl() ? 'rtl' : 'ltr',
 			'start_url'        => get_home_url(),
 			'theme_color'      => self::MOCK_BACKGROUND_COLOR,
-			'icons'            => array_map(
-				array( $this->instance, 'build_icon_object' ),
-				$this->instance->default_manifest_icon_sizes
-			),
+			'icons'            => $this->instance->get_icons(),
 		);
 		$this->assertEquals( $expected_manifest, $actual_manifest );
 
 		// Test that the filter at the end of the method works.
 		add_filter( 'pwa_manifest_json', array( $this, 'mock_manifest' ) );
-		ob_start();
-		try {
-			$this->instance->send_manifest_json();
-			$this->_last_response = ob_get_clean();
-		} catch ( Exception $e ) {
-			unset( $e );
-		}
-		$this->assertContains( self::MOCK_THEME_COLOR, $this->_last_response );
+		$this->assertContains( self::MOCK_THEME_COLOR, $this->instance->get_manifest() );
 	}
 
 	/**
-	 * Test build_icon_object().
+	 * Test register_manifest_rest_route.
 	 *
-	 * @covers WP_APP_Manifest::build_icon_object()
+	 * @covers WP_APP_Manifest::register_manifest_rest_route()
 	 */
-	public function test_build_icon_object() {
+	public function test_register_manifest_rest_route() {
+		$this->instance->register_manifest_rest_route();
+		$routes  = rest_get_server()->get_routes();
+		$route   = $routes[ self::EXPECTED_ROUTE ][0];
+		$methods = array(
+			'GET' => true,
+		);
+
+		$this->assertEmpty( $route['args'] );
+		$this->assertEquals( $methods, $route['methods'] );
+		$this->assertEquals( array( $this->instance, 'get_manifest' ), $route['callback'] );
+		$this->assertEquals( array( $this->instance, 'rest_permission' ), $route['permission_callback'] );
+	}
+
+	/**
+	 * Test rest_permission.
+	 *
+	 * @see WP_APP_Manifest::rest_permission()
+	 */
+	public function test_rest_permission() {
+		$allowed_request = new WP_REST_Request();
+		$this->assertTrue( $this->instance->rest_permission( $allowed_request ) );
+
+		// A request with a 'context' of 'edit' should result in a WP_Error.
+		$disallowed_request            = new WP_REST_Request();
+		$disallowed_request['context'] = 'edit';
+		$permission_result             = $this->instance->rest_permission( $disallowed_request );
+		$this->assertEquals( 'WP_Error', get_class( $permission_result ) );
+		$this->assertEquals( 'Sorry, you are not allowed to edit the manifest.', $permission_result->errors['rest_forbidden_context'][0] );
+	}
+
+	/**
+	 * Test get_icons().
+	 *
+	 * @covers WP_APP_Manifest::get_icons()
+	 */
+	public function test_get_icons() {
 
 		// There's no site icon yet, so this should return null.
-		$this->assertEquals( null, $this->instance->build_icon_object( 512 ) );
+		$this->assertEquals( null, $this->instance->get_icons() );
 
 		$this->mock_site_icon();
-		$sizes = array( 192, 250, 512 );
-		foreach ( $sizes as $size ) {
-			$expected_icon_object = array(
+		$expected_icons = array();
+		foreach ( $this->instance->default_manifest_icon_sizes as $size ) {
+			$expected_icons[] = array(
 				'src'   => $this->expected_site_icon_img_url,
 				'sizes' => sprintf( '%1$dx%1$d', $size ),
 				'type'  => self::MIME_TYPE,
 			);
-			$this->assertEquals( $expected_icon_object, $this->instance->build_icon_object( $size ) );
 		}
+		$this->assertEquals( $expected_icons, $this->instance->get_icons() );
 	}
 
 	/**
