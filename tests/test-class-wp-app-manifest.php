@@ -75,6 +75,7 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		set_theme_mod( 'background_color', null );
 		delete_option( 'site_icon' );
 		remove_filter( 'pwa_background_color', array( $this, 'mock_background_color' ) );
+		remove_filter( 'rest_api_init', array( $this->instance, 'register_manifest_rest_route' ) );
 		parent::tearDown();
 	}
 
@@ -163,7 +164,8 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 	 * @covers WP_APP_Manifest::register_manifest_rest_route()
 	 */
 	public function test_register_manifest_rest_route() {
-		$this->instance->register_manifest_rest_route();
+		add_action( 'rest_api_init', array( $this, 'register_manifest_rest_route' ) );
+		do_action( 'rest_api_init' );
 		$routes  = rest_get_server()->get_routes();
 		$route   = $routes[ self::EXPECTED_ROUTE ][0];
 		$methods = array(
