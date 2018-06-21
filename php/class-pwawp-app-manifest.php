@@ -91,6 +91,7 @@ class PWAWP_APP_Manifest {
 				'name'      => get_bloginfo( 'name' ),
 				'start_url' => get_home_url(),
 				'display'   => 'minimal-ui',
+				'lang'      => get_locale(),
 			);
 
 			if ( $theme_color ) {

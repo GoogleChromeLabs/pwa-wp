@@ -155,6 +155,7 @@ class Test_PWAWP_APP_Manifest extends WP_Ajax_UnitTestCase {
 			'background_color' => self::MOCK_BACKGROUND_COLOR,
 			'description'      => get_bloginfo( 'description' ),
 			'display'          => 'minimal-ui',
+			'lang'             => get_locale(),
 			'name'             => get_bloginfo( 'name' ),
 			'short_name'       => substr( get_bloginfo( 'name' ), 0, 12 ),
 			'start_url'        => get_home_url(),
