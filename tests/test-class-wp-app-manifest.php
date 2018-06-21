@@ -139,12 +139,14 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		add_filter( 'pwa_background_color', array( $this, 'mock_background_color' ) );
 		$this->mock_site_icon();
 		$actual_manifest   = $this->instance->get_manifest();
+
+		preg_match( '/^.{0,12}(?= |$)/', get_bloginfo( 'name' ), $short_name_matches );
 		$expected_manifest = array(
 			'background_color' => self::MOCK_BACKGROUND_COLOR,
 			'description'      => get_bloginfo( 'description' ),
 			'display'          => 'minimal-ui',
 			'name'             => get_bloginfo( 'name' ),
-			'short_name'       => substr( get_bloginfo( 'name' ), 0, 12 ),
+			'short_name'       => $short_name_matches[0],
 			'lang'             => get_locale(),
 			'dir'              => is_rtl() ? 'rtl' : 'ltr',
 			'start_url'        => get_home_url(),
@@ -164,7 +166,7 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 	 * @covers WP_APP_Manifest::register_manifest_rest_route()
 	 */
 	public function test_register_manifest_rest_route() {
-		add_action( 'rest_api_init', array( $this, 'register_manifest_rest_route' ) );
+		add_action( 'rest_api_init', array( $this->instance, 'register_manifest_rest_route' ) );
 		do_action( 'rest_api_init' );
 		$routes  = rest_get_server()->get_routes();
 		$route   = $routes[ self::EXPECTED_ROUTE ][0];
