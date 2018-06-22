@@ -20,6 +20,8 @@ cache:
     - $HOME/phpunit-bin
     - $HOME/deployment-targets
 
+before_install: true
+
 install:
   - nvm install 6 && nvm use 6
   - npm install
@@ -38,7 +40,7 @@ jobs:
       php: "7.2"
       env: WP_VERSION=trunk
     - php: "5.2"
-      env: WP_VERSION=latest DEV_LIB_SKIP=phpcs
+      env: WP_VERSION=latest DEV_LIB_SKIP=composer,phpcs
     - php: "5.3"
       env: WP_VERSION=latest DEV_LIB_SKIP=composer,phpcs
     - php: "5.4"
