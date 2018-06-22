@@ -20,11 +20,6 @@ cache:
     - $HOME/phpunit-bin
     - $HOME/deployment-targets
 
-before_install:
-  - phpenv global 5.3
-  - if [[ $DEV_LIB_SKIP =~ composer ]]; then composer install --no-dev; fi
-  - phpenv global "$TRAVIS_PHP_VERSION"
-
 install:
   - nvm install 6 && nvm use 6
   - npm install
