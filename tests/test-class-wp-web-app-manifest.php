@@ -1,19 +1,19 @@
 <?php
 /**
- * Tests for class WP_APP_Manifest.
+ * Tests for class WP_Web_App_Manifest.
  *
  * @package PWA
  */
 
 /**
- * Tests for class WP_APP_Manifest.
+ * Tests for class WP_Web_App_Manifest.
  */
-class Test_WP_APP_Manifest extends WP_UnitTestCase {
+class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 
 	/**
 	 * Tested instance.
 	 *
-	 * @var WP_APP_Manifest
+	 * @var WP_Web_App_Manifest
 	 */
 	public $instance;
 
@@ -36,7 +36,7 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 	 *
 	 * @var string
 	 */
-	const EXPECTED_ROUTE = '/wp/v2/pwa-manifest';
+	const EXPECTED_ROUTE = '/wp/v2/web-app-manifest';
 
 	/**
 	 * Image mime_type.
@@ -59,7 +59,7 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 	 */
 	public function setUp() {
 		parent::setUp();
-		$this->instance = new WP_APP_Manifest();
+		$this->instance = new WP_Web_App_Manifest();
 	}
 
 	/**
@@ -82,11 +82,11 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 	/**
 	 * Test init.
 	 *
-	 * @covers WP_APP_Manifest::init()
+	 * @covers WP_Web_App_Manifest::init()
 	 */
 	public function test_init() {
 		$this->instance->init();
-		$this->assertEquals( 'WP_APP_Manifest', get_class( $this->instance ) );
+		$this->assertEquals( 'WP_Web_App_Manifest', get_class( $this->instance ) );
 		$this->assertEquals( 10, has_action( 'wp_head', array( $this->instance, 'manifest_link_and_meta' ) ) );
 		$this->assertEquals( 10, has_action( 'rest_api_init', array( $this->instance, 'register_manifest_rest_route' ) ) );
 	}
@@ -94,7 +94,7 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 	/**
 	 * Test manifest_link_and_meta.
 	 *
-	 * @covers WP_APP_Manifest::manifest_link_and_meta()
+	 * @covers WP_Web_App_Manifest::manifest_link_and_meta()
 	 */
 	public function test_manifest_link_and_meta() {
 		ob_start();
@@ -102,7 +102,7 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertContains( '<link rel="manifest"', $output );
-		$this->assertContains( rest_url( WP_APP_Manifest::REST_NAMESPACE . WP_APP_Manifest::REST_ROUTE ), $output );
+		$this->assertContains( rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ), $output );
 		$this->assertContains( '<meta name="theme-color" content="', $output );
 		$this->assertContains( $this->instance->get_theme_color(), $output );
 	}
@@ -110,7 +110,7 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 	/**
 	 * Test get_theme_color.
 	 *
-	 * @covers WP_APP_Manifest::get_theme_color()
+	 * @covers WP_Web_App_Manifest::get_theme_color()
 	 */
 	public function test_get_theme_color() {
 		$test_background_color = '2a7230';
@@ -120,17 +120,13 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 
 		// If the theme mod is an empty string, this should return the fallback theme color.
 		set_theme_mod( 'background_color', '' );
-		$this->assertEquals( WP_APP_Manifest::FALLBACK_THEME_COLOR, $this->instance->get_theme_color() );
-
-		// Ensure the filter at the end of the overrides the value.
-		add_filter( 'pwa_background_color', array( $this, 'mock_background_color' ) );
-		$this->assertEquals( self::MOCK_BACKGROUND_COLOR, $this->instance->get_theme_color() );
+		$this->assertEquals( WP_Web_App_Manifest::FALLBACK_THEME_COLOR, $this->instance->get_theme_color() );
 	}
 
 	/**
 	 * Test get_manifest.
 	 *
-	 * @covers WP_APP_Manifest::get_manifest()
+	 * @covers WP_Web_App_Manifest::get_manifest()
 	 */
 	public function test_get_manifest() {
 		$this->mock_site_icon();
@@ -138,7 +134,7 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 
 		preg_match( '/^.{0,12}(?= |$)/', get_bloginfo( 'name' ), $short_name_matches );
 		$expected_manifest = array(
-			'background_color' => WP_APP_Manifest::FALLBACK_THEME_COLOR,
+			'background_color' => WP_Web_App_Manifest::FALLBACK_THEME_COLOR,
 			'description'      => get_bloginfo( 'description' ),
 			'display'          => 'minimal-ui',
 			'name'             => get_bloginfo( 'name' ),
@@ -146,13 +142,13 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 			'lang'             => get_locale(),
 			'dir'              => is_rtl() ? 'rtl' : 'ltr',
 			'start_url'        => get_home_url(),
-			'theme_color'      => WP_APP_Manifest::FALLBACK_THEME_COLOR,
+			'theme_color'      => WP_Web_App_Manifest::FALLBACK_THEME_COLOR,
 			'icons'            => $this->instance->get_icons(),
 		);
 		$this->assertEquals( $expected_manifest, $actual_manifest );
 
 		// Test that the filter at the end of the method overrides the value.
-		add_filter( 'pwa_manifest_json', array( $this, 'mock_manifest' ) );
+		add_filter( 'web_app_manifest', array( $this, 'mock_manifest' ) );
 		$actual_manifest = $this->instance->get_manifest();
 		$this->assertContains( self::MOCK_THEME_COLOR, $actual_manifest['theme_color'] );
 	}
@@ -160,11 +156,12 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 	/**
 	 * Test register_manifest_rest_route.
 	 *
-	 * @covers WP_APP_Manifest::register_manifest_rest_route()
+	 * @covers WP_Web_App_Manifest::register_manifest_rest_route()
 	 */
 	public function test_register_manifest_rest_route() {
 		add_action( 'rest_api_init', array( $this->instance, 'register_manifest_rest_route' ) );
-		$routes  = rest_get_server()->get_routes();
+		$routes = rest_get_server()->get_routes();
+		$this->assertArrayHasKey( self::EXPECTED_ROUTE, $routes );
 		$route   = $routes[ self::EXPECTED_ROUTE ][0];
 		$methods = array(
 			'GET' => true,
@@ -179,7 +176,7 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 	/**
 	 * Test rest_permission.
 	 *
-	 * @see WP_APP_Manifest::rest_permission()
+	 * @see WP_Web_App_Manifest::rest_permission()
 	 */
 	public function test_rest_permission() {
 		$allowed_request = new WP_REST_Request();
@@ -196,7 +193,7 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 	/**
 	 * Test get_icons.
 	 *
-	 * @covers WP_APP_Manifest::get_icons()
+	 * @covers WP_Web_App_Manifest::get_icons()
 	 */
 	public function test_get_icons() {
 

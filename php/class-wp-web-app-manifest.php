@@ -1,16 +1,16 @@
 <?php
 /**
- * WP_APP_Manifest class.
+ * WP_Web_App_Manifest class.
  *
  * @package PWA
  */
 
 /**
- * WP_APP_Manifest class.
+ * WP_Web_App_Manifest class.
  *
  * Mainly copied from Jetpack_PWA_Manifest and Jetpack_PWA_Helpers.
  */
-class WP_APP_Manifest {
+class WP_Web_App_Manifest {
 
 	/**
 	 * The theme color to use if no dynamic value is present.
@@ -31,7 +31,7 @@ class WP_APP_Manifest {
 	 *
 	 * @var string
 	 */
-	const REST_ROUTE = '/pwa-manifest';
+	const REST_ROUTE = '/web-app-manifest';
 
 	/**
 	 * The default manifest icon sizes.
@@ -86,12 +86,7 @@ class WP_APP_Manifest {
 			$theme_color = self::FALLBACK_THEME_COLOR;
 		}
 
-		/**
-		 * Enables overriding the PWA theme color.
-		 *
-		 * @param string $theme_color Hex color value.
-		 */
-		return apply_filters( 'pwa_background_color', $theme_color );
+		return $theme_color;
 	}
 
 	/**
@@ -145,7 +140,7 @@ class WP_APP_Manifest {
 		 *
 		 * @param array $manifest The manifest to send in the REST API response.
 		 */
-		return apply_filters( 'pwa_manifest_json', $manifest );
+		return apply_filters( 'web_app_manifest', $manifest );
 	}
 
 	/**
