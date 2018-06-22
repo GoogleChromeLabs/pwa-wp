@@ -80,7 +80,7 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test init().
+	 * Test init.
 	 *
 	 * @covers WP_APP_Manifest::init()
 	 */
@@ -92,7 +92,7 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test manifest_link_and_meta().
+	 * Test manifest_link_and_meta.
 	 *
 	 * @covers WP_APP_Manifest::manifest_link_and_meta()
 	 */
@@ -108,7 +108,7 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test get_theme_color().
+	 * Test get_theme_color.
 	 *
 	 * @covers WP_APP_Manifest::get_theme_color()
 	 */
@@ -128,7 +128,7 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test get_manifest().
+	 * Test get_manifest.
 	 *
 	 * @covers WP_APP_Manifest::get_manifest()
 	 */
@@ -194,7 +194,7 @@ class Test_WP_APP_Manifest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test get_icons().
+	 * Test get_icons.
 	 *
 	 * @covers WP_APP_Manifest::get_icons()
 	 */
