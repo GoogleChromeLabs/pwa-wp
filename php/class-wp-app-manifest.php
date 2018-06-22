@@ -122,7 +122,6 @@ class WP_APP_Manifest {
 		 * Because this cuts off the last word, this removes 'WordP' entirely: 'My PWA'.
 		 *
 		 * @link https://stackoverflow.com/questions/12646197/cut-the-string-to-be-80-characters-and-must-keep-the-words-without-cutting-th#answer-12646400
-		 * @todo: consider another source for this, as this short name could still be awkward.
 		 */
 		preg_match( '/^.{0,12}(?= |$)/', get_bloginfo( 'name' ), $short_name_matches );
 		if ( $short_name_matches ) {
