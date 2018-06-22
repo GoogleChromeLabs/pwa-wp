@@ -8,7 +8,7 @@
 /**
  * Tests for class WP_APP_Manifest.
  */
-class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
+class Test_WP_APP_Manifest extends WP_UnitTestCase {
 
 	/**
 	 * Tested instance.
@@ -104,6 +104,7 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		$this->assertContains( '<link rel="manifest"', $output );
 		$this->assertContains( rest_url( WP_APP_Manifest::REST_NAMESPACE . WP_APP_Manifest::REST_ROUTE ), $output );
 		$this->assertContains( '<meta name="theme-color" content="', $output );
+		$this->assertContains( $this->instance->get_theme_color(), $output );
 	}
 
 	/**
@@ -121,7 +122,7 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 		set_theme_mod( 'background_color', '' );
 		$this->assertEquals( WP_APP_Manifest::FALLBACK_THEME_COLOR, $this->instance->get_theme_color() );
 
-		// Ensure the filter at the end of the method works.
+		// Ensure the filter at the end of the overrides the value.
 		add_filter( 'pwa_background_color', array( $this, 'mock_background_color' ) );
 		$this->assertEquals( self::MOCK_BACKGROUND_COLOR, $this->instance->get_theme_color() );
 	}
@@ -132,17 +133,12 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 	 * @covers WP_APP_Manifest::get_manifest()
 	 */
 	public function test_get_manifest() {
-		global $wp_query;
-
-		// This now has the query arg and is_front_page() is true, so it should send the manifest.
-		$_GET[ WP_APP_Manifest::MANIFEST_QUERY_ARG ] = 1;
-		add_filter( 'pwa_background_color', array( $this, 'mock_background_color' ) );
 		$this->mock_site_icon();
 		$actual_manifest = $this->instance->get_manifest();
 
 		preg_match( '/^.{0,12}(?= |$)/', get_bloginfo( 'name' ), $short_name_matches );
 		$expected_manifest = array(
-			'background_color' => self::MOCK_BACKGROUND_COLOR,
+			'background_color' => WP_APP_Manifest::FALLBACK_THEME_COLOR,
 			'description'      => get_bloginfo( 'description' ),
 			'display'          => 'minimal-ui',
 			'name'             => get_bloginfo( 'name' ),
@@ -150,14 +146,15 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 			'lang'             => get_locale(),
 			'dir'              => is_rtl() ? 'rtl' : 'ltr',
 			'start_url'        => get_home_url(),
-			'theme_color'      => self::MOCK_BACKGROUND_COLOR,
+			'theme_color'      => WP_APP_Manifest::FALLBACK_THEME_COLOR,
 			'icons'            => $this->instance->get_icons(),
 		);
 		$this->assertEquals( $expected_manifest, $actual_manifest );
 
-		// Test that the filter at the end of the method works.
+		// Test that the filter at the end of the method overrides the value.
 		add_filter( 'pwa_manifest_json', array( $this, 'mock_manifest' ) );
-		$this->assertContains( self::MOCK_THEME_COLOR, $this->instance->get_manifest() );
+		$actual_manifest = $this->instance->get_manifest();
+		$this->assertContains( self::MOCK_THEME_COLOR, $actual_manifest['theme_color'] );
 	}
 
 	/**
@@ -167,7 +164,6 @@ class Test_WP_APP_Manifest extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_register_manifest_rest_route() {
 		add_action( 'rest_api_init', array( $this->instance, 'register_manifest_rest_route' ) );
-		do_action( 'rest_api_init' );
 		$routes  = rest_get_server()->get_routes();
 		$route   = $routes[ self::EXPECTED_ROUTE ][0];
 		$methods = array(

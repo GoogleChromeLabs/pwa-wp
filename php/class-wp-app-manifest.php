@@ -13,14 +13,7 @@
 class WP_APP_Manifest {
 
 	/**
-	 * The query arg that is present in a request for the app manifest.
-	 *
-	 * @var string
-	 */
-	const MANIFEST_QUERY_ARG = 'pwa_manifest';
-
-	/**
-	 * The theme color to use if no dynamic values are present.
+	 * The theme color to use if no dynamic value is present.
 	 *
 	 * @var string
 	 */
