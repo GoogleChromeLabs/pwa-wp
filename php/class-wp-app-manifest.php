@@ -78,7 +78,7 @@ class WP_APP_Manifest {
 		if ( current_theme_supports( 'custom-background' ) ) {
 			$background_color = get_background_color(); // This returns a hex value without the leading #, or an empty string.
 			if ( $background_color ) {
-				$theme_color = "#$background_color";
+				$theme_color = "#{$background_color}";
 			}
 		}
 
