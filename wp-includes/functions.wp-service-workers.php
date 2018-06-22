@@ -37,15 +37,8 @@ function wp_register_service_worker( $handle, $path, $deps = array(), $scope = n
 
 	// If the path is not relative. @todo should we try formatting it instead?
 	if ( ! preg_match( '/^\//', $path ) ) {
-		_doing_it_wrong( __FUNCTION__, esc_html__( 'Service worker should be registered with relative path.', 'pwawp' ), '0.1' );
+		_doing_it_wrong( __FUNCTION__, esc_html__( 'Service worker should be registered with relative path.', 'pwa' ), '0.1' );
 	}
-
-	// Set default scope if missing.
-	if ( ! $scope ) {
-		$scope = site_url( '/', 'relative' );
-	}
-
-	// @todo Should we use the default add from WP_Dependencies?
 	$registered = $wp_service_workers->add( $handle, $path, $deps, false, $scope );
 
 	return $registered;
@@ -59,8 +52,8 @@ function wp_register_service_worker( $handle, $path, $deps = array(), $scope = n
  */
 function wp_get_service_worker_url( $scope ) {
 
-	if ( get_option('permalink_structure') ) {
-		return '/wp-service-worker.js&scope=' . $scope;
+	if ( get_option( 'permalink_structure' ) ) {
+		return site_url( '/', 'relative' ) . 'wp-service-worker.js?scope=' . $scope;
 	}
 	return '?' . wp_service_workers()->query_var . '=1&scope=' . $scope;
 }
@@ -70,7 +63,7 @@ function wp_get_service_worker_url( $scope ) {
  */
 function wp_print_service_workers() {
 
-	foreach ( wp_service_workers()->scopes as $scope ) {
+	foreach ( wp_service_workers()->scopes as $scope => $value ) {
 		?>
 	<script>
 		if ( navigator.serviceWorker ) {

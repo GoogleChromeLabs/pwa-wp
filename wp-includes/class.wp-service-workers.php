@@ -43,10 +43,15 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function __construct() {
 		parent::__construct();
+		global $wp_filesystem;
 
-		// This is outside of 'init' since priority 0 runs the methods when rewrite isn't inited yet.
-		add_action( 'init', array( $this, 'add_sw_rewrite_tags' ) );
-		add_action( 'init', array( $this, 'add_sw_rewrite_rules' ) );
+		if ( ! class_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . '/wp-admin/includes/file.php';
+		}
+
+		if ( null === $wp_filesystem ) {
+			WP_Filesystem();
+		}
 	}
 
 	/**
@@ -62,21 +67,6 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Add rewrite tags for seeing Service Worker as query vars.
-	 */
-	public function add_sw_rewrite_tags() {
-		add_rewrite_tag( '%wp_service_worker%', '(0|1)' );
-		add_rewrite_tag( '%scope%', '([^&]+)' );
-	}
-
-	/**
-	 * Add rewrite rules for Service Worker concatenated scripts.
-	 */
-	public function add_sw_rewrite_rules() {
-		add_rewrite_rule( '^wp-service-worker.js?', "index.php?$this->query_var=1", 'top' ) ;
-	}
-
-	/**
 	 * Register service worker.
 	 *
 	 * Registers service worker if no item of that name already exists.
@@ -89,6 +79,12 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @return bool Whether the item has been registered. True on success, false on failure.
 	 */
 	public function add( $handle, $path, $deps = array(), $ver = false, $scope = null ) {
+
+		// Set default scope if missing.
+		if ( ! $scope ) {
+			$scope = site_url( '/', 'relative' );
+		}
+
 		if ( false === parent::add( $handle, $path, $deps, false, $scope ) ) {
 			return false;
 		}
@@ -134,6 +130,8 @@ class WP_Service_Workers extends WP_Scripts {
 			header( 'HTTP/1.1 304 Not Modified' );
 			exit;
 		}
+
+		// @codingStandardsIgnoreLine
 		echo $this->output;
 		exit;
 	}
@@ -142,12 +140,14 @@ class WP_Service_Workers extends WP_Scripts {
 	 * Process one registered script.
 	 *
 	 * @param string $handle Handle.
-	 * @param bool $group Group.
+	 * @param bool   $group Group.
 	 * @return void
 	 */
 	public function do_item( $handle, $group = false ) {
-		$obj = $this->registered[ $handle ];
-		$this->output .= @file_get_contents( site_url() . $obj->src ) . '
+		global $wp_filesystem;
+
+		$obj           = $this->registered[ $handle ];
+		$this->output .= $wp_filesystem->get_contents( site_url() . $obj->src ) . '
 ';
 	}
 }

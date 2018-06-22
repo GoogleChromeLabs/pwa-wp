@@ -53,6 +53,17 @@ function pwawp_init() {
 
 	// Alternative for this could be in wp-includes/functions.php.
 	add_action( 'template_redirect', 'pwawp_maybe_display_sw_script' );
+
+	add_action( 'init', 'pwawp_add_sw_rewrite_rules' );
+}
+
+/**
+ * Register rewrite rules for Service Workers.
+ */
+function pwawp_add_sw_rewrite_rules() {
+	add_rewrite_tag( '%wp_service_worker%', '(0|1)' );
+	add_rewrite_tag( '%scope%', '([^&]+)' );
+	add_rewrite_rule( '^wp-service-worker.js?', 'index.php?wp_service_worker=1', 'top' );
 }
 
 /**
