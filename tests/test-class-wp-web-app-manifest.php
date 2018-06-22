@@ -36,7 +36,7 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 	 *
 	 * @var string
 	 */
-	const EXPECTED_ROUTE = '/wp/v2/web-app-manifest';
+	const EXPECTED_ROUTE = '/app/v1/web-manifest';
 
 	/**
 	 * Image mime_type.
