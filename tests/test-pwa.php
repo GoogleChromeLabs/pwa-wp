@@ -14,8 +14,17 @@ class Test_PWA extends WP_UnitTestCase {
 	 * Test constants.
 	 */
 	public function test_constants() {
-		$this->assertTrue( defined( 'PWA_VERSION' ) );
-		$this->assertTrue( defined( 'PWA_PLUGIN_FILE' ) );
-		$this->assertTrue( defined( 'PWA_PLUGIN_DIR' ) );
+		$this->assertTrue( defined( 'PWAWP_VERSION' ) );
+		$this->assertTrue( defined( 'PWAWP_PLUGIN_FILE' ) );
+		$this->assertTrue( defined( 'PWAWP_PLUGIN_DIR' ) );
+	}
+
+	/**
+	 * Test pwawp_init().
+	 *
+	 * @covers pwawp_init()
+	 */
+	public function test_pwawp_init() {
+		$this->assertTrue( class_exists( 'WP_Web_App_Manifest' ) );
 	}
 }

@@ -32,6 +32,15 @@ pwawp_init();
  * Loads and instantiates the classes.
  */
 function pwawp_init() {
+	$classes = array(
+		'wp-web-app-manifest',
+	);
+	foreach ( $classes as $class ) {
+		require PWAWP_PLUGIN_DIR . "/php/class-{$class}.php";
+	}
+
+	$wp_web_app_manifest = new WP_Web_App_Manifest();
+	$wp_web_app_manifest->init();
 
 	// These could be in ABSPATH . WPINC . '/script-loader.php' file.
 	/** WordPress Service Workers Class */
