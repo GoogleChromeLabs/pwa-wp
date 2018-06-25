@@ -32,7 +32,7 @@ class WP_HTTPS_Detection {
 	const REQUEST_SECRET = 'https_detection_secret';
 
 	/**
-	 * Query arg key for the https detection token.
+	 * Query arg key for the HTTPS detection token.
 	 *
 	 * @var string
 	 */
@@ -73,11 +73,19 @@ class WP_HTTPS_Detection {
 	 * @return boolean Whether HTTPS is supported.
 	 */
 	public function is_https_supported() {
-		$request = wp_remote_get( add_query_arg(
-			self::REQUEST_TOKEN_QUERY_ARG,
-			$this->get_token(),
-			home_url( '/', 'http' )
-		) );
+		$request = wp_remote_request(
+			add_query_arg(
+				self::REQUEST_TOKEN_QUERY_ARG,
+				$this->get_token(),
+				home_url( '/', 'http' )
+			),
+			array(
+				'timeout' => 10,
+				'headers' => array(
+					'Cache-Control' => 'no-cache',
+				),
+			)
+		);
 
 		if ( is_wp_error( $request ) || ! method_exists( $request['http_response'], 'get_response_object' ) ) {
 			return false;
@@ -114,7 +122,7 @@ class WP_HTTPS_Detection {
 	}
 
 	/**
-	 * If the 'cron_request' arguments include a HTTPS URL, this ensures sslverify is false.
+	 * If the 'cron_request' arguments include an HTTPS URL, this ensures sslverify is false.
 	 *
 	 * Prevents an issue if HTTPS breaks,
 	 * where there would be a failed attempt to verify HTTPS.
