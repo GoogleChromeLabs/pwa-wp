@@ -83,19 +83,16 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_Detection::is_https_supported()
 	 */
 	public function test_is_https_supported() {
-		$reflection    = new ReflectionObject( $this->instance );
-		$tested_method = $reflection->getMethod( 'is_https_supported' );
-		$tested_method->setAccessible( true );
-		$this->assertFalse( $tested_method->invoke( $this->instance ) );
+		$this->assertFalse( $this->instance->is_https_supported() );
 
 		// The response is HTTPS, but the token was not present.
 		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
-		$this->assertFalse( $tested_method->invoke( $this->instance ) );
+		$this->assertFalse( $this->instance->is_https_supported() );
 		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
 
 		// The response is HTTPS with the token present, so is_https_supported() should return true.
 		add_filter( 'http_response', array( $this, 'mock_correct_response' ) );
-		$this->assertTrue( $tested_method->invoke( $this->instance ) );
+		$this->assertTrue( $this->instance->is_https_supported() );
 		remove_filter( 'http_response', array( $this, 'mock_correct_response' ) );
 	}
 

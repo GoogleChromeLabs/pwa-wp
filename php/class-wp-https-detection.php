@@ -68,12 +68,10 @@ class WP_HTTPS_Detection {
 	 * Returns true if the URL has the scheme of HTTPS, and it has the correct token.
 	 * The token is only to verify that the request is for the same site.
 	 * Also, in wp_remote_get(), 'sslverify' is true by default.
-	 * This method is private, as it's not part of the public API to get HTTPS support.
-	 * Instead, please use get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ).
 	 *
 	 * @return boolean Whether HTTPS is supported.
 	 */
-	private function is_https_supported() {
+	public function is_https_supported() {
 		$request = wp_remote_get( add_query_arg(
 			self::REQUEST_TOKEN_QUERY_ARG,
 			$this->get_token(),
