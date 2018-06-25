@@ -36,6 +36,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		$this->instance->init();
 		$this->assertEquals( 10, has_action( 'wp', array( $this->instance, 'schedule_cron' ) ) );
 		$this->assertEquals( 10, has_action( WP_HTTPS_Detection::CRON_HOOK, array( $this->instance, 'update_option_https_support' ) ) );
+		$this->assertEquals( PHP_INT_MAX, has_filter( 'cron_request', array( $this->instance, 'ensure_http_if_sslverify' ) ) );
 	}
 
 	/**
@@ -103,6 +104,42 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 */
 	public function test_get_token() {
 		$this->assertEquals( wp_hash( WP_HTTPS_Detection::REQUEST_SECRET ), $this->instance->get_token() );
+	}
+
+	/**
+	 * Test ensure_http_if_sslverify.
+	 *
+	 * @covers WP_HTTPS_Detection::ensure_http_if_sslverify()
+	 */
+	public function test_ensure_http_if_sslverify() {
+
+		// The arguments don't have an HTTPS URL and 'sslverify' isn't true, so they shouldn't change.
+		$http_url               = 'http://example.com';
+		$allowed_cron_arguments = array(
+			'url'  => $http_url,
+			'args' => array(
+				'sslverify' => false,
+			),
+		);
+		$this->assertEquals( $allowed_cron_arguments, $this->instance->ensure_http_if_sslverify( $allowed_cron_arguments ) );
+
+		// With an HTTPS URL and 'sslverify' => true, this should change 'sslverify' to false.
+		$https_url                 = 'https://example.com';
+		$disallowed_cron_arguments = array(
+			'url'  => $https_url,
+			'args' => array(
+				'sslverify' => true,
+			),
+		);
+		$cron_arguments_sslverify_true['args']['sslverify'] = true;
+		$filtered_cron_arguments                            = $this->instance->ensure_http_if_sslverify( $disallowed_cron_arguments );
+		$this->assertFalse( $filtered_cron_arguments['args']['sslverify'] );
+		$this->assertEquals( $https_url, $filtered_cron_arguments['url'] );
+
+		// The URL is HTTP, so 'sslverify' => true is allowed, and the arguments shouldn't change.
+		$allowed_cron_arguments_http        = $disallowed_cron_arguments;
+		$allowed_cron_arguments_http['url'] = $http_url;
+		$this->assertEquals( $allowed_cron_arguments_http, $this->instance->ensure_http_if_sslverify( $allowed_cron_arguments_http ) );
 	}
 
 	/**

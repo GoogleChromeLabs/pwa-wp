@@ -11,7 +11,7 @@
 class WP_HTTPS_Detection {
 
 	/**
-	 * The cron hook to check https support.
+	 * The cron hook to check HTTPS support.
 	 *
 	 * @var string
 	 */
@@ -25,7 +25,7 @@ class WP_HTTPS_Detection {
 	const HTTPS_SUPPORT_OPTION_NAME = 'is_https_supported';
 
 	/**
-	 * Secret for the https detection request.
+	 * Secret for the HTTPS detection request.
 	 *
 	 * @var string
 	 */
@@ -44,6 +44,7 @@ class WP_HTTPS_Detection {
 	public function init() {
 		add_action( 'wp', array( $this, 'schedule_cron' ) );
 		add_action( self::CRON_HOOK, array( $this, 'update_option_https_support' ) );
+		add_filter( 'cron_request', array( $this, 'ensure_http_if_sslverify' ), PHP_INT_MAX );
 	}
 
 	/**
@@ -111,4 +112,25 @@ class WP_HTTPS_Detection {
 	public function get_token() {
 		return wp_hash( self::REQUEST_SECRET );
 	}
+
+	/**
+	 * If the 'cron_request' arguments include a HTTPS URL, this ensures sslverify is false.
+	 *
+	 * Prevents an issue if HTTPS breaks,
+	 * where there would be a failed attempt to verify HTTPS.
+	 *
+	 * @param array $request The cron request arguments.
+	 * @return array $request The filtered cron request arguments.
+	 */
+	public function ensure_http_if_sslverify( $request ) {
+		if ( 0 === strpos( $request['url'], 'https' ) ) {
+			if ( isset( $request['args'] ) ) {
+				$request['args']['sslverify'] = false;
+			} else {
+				$request['args'] = array( 'sslverify' => false );
+			}
+		}
+		return $request;
+	}
+
 }
