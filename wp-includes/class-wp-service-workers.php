@@ -148,7 +148,7 @@ class WP_Service_Workers extends WP_Scripts {
 		global $wp_filesystem;
 
 		$obj           = $this->registered[ $handle ];
-		$this->output .= $wp_filesystem->get_contents( site_url() . $obj->src ) . "\n";
+		$this->output .= $wp_filesystem->get_contents( $this->get_validated_file_path( $obj->src ) ) . "\n";
 	}
 
 	/**
