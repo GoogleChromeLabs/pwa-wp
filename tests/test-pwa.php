@@ -26,5 +26,6 @@ class Test_PWA extends WP_UnitTestCase {
 	 */
 	public function test_pwawp_init() {
 		$this->assertTrue( class_exists( 'WP_Web_App_Manifest' ) );
+		$this->assertTrue( class_exists( 'WP_HTTPS_Detection' ) );
 	}
 }
