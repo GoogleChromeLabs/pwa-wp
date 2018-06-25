@@ -13,7 +13,6 @@
  * @since ?
  *
  * @see WP_Dependencies
- * @todo Does it make sense to extend WP_Scripts, maybe WP_Dependencies is enough?
  */
 class WP_Service_Workers extends WP_Scripts {
 
@@ -23,13 +22,6 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @var string
 	 */
 	public $query_var = 'wp_service_worker';
-
-	/**
-	 * Array of scopes.
-	 *
-	 * @var array
-	 */
-	public $scopes = array();
 
 	/**
 	 * Output for service worker scope script.
@@ -88,10 +80,6 @@ class WP_Service_Workers extends WP_Scripts {
 		if ( false === parent::add( $handle, $path, $deps, false, $scope ) ) {
 			return false;
 		}
-
-		if ( ! isset( $this->scopes[ $scope ] ) ) {
-			$this->scopes[ $scope ] = true;
-		}
 		return true;
 	}
 
@@ -100,14 +88,14 @@ class WP_Service_Workers extends WP_Scripts {
 	 *
 	 * @param string $scope Scope of the Service Worker.
 	 */
-	public function do_service_worker( $scope ) {
+	public function serve_request( $scope ) {
 
 		header( 'Content-Type: text/javascript; charset=utf-8' );
-		header( 'Cache-Control: no-cache' );
+		nocache_headers();
 
-		if ( ! isset( $this->scopes[ $scope ] ) ) {
-			echo '';
-			exit;
+		if ( ! in_array( $scope, $this->get_scopes(), true ) ) {
+			status_header( 404 );
+			return;
 		}
 
 		$scope_items = array();
@@ -127,13 +115,26 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? trim( $_SERVER['HTTP_IF_NONE_MATCH'] ) : false;
 		if ( $file_hash === $etag_header ) {
-			header( 'HTTP/1.1 304 Not Modified' );
-			exit;
+			status_header( 304 );
+			return;
 		}
 
 		// @codingStandardsIgnoreLine
 		echo $this->output;
-		exit;
+	}
+
+	/**
+	 * Get all scopes.
+	 *
+	 * @return array Array of scopes.
+	 */
+	public function get_scopes() {
+
+		$scopes = array();
+		foreach ( $this->registered as $handle => $item ) {
+			$scopes[] = $item->args;
+		}
+		return $scopes;
 	}
 
 	/**
@@ -147,7 +148,69 @@ class WP_Service_Workers extends WP_Scripts {
 		global $wp_filesystem;
 
 		$obj           = $this->registered[ $handle ];
-		$this->output .= $wp_filesystem->get_contents( site_url() . $obj->src ) . '
-';
+		$this->output .= $wp_filesystem->get_contents( site_url() . $obj->src ) . "\n";
+	}
+
+	/**
+	 * Remove URL scheme.
+	 *
+	 * @param string $schemed_url URL.
+	 * @return string URL.
+	 */
+	public function remove_url_scheme( $schemed_url ) {
+		return preg_replace( '#^\w+:(?=//)#', '', $schemed_url );
+	}
+
+	/**
+	 * Get validated path to file.
+	 *
+	 * @param string $url Relative path.
+	 * @return null|string|WP_Error
+	 */
+	public function get_validated_file_path( $url ) {
+		$needs_base_url = ! preg_match( '|^(https?:)?//|', $url );
+		$base_url       = site_url();
+
+		if ( $needs_base_url ) {
+			$url = $base_url . $url;
+		}
+
+		// Strip URL scheme, query, and fragment.
+		$url = $this->remove_url_scheme( preg_replace( ':[\?#].*$:', '', $url ) );
+
+		$includes_url = $this->remove_url_scheme( includes_url( '/' ) );
+		$content_url  = $this->remove_url_scheme( content_url( '/' ) );
+		$admin_url    = $this->remove_url_scheme( get_admin_url( null, '/' ) );
+
+		$allowed_hosts = array(
+			wp_parse_url( $includes_url, PHP_URL_HOST ),
+			wp_parse_url( $content_url, PHP_URL_HOST ),
+			wp_parse_url( $admin_url, PHP_URL_HOST ),
+		);
+
+		$url_host = wp_parse_url( $url, PHP_URL_HOST );
+
+		if ( ! in_array( $url_host, $allowed_hosts, true ) ) {
+			/* translators: %s is file URL */
+			return new WP_Error( 'external_file_url', sprintf( __( 'URL is located on an external domain: %s.', 'pwa' ), $url_host ) );
+		}
+
+		$file_path = null;
+		if ( 0 === strpos( $url, $content_url ) ) {
+			$file_path = WP_CONTENT_DIR . substr( $url, strlen( $content_url ) - 1 );
+		} elseif ( 0 === strpos( $url, $includes_url ) ) {
+			$file_path = ABSPATH . WPINC . substr( $url, strlen( $includes_url ) - 1 );
+		} elseif ( 0 === strpos( $url, $admin_url ) ) {
+			$file_path = ABSPATH . 'wp-admin' . substr( $url, strlen( $admin_url ) - 1 );
+		} else {
+			$file_path = ABSPATH . substr( $url, strlen( $this->remove_url_scheme( $base_url ) ) );
+		}
+
+		if ( ! $file_path || false !== strpos( '../', $file_path ) || 0 !== validate_file( $file_path ) || ! file_exists( $file_path ) ) {
+			/* translators: %s is file URL */
+			return new WP_Error( 'file_path_not_found', sprintf( __( 'Unable to locate filesystem path for %s.', 'pwa' ), $url ) );
+		}
+
+		return $file_path;
 	}
 }

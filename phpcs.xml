@@ -13,7 +13,6 @@
 
 	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
 		<exclude-pattern>tests/*</exclude-pattern>
-		<exclude-pattern>wp-includes</exclude-pattern>
 	</rule>
 
 	<!-- Include sniffs for PHP cross-version compatibility. -->

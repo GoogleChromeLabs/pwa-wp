@@ -44,37 +44,11 @@ function pwawp_init() {
 
 	// These could be in ABSPATH . WPINC . '/script-loader.php' file.
 	/** WordPress Service Workers Class */
-	require PWAWP_PLUGIN_DIR . '/wp-includes/class.wp-service-workers.php';
+	require PWAWP_PLUGIN_DIR . '/wp-includes/class-wp-service-workers.php';
 
-	/** WordPress Scripts Functions */
-	require PWAWP_PLUGIN_DIR . '/wp-includes/functions.wp-service-workers.php';
+	/** WordPress Service Worker Functions */
+	require PWAWP_PLUGIN_DIR . '/wp-includes/service-workers.php';
 
-	add_action( 'wp_print_footer_scripts', 'wp_print_service_workers' );
-
-	// Alternative for this could be in wp-includes/functions.php.
-	add_action( 'template_redirect', 'pwawp_maybe_display_sw_script' );
-
-	add_action( 'init', 'pwawp_add_sw_rewrite_rules' );
-}
-
-/**
- * Register rewrite rules for Service Workers.
- */
-function pwawp_add_sw_rewrite_rules() {
-	add_rewrite_tag( '%wp_service_worker%', '(0|1)' );
-	add_rewrite_tag( '%scope%', '([^&]+)' );
-	add_rewrite_rule( '^wp-service-worker.js?', 'index.php?wp_service_worker=1', 'top' );
-}
-
-/**
- * If it's a service worker script page, display that.
- */
-function pwawp_maybe_display_sw_script() {
-
-	if (
-		true === filter_var( get_query_var( 'wp_service_worker' ), FILTER_VALIDATE_BOOLEAN ) &&
-		strlen( get_query_var( 'scope' ) )
-	) {
-		wp_service_workers()->do_service_worker( get_query_var( 'scope' ) );
-	}
+	/** Hooks */
+	require PWAWP_PLUGIN_DIR . '/wp-includes/default-filters.php';
 }

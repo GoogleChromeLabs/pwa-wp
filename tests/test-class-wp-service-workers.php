@@ -47,7 +47,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 
 		$default_scope = site_url( '/', 'relative' );
 
-		$this->assertTrue( $this->instance->scopes[ $default_scope ] );
+		$this->assertTrue( in_array( $default_scope, $this->instance->get_scopes(), true ) );
 		$this->assertTrue( isset( $this->instance->registered['foo'] ) );
 
 		$registered_sw = $this->instance->registered['foo'];
