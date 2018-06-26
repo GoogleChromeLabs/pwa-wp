@@ -72,7 +72,7 @@ class WP_Service_Workers extends WP_Scripts {
 	public function register( $handle, $path, $deps = array(), $scopes = array() ) {
 
 		// Set default scope if missing.
-		if ( ! $scopes ) {
+		if ( empty( $scopes ) ) {
 			$scopes = array( site_url( '/', 'relative' ) );
 		}
 
