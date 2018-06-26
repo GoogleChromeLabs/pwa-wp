@@ -66,8 +66,8 @@ function wp_get_service_worker_url( $scope ) {
 		return add_query_arg( compact( 'scope' ), site_url( '/wp-service-worker.js', 'relative' ) );
 	}
 	return add_query_arg( array(
-		'scope'             => $scope,
 		'wp_service_worker' => 1,
+		'scope'             => $scope,
 	), site_url( '/', 'relative' ) );
 }
 
