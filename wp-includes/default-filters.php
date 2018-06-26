@@ -9,6 +9,6 @@ foreach ( array( 'wp_print_footer_scripts', 'admin_print_footer_scripts', 'custo
 	add_filter( $filter, 'wp_print_service_workers' );
 }
 
-add_action( 'template_redirect', 'service_worker_loaded' );
+add_action( 'parse_request', 'service_worker_loaded' );
 
-add_action( 'init', 'wp_add_sw_rewrite_rules' );
+add_action( 'init', 'wp_add_sw_rewrite_tags' );

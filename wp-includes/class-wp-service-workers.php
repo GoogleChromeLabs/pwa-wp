@@ -66,18 +66,17 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @param string $handle Name of the item. Should be unique.
 	 * @param string $path   Path of the item relative to the WordPress root directory.
 	 * @param array  $deps   Optional. An array of registered item handles this item depends on. Default empty array.
-	 * @param bool   $ver    Always false for service worker.
-	 * @param mixed  $scope  Optional. Scope of the service worker. Default relative path.
+	 * @param array  $scopes  Optional. Scopes of the service worker. Default relative path.
 	 * @return bool Whether the item has been registered. True on success, false on failure.
 	 */
-	public function add( $handle, $path, $deps = array(), $ver = false, $scope = null ) {
+	public function register( $handle, $path, $deps = array(), $scopes = array() ) {
 
 		// Set default scope if missing.
-		if ( ! $scope ) {
-			$scope = site_url( '/', 'relative' );
+		if ( ! $scopes ) {
+			$scopes = array( site_url( '/', 'relative' ) );
 		}
 
-		if ( false === parent::add( $handle, $path, $deps, false, $scope ) ) {
+		if ( false === parent::add( $handle, $path, $deps, false, compact( 'scopes' ) ) ) {
 			return false;
 		}
 		return true;
@@ -102,7 +101,7 @@ class WP_Service_Workers extends WP_Scripts {
 
 		// Get handles from the relevant scope only.
 		foreach ( $this->registered as $handle => $item ) {
-			if ( $scope === $item->args ) {
+			if ( in_array( $scope, $item->args['scopes'], true ) ) {
 				$scope_items[] = $handle;
 			}
 		}
@@ -132,7 +131,7 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$scopes = array();
 		foreach ( $this->registered as $handle => $item ) {
-			$scopes[] = $item->args;
+			$scopes = array_merge( $scopes, $item->args['scopes'] );
 		}
 		return $scopes;
 	}
@@ -178,19 +177,12 @@ class WP_Service_Workers extends WP_Scripts {
 		// Strip URL scheme, query, and fragment.
 		$url = $this->remove_url_scheme( preg_replace( ':[\?#].*$:', '', $url ) );
 
-		$includes_url = $this->remove_url_scheme( includes_url( '/' ) );
 		$content_url  = $this->remove_url_scheme( content_url( '/' ) );
-		$admin_url    = $this->remove_url_scheme( get_admin_url( null, '/' ) );
-
-		$allowed_hosts = array(
-			wp_parse_url( $includes_url, PHP_URL_HOST ),
-			wp_parse_url( $content_url, PHP_URL_HOST ),
-			wp_parse_url( $admin_url, PHP_URL_HOST ),
-		);
+		$allowed_host = wp_parse_url( $content_url, PHP_URL_HOST );
 
 		$url_host = wp_parse_url( $url, PHP_URL_HOST );
 
-		if ( ! in_array( $url_host, $allowed_hosts, true ) ) {
+		if ( $allowed_host !== $url_host ) {
 			/* translators: %s is file URL */
 			return new WP_Error( 'external_file_url', sprintf( __( 'URL is located on an external domain: %s.', 'pwa' ), $url_host ) );
 		}
@@ -198,12 +190,6 @@ class WP_Service_Workers extends WP_Scripts {
 		$file_path = null;
 		if ( 0 === strpos( $url, $content_url ) ) {
 			$file_path = WP_CONTENT_DIR . substr( $url, strlen( $content_url ) - 1 );
-		} elseif ( 0 === strpos( $url, $includes_url ) ) {
-			$file_path = ABSPATH . WPINC . substr( $url, strlen( $includes_url ) - 1 );
-		} elseif ( 0 === strpos( $url, $admin_url ) ) {
-			$file_path = ABSPATH . 'wp-admin' . substr( $url, strlen( $admin_url ) - 1 );
-		} else {
-			$file_path = ABSPATH . substr( $url, strlen( $this->remove_url_scheme( $base_url ) ) );
 		}
 
 		if ( ! $file_path || false !== strpos( '../', $file_path ) || 0 !== validate_file( $file_path ) || ! file_exists( $file_path ) ) {

@@ -42,8 +42,8 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Service_Workers::add()
 	 */
-	public function test_add() {
-		$this->instance->add( 'foo', '/test-sw.js', array( 'bar' ), '1.0' );
+	public function test_register() {
+		$this->instance->register( 'foo', '/test-sw.js', array( 'bar' ) );
 
 		$default_scope = site_url( '/', 'relative' );
 
@@ -53,7 +53,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		$registered_sw = $this->instance->registered['foo'];
 
 		$this->assertEquals( '/test-sw.js', $registered_sw->src );
-		$this->assertEquals( $default_scope, $registered_sw->args );
+		$this->assertTrue( in_array( $default_scope, $registered_sw->args['scopes'], true ) );
 		$this->assertEquals( array( 'bar' ), $registered_sw->deps );
 	}
 }

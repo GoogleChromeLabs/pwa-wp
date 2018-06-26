@@ -45,7 +45,7 @@ function wp_register_service_worker( $handle, $path, $deps = array(), $scope = n
 		);
 	}
 
-	$registered = $wp_service_workers->add( $handle, $path, $deps, false, $scope );
+	$registered = $wp_service_workers->register( $handle, $path, $deps, $scope );
 
 	return $registered;
 }
@@ -62,12 +62,8 @@ function wp_get_service_worker_url( $scope ) {
 		$scope = site_url( '/', 'relative' );
 	}
 
-	if ( get_option( 'permalink_structure' ) ) {
-		return add_query_arg( compact( 'scope' ), site_url( '/wp-service-worker.js', 'relative' ) );
-	}
 	return add_query_arg( array(
-		'wp_service_worker' => 1,
-		'scope'             => $scope,
+		'wp_service_worker' => $scope,
 	), site_url( '/', 'relative' ) );
 }
 
@@ -99,23 +95,18 @@ function wp_print_service_workers() {
 }
 
 /**
- * Register rewrite rules for Service Workers.
+ * Register rewrite tag for Service Workers.
  */
-function wp_add_sw_rewrite_rules() {
-	add_rewrite_tag( '%wp_service_worker%', '(0|1)' );
-	add_rewrite_tag( '%scope%', '([^&]+)' );
-	add_rewrite_rule( '^wp-service-worker.js?', 'index.php?wp_service_worker=1', 'top' );
+function wp_add_sw_rewrite_tags() {
+	add_rewrite_tag( '%wp_service_worker%', '([^&]+)' );
 }
 
 /**
  * If it's a service worker script page, display that.
  */
 function service_worker_loaded() {
-	if (
-		! empty( $GLOBALS['wp']->query_vars['wp_service_worker'] ) &&
-		! empty( $GLOBALS['wp']->query_vars['scope'] )
-	) {
-		wp_service_workers()->serve_request( $GLOBALS['wp']->query_vars['scope'] );
+	if ( ! empty( $GLOBALS['wp']->query_vars['wp_service_worker'] ) ) {
+		wp_service_workers()->serve_request( $GLOBALS['wp']->query_vars['wp_service_worker'] );
 		exit;
 	}
 }
