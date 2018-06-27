@@ -46,6 +46,16 @@ class WP_HTTPS_Detection {
 		add_action( self::CRON_HOOK, array( $this, 'update_option_https_support' ) );
 		add_filter( 'cron_request', array( $this, 'ensure_http_if_sslverify' ), PHP_INT_MAX );
 		add_action( 'parse_query', array( $this, 'verify_https_check' ) );
+		add_action( 'init', array( $this, 'check_https_support' ) );
+	}
+
+	/**
+	 * Gets whether HTTPS is supported, using the stored result of the loopback request.
+	 *
+	 * @return boolean
+	 */
+	public static function is_https_supported() {
+		return (bool) get_option( self::HTTPS_SUPPORT_OPTION_NAME );
 	}
 
 	/**

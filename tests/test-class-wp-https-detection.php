@@ -50,6 +50,21 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test is_https_supported.
+	 *
+	 * @covers WP_HTTPS_Detection::is_https_supported()
+	 */
+	public function test_is_https_supported() {
+		$this->assertFalse( WP_HTTPS_Detection::is_https_supported() );
+
+		update_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME, true );
+		$this->assertTrue( WP_HTTPS_Detection::is_https_supported() );
+
+		update_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME, false );
+		$this->assertFalse( WP_HTTPS_Detection::is_https_supported() );
+	}
+
+	/**
 	 * Test schedule_cron.
 	 *
 	 * @covers WP_HTTPS_Detection::schedule_cron()
