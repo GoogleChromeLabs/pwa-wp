@@ -69,32 +69,38 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 */
 	public function test_update_option_https_support() {
 		$this->instance->update_option_https_support();
-		$this->assertFalse( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
+		$this->assertTrue( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
 
-		// There should be HTTPS support, as is_https_supported() should return true.
-		add_filter( 'http_response', array( $this, 'mock_correct_response' ) );
+		// There should be HTTPS support, as check_https_support() should return true.
+		add_filter( 'http_response', array( $this, 'mock_error_response' ) );
 		$this->instance->update_option_https_support();
 		$this->assertTrue( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
-		remove_filter( 'http_response', array( $this, 'mock_correct_response' ) );
+		remove_filter( 'http_response', array( $this, 'mock_error_response' ) );
+
+		// The response is a 301, so the option value should be false.
+		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
+		$this->instance->update_option_https_support();
+		$this->assertFalse( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
+		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
 	}
 
 	/**
-	 * Test is_https_supported.
+	 * Test check_https_support.
 	 *
-	 * @covers WP_HTTPS_Detection::is_https_supported()
+	 * @covers WP_HTTPS_Detection::check_https_support()
 	 */
-	public function test_is_https_supported() {
-		$this->assertFalse( $this->instance->is_https_supported() );
+	public function test_check_https_support() {
+		$this->assertTrue( $this->instance->check_https_support() );
 
-		// The response is HTTPS, but the token was not present.
+		// The response is a WP_Error.
+		add_filter( 'http_response', array( $this, 'mock_error_response' ) );
+		$this->assertTrue( is_wp_error( $this->instance->check_https_support() ) );
+		remove_filter( 'http_response', array( $this, 'mock_error_response' ) );
+
+		// The response should cause check_https_support() to be false.
 		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
-		$this->assertFalse( $this->instance->is_https_supported() );
+		$this->assertFalse( $this->instance->check_https_support() );
 		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
-
-		// The response is HTTPS with the token present, so is_https_supported() should return true.
-		add_filter( 'http_response', array( $this, 'mock_correct_response' ) );
-		$this->assertTrue( $this->instance->is_https_supported() );
-		remove_filter( 'http_response', array( $this, 'mock_correct_response' ) );
 	}
 
 	/**
@@ -143,31 +149,21 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Alter the response to be HTTPS, but without the token.
-	 *
-	 * Still, this should not cause is_htts_supported() to return true.
-	 * It does not include the request token.
+	 * Alters the response, to simulate a scenario where HTTPS isn't supported.
 	 *
 	 * @param WP_HTTP_Requests_Response $response The response object.
 	 * @return WP_HTTP_Requests_Response $response The filtered response object.
 	 */
 	public function mock_incorrect_response( $response ) {
-		$response['http_response']->get_response_object()->url = 'https://example.com';
+		$response['response']['code'] = 301;
 		return $response;
 	}
-
 	/**
-	 * Alter the response, which should cause is_https_supported() to return true because it includes the token.
+	 * Alters the response to be a WP_Error.
 	 *
-	 * @param WP_HTTP_Requests_Response $response The response object.
-	 * @return WP_HTTP_Requests_Response $response The filtered response object.
+	 * @return WP_Error An error response.
 	 */
-	public function mock_correct_response( $response ) {
-		$response['http_response']->get_response_object()->url = add_query_arg(
-			WP_HTTPS_Detection::REQUEST_TOKEN_QUERY_ARG,
-			$this->instance->get_token(),
-			'https://example.com'
-		);
-		return $response;
+	public function mock_error_response() {
+		return new WP_Error();
 	}
 }

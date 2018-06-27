@@ -58,9 +58,13 @@ class WP_HTTPS_Detection {
 
 	/**
 	 * Makes a request to find whether HTTPS is supported, and stores the result in an option.
+	 * If the request is a WP_Error, don't update the option.
 	 */
 	public function update_option_https_support() {
-		update_option( self::HTTPS_SUPPORT_OPTION_NAME, $this->is_https_supported() );
+		$https_support = $this->check_https_support();
+		if ( is_bool( $https_support ) ) {
+			update_option( self::HTTPS_SUPPORT_OPTION_NAME, $https_support );
+		}
 	}
 
 	/**
@@ -70,43 +74,26 @@ class WP_HTTPS_Detection {
 	 * The token is only to verify that the request is for the same site.
 	 * Also, in wp_remote_get(), 'sslverify' is true by default.
 	 *
-	 * @return boolean Whether HTTPS is supported.
+	 * @return boolean|WP_Error Whether HTTPS is supported, or a WP_Error if the loopback request resulted in an error.
 	 */
-	public function is_https_supported() {
-		$request = wp_remote_request(
+	public function check_https_support() {
+		$response = wp_remote_request(
 			add_query_arg(
 				self::REQUEST_TOKEN_QUERY_ARG,
 				$this->get_token(),
-				home_url( '/', 'http' )
+				home_url( '/', 'https' )
 			),
 			array(
-				'timeout' => 10,
 				'headers' => array(
 					'Cache-Control' => 'no-cache',
 				),
 			)
 		);
 
-		if ( is_wp_error( $request ) || ! method_exists( $request['http_response'], 'get_response_object' ) ) {
-			return false;
+		if ( is_wp_error( $response ) ) {
+			return $response;
 		}
-
-		$response   = $request['http_response']->get_response_object();
-		$parsed_url = wp_parse_url( $response->url );
-		if ( ! $response->success || ! isset( $parsed_url['query'] ) ) {
-			return false;
-		}
-
-		$query_args = wp_parse_args( $parsed_url['query'] );
-		$is_https   = (
-			isset( $parsed_url['scheme'], $query_args[ self::REQUEST_TOKEN_QUERY_ARG ] )
-			&&
-			'https' === $parsed_url['scheme']
-			&&
-			$this->get_token() === $query_args[ self::REQUEST_TOKEN_QUERY_ARG ]
-		);
-
-		return $is_https;
+		return 200 === wp_remote_retrieve_response_code( $response );
 	}
 
 	/**
