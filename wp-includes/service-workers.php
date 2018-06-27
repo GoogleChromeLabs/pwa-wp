@@ -82,10 +82,12 @@ function wp_print_service_workers() {
 		foreach ( $scopes as $scope ) {
 			?>
 			if ( navigator.serviceWorker ) {
-				navigator.serviceWorker.register(
-					<?php echo wp_json_encode( wp_get_service_worker_url( $scope ) ); ?>,
-					{ scope: <?php echo wp_json_encode( compact( 'scope' ) ); ?> }
-				);
+				window.addEventListener( 'load', function() {
+					navigator.serviceWorker.register(
+						<?php echo wp_json_encode( wp_get_service_worker_url( $scope ) ); ?>,
+						{ scope: <?php echo wp_json_encode( compact( 'scope' ) ); ?> }
+					);
+				}
 			}
 			<?php
 		}
