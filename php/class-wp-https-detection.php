@@ -80,9 +80,11 @@ class WP_HTTPS_Detection {
 	/**
 	 * Makes a request to the home URL to determine whether HTTPS is supported.
 	 *
-	 * Returns true if the URL has the scheme of HTTPS, and it has the correct token.
-	 * The token is only to verify that the request is for the same site.
-	 * Also, in wp_remote_get(), 'sslverify' is true by default.
+	 * To ensure the request is from the correct origin,
+	 * this passes a query var of a random number to the request.
+	 * Then, the 'parse_query' hook verify_https_check() looks for the query var.
+	 * If it's present, it calls wp_die() with a hash of the query var.
+	 * This method then ensures that the hash is present in the response body,
 	 *
 	 * @return boolean|WP_Error Whether HTTPS is supported, or a WP_Error.
 	 */
