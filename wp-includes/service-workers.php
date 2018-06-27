@@ -33,10 +33,10 @@ function wp_service_workers() {
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
 function wp_register_service_worker( $handle, $path, $deps = array(), $scopes = array() ) {
-	$wp_service_workers = wp_service_workers();
+	$service_workers = wp_service_workers();
 
 	// If the path is not correct.
-	if ( is_wp_error( $wp_service_workers->get_validated_file_path( $path ) ) ) {
+	if ( is_wp_error( $service_workers->get_validated_file_path( $path ) ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			/* translators: %s is file URL */
@@ -45,7 +45,7 @@ function wp_register_service_worker( $handle, $path, $deps = array(), $scopes = 
 		);
 	}
 
-	$registered = $wp_service_workers->register( $handle, $path, $deps, $scopes );
+	$registered = $service_workers->register( $handle, $path, $deps, $scopes );
 
 	return $registered;
 }
@@ -82,12 +82,10 @@ function wp_print_service_workers() {
 		foreach ( $scopes as $scope ) {
 			?>
 			if ( navigator.serviceWorker ) {
-				window.addEventListener( 'load', function() {
-					navigator.serviceWorker.register(
-						<?php echo wp_json_encode( wp_get_service_worker_url( $scope ) ); ?>,
-						{ scope: <?php echo wp_json_encode( compact( 'scope' ) ); ?> }
-					);
-				}
+				navigator.serviceWorker.register(
+					<?php echo wp_json_encode( wp_get_service_worker_url( $scope ) ); ?>,
+					<?php echo wp_json_encode( compact( 'scope' ) ); ?>
+				);
 			}
 			<?php
 		}
