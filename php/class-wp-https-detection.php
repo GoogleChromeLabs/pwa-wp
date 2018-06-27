@@ -18,25 +18,25 @@ class WP_HTTPS_Detection {
 	const CRON_HOOK = 'check_https_support';
 
 	/**
-	 * Option name for whether HTTPS is supported.
+	 * The option name for whether HTTPS is supported.
 	 *
 	 * @var string
 	 */
 	const HTTPS_SUPPORT_OPTION_NAME = 'is_https_supported';
 
 	/**
-	 * Secret for the HTTPS detection request.
+	 * The query var key for HTTPS detection, used to verify that the request is from the same origin.
 	 *
 	 * @var string
 	 */
-	const REQUEST_SECRET = 'https_detection_secret';
+	const REQUEST_QUERY_VAR = 'https_detection_token';
 
 	/**
-	 * Query arg key for the HTTPS detection token.
+	 * The number passed to the query var.
 	 *
-	 * @var string
+	 * @var int
 	 */
-	const REQUEST_TOKEN_QUERY_ARG = 'https_detection_token';
+	public $query_var_number;
 
 	/**
 	 * Inits the class.
@@ -45,6 +45,7 @@ class WP_HTTPS_Detection {
 		add_action( 'wp', array( $this, 'schedule_cron' ) );
 		add_action( self::CRON_HOOK, array( $this, 'update_option_https_support' ) );
 		add_filter( 'cron_request', array( $this, 'ensure_http_if_sslverify' ), PHP_INT_MAX );
+		add_action( 'parse_query', array( $this, 'verify_https_check' ) );
 	}
 
 	/**
@@ -74,13 +75,14 @@ class WP_HTTPS_Detection {
 	 * The token is only to verify that the request is for the same site.
 	 * Also, in wp_remote_get(), 'sslverify' is true by default.
 	 *
-	 * @return boolean|WP_Error Whether HTTPS is supported, or a WP_Error if the loopback request resulted in an error.
+	 * @return boolean|WP_Error Whether HTTPS is supported, or a WP_Error.
 	 */
 	public function check_https_support() {
-		$response = wp_remote_request(
+		$this->query_var_number = wp_rand();
+		$response               = wp_remote_request(
 			add_query_arg(
-				self::REQUEST_TOKEN_QUERY_ARG,
-				$this->get_token(),
+				self::REQUEST_QUERY_VAR,
+				$this->query_var_number,
 				home_url( '/', 'https' )
 			),
 			array(
@@ -93,19 +95,15 @@ class WP_HTTPS_Detection {
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
-		return 200 === wp_remote_retrieve_response_code( $response );
-	}
 
-	/**
-	 * Gets the token, based on the secret.
-	 *
-	 * This token is not intended for security, as much as ensuring that the request is for this site.
-	 * By calling wp_hash(), it uses this site's salts, which should be different from other sites.
-	 *
-	 * @return string $token The token for the request.
-	 */
-	public function get_token() {
-		return wp_hash( self::REQUEST_SECRET );
+		if ( false === strpos( wp_remote_retrieve_body( $response ), wp_hash( $this->query_var_number, 'nonce' ) ) ) {
+			return new WP_Error(
+				'invalid_https_validation_source',
+				__( 'There was an issue in the request for HTTPS verification. It might not have been from the same origin.', 'default' )
+			);
+		}
+
+		return 200 === wp_remote_retrieve_response_code( $response );
 	}
 
 	/**
@@ -124,4 +122,19 @@ class WP_HTTPS_Detection {
 		return $request;
 	}
 
+	/**
+	 * If the query has the query var, call die() with the hashed query var.
+	 *
+	 * This uses wp_die() instead of die(),
+	 * because it allows filtering the handler: 'wp_die_handler'.
+	 * This prevents stopping the unit tests.
+	 *
+	 * @param WP_Query $wp_query The query object.
+	 */
+	public function verify_https_check( $wp_query ) {
+		$query_var = $wp_query->get( self::REQUEST_QUERY_VAR );
+		if ( ! empty( $query_var ) ) {
+			wp_die( wp_hash( $query_var, 'nonce' ) ); // WPCS: XSS ok.
+		}
+	}
 }

@@ -18,6 +18,13 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	public $instance;
 
 	/**
+	 * The message passed to wp_die().
+	 *
+	 * @var string
+	 */
+	public $wp_die_message;
+
+	/**
 	 * Setup.
 	 *
 	 * @inheritdoc
@@ -25,6 +32,8 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 		$this->instance = new WP_HTTPS_Detection();
+		add_filter( 'wp_die_handler', array( $this, 'get_handler_to_prevent_exiting' ), 11 );
+		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
 	}
 
 	/**
@@ -37,6 +46,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		$this->assertEquals( 10, has_action( 'wp', array( $this->instance, 'schedule_cron' ) ) );
 		$this->assertEquals( 10, has_action( WP_HTTPS_Detection::CRON_HOOK, array( $this->instance, 'update_option_https_support' ) ) );
 		$this->assertEquals( PHP_INT_MAX, has_filter( 'cron_request', array( $this->instance, 'ensure_http_if_sslverify' ) ) );
+		$this->assertEquals( 10, has_action( 'parse_query', array( $this->instance, 'verify_https_check' ) ) );
 	}
 
 	/**
@@ -104,15 +114,6 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test get_token.
-	 *
-	 * @covers WP_HTTPS_Detection::get_token()
-	 */
-	public function test_get_token() {
-		$this->assertEquals( wp_hash( WP_HTTPS_Detection::REQUEST_SECRET ), $this->instance->get_token() );
-	}
-
-	/**
 	 * Test ensure_http_if_sslverify.
 	 *
 	 * @covers WP_HTTPS_Detection::ensure_http_if_sslverify()
@@ -149,6 +150,30 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test verify_https_check.
+	 *
+	 * @covers WP_Query::verify_https_check()
+	 */
+	public function test_verify_https_check() {
+		$query_var = wp_rand();
+		$wp_query  = new WP_Query( array(
+			WP_HTTPS_Detection::REQUEST_QUERY_VAR => $query_var,
+		) );
+
+		// The query var is present in WP_Query, so this should pass the message to wp_die().
+		$this->instance->verify_https_check( $wp_query );
+		$this->assertEquals( wp_hash( $query_var, 'nonce' ), $this->wp_die_message );
+
+		$this->wp_die_message = null;
+		$wp_query             = new WP_Query();
+
+		// The query var is not present in WP_Query, so this shouldn't call wp_die().
+		$this->instance->verify_https_check( $wp_query );
+		$this->assertEquals( null, $this->wp_die_message );
+
+	}
+
+	/**
 	 * Alters the response, to simulate a scenario where HTTPS isn't supported.
 	 *
 	 * @param WP_HTTP_Requests_Response $response The response object.
@@ -158,6 +183,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		$response['response']['code'] = 301;
 		return $response;
 	}
+
 	/**
 	 * Alters the response to be a WP_Error.
 	 *
@@ -165,5 +191,41 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 */
 	public function mock_error_response() {
 		return new WP_Error();
+	}
+
+	/**
+	 * Gets the handler to prevent exiting from the tests.
+	 *
+	 * @return array
+	 */
+	public function get_handler_to_prevent_exiting() {
+		return array( $this, 'prevent_exiting_from_tests' );
+	}
+
+	/**
+	 * Prevents exiting early from tests, by overriding the handler for wp_die().
+	 *
+	 * @param string $message The message passed to wp_die().
+	 */
+	public function prevent_exiting_from_tests( $message ) {
+		$this->wp_die_message = $message;
+	}
+
+	/**
+	 * Overrides the response body from wp_remote_get().
+	 *
+	 * This is needed because WP_HTTPS_Detection::verify_https_check() calls wp_die(),
+	 * and the wp_die() handler had to be overridden to prevent the tests from stopping.
+	 * So this mocks the expected response.
+	 *
+	 * @return array The response.
+	 */
+	public function mock_successful_response() {
+		return array(
+			'body'     => sprintf( '<html><body>%s</body></html>', wp_hash( $this->instance->query_var_number, 'nonce' ) ),
+			'response' => array(
+				'code' => 200,
+			),
+		);
 	}
 }
