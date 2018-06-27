@@ -29,10 +29,10 @@ function wp_service_workers() {
  * @param string $handle Name of the service worker. Should be unique.
  * @param string $path   Relative path of the service worker.
  * @param array  $deps   Optional. An array of registered script handles this depends on. Default empty array.
- * @param string $scope  Optional Scope of the service worker.
+ * @param array  $scopes Optional Scopes of the service worker.
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
-function wp_register_service_worker( $handle, $path, $deps = array(), $scope = null ) {
+function wp_register_service_worker( $handle, $path, $deps = array(), $scopes = array() ) {
 	$wp_service_workers = wp_service_workers();
 
 	// If the path is not correct.
@@ -45,7 +45,7 @@ function wp_register_service_worker( $handle, $path, $deps = array(), $scope = n
 		);
 	}
 
-	$registered = $wp_service_workers->register( $handle, $path, $deps, $scope );
+	$registered = $wp_service_workers->register( $handle, $path, $deps, $scopes );
 
 	return $registered;
 }
