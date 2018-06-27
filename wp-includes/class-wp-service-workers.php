@@ -133,7 +133,7 @@ class WP_Service_Workers extends WP_Scripts {
 		foreach ( $this->registered as $handle => $item ) {
 			$scopes = array_merge( $scopes, $item->args['scopes'] );
 		}
-		return $scopes;
+		return array_unique( $scopes );
 	}
 
 	/**
