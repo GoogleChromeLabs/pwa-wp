@@ -33,12 +33,15 @@ pwawp_init();
  */
 function pwawp_init() {
 	$classes = array(
-		'wp-web-app-manifest',
+		'web-app-manifest',
+		'https-detection',
 	);
 	foreach ( $classes as $class ) {
-		require PWAWP_PLUGIN_DIR . "/php/class-{$class}.php";
+		require PWAWP_PLUGIN_DIR . "/php/class-wp-{$class}.php";
 	}
 
 	$wp_web_app_manifest = new WP_Web_App_Manifest();
 	$wp_web_app_manifest->init();
+	$wp_https_detection = new WP_HTTPS_Detection();
+	$wp_https_detection->init();
 }
