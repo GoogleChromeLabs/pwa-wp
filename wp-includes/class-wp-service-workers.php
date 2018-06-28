@@ -63,23 +63,28 @@ class WP_Service_Workers extends WP_Scripts {
 	 *
 	 * Registers service worker if no item of that name already exists.
 	 *
-	 * @param string $handle Name of the item. Should be unique.
-	 * @param string $path   Path of the item relative to the WordPress root directory.
-	 * @param array  $deps   Optional. An array of registered item handles this item depends on. Default empty array.
-	 * @param array  $scopes  Optional. Scopes of the service worker. Default relative path.
+	 * @param string $handle   Name of the item. Should be unique.
+	 * @param string $callback Path of the item relative to the WordPress root directory.
+	 * @param array  $deps     Optional. An array of registered item handles this item depends on. Default empty array.
+	 * @param array  $scopes   Optional. Scopes of the service worker. Default relative path.
 	 * @return bool Whether the item has been registered. True on success, false on failure.
 	 */
-	public function register( $handle, $path, $deps = array(), $scopes = array() ) {
+	public function register( $handle, $callback, $deps = array(), $scopes = array() ) {
 
 		// Set default scope if missing.
 		if ( empty( $scopes ) ) {
 			$scopes = array( site_url( '/', 'relative' ) );
 		}
 
-		if ( false === parent::add( $handle, $path, $deps, false, compact( 'scopes' ) ) ) {
-			return false;
+		if ( is_callable( $callback ) ) {
+			$args = array(
+				'scopes'   => $scopes,
+				'callback' => $callback,
+			);
+			return parent::add( $handle, false, $deps, false, $args );
+		} else {
+			return parent::add( $handle, $callback, $deps, false, compact( 'scopes' ) );
 		}
-		return true;
 	}
 
 	/**
@@ -146,8 +151,13 @@ class WP_Service_Workers extends WP_Scripts {
 	public function do_item( $handle, $group = false ) {
 		global $wp_filesystem;
 
-		$obj           = $this->registered[ $handle ];
-		$this->output .= $wp_filesystem->get_contents( $this->get_validated_file_path( $obj->src ) ) . "\n";
+		$obj = $this->registered[ $handle ];
+
+		if ( false === $obj->src ) {
+			$this->output .= call_user_func( $obj->args['callback'] ) . "\n";
+		} else {
+			$this->output .= $wp_filesystem->get_contents( $this->get_validated_file_path( $obj->src ) ) . "\n";
+		}
 	}
 
 	/**

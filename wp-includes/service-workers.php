@@ -26,26 +26,26 @@ function wp_service_workers() {
  *
  * @since ?
  *
- * @param string $handle Name of the service worker. Should be unique.
- * @param string $path   Relative path of the service worker.
- * @param array  $deps   Optional. An array of registered script handles this depends on. Default empty array.
- * @param array  $scopes Optional Scopes of the service worker.
+ * @param string $handle   Name of the service worker. Should be unique.
+ * @param string $callback Callback method or relative path of the service worker.
+ * @param array  $deps     Optional. An array of registered script handles this depends on. Default empty array.
+ * @param array  $scopes   Optional Scopes of the service worker.
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
-function wp_register_service_worker( $handle, $path, $deps = array(), $scopes = array() ) {
+function wp_register_service_worker( $handle, $callback, $deps = array(), $scopes = array() ) {
 	$service_workers = wp_service_workers();
 
 	// If the path is not correct.
-	if ( is_wp_error( $service_workers->get_validated_file_path( $path ) ) ) {
+	if ( ! is_callable( $callback ) && is_wp_error( $service_workers->get_validated_file_path( $callback ) ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			/* translators: %s is file URL */
-			sprintf( esc_html__( 'Service worker path is incorrect: %s', 'pwa' ), esc_url( $path ) ),
+			sprintf( esc_html__( 'Service worker callback is incorrect: %s', 'pwa' ), esc_url( $callback ) ),
 			'0.1'
 		);
 	}
 
-	$registered = $service_workers->register( $handle, $path, $deps, $scopes );
+	$registered = $service_workers->register( $handle, $callback, $deps, $scopes );
 
 	return $registered;
 }
