@@ -161,7 +161,9 @@ class WP_Service_Workers extends WP_Scripts {
 			} else {
 				/* translators: %s is file URL */
 				$this->output .= sprintf( esc_html( "\n/* Source: %s */\n" ), esc_url( $obj->src ) );
+				$this->output .= "( function() {\n";
 				$this->output .= $wp_filesystem->get_contents( $this->get_validated_file_path( $obj->src ) ) . "\n";
+				$this->output .= "} )();\n";
 			}
 		}
 	}
