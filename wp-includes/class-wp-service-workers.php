@@ -63,28 +63,19 @@ class WP_Service_Workers extends WP_Scripts {
 	 *
 	 * Registers service worker if no item of that name already exists.
 	 *
-	 * @param string $handle   Name of the item. Should be unique.
-	 * @param string $callback Path of the item relative to the WordPress root directory.
-	 * @param array  $deps     Optional. An array of registered item handles this item depends on. Default empty array.
-	 * @param array  $scopes   Optional. Scopes of the service worker. Default relative path.
+	 * @param string          $handle Name of the item. Should be unique.
+	 * @param string|callable $src    URL to the source in the WordPress install, or a callback that returns the JS to include in the service worker.
+	 * @param array           $deps   Optional. An array of registered item handles this item depends on. Default empty array.
+	 * @param array           $scopes Optional. Scopes of the service worker. Default relative path.
 	 * @return bool Whether the item has been registered. True on success, false on failure.
 	 */
-	public function register( $handle, $callback, $deps = array(), $scopes = array() ) {
+	public function register( $handle, $src, $deps = array(), $scopes = array() ) {
 
 		// Set default scope if missing.
 		if ( empty( $scopes ) ) {
 			$scopes = array( site_url( '/', 'relative' ) );
 		}
-
-		if ( is_callable( $callback ) ) {
-			$args = array(
-				'scopes'   => $scopes,
-				'callback' => $callback,
-			);
-			return parent::add( $handle, false, $deps, false, $args );
-		} else {
-			return parent::add( $handle, $callback, $deps, false, compact( 'scopes' ) );
-		}
+		return parent::add( $handle, $src, $deps, false, compact( 'scopes' ) );
 	}
 
 	/**
@@ -153,10 +144,25 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$obj = $this->registered[ $handle ];
 
-		if ( false === $obj->src ) {
-			$this->output .= call_user_func( $obj->args['callback'] ) . "\n";
+		if ( is_callable( $obj->src ) ) {
+			$this->output .= call_user_func( $obj->src ) . "\n";
 		} else {
-			$this->output .= $wp_filesystem->get_contents( $this->get_validated_file_path( $obj->src ) ) . "\n";
+			$validated_path = $this->get_validated_file_path( $obj->src );
+			if ( is_wp_error( $validated_path ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					/* translators: %s is file URL */
+					sprintf( esc_html__( 'Service worker src is incorrect: %s', 'pwa' ), esc_html( $obj->src ) ),
+					'0.1'
+				);
+
+				/* translators: %s is file URL */
+				$this->output .= "console.warn( '" . sprintf( esc_html__( 'Service worker src is incorrect: %s', 'pwa' ), esc_html( $obj->src ) ) . "' );\n";
+			} else {
+				/* translators: %s is file URL */
+				$this->output .= sprintf( esc_html( "\n/* Source: %s */\n" ), esc_url( $obj->src ) );
+				$this->output .= $wp_filesystem->get_contents( $this->get_validated_file_path( $obj->src ) ) . "\n";
+			}
 		}
 	}
 
@@ -177,6 +183,10 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @return null|string|WP_Error
 	 */
 	public function get_validated_file_path( $url ) {
+		if ( ! is_string( $url ) ) {
+			return new WP_Error( 'incorrect_path_format', esc_html__( 'URL has to be a string', 'pwa' ) );
+		}
+
 		$needs_base_url = ! preg_match( '|^(https?:)?//|', $url );
 		$base_url       = site_url();
 
