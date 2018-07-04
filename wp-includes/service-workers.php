@@ -71,7 +71,10 @@ function wp_print_service_workers() {
 		foreach ( $scopes as $scope ) {
 			?>
 			if ( navigator.serviceWorker ) {
-				navigator.serviceWorker.register(
+				if ( ! window.$serviceWorkersRegister ) {
+					window.$serviceWorkersRegister = {};
+				}
+				window.$serviceWorkersRegister[ <?php echo wp_json_encode( $scope ); ?> ] = navigator.serviceWorker.register(
 					<?php echo wp_json_encode( wp_get_service_worker_url( $scope ) ); ?>,
 					<?php echo wp_json_encode( compact( 'scope' ) ); ?>
 				);
