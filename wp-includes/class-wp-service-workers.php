@@ -98,7 +98,7 @@ class WP_Service_Workers extends WP_Scripts {
 			return;
 		}
 
-		echo $this->output; // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
+		echo $this->output; // phpcs:ignore WordPress.XSS.EscapeOutput, WordPress.Security.EscapeOutput
 	}
 
 	/**
@@ -144,8 +144,7 @@ class WP_Service_Workers extends WP_Scripts {
 				/* translators: %s is file URL */
 				$this->output .= sprintf( esc_html( "\n/* Source: %s */\n" ), esc_url( $obj->src ) );
 
-				// @codingStandardsIgnoreLine
-				$this->output .= @file_get_contents( $this->get_validated_file_path( $obj->src ) ) . "\n";
+				$this->output .= @file_get_contents( $this->get_validated_file_path( $obj->src ) ) . "\n"; // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
 			}
 		}
 	}
