@@ -67,24 +67,17 @@ function wp_print_service_workers() {
 	}
 	?>
 	<script>
-		<?php
-		foreach ( $scopes as $scope ) {
-			?>
-			if ( navigator.serviceWorker ) {
-				window.addEventListener('load', function() {
+		if ( navigator.serviceWorker ) {
+			window.addEventListener('load', function() {
+		<?php foreach ( $scopes as $scope ) { ?>
+			navigator.serviceWorker.register(
+					<?php echo wp_json_encode( wp_get_service_worker_url( $scope ) ); ?>,
+					<?php echo wp_json_encode( compact( 'scope' ) ); ?>
 
-					window.wp = window.wp || {};
-					wp.serviceWorkerRegistrations = wp.serviceWorkerRegistrations || {};
-
-					wp.serviceWorkerRegistrations[ <?php echo wp_json_encode( $scope ); ?> ] = navigator.serviceWorker.register(
-						<?php echo wp_json_encode( wp_get_service_worker_url( $scope ) ); ?>,
-						<?php echo wp_json_encode( compact( 'scope' ) ); ?>
-					);
-				} );
-			}
-			<?php
+				);
+		<?php } ?>
+	} );
 		}
-		?>
 	</script>
 	<?php
 }
@@ -95,7 +88,7 @@ function wp_print_service_workers() {
  * @param array $query_vars Query vars.
  * @return array Query vars.
  */
-function wp_add_sw_query_vars( $query_vars ) {
+function wp_add_service_worker_query_var( $query_vars ) {
 	$query_vars[] = 'wp_service_worker';
 	return $query_vars;
 }

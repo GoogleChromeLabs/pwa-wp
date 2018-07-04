@@ -11,4 +11,4 @@ foreach ( array( 'wp_print_scripts', 'admin_print_scripts', 'customize_controls_
 
 add_action( 'parse_request', 'wp_service_worker_loaded' );
 
-add_filter( 'query_vars', 'wp_add_sw_query_vars' );
+add_filter( 'query_vars', 'wp_add_service_worker_query_var' );
