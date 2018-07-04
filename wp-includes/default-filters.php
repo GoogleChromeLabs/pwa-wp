@@ -9,6 +9,6 @@ foreach ( array( 'wp_print_scripts', 'admin_print_scripts', 'customize_controls_
 	add_filter( $filter, 'wp_print_service_workers', 9 );
 }
 
-add_action( 'parse_request', 'service_worker_loaded' );
+add_action( 'parse_request', 'wp_service_worker_loaded' );
 
-add_action( 'init', 'wp_add_sw_rewrite_tags' );
+add_filter( 'query_vars', 'wp_add_sw_query_vars' );

@@ -35,14 +35,9 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function __construct() {
 		parent::__construct();
-		global $wp_filesystem;
 
 		if ( ! class_exists( 'WP_Filesystem' ) ) {
 			require_once ABSPATH . '/wp-admin/includes/file.php';
-		}
-
-		if ( null === $wp_filesystem ) {
-			WP_Filesystem();
 		}
 	}
 
@@ -142,6 +137,10 @@ class WP_Service_Workers extends WP_Scripts {
 	public function do_item( $handle, $group = false ) {
 		global $wp_filesystem;
 
+		if ( null === $wp_filesystem ) {
+			WP_Filesystem();
+		}
+
 		$obj = $this->registered[ $handle ];
 
 		if ( is_callable( $obj->src ) ) {
@@ -161,9 +160,7 @@ class WP_Service_Workers extends WP_Scripts {
 			} else {
 				/* translators: %s is file URL */
 				$this->output .= sprintf( esc_html( "\n/* Source: %s */\n" ), esc_url( $obj->src ) );
-				$this->output .= "( function() {\n";
 				$this->output .= $wp_filesystem->get_contents( $this->get_validated_file_path( $obj->src ) ) . "\n";
-				$this->output .= "} )();\n";
 			}
 		}
 	}

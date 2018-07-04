@@ -71,13 +71,16 @@ function wp_print_service_workers() {
 		foreach ( $scopes as $scope ) {
 			?>
 			if ( navigator.serviceWorker ) {
-				if ( ! window.$serviceWorkersRegister ) {
-					window.$serviceWorkersRegister = {};
-				}
-				window.$serviceWorkersRegister[ <?php echo wp_json_encode( $scope ); ?> ] = navigator.serviceWorker.register(
-					<?php echo wp_json_encode( wp_get_service_worker_url( $scope ) ); ?>,
-					<?php echo wp_json_encode( compact( 'scope' ) ); ?>
-				);
+				window.addEventListener('load', function() {
+
+					window.wp = window.wp || {};
+					wp.serviceWorkerRegistrations = wp.serviceWorkerRegistrations || {};
+
+					wp.serviceWorkerRegistrations[ <?php echo wp_json_encode( $scope ); ?> ] = navigator.serviceWorker.register(
+						<?php echo wp_json_encode( wp_get_service_worker_url( $scope ) ); ?>,
+						<?php echo wp_json_encode( compact( 'scope' ) ); ?>
+					);
+				} );
 			}
 			<?php
 		}
@@ -87,16 +90,20 @@ function wp_print_service_workers() {
 }
 
 /**
- * Register rewrite tag for Service Workers.
+ * Register query var.
+ *
+ * @param array $query_vars Query vars.
+ * @return array Query vars.
  */
-function wp_add_sw_rewrite_tags() {
-	add_rewrite_tag( '%wp_service_worker%', '([^&]+)' );
+function wp_add_sw_query_vars( $query_vars ) {
+	$query_vars[] = 'wp_service_worker';
+	return $query_vars;
 }
 
 /**
  * If it's a service worker script page, display that.
  */
-function service_worker_loaded() {
+function wp_service_worker_loaded() {
 	if ( ! empty( $GLOBALS['wp']->query_vars['wp_service_worker'] ) ) {
 		wp_service_workers()->serve_request( $GLOBALS['wp']->query_vars['wp_service_worker'] );
 		exit;
