@@ -42,18 +42,21 @@ function wp_register_service_worker( $handle, $src, $deps = array(), $scopes = a
 /**
  * Get service worker URL by scope.
  *
- * @param string $scope Scope, for example 'wp-admin'.
+ * @todo Use home_url() instead? See get_rest_url().
+ *
+ * @param string $scope Scope, for example 'wp-admin'. Defaults to '/'.
  * @return string Service Worker URL.
  */
-function wp_get_service_worker_url( $scope ) {
+function wp_get_service_worker_url( $scope = null ) {
 
 	if ( ! $scope ) {
 		$scope = site_url( '/', 'relative' );
 	}
 
-	return add_query_arg( array(
-		'wp_service_worker' => $scope,
-	), site_url( '/', 'relative' ) );
+	return add_query_arg(
+		array( 'wp_service_worker' => $scope ),
+		site_url( '/', 'https' )
+	);
 }
 
 /**
@@ -69,14 +72,13 @@ function wp_print_service_workers() {
 	<script>
 		if ( navigator.serviceWorker ) {
 			window.addEventListener('load', function() {
-		<?php foreach ( $scopes as $scope ) { ?>
-			navigator.serviceWorker.register(
-					<?php echo wp_json_encode( wp_get_service_worker_url( $scope ) ); ?>,
-					<?php echo wp_json_encode( compact( 'scope' ) ); ?>
-
-				);
-		<?php } ?>
-	} );
+				<?php foreach ( $scopes as $scope ) { ?>
+					navigator.serviceWorker.register(
+						<?php echo wp_json_encode( wp_get_service_worker_url( $scope ) ); ?>,
+						<?php echo wp_json_encode( compact( 'scope' ) ); ?>
+					);
+				<?php } ?>
+			} );
 		}
 	</script>
 	<?php
