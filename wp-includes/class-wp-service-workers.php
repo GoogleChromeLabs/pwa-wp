@@ -17,6 +17,27 @@
 class WP_Service_Workers extends WP_Scripts {
 
 	/**
+	 * Scope for front.
+	 *
+	 * @var string
+	 */
+	const SCOPE_FRONT = 1;
+
+	/**
+	 * Scope for admin.
+	 *
+	 * @var string
+	 */
+	const SCOPE_ADMIN = 2;
+
+	/**
+	 * Scope for both front and admin.
+	 *
+	 * @var string
+	 */
+	const SCOPE_ALL = 3;
+
+	/**
 	 * Param for service workers.
 	 *
 	 * @var string
@@ -50,13 +71,13 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @param string          $handle Name of the item. Should be unique.
 	 * @param string|callable $src    URL to the source in the WordPress install, or a callback that returns the JS to include in the service worker.
 	 * @param array           $deps   Optional. An array of registered item handles this item depends on. Default empty array.
-	 * @param string          $scope  Scope for which service worker the script will be part of. Can be 'front', 'admin', or 'all'. Default to 'all'.
+	 * @param string          $scope  Scope for which service worker the script will be part of. Can be WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, or WP_Service_Workers::SCOPE_ALL. Default to WP_Service_Workers::SCOPE_ALL.
 	 * @return bool Whether the item has been registered. True on success, false on failure.
 	 */
-	public function register( $handle, $src, $deps = array(), $scope = 'all' ) {
-		if ( 'all' !== $scope && 'front' !== $scope && 'admin' !== $scope ) {
-			_doing_it_wrong( __METHOD__, esc_html__( 'Scope must be either "all", "front", or "admin".', 'pwa' ), '0.1' );
-			$scope = 'all';
+	public function register( $handle, $src, $deps = array(), $scope = self::SCOPE_ALL ) {
+		if ( ! in_array( $scope, array( self::SCOPE_FRONT, self::SCOPE_ADMIN, self::SCOPE_ALL ), true ) ) {
+			_doing_it_wrong( __METHOD__, esc_html__( 'Scope must be either WP_Service_Workers::SCOPE_ALL, WP_Service_Workers::SCOPE_FRONT, or WP_Service_Workers::SCOPE_ADMIN.', 'pwa' ), '0.1' );
+			$scope = self::SCOPE_ALL;
 		}
 
 		return parent::add( $handle, $src, $deps, false, compact( 'scope' ) );
@@ -68,7 +89,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @param string $scope Scope of the Service Worker.
 	 */
 	public function serve_request( $scope ) {
-		if ( 'front' !== $scope && 'admin' !== $scope ) {
+		if ( self::SCOPE_FRONT !== $scope && self::SCOPE_ADMIN !== $scope ) {
 			status_header( 400 );
 			echo '/* invalid_scope_requested */';
 			return;
@@ -81,12 +102,11 @@ class WP_Service_Workers extends WP_Scripts {
 
 		// Get handles from the relevant scope only.
 		foreach ( $this->registered as $handle => $item ) {
-			if ( 'all' === $item->args['scope'] || $scope === $item->args['scope'] ) {
+			if ( $item->args['scope'] & $scope ) { // Yes, Bitwise AND intended. SCOPE_ALL & SCOPE_FRONT == true. SCOPE_ADMIN & SCOPE_FRONT == false.
 				$scope_items[] = $handle;
 			}
 		}
 
-		// @todo If $scope_items is empty, consider using self-destroying-sw?
 		$this->output = '';
 		$this->do_items( $scope_items );
 

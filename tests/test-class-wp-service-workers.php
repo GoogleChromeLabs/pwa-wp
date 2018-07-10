@@ -74,19 +74,19 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 				'foo',
 				'/test-sw.js',
 				array(),
-				'all',
+				WP_Service_Workers::SCOPE_ALL,
 			),
 			'front'   => array(
 				'foo',
 				'/test-sw.js',
 				array(),
-				'front',
+				WP_Service_Workers::SCOPE_FRONT,
 			),
 			'admin'   => array(
 				'foo',
 				'/test-sw.js',
 				array(),
-				'admin',
+				WP_Service_Workers::SCOPE_ADMIN,
 			),
 		);
 	}
@@ -108,7 +108,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 			$this->instance->register( $handle, $src, $deps );
 		}
 		if ( ! $scope ) {
-			$scope = 'all';
+			$scope = WP_Service_Workers::SCOPE_ALL;
 		}
 		$this->assertEquals( $scope, $this->instance->registered[ $handle ]->args['scope'] );
 		$this->assertArrayHasKey( $handle, $this->instance->registered );
@@ -124,7 +124,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	 */
 	public function test_register_invalid_scope() {
 		$this->instance->register( 'foo', '/test-sw.js', array( 'bar' ), 'bad' );
-		$this->assertEquals( 'all', $this->instance->registered['foo']->args['scope'] );
+		$this->assertEquals( WP_Service_Workers::SCOPE_ALL, $this->instance->registered['foo']->args['scope'] );
 	}
 
 	/**
@@ -134,16 +134,16 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	 * @covers WP_Service_Workers::do_items()
 	 */
 	public function test_serve_request() {
-		wp_service_workers()->register( 'bar', array( $this, 'return_bar_sw' ), array( 'foo' ), 'front' );
-		wp_service_workers()->register( 'baz', array( $this, 'return_baz_sw' ), array( 'foo' ), 'admin' );
-		wp_service_workers()->register( 'foo', array( $this, 'return_foo_sw' ), array(), 'all' );
+		wp_service_workers()->register( 'bar', array( $this, 'return_bar_sw' ), array( 'foo' ), WP_Service_Workers::SCOPE_FRONT );
+		wp_service_workers()->register( 'baz', array( $this, 'return_baz_sw' ), array( 'foo' ), WP_Service_Workers::SCOPE_ADMIN );
+		wp_service_workers()->register( 'foo', array( $this, 'return_foo_sw' ), array(), WP_Service_Workers::SCOPE_ALL );
 
 		ob_start();
 		wp_service_workers()->serve_request( 'bad' );
 		$this->assertContains( 'invalid_scope_requested', ob_get_clean() );
 
 		ob_start();
-		wp_service_workers()->serve_request( 'front' );
+		wp_service_workers()->serve_request( WP_Service_Workers::SCOPE_FRONT );
 		$output = ob_get_clean();
 		$this->assertContains( $this->return_foo_sw(), $output );
 		$this->assertContains( $this->return_bar_sw(), $output );
@@ -152,7 +152,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		);
 
 		ob_start();
-		wp_service_workers()->serve_request( 'admin' );
+		wp_service_workers()->serve_request( WP_Service_Workers::SCOPE_ADMIN );
 		$output = ob_get_clean();
 
 		$this->assertContains( $this->return_foo_sw(), $output );
@@ -172,7 +172,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	public function test_serve_request_bad_src_callback() {
 		wp_service_workers()->register( 'bar', array( 'Does_Not_Exist', 'return_bar_sw' ) );
 		ob_start();
-		wp_service_workers()->serve_request( 'admin' );
+		wp_service_workers()->serve_request( WP_Service_Workers::SCOPE_ADMIN );
 		$output = ob_get_clean();
 		$this->assertContains( 'Service worker src is invalid', $output );
 	}
@@ -187,7 +187,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	public function test_serve_request_bad_src_url() {
 		wp_service_workers()->register( 'bar', '/food.png' );
 		ob_start();
-		wp_service_workers()->serve_request( 'front' );
+		wp_service_workers()->serve_request( WP_Service_Workers::SCOPE_FRONT );
 		$output = ob_get_clean();
 		$this->assertContains( 'Service worker src is invalid', $output );
 	}
