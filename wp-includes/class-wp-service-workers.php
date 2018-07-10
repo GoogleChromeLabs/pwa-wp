@@ -19,21 +19,21 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Scope for front.
 	 *
-	 * @var string
+	 * @var int
 	 */
 	const SCOPE_FRONT = 1;
 
 	/**
 	 * Scope for admin.
 	 *
-	 * @var string
+	 * @var int
 	 */
 	const SCOPE_ADMIN = 2;
 
 	/**
 	 * Scope for both front and admin.
 	 *
-	 * @var string
+	 * @var int
 	 */
 	const SCOPE_ALL = 3;
 
@@ -71,7 +71,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @param string          $handle Name of the item. Should be unique.
 	 * @param string|callable $src    URL to the source in the WordPress install, or a callback that returns the JS to include in the service worker.
 	 * @param array           $deps   Optional. An array of registered item handles this item depends on. Default empty array.
-	 * @param string          $scope  Scope for which service worker the script will be part of. Can be WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, or WP_Service_Workers::SCOPE_ALL. Default to WP_Service_Workers::SCOPE_ALL.
+	 * @param int             $scope  Scope for which service worker the script will be part of. Can be WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, or WP_Service_Workers::SCOPE_ALL. Default to WP_Service_Workers::SCOPE_ALL.
 	 * @return bool Whether the item has been registered. True on success, false on failure.
 	 */
 	public function register( $handle, $src, $deps = array(), $scope = self::SCOPE_ALL ) {
