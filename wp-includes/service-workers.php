@@ -2,7 +2,7 @@
 /**
  * Service Worker functions.
  *
- * @since ?
+ * @since 0.1
  *
  * @package PWA
  */
@@ -10,6 +10,7 @@
 /**
  * Initialize $wp_service_workers if it has not been set.
  *
+ * @since 0.1
  * @global WP_Service_Workers $wp_service_workers
  * @return WP_Service_Workers WP_Service_Workers instance.
  */
@@ -24,57 +25,71 @@ function wp_service_workers() {
 /**
  * Register a new service worker.
  *
- * @since ?
+ * @since 0.1
  *
  * @param string          $handle Name of the service worker. Should be unique.
  * @param string|callable $src    Callback method or relative path of the service worker.
  * @param array           $deps   Optional. An array of registered script handles this depends on. Default empty array.
- * @param array           $scopes Optional Scopes of the service worker.
+ * @param string          $scope  Scope for which service worker the script will be part of. Can be 'front', 'admin', or 'all'. Default to 'all'.
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
-function wp_register_service_worker( $handle, $src, $deps = array(), $scopes = array() ) {
-	$service_workers = wp_service_workers();
-	$registered      = $service_workers->register( $handle, $src, $deps, $scopes );
-
-	return $registered;
+function wp_register_service_worker( $handle, $src, $deps = array(), $scope = 'all' ) {
+	return wp_service_workers()->register( $handle, $src, $deps, $scope );
 }
 
 /**
  * Get service worker URL by scope.
  *
- * @todo Use home_url() instead? See get_rest_url().
+ * @since 0.1
  *
- * @param string $scope Scope, for example 'wp-admin'. Defaults to '/'.
+ * @param string $scope Scope for which service worker the script will be part of. Can be 'front' or 'admin'. Default to 'front'.
  * @return string Service Worker URL.
  */
-function wp_get_service_worker_url( $scope = null ) {
-
-	if ( ! $scope ) {
-		$scope = site_url( '/', 'relative' );
+function wp_get_service_worker_url( $scope = 'front' ) {
+	if ( 'front' !== $scope && 'admin' !== $scope ) {
+		_doing_it_wrong( __FUNCTION__, esc_html__( 'Scope must be either "front" or "admin".', 'pwa' ), '?' );
+		$scope = 'front';
 	}
 
 	return add_query_arg(
 		array( 'wp_service_worker' => $scope ),
-		site_url( '/', 'https' )
+		home_url( '/', 'https' )
 	);
 }
 
 /**
- * Print service workers' scripts.
+ * Print service workers' scripts that can be installed.
+ *
+ * @since 0.1
  */
 function wp_print_service_workers() {
+	global $pagenow;
+	$scopes = array();
 
-	$scopes = wp_service_workers()->get_scopes();
+	$on_front_domain = isset( $_SERVER['HTTP_HOST'] ) && wp_parse_url( home_url(), PHP_URL_HOST ) === $_SERVER['HTTP_HOST'];
+	$on_admin_domain = isset( $_SERVER['HTTP_HOST'] ) && wp_parse_url( admin_url(), PHP_URL_HOST ) === $_SERVER['HTTP_HOST'];
+
+	// Install the front service worker if currently on the home domain.
+	if ( $on_front_domain ) {
+		$scopes['front'] = home_url( '/', 'relative' ); // The home_url() here will account for subdirectory installs.
+	}
+
+	// Include admin service worker if it seems it will be used (and it can be installed).
+	if ( $on_admin_domain && ( is_user_logged_in() || is_admin() || in_array( $pagenow, array( 'wp-login.php', 'wp-signup.php', 'wp-activate.php' ), true ) ) ) {
+		$scopes['admin'] = wp_parse_url( admin_url( '/' ), PHP_URL_PATH );
+	}
+
 	if ( empty( $scopes ) ) {
 		return;
 	}
+
 	?>
 	<script>
 		if ( navigator.serviceWorker ) {
 			window.addEventListener('load', function() {
-				<?php foreach ( $scopes as $scope ) { ?>
+				<?php foreach ( $scopes as $name => $scope ) { ?>
 					navigator.serviceWorker.register(
-						<?php echo wp_json_encode( wp_get_service_worker_url( $scope ) ); ?>,
+						<?php echo wp_json_encode( wp_get_service_worker_url( $name ) ); ?>,
 						<?php echo wp_json_encode( compact( 'scope' ) ); ?>
 					);
 				<?php } ?>
@@ -87,6 +102,7 @@ function wp_print_service_workers() {
 /**
  * Register query var.
  *
+ * @since 0.1
  * @param array $query_vars Query vars.
  * @return array Query vars.
  */
@@ -97,6 +113,9 @@ function wp_add_service_worker_query_var( $query_vars ) {
 
 /**
  * If it's a service worker script page, display that.
+ *
+ * @since 0.1
+ * @see rest_api_loaded()
  */
 function wp_service_worker_loaded() {
 	if ( ! empty( $GLOBALS['wp']->query_vars['wp_service_worker'] ) ) {

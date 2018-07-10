@@ -2,7 +2,7 @@
 /**
  * Dependencies API: WP_Service_Workers class
  *
- * @since ?
+ * @since 0.1
  *
  * @package PWA
  */
@@ -10,7 +10,7 @@
 /**
  * Class used to register service workers.
  *
- * @since ?
+ * @since 0.1
  *
  * @see WP_Dependencies
  */
@@ -50,16 +50,16 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @param string          $handle Name of the item. Should be unique.
 	 * @param string|callable $src    URL to the source in the WordPress install, or a callback that returns the JS to include in the service worker.
 	 * @param array           $deps   Optional. An array of registered item handles this item depends on. Default empty array.
-	 * @param array           $scopes Optional. Scopes of the service worker. Default relative path.
+	 * @param string          $scope  Scope for which service worker the script will be part of. Can be 'front', 'admin', or 'all'. Default to 'all'.
 	 * @return bool Whether the item has been registered. True on success, false on failure.
 	 */
-	public function register( $handle, $src, $deps = array(), $scopes = array() ) {
-
-		// Set default scope if missing.
-		if ( empty( $scopes ) ) {
-			$scopes = array( site_url( '/', 'relative' ) );
+	public function register( $handle, $src, $deps = array(), $scope = 'all' ) {
+		if ( 'all' !== $scope && 'front' !== $scope && 'admin' !== $scope ) {
+			_doing_it_wrong( __METHOD__, esc_html__( 'Scope must be either "all", "front", or "admin".', 'pwa' ), '0.1' );
+			$scope = 'all';
 		}
-		return parent::add( $handle, $src, $deps, false, compact( 'scopes' ) );
+
+		return parent::add( $handle, $src, $deps, false, compact( 'scope' ) );
 	}
 
 	/**
@@ -68,29 +68,30 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @param string $scope Scope of the Service Worker.
 	 */
 	public function serve_request( $scope ) {
-
-		header( 'Content-Type: text/javascript; charset=utf-8' );
-		nocache_headers();
-
-		if ( ! in_array( $scope, $this->get_scopes(), true ) ) {
-			status_header( 404 );
+		if ( 'front' !== $scope && 'admin' !== $scope ) {
+			status_header( 400 );
+			echo '/* invalid_scope_requested */';
 			return;
 		}
 
+		@header( 'Content-Type: text/javascript; charset=utf-8' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+
+		// @todo If $scope is 'admin' should this admin_enqueue_scripts, and if 'front' should it wp_enqueue_scripts?
 		$scope_items = array();
 
 		// Get handles from the relevant scope only.
 		foreach ( $this->registered as $handle => $item ) {
-			if ( in_array( $scope, $item->args['scopes'], true ) ) {
+			if ( 'all' === $item->args['scope'] || $scope === $item->args['scope'] ) {
 				$scope_items[] = $handle;
 			}
 		}
 
+		// @todo If $scope_items is empty, consider using self-destroying-sw?
 		$this->output = '';
 		$this->do_items( $scope_items );
 
 		$file_hash = md5( $this->output );
-		header( "Etag: $file_hash" );
+		@header( "Etag: $file_hash" ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 
 		$etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? trim( $_SERVER['HTTP_IF_NONE_MATCH'] ) : false;
 		if ( $file_hash === $etag_header ) {
@@ -102,50 +103,37 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Get all scopes.
-	 *
-	 * @return array Array of scopes.
-	 */
-	public function get_scopes() {
-
-		$scopes = array();
-		foreach ( $this->registered as $handle => $item ) {
-			$scopes = array_merge( $scopes, $item->args['scopes'] );
-		}
-		return array_unique( $scopes );
-	}
-
-	/**
 	 * Process one registered script.
 	 *
 	 * @param string $handle Handle.
-	 * @param bool   $group Group.
+	 * @param bool   $group Group. Unused.
 	 * @return void
 	 */
 	public function do_item( $handle, $group = false ) {
+		$registered = $this->registered[ $handle ];
+		$invalid    = false;
 
-		$obj = $this->registered[ $handle ];
-
-		if ( is_callable( $obj->src ) ) {
-			$this->output .= call_user_func( $obj->src ) . "\n";
-		} else {
-			$validated_path = $this->get_validated_file_path( $obj->src );
+		if ( is_callable( $registered->src ) ) {
+			$this->output .= sprintf( "\n/* Source %s: */\n", $handle );
+			$this->output .= call_user_func( $registered->src ) . "\n";
+		} elseif ( is_string( $registered->src ) ) {
+			$validated_path = $this->get_validated_file_path( $registered->src );
 			if ( is_wp_error( $validated_path ) ) {
-				_doing_it_wrong(
-					__FUNCTION__,
-					/* translators: %s is file URL */
-					sprintf( esc_html__( 'Service worker src is incorrect: %s', 'pwa' ), esc_html( $obj->src ) ),
-					'0.1'
-				);
-
-				/* translators: %s is file URL */
-				$this->output .= "console.warn( '" . sprintf( esc_html__( 'Service worker src is incorrect: %s', 'pwa' ), esc_html( $obj->src ) ) . "' );\n";
+				$invalid = true;
 			} else {
 				/* translators: %s is file URL */
-				$this->output .= sprintf( esc_html( "\n/* Source: %s */\n" ), esc_url( $obj->src ) );
-
-				$this->output .= @file_get_contents( $this->get_validated_file_path( $obj->src ) ) . "\n"; // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
+				$this->output .= sprintf( "\n/* Source %s <%s>: */\n", $handle, $registered->src );
+				$this->output .= @file_get_contents( $validated_path ) . "\n"; // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
 			}
+		} else {
+			$invalid = true;
+		}
+
+		if ( $invalid ) {
+			/* translators: %s is script handle */
+			$error = sprintf( __( 'Service worker src is invalid for handle "%s".', 'pwa' ), $handle );
+			_doing_it_wrong( 'WP_Service_Workers::register', esc_html( $error ), '0.1' );
+			$this->output .= sprintf( "console.warn( %s );\n", wp_json_encode( $error ) );
 		}
 	}
 
@@ -155,7 +143,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @param string $schemed_url URL.
 	 * @return string URL.
 	 */
-	public function remove_url_scheme( $schemed_url ) {
+	protected function remove_url_scheme( $schemed_url ) {
 		return preg_replace( '#^\w+:(?=//)#', '', $schemed_url );
 	}
 
@@ -165,7 +153,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @param string $url Relative path.
 	 * @return null|string|WP_Error
 	 */
-	public function get_validated_file_path( $url ) {
+	protected function get_validated_file_path( $url ) {
 		if ( ! is_string( $url ) ) {
 			return new WP_Error( 'incorrect_path_format', esc_html__( 'URL has to be a string', 'pwa' ) );
 		}
