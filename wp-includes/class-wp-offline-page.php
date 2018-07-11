@@ -88,7 +88,7 @@ class WP_Offline_Page {
 	public function settings_field() {
 		add_settings_field(
 			self::SETTING_ID,
-			__( 'Progressive Web App Offline Page', 'pwa' ),
+			__( 'Page displays when offline', 'pwa' ),
 			array( $this, 'settings_callback' ),
 			self::OPTION_GROUP
 		);
@@ -133,6 +133,7 @@ class WP_Offline_Page {
 				?>
 			</span>
 		</p>
+		<p class="description"><?php esc_html_e( 'This page is for the Progressive Web App (PWA), providing a default offline page. It is similar to a 404 page.  Unlike a 404 page that displays when the content is not found, this offline page shows when the person\'s internet is down, such as during a flight, or intermittent, such as going through tunnel.', 'pwa' ); ?></p>
 		<?php
 	}
 

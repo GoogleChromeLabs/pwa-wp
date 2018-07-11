@@ -119,7 +119,7 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 		$this->assertEquals(
 			array(
 				'id'       => WP_Offline_Page::SETTING_ID,
-				'title'    => 'Progressive Web App Offline Page',
+				'title'    => 'Page displays when offline',
 				'callback' => array( $this->instance, 'settings_callback' ),
 				'args'     => array(),
 			),
@@ -147,6 +147,9 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 		foreach ( $page_ids as $page_id ) {
 			$this->assertContains( strval( $page_id ), $output );
 		}
+
+		// Test that the description renders.
+		$this->assertContains( 'This page is for the Progressive Web App (PWA)', $output );
 	}
 
 	/**
