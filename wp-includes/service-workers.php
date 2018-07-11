@@ -42,13 +42,13 @@ function wp_register_service_worker( $handle, $src, $deps = array(), $scope = WP
  *
  * @since 0.1
  *
- * @param string $scope Scope for which service worker the script will be part of. Can be 'front' or 'admin'. Default to 'front'.
+ * @param int $scope Scope for which service worker to output. Can be WP_Service_Workers::SCOPE_FRONT (default) or WP_Service_Workers::SCOPE_ADMIN.
  * @return string Service Worker URL.
  */
-function wp_get_service_worker_url( $scope = 'front' ) {
-	if ( 'front' !== $scope && 'admin' !== $scope ) {
-		_doing_it_wrong( __FUNCTION__, esc_html__( 'Scope must be either "front" or "admin".', 'pwa' ), '?' );
-		$scope = 'front';
+function wp_get_service_worker_url( $scope = WP_Service_Workers::SCOPE_FRONT ) {
+	if ( WP_Service_Workers::SCOPE_FRONT !== $scope && WP_Service_Workers::SCOPE_ADMIN !== $scope ) {
+		_doing_it_wrong( __FUNCTION__, esc_html__( 'Scope must be either WP_Service_Workers::SCOPE_FRONT or WP_Service_Workers::SCOPE_ADMIN.', 'pwa' ), '?' );
+		$scope = WP_Service_Workers::SCOPE_FRONT;
 	}
 
 	return add_query_arg(
@@ -71,12 +71,12 @@ function wp_print_service_workers() {
 
 	// Install the front service worker if currently on the home domain.
 	if ( $on_front_domain ) {
-		$scopes['front'] = home_url( '/', 'relative' ); // The home_url() here will account for subdirectory installs.
+		$scopes[ WP_Service_Workers::SCOPE_FRONT ] = home_url( '/', 'relative' ); // The home_url() here will account for subdirectory installs.
 	}
 
 	// Include admin service worker if it seems it will be used (and it can be installed).
 	if ( $on_admin_domain && ( is_user_logged_in() || is_admin() || in_array( $pagenow, array( 'wp-login.php', 'wp-signup.php', 'wp-activate.php' ), true ) ) ) {
-		$scopes['admin'] = wp_parse_url( admin_url( '/' ), PHP_URL_PATH );
+		$scopes[ WP_Service_Workers::SCOPE_ADMIN ] = wp_parse_url( admin_url( '/' ), PHP_URL_PATH );
 	}
 
 	if ( empty( $scopes ) ) {
@@ -118,8 +118,8 @@ function wp_add_service_worker_query_var( $query_vars ) {
  * @see rest_api_loaded()
  */
 function wp_service_worker_loaded() {
-	if ( ! empty( $GLOBALS['wp']->query_vars['wp_service_worker'] ) ) {
-		wp_service_workers()->serve_request( $GLOBALS['wp']->query_vars['wp_service_worker'] );
+	if ( isset( $GLOBALS['wp']->query_vars['wp_service_worker'] ) ) {
+		wp_service_workers()->serve_request( intval( $GLOBALS['wp']->query_vars['wp_service_worker'] ) );
 		exit;
 	}
 }

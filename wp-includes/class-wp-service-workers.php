@@ -86,18 +86,19 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Get service worker logic for scope.
 	 *
-	 * @param string $scope Scope of the Service Worker.
+	 * @see wp_service_worker_loaded()
+	 * @param int $scope Scope of the Service Worker.
 	 */
 	public function serve_request( $scope ) {
+		@header( 'Content-Type: text/javascript; charset=utf-8' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+
 		if ( self::SCOPE_FRONT !== $scope && self::SCOPE_ADMIN !== $scope ) {
 			status_header( 400 );
 			echo '/* invalid_scope_requested */';
 			return;
 		}
 
-		@header( 'Content-Type: text/javascript; charset=utf-8' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
-
-		// @todo If $scope is 'admin' should this admin_enqueue_scripts, and if 'front' should it wp_enqueue_scripts?
+		// @todo If $scope is admin should this admin_enqueue_scripts, and if front should it wp_enqueue_scripts?
 		$scope_items = array();
 
 		// Get handles from the relevant scope only.
