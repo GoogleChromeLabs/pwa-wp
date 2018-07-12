@@ -6,26 +6,20 @@
  */
 
 /**
- * Tests for amp.php.
+ * Tests for pwa.php.
  */
 class Test_PWA extends WP_UnitTestCase {
 
 	/**
-	 * Test constants.
+	 * Test bootstrap.
 	 */
-	public function test_constants() {
+	public function test_bootstrap() {
 		$this->assertTrue( defined( 'PWAWP_VERSION' ) );
 		$this->assertTrue( defined( 'PWAWP_PLUGIN_FILE' ) );
 		$this->assertTrue( defined( 'PWAWP_PLUGIN_DIR' ) );
-	}
 
-	/**
-	 * Test pwawp_init().
-	 *
-	 * @covers pwawp_init()
-	 */
-	public function test_pwawp_init() {
 		$this->assertTrue( class_exists( 'WP_Web_App_Manifest' ) );
+		$this->assertTrue( class_exists( 'WP_Service_Workers' ) );
 		$this->assertTrue( class_exists( 'WP_HTTPS_Detection' ) );
 	}
 }
