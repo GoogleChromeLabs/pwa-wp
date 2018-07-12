@@ -94,11 +94,12 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 			array_merge(
 				$settings_error,
 				array(
-					'message' => 'The current offline page is in the trash. Please select or create one.',
+					'message' => 'The currently offline page is in the trash. Please select or create one or <a href="edit.php?post_status=trash&post_type=page">restore the current page</a>.',
 				)
 			),
 			reset( $wp_settings_errors )
 		);
+
 		$wp_settings_errors = array(); // WPCS: global override OK.
 
 		// The argument passed to the sanitize_callback() is a valid page ID, so it should return it.
@@ -185,5 +186,97 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 
 		update_option( WP_Offline_Page::OPTION_NAME, $page->ID + 10 );
 		$this->assertEmpty( $this->instance->add_post_state( array(), $page ) );
+	}
+
+	/**
+	 * Test add_settings_error.
+	 *
+	 * @covers WP_Offline_Page::add_settings_error()
+	 */
+	public function test_add_settings_error() {
+		global $wp_settings_errors;
+
+		$settings_error = array(
+			'setting' => WP_Offline_Page::OPTION_NAME,
+			'code'    => WP_Offline_Page::OPTION_NAME,
+			'type'    => 'error',
+		);
+
+		// Check when the page does not exist.
+		$this->assertTrue( $this->instance->add_settings_error( null ) );
+		$this->assertEquals(
+			array_merge(
+				$settings_error,
+				array(
+					'message' => 'The current offline page does not exist. Please select or create one.',
+				)
+			),
+			reset( $wp_settings_errors )
+		);
+		$wp_settings_errors = array(); // WPCS: global override OK.
+
+		// Check when the page is in the trash.
+		$trashed_page = $this->factory()->post->create_and_get( array(
+			'post_type'   => 'page',
+			'post_status' => 'trash',
+		) );
+		$this->assertTrue( $this->instance->add_settings_error( $trashed_page ) );
+		$this->assertEquals(
+			array_merge(
+				$settings_error,
+				array(
+					'message' => 'The currently offline page is in the trash. Please select or create one or <a href="edit.php?post_status=trash&post_type=page">restore the current page</a>.',
+				)
+			),
+			reset( $wp_settings_errors )
+		);
+		$wp_settings_errors = array(); // WPCS: global override OK.
+
+		// Check when the page does exist and is not in the trash.
+		$offline_page = $this->factory()->post->create_and_get( array( 'post_type' => 'page' ) );
+		$this->assertFalse( $this->instance->add_settings_error( $offline_page ) );
+		$this->assertEquals( array(), $wp_settings_errors );
+
+		// Check when no offline page is passed (e.g. doing 'admin_notices') and no offline page has been configured.
+		$this->assertFalse( $this->instance->add_settings_error() );
+		$this->assertEquals( array(), $wp_settings_errors );
+
+		// Check when no offline page is passed (e.g. doing 'admin_notices') and the offline page has been configured but does not exist.
+		update_option( WP_Offline_Page::OPTION_NAME, 999999 );
+		$this->assertTrue( $this->instance->add_settings_error() );
+		$this->assertEquals(
+			array_merge(
+				$settings_error,
+				array(
+					'message' => 'The current offline page does not exist. Please select or create one.',
+				)
+			),
+			reset( $wp_settings_errors )
+		);
+		$wp_settings_errors = array(); // WPCS: global override OK.
+
+		// Check when no offline page is passed (e.g. doing 'admin_notices') and the page is in the trash.
+		$trashed_page = $this->factory()->post->create_and_get( array(
+			'post_type'   => 'page',
+			'post_status' => 'trash',
+		) );
+		update_option( WP_Offline_Page::OPTION_NAME, $trashed_page->ID );
+		$this->assertTrue( $this->instance->add_settings_error() );
+		$this->assertEquals(
+			array_merge(
+				$settings_error,
+				array(
+					'message' => 'The currently offline page is in the trash. Please select or create one or <a href="edit.php?post_status=trash&post_type=page">restore the current page</a>.',
+				)
+			),
+			reset( $wp_settings_errors )
+		);
+		$wp_settings_errors = array(); // WPCS: global override OK.
+
+		// Check when no offline page is passed (e.g. doing 'admin_notices') and the offline page is configured.
+		$offline_page_id = $this->factory()->post->create( array( 'post_type' => 'page' ) );
+		update_option( WP_Offline_Page::OPTION_NAME, $offline_page_id );
+		$this->assertFalse( $this->instance->add_settings_error() );
+		$this->assertEquals( array(), $wp_settings_errors );
 	}
 }

@@ -38,6 +38,7 @@ class WP_Offline_Page {
 	public function init() {
 		add_action( 'admin_init', array( $this, 'register_setting' ) );
 		add_action( 'admin_init', array( $this, 'settings_field' ) );
+		add_action( 'admin_notices', array( $this, 'add_settings_error' ) );
 		add_filter( 'display_post_states', array( $this, 'add_post_state' ), 10, 2 );
 	}
 
@@ -68,19 +69,8 @@ class WP_Offline_Page {
 	public function sanitize_callback( $raw_setting ) {
 		$sanitized_post_id = sanitize_text_field( $raw_setting );
 		$offline_page      = get_post( $sanitized_post_id );
-		if ( ! $offline_page instanceof WP_Post ) {
-			add_settings_error(
-				self::OPTION_NAME,
-				self::OPTION_NAME,
-				__( 'The current offline page does not exist. Please select or create one.', 'pwa' )
-			);
-		} elseif ( 'trash' === $offline_page->post_status ) {
-			add_settings_error(
-				self::OPTION_NAME,
-				self::OPTION_NAME,
-				__( 'The current offline page is in the trash. Please select or create one.', 'pwa' )
-			);
-		} else {
+
+		if ( false === $this->add_settings_error( $offline_page ) ) {
 			return $sanitized_post_id;
 		}
 	}
@@ -95,6 +85,51 @@ class WP_Offline_Page {
 			array( $this, 'settings_callback' ),
 			self::OPTION_GROUP
 		);
+	}
+
+	/**
+	 * Add a setting error message when the Offline Page does not exist or is in trash.
+	 *
+	 * @param WP_Post|null|string $offline_page Optional. Instance of the page's `WP_Post` or `null`. Default is an
+	 *                                          empty string. When the default, attempts to look up the offline page.
+	 *
+	 * @return bool Returns true when setting error is added.
+	 */
+	public function add_settings_error( $offline_page = '' ) {
+		if ( '' === $offline_page ) {
+			$offline_id = $this->get_offline_page_id();
+			if ( $offline_id < 1 ) {
+				return false;
+			}
+
+			$offline_page = get_post( $offline_id );
+		}
+
+		if ( $this->does_not_exist( $offline_page ) ) {
+			add_settings_error(
+				self::OPTION_NAME,
+				self::OPTION_NAME,
+				__( 'The current offline page does not exist. Please select or create one.', 'pwa' )
+			);
+
+			return true;
+		}
+
+		if ( $this->is_in_trash_error( $offline_page ) ) {
+			add_settings_error(
+				self::OPTION_NAME,
+				self::OPTION_NAME,
+				sprintf(
+					/* translators: URL to Pages Trash */
+					__( 'The currently offline page is in the trash. Please select or create one or <a href="%s">restore the current page</a>.', 'pwa' ),
+					'edit.php?post_status=trash&post_type=page'
+				)
+			);
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -114,7 +149,7 @@ class WP_Offline_Page {
 					/* Translators: %1$s: A long dash */
 					'show_option_none'  => sprintf( esc_html__( '%1$s Select %1$s', 'pwa' ), '&mdash;' ),
 					'option_none_value' => '0',
-					'selected'          => intval( get_option( self::OPTION_NAME ) ),
+					'selected'          => intval( $this->get_offline_page_id() ),
 					'post_status'       => array( 'draft', 'publish' ),
 				)
 			);
@@ -185,5 +220,35 @@ class WP_Offline_Page {
 	 */
 	protected function get_offline_page_id() {
 		return (int) get_option( self::OPTION_NAME, 0 );
+	}
+
+	/**
+	 * Check if the offline page does not exist.
+	 *
+	 * @param WP_Post|int $offline_page The offline page to check.
+	 *
+	 * @return bool
+	 */
+	protected function does_not_exist( $offline_page ) {
+		if ( is_int( $offline_page ) ) {
+			$offline_page = get_post( $offline_page );
+		}
+
+		return ! ( $offline_page instanceof WP_Post );
+	}
+
+	/**
+	 * Check if the offline page is in the trash.
+	 *
+	 * @param WP_Post|int $offline_page The offline page to check.
+	 *
+	 * @return bool
+	 */
+	protected function is_in_trash_error( $offline_page ) {
+		if ( is_int( $offline_page ) ) {
+			$offline_page = get_post( $offline_page );
+		}
+
+		return 'trash' === $offline_page->post_status;
 	}
 }
