@@ -6,25 +6,27 @@ To start, clone this repository into any WordPress install being used for develo
 
 ```bash
 git clone git@github.com:xwp/pwa-wp.git wp-content/plugins/pwa
+cd wp-content/plugins/pwa
+npm install
 ```
+
+Running `npm install` will also automatically run `composer install`; a `pre-commit` hook will also automatically be installed for you via [husky](https://www.npmjs.com/package/husky).
 
 You may then just activate the plugin in the admin or via [WP-CLI](https://wp-cli.org/): `wp plugin activate pwa`.
 
-Your WordPress install must be configured to serve responses over HTTPS. Without this, your browser will refuse to install the service worker. The exception here is if your WordPress install is located at `localhost`, in which case HTTPS is not required. But in general, WordPress development environments are located at `example.test` or `example.local`:
+Your WordPress install must be configured to serve responses over HTTPS. Without this, your browser will refuse to install the service worker. The exception here is if your WordPress install is located at `localhost`, in which case HTTPS is not required. But in general, WordPress development environments are often located at domains `example.test` or `example.local`, and for them:
 
-* For VVV, see [Setting Up HTTPS](https://varyingvagrantvagrants.org/docs/en-US/references/https/).
-* For [Local by Flywheel](https://local.getflywheel.com/), installation of SSL certificates is supported in the UI.
-* For [Chassis](http://docs.chassis.io/), see [Add and configure OpenSSL](https://github.com/Chassis/Chassis/issues/20).
+* On VVV, see [Setting Up HTTPS](https://varyingvagrantvagrants.org/docs/en-US/references/https/).
+* On [Local by Flywheel](https://local.getflywheel.com/), installation of SSL certificates is supported in the UI.
+* On [Chassis](http://docs.chassis.io/), see [Add and configure OpenSSL](https://github.com/Chassis/Chassis/issues/20).
 
-Pull requests will be checked against [WordPress-Coding-Standards](https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards) with PHPCS, and for JavaScript linting is done with ESLint. To install the `pre-commit` hook, do `bash node_modules/wp-dev-lib/install-pre-commit-hook.sh`.
+Pull requests will be checked against [WordPress-Coding-Standards](https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards) with PHPCS, and for JavaScript linting is done with ESLint. The `pre-commit` hook will runs these tests will automatically prior to pushing.
 
 ## Creating a Plugin Build
 
 To create a build of the plugin for installing in WordPress as a ZIP package, do:
 
 ```bash
-composer install # (if you haven't done so yet)
-npm install # (if you haven't done so yet)
 npm run build
 ```
 
