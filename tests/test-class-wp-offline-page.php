@@ -173,6 +173,35 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test remove_page_attributes.
+	 *
+	 * @covers WP_Offline_Page::remove_page_attributes()
+	 */
+	public function test_remove_page_attributes() {
+		$this->assertArrayNotHasKey( 'post', $_GET ); // WPCS: CSRF ok.
+		$this->assertFalse( $this->instance->remove_page_attributes() );
+
+		// Check the current screen.
+		set_current_screen( 'edit-post' );
+		$this->assertNotEquals( 'page', get_current_screen()->post_type );
+		$this->assertFalse( $this->instance->remove_page_attributes() );
+
+		set_current_screen( 'edit-page' );
+		$page_id      = $this->factory()->post->create( array( 'post_type' => 'page' ) );
+		$_GET['post'] = $page_id; // WPCS: CSRF ok.
+
+		// Check that false returns when the page is not the Offline Page.
+		$this->assertEquals( 'page', get_current_screen()->post_type );
+		$this->assertFalse( $this->instance->remove_page_attributes() );
+		add_option( WP_Offline_Page::OPTION_NAME, $page_id + 99 );
+		$this->assertFalse( $this->instance->remove_page_attributes() );
+
+		// Check that the meta box is removed.
+		update_option( WP_Offline_Page::OPTION_NAME, $page_id );
+		$this->assertTrue( $this->instance->remove_page_attributes() );
+	}
+
+	/**
 	 * Test add_post_state.
 	 *
 	 * @covers WP_Offline_Page::add_post_state()
