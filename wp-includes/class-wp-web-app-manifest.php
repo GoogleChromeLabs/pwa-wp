@@ -99,9 +99,12 @@ class WP_Web_App_Manifest {
 			'name'      => get_bloginfo( 'name' ),
 			'start_url' => get_home_url(),
 			'display'   => 'minimal-ui',
-			'lang'      => get_locale(),
 			'dir'       => is_rtl() ? 'rtl' : 'ltr',
 		);
+		$language = get_bloginfo( 'language' );
+		if ( $language ) {
+			$manifest['lang'] = $language;
+		}
 
 		/**
 		 * Gets the 'short_name' by limiting the blog name to 12 characters.
