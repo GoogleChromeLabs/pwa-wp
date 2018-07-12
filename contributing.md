@@ -2,17 +2,21 @@
 
 Thanks for taking the time to contribute!
 
-To start, clone this repository into your WordPress install being used for development:
+To start, clone this repository into any WordPress install being used for development:
 
 ```bash
-cd wp-content/plugins && git clone git@github.com:xwp/pwa-wp.git -wa
+git clone git@github.com:xwp/pwa-wp.git wp-content/plugins/pwa
 ```
 
-Lastly, to get the plugin running in your WordPress install, run `composer install` and then activate the plugin via the WordPress dashboard or `wp plugin activate pwa`.
+You may then just activate the plugin in the admin or via [WP-CLI](https://wp-cli.org/): `wp plugin activate pwa`.
 
-To install the `pre-commit` hook, do `bash dev-lib/install-pre-commit-hook.sh`.
+Your WordPress install must be configured to serve responses over HTTPS. Without this, your browser will refuse to install the service worker. The exception here is if your WordPress install is located at `localhost`, in which case HTTPS is not required. But in general, WordPress development environments are located at `example.test` or `example.local`:
 
-Note that pull requests will be checked against [WordPress-Coding-Standards](https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards) with PHPCS, and for JavaScript linting is done with ESLint and (for now) JSCS and JSHint.
+* For VVV, see [Setting Up HTTPS](https://varyingvagrantvagrants.org/docs/en-US/references/https/).
+* For [Local by Flywheel](https://local.getflywheel.com/), installation of SSL certificates is supported in the UI.
+* For [Chassis](http://docs.chassis.io/), see [Add and configure OpenSSL](https://github.com/Chassis/Chassis/issues/20).
+
+Pull requests will be checked against [WordPress-Coding-Standards](https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards) with PHPCS, and for JavaScript linting is done with ESLint. To install the `pre-commit` hook, do `bash node_modules/wp-dev-lib/install-pre-commit-hook.sh`.
 
 ## Creating a Plugin Build
 
@@ -31,8 +35,6 @@ To create a build of the plugin as it will be deployed to WordPress.org, run:
 ```bash
 npm run build-release
 ```
-
-Note that this will currently take much longer than a regular build because it generates the files required for translation. You also must have WP-CLI installed with the [`i18n-command` package](https://github.com/wp-cli/i18n-command).
 
 ## PHPUnit Testing
 
@@ -59,7 +61,7 @@ Contributors who want to make a new release, follow these steps:
 1. Do `npm run build-release` and install the `pwa.zip` onto a normal WordPress install running a stable release build; do smoke test to ensure it works.
 2. Bump plugin versions in `package.json` (×1), `package-lock.json` (×1, just do `npm install` first), `composer.json` (×1), and in `pwa.php` (×2: the metadata block in the header and also the `PWA_VERSION` constant).
 3. Add changelog entry to readme.
-4. Draft blog post about the new release.
+4. Draft blog post about the new release, presumably on Make/Core.
 5. [Draft new release](https://github.com/xwp/pwa-wp/releases/new) on GitHub targeting the release branch, with the new plugin version as the tag and release title. Attaching the `pwa.zip` build to the release. Include link to changelog in release tag.
 6. Run `npm run deploy` to to commit the plugin to WordPress.org.
 7. Confirm the release is available on WordPress.org; try installing it on a WordPress install and confirm it works.
