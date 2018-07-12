@@ -34,6 +34,8 @@ In general a PWA depends on the following technologies to be available:
 
 This plugin serves as a place to implement support for these in WordPress with the intention of being proposed for core merge, piece by piece.
 
+**Development of this plugin is done [on GitHub](https://github.com/xwp/pwa-wp). Pull requests welcome. Please see [issues](https://github.com/xwp/pwa-wp/issues) reported there before going to the [plugin forum](https://wordpress.org/support/plugin/pwa).**
+
 = Web App Manifest =
 
 As noted in a [Google guide](https://developers.google.com/web/fundamentals/web-app-manifest/):
@@ -141,8 +143,6 @@ See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Aservi
 HTTPS is a prerequisite for progressive web apps. A service worker is only able to be installed on sites that are served as HTTPS. For this reason core's support for HTTPS needs to be further improved, continuing the great progress made over the past few years.
 
 At the moment the plugin provides an API to detection of whether a site supports HTTPS. Building on that it's intended that this can then be used to present a user with an opt-in to switch over to HTTPS, which will also then need to include support for rewriting URLs from HTTP to HTTPS. See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Ahttps) and see WordPress core tracking ticket [#28521](https://core.trac.wordpress.org/ticket/28521).
-
-**Development of this plugin is done [on GitHub](https://github.com/xwp/pwa-wp). Pull requests welcome. Please see [issues](https://github.com/xwp/pwa-wp/issues) reported there before going to the [plugin forum](https://wordpress.org/support/plugin/pwa).**
 
 == Changelog ==
 
