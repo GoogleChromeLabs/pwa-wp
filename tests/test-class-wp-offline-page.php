@@ -135,7 +135,7 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 	public function test_settings_callback() {
 		$number_pages = 10;
 		$page_ids     = array();
-		for ( $i = 0; $i < $number_pages; $i++ ) {
+		for ( $i = 0; $i < $number_pages; $i ++ ) {
 			$page_ids[] = $this->factory()->post->create( array( 'post_type' => 'page' ) );
 		}
 		ob_start();
@@ -169,5 +169,21 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 			'post_type' => 'page',
 		) );
 		$this->assertTrue( $this->instance->has_pages() );
+	}
+
+	/**
+	 * Test add_post_state.
+	 *
+	 * @covers WP_Offline_Page::add_post_state()
+	 */
+	public function test_add_post_state() {
+		$page = $this->factory()->post->create_and_get( array( 'post_type' => 'page' ) );
+		$this->assertEmpty( $this->instance->add_post_state( array(), $page ) );
+
+		add_option( WP_Offline_Page::OPTION_NAME, $page->ID );
+		$this->assertSame( array( 'Offline Page' ), $this->instance->add_post_state( array(), $page ) );
+
+		update_option( WP_Offline_Page::OPTION_NAME, $page->ID + 10 );
+		$this->assertEmpty( $this->instance->add_post_state( array(), $page ) );
 	}
 }

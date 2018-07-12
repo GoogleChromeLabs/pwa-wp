@@ -38,6 +38,7 @@ class WP_Offline_Page {
 	public function init() {
 		add_action( 'admin_init', array( $this, 'register_setting' ) );
 		add_action( 'admin_init', array( $this, 'settings_field' ) );
+		add_filter( 'display_post_states', array( $this, 'add_post_state' ), 10, 2 );
 	}
 
 	/**
@@ -59,7 +60,9 @@ class WP_Offline_Page {
 	 * Mainly taken from wp-admin/privacy.php.
 	 *
 	 * @todo: Ensure this is stored with a custom post status.
+	 *
 	 * @param string $raw_setting The setting before sanitizing it.
+	 *
 	 * @return string|null The sanitized setting, or null if it's invalid.
 	 */
 	public function sanitize_callback( $raw_setting ) {
@@ -153,6 +156,34 @@ class WP_Offline_Page {
 				'draft',
 			),
 		) );
+
 		return $query->found_posts > 0;
+	}
+
+	/**
+	 * When the given post is the offline page, add the state to the given post states.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array   $post_states An array of post display states.
+	 * @param WP_Post $post        The current post object.
+	 *
+	 * @return array
+	 */
+	public function add_post_state( array $post_states, $post ) {
+		if ( $this->get_offline_page_id() === $post->ID ) {
+			$post_states[] = __( 'Offline Page', 'pwa' );
+		}
+
+		return $post_states;
+	}
+
+	/**
+	 * Get the offline page's ID.
+	 *
+	 * @return int
+	 */
+	protected function get_offline_page_id() {
+		return (int) get_option( self::OPTION_NAME, 0 );
 	}
 }
