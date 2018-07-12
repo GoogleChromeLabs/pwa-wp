@@ -23,7 +23,7 @@ class WP_Offline_Page {
 	 *
 	 * @var string
 	 */
-	const OPTION_NAME = 'wp_offline_page';
+	const OPTION_NAME = 'page_for_offline';
 
 	/**
 	 * The ID of the settings section.
