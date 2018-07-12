@@ -25,6 +25,6 @@
   "precommit": "./node_modules/wp-dev-lib/pre-commit",
   "generate-readme": "./node_modules/wp-dev-lib/generate-markdown-readme",
   "build": "grunt build; grunt create-build-zip",
-  "build-release": "grunt build-release; grunt create-build-zip"
+  "deploy": "grunt deploy"
  }
 }

@@ -32,12 +32,6 @@ npm run build
 
 This will create an `pwa.zip` in the plugin directory which you can install. The contents of this ZIP are also located in the `build` directory which you can `rsync` somewhere as well.
 
-To create a build of the plugin as it will be deployed to WordPress.org, run:
-
-```bash
-npm run build-release
-```
-
 ## PHPUnit Testing
 
 Please run these tests in an environment with WordPress unit tests installed, like [VVV](https://github.com/Varying-Vagrant-Vagrants/VVV).
@@ -60,7 +54,7 @@ When you push a commit to your PR, Travis CI will run the PHPUnit tests and snif
 
 Contributors who want to make a new release, follow these steps:
 
-1. Do `npm run build-release` and install the `pwa.zip` onto a normal WordPress install running a stable release build; do smoke test to ensure it works.
+1. Do `npm run build` and install the `pwa.zip` onto a normal WordPress install running a stable release build; do smoke test to ensure it works.
 2. Bump plugin versions in `package.json` (×1), `package-lock.json` (×1, just do `npm install` first), `composer.json` (×1), and in `pwa.php` (×2: the metadata block in the header and also the `PWA_VERSION` constant).
 3. Add changelog entry to readme.
 4. Draft blog post about the new release, presumably on Make/Core.

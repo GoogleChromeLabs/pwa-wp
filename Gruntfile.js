@@ -149,14 +149,10 @@ module.exports = function( grunt ) {
 		'shell:create_build_zip'
 	] );
 
-	grunt.registerTask( 'build-release', [
-		'build'
-	] );
-
 	grunt.registerTask( 'deploy', [
 		'shell:verify_matching_versions',
 		'shell:phpunit',
-		'build-release',
+		'build',
 		'wp_deploy'
 	] );
 };
