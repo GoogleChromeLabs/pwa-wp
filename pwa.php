@@ -1,20 +1,19 @@
 <?php
 /**
- * PWA-WP
+ * PWA
  *
- * @package      PWAWP
+ * @package      PWA
  * @author       XWP
- * @copyright    2018 XWP
  * @license      GPL-2.0+
  *
  * @wordpress-plugin
- * Plugin Name:       PWA-WP
+ * Plugin Name:       PWA
  * Plugin URI:        https://github.com/xwp/pwa-wp
- * Description:       Feature plugin to bring Progressive Web Apps (PWA) to Core
- * Version:           0.1.0-alpha
- * Author:            XWP and contributors
+ * Description:       Feature plugin to bring Progressive Web App (PWA) capabilities to Core
+ * Version:           0.1.0
+ * Author:            XWP, Google, and contributors
  * Author URI:        https://github.com/xwp/pwa-wp/graphs/contributors
- * Text Domain:       pwa-wp
+ * Text Domain:       pwa
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * GitHub Plugin URI: https://github.com/xwp/pwa-wp
@@ -22,24 +21,24 @@
  * Requires WP:       4.9
  */
 
-define( 'PWAWP_VERSION', '0.1.0-alpha' );
-define( 'PWAWP_PLUGIN_FILE', __FILE__ );
-define( 'PWAWP_PLUGIN_DIR', dirname( __FILE__ ) );
+define( 'PWA_VERSION', '0.1.0' );
+define( 'PWA_PLUGIN_FILE', __FILE__ );
+define( 'PWA_PLUGIN_DIR', dirname( __FILE__ ) );
 
 /** WP_Web_App_Manifest Class */
-require PWAWP_PLUGIN_DIR . '/wp-includes/class-wp-web-app-manifest.php';
+require PWA_PLUGIN_DIR . '/wp-includes/class-wp-web-app-manifest.php';
 
 /** WP_HTTPS_Detection Class */
-require PWAWP_PLUGIN_DIR . '/wp-includes/class-wp-https-detection.php';
+require PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-detection.php';
 
 /** WP_Service_Workers Class */
-require PWAWP_PLUGIN_DIR . '/wp-includes/class-wp-service-workers.php';
+require PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-workers.php';
 
 /** WordPress Service Worker Functions */
-require PWAWP_PLUGIN_DIR . '/wp-includes/service-workers.php';
+require PWA_PLUGIN_DIR . '/wp-includes/service-workers.php';
 
 /** Amend default filters */
-require PWAWP_PLUGIN_DIR . '/wp-includes/default-filters.php';
+require PWA_PLUGIN_DIR . '/wp-includes/default-filters.php';
 
 /** WP_Offline_Page Class */
 require PWAWP_PLUGIN_DIR . '/wp-includes/class-wp-offline-page.php';

@@ -139,7 +139,7 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 			'display'          => 'minimal-ui',
 			'name'             => get_bloginfo( 'name' ),
 			'short_name'       => $short_name_matches[0],
-			'lang'             => get_locale(),
+			'lang'             => get_bloginfo( 'language' ),
 			'dir'              => is_rtl() ? 'rtl' : 'ltr',
 			'start_url'        => get_home_url(),
 			'theme_color'      => WP_Web_App_Manifest::FALLBACK_THEME_COLOR,
