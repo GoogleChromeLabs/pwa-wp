@@ -122,7 +122,7 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 			array(
 				'id'       => WP_Offline_Page::SETTING_ID,
 				'title'    => 'Page displays when offline',
-				'callback' => array( $this->instance, 'settings_callback' ),
+				'callback' => array( $this->instance, 'render_settings' ),
 				'args'     => array(),
 			),
 			$wp_settings_fields[ WP_Offline_Page::OPTION_GROUP ]['default'][ WP_Offline_Page::SETTING_ID ]
@@ -130,18 +130,18 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test settings_callback.
+	 * Test render_settings.
 	 *
-	 * @covers WP_Offline_Page::settings_callback()
+	 * @covers WP_Offline_Page::render_settings()
 	 */
-	public function test_settings_callback() {
+	public function test_render_settings() {
 		$number_pages = 10;
 		$page_ids     = array();
 		for ( $i = 0; $i < $number_pages; $i ++ ) {
 			$page_ids[] = $this->factory()->post->create( array( 'post_type' => 'page' ) );
 		}
 		ob_start();
-		$this->instance->settings_callback();
+		$this->instance->render_settings();
 		$output = ob_get_clean();
 		$this->assertContains( 'Select an existing page:', $output );
 

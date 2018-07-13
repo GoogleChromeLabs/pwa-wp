@@ -90,7 +90,7 @@ class WP_Offline_Page {
 		add_settings_field(
 			self::SETTING_ID,
 			__( 'Page displays when offline', 'pwa' ),
-			array( $this, 'settings_callback' ),
+			array( $this, 'render_settings' ),
 			self::OPTION_GROUP
 		);
 	}
@@ -141,10 +141,9 @@ class WP_Offline_Page {
 	}
 
 	/**
-	 * Outputs the settings section.
-	 * Mainly taken from wp-admin/privacy.php.
+	 * Renders the settings section.
 	 */
-	public function settings_callback() {
+	public function render_settings() {
 		if ( $this->has_pages() ) :
 			?>
 			<label for="<?php echo esc_attr( self::OPTION_NAME ); ?>">
