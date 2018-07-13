@@ -37,6 +37,21 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'init_admin' ) ) );
 		$this->assertEquals( 10, has_action( 'admin_notices', array( $this->instance, 'add_settings_error' ) ) );
 		$this->assertEquals( 10, has_filter( 'display_post_states', array( $this->instance, 'add_post_state' ) ) );
+		$this->assertEquals( 10, has_filter( 'wp_dropdown_pages', array( $this->instance, 'exclude_from_page_dropdown' ) ) );
+	}
+
+	/**
+	 * Test get_offline_page_id.
+	 *
+	 * @covers WP_Offline_Page::get_offline_page_id()
+	 */
+	public function test_get_offline_page_id() {
+		$this->assertSame( 0, $this->instance->get_offline_page_id() );
+		$this->assertSame( 0, $this->instance->get_offline_page_id( true ) );
+
+		add_option( WP_Offline_Page::OPTION_NAME, 5 );
+		$this->assertSame( 5, $this->instance->get_offline_page_id() );
+		$this->assertSame( 5, $this->instance->get_offline_page_id( true ) );
 	}
 
 	/**
@@ -110,14 +125,14 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test settings_field.
+	 * Test add_settings_field.
 	 *
-	 * @covers WP_Offline_Page::settings_field()
+	 * @covers WP_Offline_Page::add_settings_field()
 	 */
-	public function test_settings_field() {
+	public function test_add_settings_field() {
 		global $wp_settings_fields;
 
-		$this->instance->settings_field();
+		$this->instance->add_settings_field();
 		$this->assertEquals(
 			array(
 				'id'       => WP_Offline_Page::SETTING_ID,
@@ -189,10 +204,12 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 		// Check that false returns when the page is not the Offline Page.
 		$this->assertFalse( $this->instance->remove_page_attributes() );
 		add_option( WP_Offline_Page::OPTION_NAME, $page_id + 99 );
+		$this->instance->get_offline_page_id( true );
 		$this->assertFalse( $this->instance->remove_page_attributes() );
 
 		// Check that the page attributes were removed for the Offline Page.
 		update_option( WP_Offline_Page::OPTION_NAME, $page_id );
+		$this->instance->get_offline_page_id( true );
 		$this->assertArrayHasKey( 'page-attributes', get_all_post_type_supports( 'page' ) );
 		$this->assertTrue( $this->instance->remove_page_attributes() );
 		$this->assertArrayNotHasKey( 'page-attributes', get_all_post_type_supports( 'page' ) );
@@ -208,9 +225,11 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 		$this->assertEmpty( $this->instance->add_post_state( array(), $page ) );
 
 		add_option( WP_Offline_Page::OPTION_NAME, $page->ID );
+		$this->instance->get_offline_page_id( true );
 		$this->assertSame( array( 'Offline Page' ), $this->instance->add_post_state( array(), $page ) );
 
 		update_option( WP_Offline_Page::OPTION_NAME, $page->ID + 10 );
+		$this->instance->get_offline_page_id( true );
 		$this->assertEmpty( $this->instance->add_post_state( array(), $page ) );
 	}
 
@@ -269,6 +288,7 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 
 		// Check when no offline page is passed (e.g. doing 'admin_notices') and the offline page has been configured but does not exist.
 		update_option( WP_Offline_Page::OPTION_NAME, 999999 );
+		$this->instance->get_offline_page_id( true );
 		$this->assertTrue( $this->instance->add_settings_error() );
 		$this->assertEquals(
 			array_merge(
@@ -287,6 +307,7 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 			'post_status' => 'trash',
 		) );
 		update_option( WP_Offline_Page::OPTION_NAME, $trashed_page->ID );
+		$this->instance->get_offline_page_id( true );
 		$this->assertTrue( $this->instance->add_settings_error() );
 		$this->assertEquals(
 			array_merge(
@@ -302,6 +323,7 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 		// Check when no offline page is passed (e.g. doing 'admin_notices') and the offline page is configured.
 		$offline_page_id = $this->factory()->post->create( array( 'post_type' => 'page' ) );
 		update_option( WP_Offline_Page::OPTION_NAME, $offline_page_id );
+		$this->instance->get_offline_page_id( true );
 		$this->assertFalse( $this->instance->add_settings_error() );
 		$this->assertEquals( array(), $wp_settings_errors );
 	}
