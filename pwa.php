@@ -41,7 +41,7 @@ require PWA_PLUGIN_DIR . '/wp-includes/service-workers.php';
 require PWA_PLUGIN_DIR . '/wp-includes/default-filters.php';
 
 /** WP_Offline_Page Class */
-require PWAWP_PLUGIN_DIR . '/wp-includes/class-wp-offline-page.php';
+require PWA_PLUGIN_DIR . '/wp-includes/class-wp-offline-page.php';
 
 $wp_web_app_manifest = new WP_Web_App_Manifest();
 $wp_web_app_manifest->init();
