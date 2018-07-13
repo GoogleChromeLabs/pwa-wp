@@ -33,14 +33,21 @@ class WP_Offline_Page {
 	const SETTING_ID = 'pwa_offline_page';
 
 	/**
-	 * Inits the class.
+	 * Initializes the instance.
 	 */
 	public function init() {
-		add_action( 'admin_init', array( $this, 'register_setting' ) );
-		add_action( 'admin_init', array( $this, 'settings_field' ) );
+		add_action( 'admin_init', array( $this, 'init_admin' ) );
 		add_action( 'admin_notices', array( $this, 'add_settings_error' ) );
-		add_action( 'admin_init', array( $this, 'remove_page_attributes' ) );
 		add_filter( 'display_post_states', array( $this, 'add_post_state' ), 10, 2 );
+	}
+
+	/**
+	 * Initializes the admin tasks.
+	 */
+	public function init_admin() {
+		$this->register_setting();
+		$this->settings_field();
+		$this->remove_page_attributes();
 	}
 
 	/**

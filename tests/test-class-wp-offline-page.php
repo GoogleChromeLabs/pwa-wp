@@ -34,8 +34,9 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 	 */
 	public function test_init() {
 		$this->instance->init();
-		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'register_setting' ) ) );
-		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'settings_field' ) ) );
+		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'init_admin' ) ) );
+		$this->assertEquals( 10, has_action( 'admin_notices', array( $this->instance, 'add_settings_error' ) ) );
+		$this->assertEquals( 10, has_filter( 'display_post_states', array( $this->instance, 'add_post_state' ) ) );
 	}
 
 	/**
