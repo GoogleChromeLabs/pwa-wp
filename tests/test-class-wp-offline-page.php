@@ -181,24 +181,20 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'post', $_GET ); // WPCS: CSRF ok.
 		$this->assertFalse( $this->instance->remove_page_attributes() );
 
-		// Check the current screen.
-		set_current_screen( 'edit-post' );
-		$this->assertNotEquals( 'page', get_current_screen()->post_type );
-		$this->assertFalse( $this->instance->remove_page_attributes() );
-
 		set_current_screen( 'edit-page' );
 		$page_id      = $this->factory()->post->create( array( 'post_type' => 'page' ) );
 		$_GET['post'] = $page_id; // WPCS: CSRF ok.
 
 		// Check that false returns when the page is not the Offline Page.
-		$this->assertEquals( 'page', get_current_screen()->post_type );
 		$this->assertFalse( $this->instance->remove_page_attributes() );
 		add_option( WP_Offline_Page::OPTION_NAME, $page_id + 99 );
 		$this->assertFalse( $this->instance->remove_page_attributes() );
 
-		// Check that the meta box is removed.
+		// Check that the page attributes were removed for the Offline Page.
 		update_option( WP_Offline_Page::OPTION_NAME, $page_id );
+		$this->assertArrayHasKey( 'page-attributes', get_all_post_type_supports( 'page' ) );
 		$this->assertTrue( $this->instance->remove_page_attributes() );
+		$this->assertArrayNotHasKey( 'page-attributes', get_all_post_type_supports( 'page' ) );
 	}
 
 	/**

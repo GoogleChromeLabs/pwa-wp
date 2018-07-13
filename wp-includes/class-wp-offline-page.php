@@ -39,7 +39,7 @@ class WP_Offline_Page {
 		add_action( 'admin_init', array( $this, 'register_setting' ) );
 		add_action( 'admin_init', array( $this, 'settings_field' ) );
 		add_action( 'admin_notices', array( $this, 'add_settings_error' ) );
-		add_action( 'in_admin_header', array( $this, 'remove_page_attributes' ) );
+		add_action( 'admin_init', array( $this, 'remove_page_attributes' ) );
 		add_filter( 'display_post_states', array( $this, 'add_post_state' ), 10, 2 );
 	}
 
@@ -197,17 +197,12 @@ class WP_Offline_Page {
 	}
 
 	/**
-	 * Remove the page attributes meta box for the Offline Page.
+	 * Remove the page attributes for the Offline Page.
 	 *
-	 * @return bool Returns true if the meta box is removed.
+	 * @return bool Returns true on success.
 	 */
 	public function remove_page_attributes() {
 		if ( ! isset( $_GET['post'] ) ) { // WPCS: CSRF ok.
-			return false;
-		}
-
-		$screen = get_current_screen();
-		if ( ! is_object( $screen ) || 'page' !== $screen->post_type ) {
 			return false;
 		}
 
@@ -215,7 +210,7 @@ class WP_Offline_Page {
 			return false;
 		}
 
-		remove_meta_box( 'pageparentdiv', $screen, 'side' );
+		remove_post_type_support( 'page', 'page-attributes' );
 		return true;
 	}
 
