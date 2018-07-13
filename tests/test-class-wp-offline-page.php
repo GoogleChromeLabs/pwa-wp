@@ -35,9 +35,16 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 	public function test_init() {
 		$this->instance->init();
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'init_admin' ) ) );
+		$this->assertEquals( 10, has_action( 'admin_action_create-offline-page', array(
+			$this->instance,
+			'create_new_page',
+		) ) );
 		$this->assertEquals( 10, has_action( 'admin_notices', array( $this->instance, 'add_settings_error' ) ) );
 		$this->assertEquals( 10, has_filter( 'display_post_states', array( $this->instance, 'add_post_state' ) ) );
-		$this->assertEquals( 10, has_filter( 'wp_dropdown_pages', array( $this->instance, 'exclude_from_page_dropdown' ) ) );
+		$this->assertEquals( 10, has_filter( 'wp_dropdown_pages', array(
+			$this->instance,
+			'exclude_from_page_dropdown',
+		) ) );
 	}
 
 	/**
@@ -150,6 +157,15 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 	 * @covers WP_Offline_Page::render_settings()
 	 */
 	public function test_render_settings() {
+		// Check with there are no pages.
+		ob_start();
+		$this->instance->render_settings();
+		$output = ob_get_clean();
+		$this->assertNotContains( 'Select an existing page:', $output );
+		$this->assertContains( 'Create a new offline page', $output );
+		$this->assertContains( 'This page is for the Progressive Web App (PWA)', $output );
+
+		// Check when there are pages.
 		$number_pages = 10;
 		$page_ids     = array();
 		for ( $i = 0; $i < $number_pages; $i ++ ) {
@@ -162,30 +178,29 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 
 		// All of the pages should appear in the <select> element from wp_dropdown_pages().
 		foreach ( $page_ids as $page_id ) {
-			$this->assertContains( strval( $page_id ), $output );
+			$this->assertContains( '<option class="level-0" value="' . $page_id . '">', $output );
 		}
 
-		// Test that the description renders.
-		$this->assertContains( 'This page is for the Progressive Web App (PWA)', $output );
-	}
+		$this->assertContains(
+			'<a href="' . admin_url( 'options-reading.php?action=create-offline-page' ) . '">create a new one</a>',
+			$output
+		);
 
-	/**
-	 * Test has_pages.
-	 *
-	 * @covers WP_Offline_Page::has_pages()
-	 */
-	public function test_has_pages() {
-		$this->assertFalse( $this->instance->has_pages() );
-
-		// There is a post, but this needs a post type of 'page'.
-		$this->factory()->post->create();
-		$this->assertFalse( $this->instance->has_pages() );
-
-		// There's a post with the type of 'page,' so this should be true.
-		$this->factory()->post->create( array(
-			'post_type' => 'page',
-		) );
-		$this->assertTrue( $this->instance->has_pages() );
+		// Check that it excludes the configured static pages.
+		update_option( 'page_on_front', (int) $page_ids[0] );
+		update_option( 'page_for_posts', (int) $page_ids[1] );
+		update_option( 'wp_page_for_privacy_policy', (int) $page_ids[2] );
+		$this->instance->init_admin();
+		ob_start();
+		$this->instance->render_settings();
+		$output = ob_get_clean();
+		foreach ( $page_ids as $index => $page_id ) {
+			if ( $index <= 2 ) {
+				$this->assertNotContains( '<option class="level-0" value="' . $page_id . '">', $output );
+			} else {
+				$this->assertContains( '<option class="level-0" value="' . $page_id . '">', $output );
+			}
+		}
 	}
 
 	/**
@@ -216,21 +231,24 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test add_post_state.
+	 * Test create_new_page.
 	 *
-	 * @covers WP_Offline_Page::add_post_state()
+	 * @covers WP_Offline_Page::create_new_page()
 	 */
-	public function test_add_post_state() {
-		$page = $this->factory()->post->create_and_get( array( 'post_type' => 'page' ) );
-		$this->assertEmpty( $this->instance->add_post_state( array(), $page ) );
+	public function test_create_new_page() {
+		add_filter( 'wp_redirect', '__return_empty_string' );
+		// Check on the wrong page.
+		set_current_screen( 'edit.php' );
+		$this->assertFalse( $this->instance->create_new_page() );
 
-		add_option( WP_Offline_Page::OPTION_NAME, $page->ID );
-		$this->instance->get_offline_page_id( true );
-		$this->assertSame( array( 'Offline Page' ), $this->instance->add_post_state( array(), $page ) );
-
-		update_option( WP_Offline_Page::OPTION_NAME, $page->ID + 10 );
-		$this->instance->get_offline_page_id( true );
-		$this->assertEmpty( $this->instance->add_post_state( array(), $page ) );
+		$this->assertEquals( 0, get_option( WP_Offline_Page::OPTION_NAME, 0 ) );
+		set_current_screen( 'options-reading.php' );
+		$this->assertNull( $this->instance->create_new_page() );
+		$offline_id   = (int) get_option( WP_Offline_Page::OPTION_NAME, 0 );
+		$offline_page = get_post( $offline_id );
+		$this->assertGreaterThan( 0, $offline_id );
+		$this->assertInstanceOf( 'WP_Post', $offline_page );
+		$this->assertEquals( $offline_id, $offline_page->ID );
 	}
 
 	/**
@@ -326,5 +344,57 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 		$this->instance->get_offline_page_id( true );
 		$this->assertFalse( $this->instance->add_settings_error() );
 		$this->assertEquals( array(), $wp_settings_errors );
+	}
+
+	/**
+	 * Test add_post_state.
+	 *
+	 * @covers WP_Offline_Page::add_post_state()
+	 */
+	public function test_add_post_state() {
+		$page = $this->factory()->post->create_and_get( array( 'post_type' => 'page' ) );
+		$this->assertEmpty( $this->instance->add_post_state( array(), $page ) );
+
+		add_option( WP_Offline_Page::OPTION_NAME, $page->ID );
+		$this->instance->get_offline_page_id( true );
+		$this->assertSame( array( 'Offline Page' ), $this->instance->add_post_state( array(), $page ) );
+
+		update_option( WP_Offline_Page::OPTION_NAME, $page->ID + 10 );
+		$this->instance->get_offline_page_id( true );
+		$this->assertEmpty( $this->instance->add_post_state( array(), $page ) );
+	}
+
+	/**
+	 * Test exclude_from_page_dropdown.
+	 *
+	 * @covers WP_Offline_Page::exclude_from_page_dropdown()
+	 */
+	public function test_exclude_from_page_dropdown() {
+		$page_id = $this->factory()->post->create( array( 'post_type' => 'page' ) );
+		$html    = <<<EOB
+<select name="page_on_front" id="page_on_front">
+	<option value="0">— Select —</option>
+	<option class="level-0" value="7">Blog Page</option>
+	<option class="level-0" value="5" selected="selected">Home page</option>
+	<option class="level-0" value="13">Offline Page</option>	
+	<option class="level-0" value="3">Privacy Policy</option>
+	<option class="level-0" value="2">Sample Page</option>
+</select>
+EOB;
+		$html    = str_replace( '13', $page_id, $html );
+
+		// Check that the HTML is unchanged when no Offline Page exists.
+		$this->assertSame(
+			$html,
+			$this->instance->exclude_from_page_dropdown( $html, array( 'name' => 'page_on_front' ) )
+		);
+
+		// Add the Offline Page and recheck.
+		add_option( WP_Offline_Page::OPTION_NAME, $page_id );
+		$this->instance->get_offline_page_id( true );
+		$this->assertNotContains(
+			'<option class="level-0" value="' . $page_id . '">Offline Page</option>',
+			$this->instance->exclude_from_page_dropdown( $html, array( 'name' => 'page_on_front' ) )
+		);
 	}
 }
