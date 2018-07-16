@@ -373,6 +373,7 @@ EOB;
 	 */
 	public function test_is_exclude_from_query() {
 		set_current_screen( 'front' );
+
 		$offline_id = $this->factory()->post->create( array(
 			'post_type'  => 'page',
 			'post_title' => 'Offline page',
@@ -386,20 +387,14 @@ EOB;
 
 		// Check a page.
 		$this->go_to( get_permalink( $page_id ) );
-		$this->assertEquals( array(), get_query_var( 'post__not_in' ) );
+		$this->assertEquals( array( $offline_id ), get_query_var( 'post__not_in' ) );
 		$this->assertSame( $page_id, get_queried_object()->ID );
-
-		// Check the offline page.
-		$this->go_to( get_permalink( $offline_id ) );
-		$this->assertEquals( array(), get_query_var( 'post__not_in' ) );
-		$this->assertSame( $offline_id, get_queried_object()->ID );
 
 		// Check search.
 		$this->go_to( '?s=Offline' );
 		$this->assertEquals( array( $offline_id ), get_query_var( 'post__not_in' ) );
 		$this->assertTrue( have_posts() );
-		global $wp_query;
-		$this->assertEquals( 1, $wp_query->post_count );
+		$this->assertEquals( 1, $GLOBALS['wp_query']->post_count );
 
 		// Check edit.php.
 		set_current_screen( 'edit.php' );
@@ -410,5 +405,19 @@ EOB;
 		set_current_screen( 'nav-menus.php' );
 		$this->go_to( admin_url( 'nav-menus.php' ) );
 		$this->assertEquals( array( $offline_id ), get_query_var( 'post__not_in' ) );
+
+		set_current_screen( 'front' );
+
+		// Check that the offline page is found when using the plan permalink.
+		$this->go_to( "?page_id={$offline_id}" );
+		$this->assertEquals( array( $offline_id ), get_query_var( 'post__not_in' ) );
+		$this->assertFalse( $GLOBALS['wp_query']->is_404() );
+		$this->assertSame( $offline_id, get_queried_object()->ID );
+
+		// Check that the offline page flags a 404.
+		$this->set_permalink_structure( '/%postname%/' );
+		$this->go_to( get_permalink( $offline_id ) );
+		$this->assertEquals( array( $offline_id ), get_query_var( 'post__not_in' ) );
+		$this->assertTrue( $GLOBALS['wp_query']->is_404() );
 	}
 }

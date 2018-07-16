@@ -365,7 +365,7 @@ class WP_Offline_Page {
 			return ( 'nav-menus' === $screen->id );
 		}
 
-		return false;
+		return ( $query->is_page && $query->is_singular );
 	}
 
 	/**
