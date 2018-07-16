@@ -35,16 +35,11 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 	public function test_init() {
 		$this->instance->init();
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'init_admin' ) ) );
-		$this->assertEquals(
-			10,
-			has_action( 'admin_action_create-offline-page', array( $this->instance, 'create_new_page' ) )
-		);
+		$this->assertEquals( 10, has_action( 'admin_action_create-offline-page', array( $this->instance, 'create_new_page' ) ) );
 		$this->assertEquals( 10, has_action( 'admin_notices', array( $this->instance, 'add_settings_error' ) ) );
 		$this->assertEquals( 10, has_filter( 'display_post_states', array( $this->instance, 'add_post_state' ) ) );
-		$this->assertEquals( 10, has_filter( 'wp_dropdown_pages', array(
-			$this->instance,
-			'exclude_from_page_dropdown',
-		) ) );
+		$this->assertEquals( 10, has_filter( 'wp_dropdown_pages', array( $this->instance, 'exclude_from_page_dropdown' ) ) );
+		$this->assertEquals( 10, has_filter( 'pre_get_posts', array( $this->instance, 'exclude_from_query' ) ) );
 	}
 
 	/**
@@ -369,5 +364,51 @@ EOB;
 			'<option class="level-0" value="' . $page_id . '">Offline Page</option>',
 			$this->instance->exclude_from_page_dropdown( $html, array( 'name' => 'page_on_front' ) )
 		);
+	}
+
+	/**
+	 * Test is_exclude_from_query.
+	 *
+	 * @covers WP_Offline_Page::is_exclude_from_query()
+	 */
+	public function test_is_exclude_from_query() {
+		set_current_screen( 'front' );
+		$offline_id = $this->factory()->post->create( array(
+			'post_type'  => 'page',
+			'post_title' => 'Offline page',
+		) );
+		$page_id    = $this->factory()->post->create( array(
+			'post_type'  => 'page',
+			'post_title' => 'Accessing via Offline',
+		) );
+		add_option( WP_Offline_Page::OPTION_NAME, $offline_id );
+		add_action( 'pre_get_posts', array( $this->instance, 'exclude_from_query' ) );
+
+		// Check a page.
+		$this->go_to( get_permalink( $page_id ) );
+		$this->assertEquals( array(), get_query_var( 'post__not_in' ) );
+		$this->assertSame( $page_id, get_queried_object()->ID );
+
+		// Check the offline page.
+		$this->go_to( get_permalink( $offline_id ) );
+		$this->assertEquals( array(), get_query_var( 'post__not_in' ) );
+		$this->assertSame( $offline_id, get_queried_object()->ID );
+
+		// Check search.
+		$this->go_to( '?s=Offline' );
+		$this->assertEquals( array( $offline_id ), get_query_var( 'post__not_in' ) );
+		$this->assertTrue( have_posts() );
+		global $wp_query;
+		$this->assertEquals( 1, $wp_query->post_count );
+
+		// Check edit.php.
+		set_current_screen( 'edit.php' );
+		$this->go_to( admin_url( 'edit.php' ) );
+		$this->assertEquals( array(), get_query_var( 'post__not_in' ) );
+
+		// Check that is is excluded on the nav-menu.php query.
+		set_current_screen( 'nav-menus.php' );
+		$this->go_to( admin_url( 'nav-menus.php' ) );
+		$this->assertEquals( array( $offline_id ), get_query_var( 'post__not_in' ) );
 	}
 }

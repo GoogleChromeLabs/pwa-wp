@@ -55,7 +55,11 @@ class WP_Offline_Page {
 	 *
 	 * @var array
 	 */
-	protected $dropdown_page_names = array( 'page_on_front', 'page_for_posts', 'page_for_privacy_policy' );
+	protected $dropdown_page_names = array(
+		'page_on_front',
+		'page_for_posts',
+		'page_for_privacy_policy',
+	);
 
 	/**
 	 * Initializes the instance.
@@ -66,6 +70,7 @@ class WP_Offline_Page {
 		add_action( 'admin_notices', array( $this, 'add_settings_error' ) );
 		add_filter( 'display_post_states', array( $this, 'add_post_state' ), 10, 2 );
 		add_filter( 'wp_dropdown_pages', array( $this, 'exclude_from_page_dropdown' ), 10, 2 );
+		add_action( 'pre_get_posts', array( $this, 'exclude_from_query' ) );
 	}
 
 	/**
@@ -319,6 +324,46 @@ class WP_Offline_Page {
 		}
 
 		return preg_replace( '/<option .* value="' . $this->get_offline_page_id() . '">.*<\/option>/', '', $html );
+	}
+
+	/**
+	 * Exclude the offline page from the query when doing a search on the frontend or on the backend Menus page.
+	 *
+	 * @param WP_Query $query The WP_Query instance.
+	 */
+	public function exclude_from_query( $query ) {
+		if ( $this->is_okay_to_exclude( $query ) ) {
+			$query->set( 'post__not_in', array( $this->get_offline_page_id() ) );
+		}
+	}
+
+	/**
+	 * Checks if the offline page should be excluded or not.
+	 *
+	 * @param WP_Query $query The WP_Query instance.
+	 *
+	 * @return bool
+	 */
+	protected function is_okay_to_exclude( $query ) {
+		// All searches should be excluded.
+		if ( $query->is_search ) {
+			return true;
+		}
+
+		// Handle Customizer.
+		global $wp_customize;
+		if ( is_object( $wp_customize ) && ! $query->is_page ) {
+			return true;
+		}
+
+		// Only exclude when on the Menus page in the backend.
+		if ( is_admin() ) {
+			$screen = get_current_screen();
+
+			return ( 'nav-menus' === $screen->id );
+		}
+
+		return false;
 	}
 
 	/**
