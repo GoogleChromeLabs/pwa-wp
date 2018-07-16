@@ -76,7 +76,6 @@ class WP_Offline_Page {
 		$this->init_static_pages();
 		$this->register_setting();
 		$this->add_settings_field();
-		$this->remove_page_attributes();
 	}
 
 	/**
@@ -193,25 +192,6 @@ class WP_Offline_Page {
 				'exclude'           => esc_html( $this->get_static_pages( true ) ),
 			)
 		);
-	}
-
-	/**
-	 * Remove the page attributes for the Offline Page.
-	 *
-	 * @return bool Returns true on success.
-	 */
-	public function remove_page_attributes() {
-		if ( ! isset( $_GET['post'] ) ) { // WPCS: CSRF ok.
-			return false;
-		}
-
-		if ( (int) $_GET['post'] !== $this->get_offline_page_id() ) { // WPCS: CSRF ok.
-			return false;
-		}
-
-		remove_post_type_support( 'page', 'page-attributes' );
-
-		return true;
 	}
 
 	/**

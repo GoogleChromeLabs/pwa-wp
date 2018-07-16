@@ -35,10 +35,10 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 	public function test_init() {
 		$this->instance->init();
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'init_admin' ) ) );
-		$this->assertEquals( 10, has_action( 'admin_action_create-offline-page', array(
-			$this->instance,
-			'create_new_page',
-		) ) );
+		$this->assertEquals(
+			10,
+			has_action( 'admin_action_create-offline-page', array( $this->instance, 'create_new_page' ) )
+		);
 		$this->assertEquals( 10, has_action( 'admin_notices', array( $this->instance, 'add_settings_error' ) ) );
 		$this->assertEquals( 10, has_filter( 'display_post_states', array( $this->instance, 'add_post_state' ) ) );
 		$this->assertEquals( 10, has_filter( 'wp_dropdown_pages', array(
@@ -201,33 +201,6 @@ class Test_WP_Offline_Page extends WP_UnitTestCase {
 				$this->assertContains( '<option class="level-0" value="' . $page_id . '">', $output );
 			}
 		}
-	}
-
-	/**
-	 * Test remove_page_attributes.
-	 *
-	 * @covers WP_Offline_Page::remove_page_attributes()
-	 */
-	public function test_remove_page_attributes() {
-		$this->assertArrayNotHasKey( 'post', $_GET ); // WPCS: CSRF ok.
-		$this->assertFalse( $this->instance->remove_page_attributes() );
-
-		set_current_screen( 'edit-page' );
-		$page_id      = $this->factory()->post->create( array( 'post_type' => 'page' ) );
-		$_GET['post'] = $page_id; // WPCS: CSRF ok.
-
-		// Check that false returns when the page is not the Offline Page.
-		$this->assertFalse( $this->instance->remove_page_attributes() );
-		add_option( WP_Offline_Page::OPTION_NAME, $page_id + 99 );
-		$this->instance->get_offline_page_id( true );
-		$this->assertFalse( $this->instance->remove_page_attributes() );
-
-		// Check that the page attributes were removed for the Offline Page.
-		update_option( WP_Offline_Page::OPTION_NAME, $page_id );
-		$this->instance->get_offline_page_id( true );
-		$this->assertArrayHasKey( 'page-attributes', get_all_post_type_supports( 'page' ) );
-		$this->assertTrue( $this->instance->remove_page_attributes() );
-		$this->assertArrayNotHasKey( 'page-attributes', get_all_post_type_supports( 'page' ) );
 	}
 
 	/**
