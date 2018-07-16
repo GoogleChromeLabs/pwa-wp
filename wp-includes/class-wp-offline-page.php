@@ -59,6 +59,8 @@ class WP_Offline_Page {
 		'page_on_front',
 		'page_for_posts',
 		'page_for_privacy_policy',
+		'_customize-dropdown-pages-page_on_front',
+		'_customize-dropdown-pages-page_for_posts',
 	);
 
 	/**
