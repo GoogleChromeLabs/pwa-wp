@@ -1,14 +1,14 @@
 <?php
 /**
- * WP_Offline_Page_Exclusion class.
+ * WP_Offline_Page_Excluder class.
  *
  * @package PWA
  */
 
 /**
- * Class is used to handle the Offline Page's exclusion from the backend and frontend.
+ * Class handles excluding the Offline Page's from the backend and frontend.
  */
-class WP_Offline_Page_Exclusion {
+class WP_Offline_Page_Excluder {
 
 	/**
 	 * Instance of the Offline Page Manager.
@@ -18,20 +18,7 @@ class WP_Offline_Page_Exclusion {
 	protected $manager;
 
 	/**
-	 * Array of the dropdown page names
-	 *
-	 * @var array
-	 */
-	protected $dropdown_page_names = array(
-		'page_on_front',
-		'page_for_posts',
-		'page_for_privacy_policy',
-		'_customize-dropdown-pages-page_on_front',
-		'_customize-dropdown-pages-page_for_posts',
-	);
-
-	/**
-	 * WP_Offline_Page_UI constructor.
+	 * WP_Offline_Page_Filter constructor.
 	 *
 	 * @param WP_Offline_Page $manager Instance of the manager.
 	 */
@@ -44,9 +31,7 @@ class WP_Offline_Page_Exclusion {
 	 */
 	public function init() {
 		add_filter( 'wp_dropdown_pages', array( $this, 'exclude_from_page_dropdown' ), 10, 2 );
-
-		// Strategy 2 - Exclude from query.
-		add_action( 'pre_get_posts', array( $this, 'exclude_from_query' ) );
+		add_action( 'parse_query', array( $this, 'exclude_from_query' ) );
 	}
 
 	/**
@@ -71,10 +56,34 @@ class WP_Offline_Page_Exclusion {
 	 *
 	 * @param WP_Query $query The WP_Query instance.
 	 */
-	public function exclude_from_query( $query ) {
-		if ( $this->is_okay_to_exclude( $query ) ) {
+	public function exclude_from_query( WP_Query $query ) {
+		if ( $this->is_offline_page_query( $query ) ) {
+			$query->is_404      = true;
+			$query->is_page     = false;
+			$query->is_singular = false;
+			$query->set( 'page_id', 0 );
+		} elseif ( $this->is_okay_to_exclude( $query ) ) {
 			$query->set( 'post__not_in', array( $this->manager->get_offline_page_id() ) );
 		}
+	}
+
+	/**
+	 * Checks if the query is for the offline page.
+	 *
+	 * @param WP_Query $query The WP_Query instance.
+	 *
+	 * @return bool
+	 */
+	protected function is_offline_page_query( WP_Query $query ) {
+		if ( $query->is_admin ) {
+			return false;
+		}
+
+		if ( ! $query->is_page || ! $query->is_singular ) {
+			return false;
+		}
+
+		return ( $this->manager->get_offline_page_id() === $query->get( 'get_id' ) );
 	}
 
 	/**
@@ -84,7 +93,7 @@ class WP_Offline_Page_Exclusion {
 	 *
 	 * @return bool
 	 */
-	protected function is_okay_to_exclude( $query ) {
+	protected function is_okay_to_exclude( WP_Query $query ) {
 		// All searches should be excluded.
 		if ( $query->is_search ) {
 			return true;
@@ -97,7 +106,7 @@ class WP_Offline_Page_Exclusion {
 		}
 
 		// Only exclude when on the Menus page in the backend.
-		if ( is_admin() ) {
+		if ( $query->is_admin ) {
 			$screen = get_current_screen();
 
 			return ( 'nav-menus' === $screen->id );

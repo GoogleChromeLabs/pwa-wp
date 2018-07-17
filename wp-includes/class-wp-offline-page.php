@@ -43,21 +43,21 @@ class WP_Offline_Page {
 	protected $ui_handler;
 
 	/**
-	 * Instance of the exclusion handler.
+	 * Instance of the filter handler.
 	 *
-	 * @var WP_Offline_Page_Exclusion
+	 * @var WP_Offline_Page_Filter
 	 */
-	protected $exclusions;
+	protected $excluder;
 
 	/**
 	 * WP_Offline_Page constructor.
 	 */
 	public function __construct() {
 		require_once dirname( __FILE__ ) . '/class-wp-offline-page-ui.php';
-		require_once dirname( __FILE__ ) . '/class-wp-offline-page-exclusion.php';
+		require_once dirname( __FILE__ ) . '/class-wp-offline-page-excluder.php';
 
 		$this->ui_handler = new WP_Offline_Page_UI( $this );
-		$this->exclusions = new WP_Offline_Page_Exclusion( $this );
+		$this->excluder   = new WP_Offline_Page_Excluder( $this );
 	}
 
 	/**
@@ -67,7 +67,7 @@ class WP_Offline_Page {
 		add_action( 'admin_init', array( $this, 'init_admin' ) );
 
 		$this->ui_handler->init();
-		$this->exclusions->init();
+		$this->excluder->init();
 	}
 
 	/**

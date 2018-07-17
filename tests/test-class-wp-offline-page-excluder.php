@@ -1,19 +1,19 @@
 <?php
 /**
- * Tests for class WP_Offline_Page_Exclude.
+ * Tests for class WP_Offline_Page_Excluder.
  *
  * @package PWA
  */
 
 /**
- * Tests for class WP_Offline_Page_Exclude.
+ * Tests for class WP_Offline_Page_Excluder.
  */
-class Test_WP_Offline_Page_Exclude extends WP_UnitTestCase {
+class Test_WP_Offline_Page_Excluder extends WP_UnitTestCase {
 
 	/**
 	 * Tested instance.
 	 *
-	 * @var WP_Offline_Page_Exclude
+	 * @var WP_Offline_Page_Excluder
 	 */
 	public $instance;
 
@@ -24,24 +24,24 @@ class Test_WP_Offline_Page_Exclude extends WP_UnitTestCase {
 	 */
 	public function setUp() {
 		parent::setUp();
-		$this->instance = new WP_Offline_Page_Exclusion( new WP_Offline_Page() );
+		$this->instance = new WP_Offline_Page_Excluder( new WP_Offline_Page() );
 	}
 
 	/**
 	 * Test init.
 	 *
-	 * @covers WP_Offline_Page::init()
+	 * @covers WP_Offline_Page_Excluder::init()
 	 */
 	public function test_init() {
 		$this->instance->init();
 		$this->assertEquals( 10, has_filter( 'wp_dropdown_pages', array( $this->instance, 'exclude_from_page_dropdown' ) ) );
-		$this->assertEquals( 10, has_filter( 'pre_get_posts', array( $this->instance, 'exclude_from_query' ) ) );
+		$this->assertEquals( 10, has_filter( 'parse_query', array( $this->instance, 'exclude_from_query' ) ) );
 	}
 
 	/**
 	 * Test exclude_from_page_dropdown.
 	 *
-	 * @covers WP_Offline_Page::exclude_from_page_dropdown()
+	 * @covers WP_Offline_Page_Excluder::exclude_from_page_dropdown()
 	 */
 	public function test_exclude_from_page_dropdown() {
 		$page_id = $this->factory()->post->create( array( 'post_type' => 'page' ) );
@@ -74,7 +74,7 @@ EOB;
 	/**
 	 * Test is_exclude_from_query.
 	 *
-	 * @covers WP_Offline_Page::is_exclude_from_query()
+	 * @covers WP_Offline_Page_Excluder::is_exclude_from_query()
 	 */
 	public function test_is_exclude_from_query() {
 		set_current_screen( 'front' );
@@ -88,7 +88,7 @@ EOB;
 			'post_title' => 'Accessing via Offline',
 		) );
 		add_option( WP_Offline_Page::OPTION_NAME, $offline_id );
-		add_action( 'pre_get_posts', array( $this->instance, 'exclude_from_query' ) );
+		add_action( 'parse_query', array( $this->instance, 'exclude_from_query' ) );
 
 		// Check a page.
 		$this->go_to( get_permalink( $page_id ) );
