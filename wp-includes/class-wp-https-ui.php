@@ -177,7 +177,7 @@ class WP_HTTPS_UI {
 	 * @return bool Whether currently HTTPS.
 	 */
 	public function is_currently_https() {
-		$urls = array( get_option( 'home' ), get_option( 'siteurl' ) );
+		$urls = array( home_url(), site_url() );
 		foreach ( $urls as $url ) {
 			if ( 'https' !== wp_parse_url( $url, PHP_URL_SCHEME ) ) {
 				return false;

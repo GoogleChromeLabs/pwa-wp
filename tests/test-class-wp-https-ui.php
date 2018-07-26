@@ -128,6 +128,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		update_option( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, WP_HTTPS_UI::OPTION_SELECTED_VALUE );
 		update_option( 'siteurl', self::HTTPS_URL );
 		update_option( 'home', self::HTTPS_URL );
+		add_filter( 'set_url_scheme', array( $this->instance, 'convert_to_https' ) );
 		ob_start();
 		$this->instance->render_settings();
 		$output = ob_get_clean();
@@ -156,6 +157,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		// If both of these options have an HTTPS URL, the method should return true.
 		update_option( 'siteurl', self::HTTPS_URL );
 		update_option( 'home', self::HTTPS_URL );
+		add_filter( 'set_url_scheme', array( $this->instance, 'convert_to_https' ) );
 		$this->assertTrue( $this->instance->is_currently_https() );
 	}
 
