@@ -46,10 +46,18 @@ class WP_HTTPS_UI {
 	const SETTING_ID = 'wp_upgrade_https';
 
 	/**
+	 * The HTTPS protocol
+	 *
+	 * @var string
+	 */
+	const HTTPS_PROTOCOL = 'https://';
+
+	/**
 	 * Inits the class.
 	 */
 	public function init() {
 		add_action( 'admin_init', array( $this, 'init_admin' ) );
+		add_action( 'admin_init', array( $this, 'filter_site_url_and_home' ) );
 	}
 
 	/**
@@ -134,8 +142,14 @@ class WP_HTTPS_UI {
 		/* Translators: %s: a link for more details */
 		$insecure_content_description = esc_html__( 'Your home page doesn’t contain insecure URLs. However, there may be URLs on other pages that could be blocked. %s', 'pwa' );
 
-		// @todo: change !== to === as it's only like this for development because the detection doesn't work with my local SSL certificate.
-		if ( true !== get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) ) :
+		/*
+		 * Todo: change !== to === as this is only like this for development.
+		 * The WP_HTTPS_Detection doesn't work with my local SSL certificate.
+		 * Also, change $this->is_currently_https() to ! $this->is_currently_https().
+		 * This is also for development only.
+		 * This main if block should only run if the site can use HTTPS, but the 'home' and 'siteurl' options aren't HTTPS.
+		 */
+		if ( $this->is_currently_https() && true !== get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) ) :
 			?>
 			<p class="description">
 				<?php
@@ -161,11 +175,46 @@ class WP_HTTPS_UI {
 			<p class="description">
 				<?php echo wp_kses_post( sprintf( $insecure_content_description, $insecure_content_more_details ) ); ?>
 			<p>
-		<?php
+			<?php
 		else :
 			/* Translators: %s: HTTPS more details link */
 			echo wp_kses_post( sprintf( __( 'Your site doesn\'t look to support HTTPS. %s', 'pwa' ), $https_more_details ) );
 		endif;
 	}
 
+	/**
+	 * Whether the options indicate that the site is currently using HTTPS.
+	 *
+	 * @return boolean
+	 */
+	public function is_currently_https() {
+		$urls = array( get_option( 'home' ), get_option( 'siteurl' ) );
+		foreach ( $urls as $url ) {
+			if ( 0 !== strpos( $url, self::HTTPS_PROTOCOL ) ) {
+				return false;
+			}
+		}
+		return true;
+
+	}
+
+	/**
+	 * Conditionally filters the 'siteurl' and 'home' values from wp-config and options.
+	 */
+	public function filter_site_url_and_home() {
+		if ( self::OPTION_SELECTED_VALUE === get_option( self::UPGRADE_HTTPS_OPTION ) ) {
+			add_filter( 'option_home', array( $this, 'convert_to_https' ), 11 );
+			add_filter( 'option_siteurl', array( $this, 'convert_to_https' ), 11 );
+		}
+	}
+
+	/**
+	 * Converts a URL from HTTP to HTTPS
+	 *
+	 * @param string $url The URL to convert.
+	 * @return string $url The converted URL.
+	 */
+	public function convert_to_https( $url ) {
+		return str_replace( 'http://', self::HTTPS_PROTOCOL, $url );
+	}
 }
