@@ -75,7 +75,7 @@ class WP_HTTPS_UI {
 	public function register_settings() {
 		$args = array(
 			'type'              => 'string',
-			'sanitize_callback' => array( $this, 'sanitize_callback' ),
+			'sanitize_callback' => 'wp_validate_boolean',
 		);
 
 		register_setting(
@@ -89,18 +89,6 @@ class WP_HTTPS_UI {
 			self::UPGRADE_INSECURE_CONTENT_OPTION,
 			$args
 		);
-	}
-
-	/**
-	 * Sanitizes the raw setting value.
-	 *
-	 * @param string $raw_setting The setting before sanitizing it.
-	 * @return string|null The setting, or null if it's not valid.
-	 */
-	public function sanitize_callback( $raw_setting ) {
-		if ( self::OPTION_SELECTED_VALUE === $raw_setting || '0' === $raw_setting ) {
-			return $raw_setting;
-		}
 	}
 
 	/**

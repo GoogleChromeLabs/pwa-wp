@@ -79,7 +79,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 			'type'              => 'string',
 			'group'             => WP_HTTPS_UI::OPTION_GROUP,
 			'description'       => '',
-			'sanitize_callback' => array( $this->instance, 'sanitize_callback' ),
+			'sanitize_callback' => 'wp_validate_boolean',
 			'show_in_rest'      => false,
 		);
 
@@ -95,21 +95,6 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 			$expected_settings,
 			$wp_registered_settings[ WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION ]
 		);
-	}
-
-	/**
-	 * Test sanitize_callback.
-	 *
-	 * @covers WP_HTTPS_UI::sanitize_callback()
-	 */
-	public function test_sanitize_callback() {
-		// Assert that disallowed values aren't returned from the callback.
-		$this->assertEquals( null, $this->instance->sanitize_callback( 'foo string' ) );
-		$this->assertEquals( null, $this->instance->sanitize_callback( '2345' ) );
-
-		// Assert that allowed values are returned.
-		$this->assertEquals( '1', $this->instance->sanitize_callback( '1' ) );
-		$this->assertEquals( '0', $this->instance->sanitize_callback( '0' ) );
 	}
 
 	/**
