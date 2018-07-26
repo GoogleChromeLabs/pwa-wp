@@ -59,8 +59,6 @@ class WP_Offline_Page_Excluder {
 	public function exclude_from_query( WP_Query $query ) {
 		if ( $this->is_offline_page_query( $query ) ) {
 			$query->is_404      = true;
-			$query->is_page     = false;
-			$query->is_singular = false;
 			$query->set( 'page_id', 0 );
 		} elseif ( $this->is_okay_to_exclude( $query ) ) {
 			$offline      = array( $this->manager->get_offline_page_id() );
