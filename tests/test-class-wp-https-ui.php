@@ -84,13 +84,13 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		);
 
 		$this->instance->register_settings();
-		$this->assertTrue( in_array( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, $new_whitelist_options['reading'], true ) );
+		$this->assertTrue( in_array( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, $new_whitelist_options[ WP_HTTPS_UI::OPTION_GROUP ], true ) );
 		$this->assertEquals(
 			$expected_settings,
 			$wp_registered_settings[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ]
 		);
 
-		$this->assertTrue( in_array( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, $new_whitelist_options['reading'], true ) );
+		$this->assertTrue( in_array( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, $new_whitelist_options[ WP_HTTPS_UI::OPTION_GROUP ], true ) );
 		$this->assertEquals(
 			$expected_settings,
 			$wp_registered_settings[ WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION ]

@@ -11,11 +11,11 @@
 class WP_HTTPS_UI {
 
 	/**
-	 * The option group for the offline page option.
+	 * The option group.
 	 *
 	 * @var string
 	 */
-	const OPTION_GROUP = 'reading';
+	const OPTION_GROUP = 'general';
 
 	/**
 	 * The option name to upgrade to https.
@@ -179,7 +179,7 @@ class WP_HTTPS_UI {
 	public function is_currently_https() {
 		$urls = array( get_option( 'home' ), get_option( 'siteurl' ) );
 		foreach ( $urls as $url ) {
-			if ( 0 !== strpos( $url, self::HTTPS_PROTOCOL ) ) {
+			if ( 'https' !== wp_parse_url( $url, PHP_URL_SCHEME ) ) {
 				return false;
 			}
 		}
