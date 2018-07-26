@@ -155,7 +155,7 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 		// Check when there are pages.
 		$number_pages = 10;
 		$page_ids     = array();
-		for ( $i = 0; $i < $number_pages; $i ++ ) {
+		for ( $i = 0; $i < $number_pages; $i++ ) {
 			$page_ids[] = $this->factory()->post->create( array( 'post_type' => 'page' ) );
 		}
 		ob_start();
@@ -202,6 +202,7 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 	 */
 	public function test_create_new_page() {
 		$this->assertEquals( 0, get_option( WP_Offline_Page::OPTION_NAME, 0 ) );
+
 		set_current_screen( 'options-reading.php' );
 		$page_id = $this->instance->create_new_page();
 		$this->assertInternalType( 'int', $page_id );
@@ -211,6 +212,8 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 		$this->assertGreaterThan( 0, $offline_id );
 		$this->assertInstanceOf( 'WP_Post', $offline_page );
 		$this->assertEquals( $offline_id, $offline_page->ID );
+		$this->assertSame( 'publish', $offline_page->post_status );
+		$this->assertContains( 'It appears either that you are offline or the site is down.', $offline_page->post_content );
 	}
 
 	/**

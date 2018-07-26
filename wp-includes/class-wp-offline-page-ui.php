@@ -148,7 +148,7 @@ class WP_Offline_Page_UI {
 				'show_option_none'  => sprintf( esc_html__( '%1$s Select %1$s', 'pwa' ), '&mdash;' ),
 				'option_none_value' => '0',
 				'selected'          => intval( $this->manager->get_offline_page_id() ),
-				'post_status'       => array( 'draft', 'publish' ),
+				'post_status'       => 'publish',
 				'exclude'           => implode( ',', $non_offline_static_pages ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped,WordPress.XSS.EscapeOutput.OutputNotEscaped -- This is a false positive.
 			)
 		);
@@ -191,7 +191,7 @@ class WP_Offline_Page_UI {
 		$page_id = wp_insert_post(
 			wp_slash( array(
 				'post_title'   => __( 'Offline', 'pwa' ),
-				'post_status'  => 'draft',
+				'post_status'  => 'publish',
 				'post_type'    => 'page',
 				'post_content' => $this->get_default_content(),
 			) ),
@@ -288,7 +288,7 @@ class WP_Offline_Page_UI {
 		$query = new WP_Query( array(
 			'post_type'              => 'page',
 			'posts_per_page'         => 1,
-			'post_status'            => array( 'publish', 'draft' ),
+			'post_status'            => 'publish',
 			'post__not_in'           => array_filter( $this->manager->get_static_pages() ), // exclude the static pages.
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
