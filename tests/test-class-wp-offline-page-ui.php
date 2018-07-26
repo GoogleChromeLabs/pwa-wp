@@ -130,7 +130,7 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 		$this->assertEquals(
 			array(
 				'id'       => WP_Offline_Page_UI::SETTING_ID,
-				'title'    => 'Page displays when offline',
+				'title'    => 'Default offline status page',
 				'callback' => array( $this->instance, 'render_settings' ),
 				'args'     => array(),
 			),

@@ -95,7 +95,7 @@ class WP_Offline_Page_UI {
 	public function add_settings_field() {
 		add_settings_field(
 			self::SETTING_ID,
-			__( 'Page displays when offline', 'pwa' ),
+			__( 'Default offline status page', 'pwa' ),
 			array( $this, 'render_settings' ),
 			self::OPTION_GROUP
 		);
