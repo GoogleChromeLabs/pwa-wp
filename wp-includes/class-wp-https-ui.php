@@ -141,7 +141,7 @@ class WP_HTTPS_UI {
 		 * @see https://github.com/xwp/pwa-wp/issues/17#issuecomment-406188455
 		 */
 		/* translators: %s: a link for more details */
-		$insecure_content_description = esc_html__( 'Your home page doesn’t contain insecure URLs. However, there may be URLs on other pages that could be blocked. %s', 'pwa' );
+		$insecure_content_description = esc_html__( 'Your home page doesn&#8217;t contain insecure URLs. However, there may be URLs on other pages that could be blocked. %s', 'pwa' );
 
 		/*
 		 * Todo: change !== to === as this is only like this for development.
@@ -179,14 +179,14 @@ class WP_HTTPS_UI {
 			<?php
 		else :
 			/* translators: %s: HTTPS more details link */
-			echo wp_kses_post( sprintf( __( 'Your site doesn\'t look to support HTTPS. %s', 'pwa' ), $https_more_details ) );
+			echo wp_kses_post( sprintf( __( 'Your site doesn&#8217;t look like it supports HTTPS. %s', 'pwa' ), $https_more_details ) );
 		endif;
 	}
 
 	/**
 	 * Whether the options indicate that the site is currently using HTTPS.
 	 *
-	 * @return boolean
+	 * @return bool Whether currently HTTPS.
 	 */
 	public function is_currently_https() {
 		$urls = array( get_option( 'home' ), get_option( 'siteurl' ) );
