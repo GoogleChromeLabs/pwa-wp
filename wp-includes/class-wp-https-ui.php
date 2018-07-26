@@ -123,12 +123,12 @@ class WP_HTTPS_UI {
 		$upgrade_insecure_content      = get_option( self::UPGRADE_INSECURE_CONTENT_OPTION );
 		$https_more_details            = sprintf(
 			'<a href="%s">%s</a>',
-			'https://make.wordpress.org/support/user-manual/web-publishing/https-for-wordpress/',
+			__( 'https://make.wordpress.org/support/user-manual/web-publishing/https-for-wordpress/', 'pwa' ),
 			esc_html__( 'More details', 'pwa' )
 		);
 		$insecure_content_more_details = sprintf(
 			'<a href="%s">%s</a>',
-			'https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content/How_to_fix_website_with_mixed_content',
+			__( 'https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content/How_to_fix_website_with_mixed_content', 'pwa' ),
 			esc_html__( 'More details', 'pwa' )
 		);
 
