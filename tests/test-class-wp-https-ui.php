@@ -118,6 +118,6 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->assertContains( WP_HTTPS_UI::OPTION_SELECTED_VALUE, $output );
 		$this->assertContains( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, $output );
 		$this->assertContains( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, $output );
-		$this->assertContains( 'HTTPS is essential to securing your WordPress site, we strongly suggest enabling HTTPS on your site', $output );
+		$this->assertContains( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to HTTPS on your site.', $output );
 	}
 }
