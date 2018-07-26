@@ -66,9 +66,10 @@ class WP_Offline_Page {
 	 */
 	public function get_static_pages() {
 		return array(
-			'page_on_front'   => (int) get_option( 'page_on_front', 0 ),
-			'page_for_posts'  => (int) get_option( 'page_for_posts', 0 ),
-			self::OPTION_NAME => $this->get_offline_page_id(),
+			'page_on_front'              => (int) get_option( 'page_on_front', 0 ),
+			'page_for_posts'             => (int) get_option( 'page_for_posts', 0 ),
+			'wp_page_for_privacy_policy' => (int) get_option( 'wp_page_for_privacy_policy', 0 ),
+			self::OPTION_NAME            => $this->get_offline_page_id(),
 		);
 	}
 }
