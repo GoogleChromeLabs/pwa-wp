@@ -122,15 +122,15 @@ EOB;
 
 		// Check that the offline page is found when using the plan permalink.
 		$this->go_to( "?page_id={$offline_id}" );
-		$this->assertEquals( array( $offline_id ), get_query_var( 'post__not_in' ) );
 		$this->assertFalse( $GLOBALS['wp_query']->is_404() );
 		$this->assertSame( $offline_id, get_queried_object()->ID );
 
-		// Check that the offline page flags a 404.
+		// Check that the offline page is found on the frontend.
 		$this->set_permalink_structure( '/%postname%/' );
 		$this->go_to( get_permalink( $offline_id ) );
 		$this->assertEmpty( get_query_var( 'post__not_in' ) );
-		$this->assertTrue( $GLOBALS['wp_query']->is_404() );
+		$this->assertFalse( $GLOBALS['wp_query']->is_404() );
+		$this->assertSame( $offline_id, get_queried_object()->ID );
 
 		// Check that current 'post__not_in' merges with offline page id.
 		$this->post__not_in   = array();
