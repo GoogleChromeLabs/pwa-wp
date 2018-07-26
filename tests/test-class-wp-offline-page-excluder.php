@@ -18,6 +18,13 @@ class Test_WP_Offline_Page_Excluder extends WP_UnitTestCase {
 	public $instance;
 
 	/**
+	 * Array of post IDs to exclude.
+	 *
+	 * @var array
+	 */
+	private $post__not_in = array();
+
+	/**
 	 * Setup.
 	 *
 	 * @inheritdoc
@@ -124,5 +131,23 @@ EOB;
 		$this->go_to( get_permalink( $offline_id ) );
 		$this->assertEquals( array( $offline_id ), get_query_var( 'post__not_in' ) );
 		$this->assertTrue( $GLOBALS['wp_query']->is_404() );
+
+		// Check that current 'post__not_in' merges with offline page id.
+		$this->post__not_in   = array();
+		$this->post__not_in[] = $this->factory()->post->create( array( 'post_type' => 'page' ) );
+		$this->post__not_in[] = $this->factory()->post->create( array( 'post_type' => 'page' ) );
+		add_action( 'parse_query', array( $this, 'set_post__not_in' ), 5 );
+		$this->go_to( get_permalink( $this->post__not_in[0] ) );
+		remove_action( 'parse_query', array( $this, 'set_post__not_in' ), 5 );
+		$this->assertEquals( array_merge( $this->post__not_in, array( $offline_id ) ), get_query_var( 'post__not_in' ) );
+	}
+
+	/**
+	 * Callback to set the "post__not_in" var.
+	 *
+	 * @param WP_Query $query The WP_Query instance.
+	 */
+	public function set_post__not_in( $query ) {
+		$query->set( 'post__not_in', $this->post__not_in );
 	}
 }

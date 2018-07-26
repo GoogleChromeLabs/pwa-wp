@@ -143,7 +143,7 @@ class WP_Offline_Page_UI {
 
 		wp_dropdown_pages(
 			array(
-				'name'              => esc_html( WP_Offline_Page::OPTION_NAME ),
+				'name'              => esc_attr( WP_Offline_Page::OPTION_NAME ),
 				/* Translators: %1$s: A long dash */
 				'show_option_none'  => sprintf( esc_html__( '%1$s Select %1$s', 'pwa' ), '&mdash;' ),
 				'option_none_value' => '0',

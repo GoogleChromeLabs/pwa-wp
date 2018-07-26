@@ -39,6 +39,7 @@ class WP_Offline_Page_Excluder {
 	 *
 	 * @param string $html HTML output for drop down list of pages.
 	 * @param array  $args The parsed arguments array.
+	 *
 	 * @return string Filtered content for wp_dropdown_pages.
 	 */
 	public function exclude_from_page_dropdown( $html, $args ) {
@@ -62,7 +63,13 @@ class WP_Offline_Page_Excluder {
 			$query->is_singular = false;
 			$query->set( 'page_id', 0 );
 		} elseif ( $this->is_okay_to_exclude( $query ) ) {
-			$query->set( 'post__not_in', array( $this->manager->get_offline_page_id() ) );
+			$offline      = array( $this->manager->get_offline_page_id() );
+			$post__not_in = $query->get( 'post__not_in' );
+			if ( ! empty( $post__not_in ) ) {
+				$query->set( 'post__not_in', array_unique( array_merge( $post__not_in, $offline ) ) );
+			} else {
+				$query->set( 'post__not_in', $offline );
+			}
 		}
 	}
 
@@ -70,6 +77,7 @@ class WP_Offline_Page_Excluder {
 	 * Checks if the query is for the offline page.
 	 *
 	 * @param WP_Query $query The WP_Query instance.
+	 *
 	 * @return bool Whether an offline page query.
 	 */
 	protected function is_offline_page_query( WP_Query $query ) {
@@ -88,6 +96,7 @@ class WP_Offline_Page_Excluder {
 	 * Checks if the offline page should be excluded or not.
 	 *
 	 * @param WP_Query $query The WP_Query instance.
+	 *
 	 * @return bool OK to exclude.
 	 */
 	protected function is_okay_to_exclude( WP_Query $query ) {
