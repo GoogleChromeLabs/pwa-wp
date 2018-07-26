@@ -132,13 +132,13 @@ class WP_HTTPS_UI {
 		$insecure_content_description = esc_html__( 'Your home page doesn&#8217;t contain insecure URLs. However, there may be URLs on other pages that could be blocked. %s', 'pwa' );
 
 		/*
-		 * Todo: change !== to === as this is only like this for development.
-		 * The WP_HTTPS_Detection doesn't work with my local SSL certificate.
+		 * Todo: change ! get_option() to get_option, as this is only like this for development.
+		 * The WP_HTTPS_Detection doesn't work with my local SSL certificate, and always returns false.
 		 * Also, change $this->is_currently_https() to ! $this->is_currently_https().
 		 * This is also for development only.
 		 * This main if block should only run if the site can use HTTPS, but the 'home' and 'siteurl' options aren't HTTPS.
 		 */
-		if ( $this->is_currently_https() && true !== get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) ) :
+		if ( $this->is_currently_https() && ! get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) ) :
 			?>
 			<p class="description">
 				<?php
