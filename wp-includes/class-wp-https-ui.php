@@ -204,7 +204,7 @@ class WP_HTTPS_UI {
 	 * @return string $url The converted URL.
 	 */
 	public function convert_to_https( $url ) {
-		return str_replace( 'http://', self::HTTPS_PROTOCOL, $url );
+		return preg_replace( '#^http(?=://)#', 'https', $url );
 	}
 
 	/**

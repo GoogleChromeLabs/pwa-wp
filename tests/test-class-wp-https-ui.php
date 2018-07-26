@@ -205,6 +205,10 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 
 		// If the URL doesn't have a protocol, this shouldn't change it.
 		$this->assertEquals( self::NO_PROTOCOL_URL, $this->instance->convert_to_https( self::NO_PROTOCOL_URL ) );
+
+		// If the URL has http in 2 places, this should only replace the one at the beginning.
+		$url_without_protocol = 'example.com/other/url/http://bar.com';
+		$this->assertEquals( 'https://' . $url_without_protocol, $this->instance->convert_to_https( 'http://' . $url_without_protocol ) );
 	}
 
 	/**
