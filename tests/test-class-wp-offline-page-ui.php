@@ -43,7 +43,7 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 	public function test_init() {
 		$this->instance->init();
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'init_admin' ) ) );
-		$this->assertEquals( 10, has_action( 'admin_action_create-offline-page', array( $this->instance, 'create_new_page' ) ) );
+		$this->assertEquals( 10, has_action( 'admin_action_create-offline-page', array( $this->instance, 'handle_create_offline_page_action' ) ) );
 		$this->assertEquals( 10, has_action( 'admin_notices', array( $this->instance, 'add_settings_error' ) ) );
 		$this->assertEquals( 10, has_filter( 'display_post_states', array( $this->instance, 'add_post_state' ) ) );
 	}
@@ -176,8 +176,7 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 		// Check that it excludes the configured static pages.
 		update_option( 'page_on_front', (int) $page_ids[0] );
 		update_option( 'page_for_posts', (int) $page_ids[1] );
-		update_option( 'wp_page_for_privacy_policy', (int) $page_ids[2] );
-		$this->manager->get_static_pages( true );
+		update_option( WP_Offline_Page::OPTION_NAME, (int) $page_ids[2] );
 		ob_start();
 		$this->instance->render_settings();
 		$output = ob_get_clean();
@@ -196,15 +195,12 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 	 * @covers WP_Offline_Page::create_new_page()
 	 */
 	public function test_create_new_page() {
-		add_filter( 'wp_redirect', '__return_empty_string' );
-		// Check on the wrong page.
-		set_current_screen( 'edit.php' );
-		$this->assertFalse( $this->instance->create_new_page() );
-
 		$this->assertEquals( 0, get_option( WP_Offline_Page::OPTION_NAME, 0 ) );
 		set_current_screen( 'options-reading.php' );
-		$this->assertNull( $this->instance->create_new_page() );
-		$offline_id   = (int) get_option( WP_Offline_Page::OPTION_NAME, 0 );
+		$page_id = $this->instance->create_new_page();
+		$this->assertInternalType( 'int', $page_id );
+		$offline_id = (int) get_option( WP_Offline_Page::OPTION_NAME, 0 );
+		$this->assertEquals( $page_id, $offline_id );
 		$offline_page = get_post( $offline_id );
 		$this->assertGreaterThan( 0, $offline_id );
 		$this->assertInstanceOf( 'WP_Post', $offline_page );
@@ -266,7 +262,6 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 
 		// Check when no offline page is passed (e.g. doing 'admin_notices') and the offline page has been configured but does not exist.
 		update_option( WP_Offline_Page::OPTION_NAME, 999999 );
-		$this->manager->get_offline_page_id( true );
 		$this->assertTrue( $this->instance->add_settings_error() );
 		$this->assertEquals(
 			array_merge(
@@ -285,7 +280,6 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 			'post_status' => 'trash',
 		) );
 		update_option( WP_Offline_Page::OPTION_NAME, $trashed_page->ID );
-		$this->manager->get_offline_page_id( true );
 		$this->assertTrue( $this->instance->add_settings_error() );
 		$this->assertEquals(
 			array_merge(
@@ -301,7 +295,6 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 		// Check when no offline page is passed (e.g. doing 'admin_notices') and the offline page is configured.
 		$offline_page_id = $this->factory()->post->create( array( 'post_type' => 'page' ) );
 		update_option( WP_Offline_Page::OPTION_NAME, $offline_page_id );
-		$this->manager->get_offline_page_id( true );
 		$this->assertFalse( $this->instance->add_settings_error() );
 		$this->assertEquals( array(), $wp_settings_errors );
 	}
@@ -316,11 +309,9 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 		$this->assertEmpty( $this->instance->add_post_state( array(), $page ) );
 
 		add_option( WP_Offline_Page::OPTION_NAME, $page->ID );
-		$this->manager->get_offline_page_id( true );
 		$this->assertSame( array( 'Offline Page' ), $this->instance->add_post_state( array(), $page ) );
 
 		update_option( WP_Offline_Page::OPTION_NAME, $page->ID + 10 );
-		$this->manager->get_offline_page_id( true );
 		$this->assertEmpty( $this->instance->add_post_state( array(), $page ) );
 	}
 }

@@ -39,8 +39,7 @@ class WP_Offline_Page_Excluder {
 	 *
 	 * @param string $html HTML output for drop down list of pages.
 	 * @param array  $args The parsed arguments array.
-	 *
-	 * @return string
+	 * @return string Filtered content for wp_dropdown_pages.
 	 */
 	public function exclude_from_page_dropdown( $html, $args ) {
 		// Bail out if this is the offline page dropdown.
@@ -48,7 +47,7 @@ class WP_Offline_Page_Excluder {
 			return $html;
 		}
 
-		return preg_replace( '/<option .* value="' . $this->manager->get_offline_page_id() . '">.*<\/option>/', '', $html );
+		return preg_replace( '/<option .*? value="' . $this->manager->get_offline_page_id() . '">.*?<\/option>/', '', $html );
 	}
 
 	/**
@@ -71,8 +70,7 @@ class WP_Offline_Page_Excluder {
 	 * Checks if the query is for the offline page.
 	 *
 	 * @param WP_Query $query The WP_Query instance.
-	 *
-	 * @return bool
+	 * @return bool Whether an offline page query.
 	 */
 	protected function is_offline_page_query( WP_Query $query ) {
 		if ( $query->is_admin ) {
@@ -90,8 +88,7 @@ class WP_Offline_Page_Excluder {
 	 * Checks if the offline page should be excluded or not.
 	 *
 	 * @param WP_Query $query The WP_Query instance.
-	 *
-	 * @return bool
+	 * @return bool OK to exclude.
 	 */
 	protected function is_okay_to_exclude( WP_Query $query ) {
 		// All searches should be excluded.

@@ -34,14 +34,14 @@ require PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-detection.php';
 /** WP_Service_Workers Class */
 require PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-workers.php';
 
+/** WP_Offline_Page Class */
+require PWA_PLUGIN_DIR . '/wp-includes/class-wp-offline-page.php';
+
 /** WordPress Service Worker Functions */
 require PWA_PLUGIN_DIR . '/wp-includes/service-workers.php';
 
 /** Amend default filters */
 require PWA_PLUGIN_DIR . '/wp-includes/default-filters.php';
-
-/** WP_Offline_Page Class */
-require PWA_PLUGIN_DIR . '/wp-includes/class-wp-offline-page.php';
 
 $wp_web_app_manifest = new WP_Web_App_Manifest();
 $wp_web_app_manifest->init();

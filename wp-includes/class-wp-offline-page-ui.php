@@ -46,7 +46,7 @@ class WP_Offline_Page_UI {
 	 */
 	public function init() {
 		add_action( 'admin_init', array( $this, 'init_admin' ) );
-		add_action( 'admin_action_create-offline-page', array( $this, 'create_new_page' ) );
+		add_action( 'admin_action_create-offline-page', array( $this, 'handle_create_offline_page_action' ) );
 		add_action( 'admin_notices', array( $this, 'add_settings_error' ) );
 		add_filter( 'display_post_states', array( $this, 'add_post_state' ), 10, 2 );
 	}
@@ -77,7 +77,6 @@ class WP_Offline_Page_UI {
 	 * Sanitize callback for the setting.
 	 *
 	 * @param string $raw_setting The setting before sanitizing it.
-	 *
 	 * @return string|null The sanitized setting, or null if it's invalid.
 	 */
 	public function sanitize_callback( $raw_setting ) {
@@ -87,6 +86,7 @@ class WP_Offline_Page_UI {
 		if ( false === $this->add_settings_error( $offline_page ) ) {
 			return $sanitized_post_id;
 		}
+		return null;
 	}
 
 	/**
@@ -138,6 +138,9 @@ class WP_Offline_Page_UI {
 	 * Renders the page dropdown.
 	 */
 	protected function render_page_dropdown() {
+		$non_offline_static_pages = $this->manager->get_static_pages();
+		unset( $non_offline_static_pages[ WP_Offline_Page::OPTION_NAME ] );
+
 		wp_dropdown_pages(
 			array(
 				'name'              => esc_html( WP_Offline_Page::OPTION_NAME ),
@@ -146,57 +149,72 @@ class WP_Offline_Page_UI {
 				'option_none_value' => '0',
 				'selected'          => intval( $this->manager->get_offline_page_id() ),
 				'post_status'       => array( 'draft', 'publish' ),
-				'exclude'           => esc_html( $this->get_static_pages_ids( true ) ),
+				'exclude'           => implode( ',', $non_offline_static_pages ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped,WordPress.XSS.EscapeOutput.OutputNotEscaped -- This is a false positive.
 			)
 		);
 	}
 
 	/**
-	 * Creates a new offline page.
+	 * Handle the create-offline-page admin action.
 	 *
-	 * @return bool|null
+	 * Will redirect to the newly created post upon success (and thus will not return).
 	 */
-	public function create_new_page() {
+	public function handle_create_offline_page_action() {
+
 		// Bail out if this is not the right page.
 		$screen = get_current_screen();
 		if ( ! $screen instanceof WP_Screen || 'options-reading' !== $screen->id ) {
-			return false;
-		}
-
-		$page_id = wp_insert_post(
-			array(
-				'post_title'   => __( 'Offline Page', 'pwa' ),
-				'post_status'  => 'draft',
-				'post_type'    => 'page',
-				'post_content' => $this->get_default_content(),
-			),
-			true
-		);
-
-		if ( ! is_wp_error( $page_id ) ) {
-			update_option( WP_Offline_Page::OPTION_NAME, $page_id );
-			if ( wp_redirect( admin_url( 'post.php?post=' . $page_id . '&action=edit' ) ) ) {
-				exit;
-			}
-
 			return;
 		}
 
-		add_settings_error(
-			WP_Offline_Page::OPTION_NAME,
-			WP_Offline_Page::OPTION_NAME,
-			__( 'Unable to create the offline page.', 'pwa' ),
-			'error'
+		$r = $this->create_new_page();
+		if ( is_wp_error( $r ) ) {
+			add_settings_error(
+				WP_Offline_Page::OPTION_NAME,
+				WP_Offline_Page::OPTION_NAME,
+				__( 'Unable to create the offline page.', 'pwa' ),
+				'error'
+			);
+		} else {
+			wp_safe_redirect( get_edit_post_link( $r, 'raw' ) );
+			exit;
+		}
+	}
+
+	/**
+	 * Creates a new offline page.
+	 *
+	 * @return int|WP_Error The page ID or WP_Error on failure.
+	 */
+	public function create_new_page() {
+
+		$page_id = wp_insert_post(
+			wp_slash( array(
+				'post_title'   => __( 'Offline', 'pwa' ),
+				'post_status'  => 'draft',
+				'post_type'    => 'page',
+				'post_content' => $this->get_default_content(),
+			) ),
+			true
 		);
+
+		if ( is_wp_error( $page_id ) ) {
+			return $page_id;
+		}
+
+		update_option( WP_Offline_Page::OPTION_NAME, $page_id );
+		return $page_id;
 	}
 
 	/**
 	 * Get the default content for a new offline page.
 	 *
-	 * @todo provide content here for shortcode (classic) or block (Gutenberg)
+	 * @todo In the future this could provide a shortcode (classic) or block (Gutenberg) that lists out the URLs that are available offline.
+	 *
+	 * @return string Default content.
 	 */
 	protected function get_default_content() {
-		return '';
+		return "<!-- wp:paragraph -->\n<p>" . __( 'It appears either that you are offline or the site is down.', 'pwa' ) . "</p>\n<!-- /wp:paragraph -->";
 	}
 
 	/**
@@ -246,7 +264,7 @@ class WP_Offline_Page_UI {
 	/**
 	 * When the given post is the offline page, add the state to the given post states.
 	 *
-	 * @since 1.0.0
+	 * @since 0.2.0
 	 *
 	 * @param array   $post_states An array of post display states.
 	 * @param WP_Post $post        The current post object.
@@ -262,34 +280,18 @@ class WP_Offline_Page_UI {
 	}
 
 	/**
-	 * Gets the configured static pages IDs.
-	 *
-	 * @param bool $join Optional. When true, a comma-delimited list is returned; else, an array is returned.
-	 *
-	 * @return array|string
-	 */
-	protected function get_static_pages_ids( $join = false ) {
-		// Remove the duplicates and empties.
-		$static_pages = array_filter( array_unique( $this->manager->get_static_pages() ) );
-
-		if ( ! $join ) {
-			return $static_pages;
-		}
-
-		return $static_pages ? implode( ',', $static_pages ) : '';
-	}
-
-	/**
 	 * Checks if there are any pages to display in the page dropdown.
 	 *
-	 * @return boolean
+	 * @return bool Whether there are pages to show in the dropdown.
 	 */
 	protected function has_pages() {
 		$query = new WP_Query( array(
-			'post_type'      => 'page',
-			'posts_per_page' => 1,
-			'post_status'    => array( 'publish', 'draft' ),
-			'post__not_in'   => $this->get_static_pages_ids(), // exclude the static pages.
+			'post_type'              => 'page',
+			'posts_per_page'         => 1,
+			'post_status'            => array( 'publish', 'draft' ),
+			'post__not_in'           => array_filter( $this->manager->get_static_pages() ), // exclude the static pages.
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
 		) );
 
 		return $query->found_posts > 0;
@@ -299,11 +301,10 @@ class WP_Offline_Page_UI {
 	 * Check if the offline page does not exist.
 	 *
 	 * @param WP_Post|int $offline_page The offline page to check.
-	 *
-	 * @return bool
+	 * @return bool Whether page does not exist.
 	 */
 	protected function does_not_exist( $offline_page ) {
-		if ( is_int( $offline_page ) ) {
+		if ( is_int( $offline_page ) && $offline_page > 0 ) {
 			$offline_page = get_post( $offline_page );
 		}
 
@@ -314,11 +315,10 @@ class WP_Offline_Page_UI {
 	 * Check if the offline page is in the trash.
 	 *
 	 * @param WP_Post|int $offline_page The offline page to check.
-	 *
-	 * @return bool
+	 * @return bool Whether the page is in the trash.
 	 */
 	protected function is_in_trash_error( $offline_page ) {
-		if ( is_int( $offline_page ) ) {
+		if ( is_int( $offline_page ) && $offline_page > 0 ) {
 			$offline_page = get_post( $offline_page );
 		}
 
