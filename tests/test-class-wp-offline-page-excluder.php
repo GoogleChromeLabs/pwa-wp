@@ -129,7 +129,7 @@ EOB;
 		// Check that the offline page flags a 404.
 		$this->set_permalink_structure( '/%postname%/' );
 		$this->go_to( get_permalink( $offline_id ) );
-		$this->assertEquals( array( $offline_id ), get_query_var( 'post__not_in' ) );
+		$this->assertEmpty( get_query_var( 'post__not_in' ) );
 		$this->assertTrue( $GLOBALS['wp_query']->is_404() );
 
 		// Check that current 'post__not_in' merges with offline page id.
