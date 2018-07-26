@@ -173,17 +173,23 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 			$output
 		);
 
-		// Check that it excludes the configured static pages.
+		// Check that it excludes the configured static pages, but not the Offline Page.
 		update_option( 'page_on_front', (int) $page_ids[0] );
 		update_option( 'page_for_posts', (int) $page_ids[1] );
-		update_option( WP_Offline_Page::OPTION_NAME, (int) $page_ids[2] );
+		update_option( 'wp_page_for_privacy_policy', (int) $page_ids[2] );
+		update_option( WP_Offline_Page::OPTION_NAME, (int) $page_ids[3] );
 		ob_start();
 		$this->instance->render_settings();
 		$output = ob_get_clean();
 		foreach ( $page_ids as $index => $page_id ) {
 			if ( $index <= 2 ) {
+				// Check that the other static/special pages are excluded.
 				$this->assertNotContains( '<option class="level-0" value="' . $page_id . '">', $output );
+			} elseif ( 3 === $index ) {
+				// Check that the offline page is selected.
+				$this->assertContains( '<option class="level-0" value="' . $page_id . '" selected="selected">', $output );
 			} else {
+				// Check that all other pages are included.
 				$this->assertContains( '<option class="level-0" value="' . $page_id . '">', $output );
 			}
 		}
