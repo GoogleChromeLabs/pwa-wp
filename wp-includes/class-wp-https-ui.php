@@ -140,7 +140,7 @@ class WP_HTTPS_UI {
 		 *
 		 * @see https://github.com/xwp/pwa-wp/issues/17#issuecomment-406188455
 		 */
-		/* Translators: %s: a link for more details */
+		/* translators: %s: a link for more details */
 		$insecure_content_description = esc_html__( 'Your home page doesn’t contain insecure URLs. However, there may be URLs on other pages that could be blocked. %s', 'pwa' );
 
 		/*
@@ -155,7 +155,7 @@ class WP_HTTPS_UI {
 			<p class="description">
 				<?php
 				echo wp_kses_post( sprintf(
-					/* Translators: %s: a link for more details */
+					/* translators: %s: a link for more details */
 					esc_html__( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to HTTPS on your site. %s', 'pwa' ),
 					$https_more_details
 				) );
@@ -178,7 +178,7 @@ class WP_HTTPS_UI {
 			<p>
 			<?php
 		else :
-			/* Translators: %s: HTTPS more details link */
+			/* translators: %s: HTTPS more details link */
 			echo wp_kses_post( sprintf( __( 'Your site doesn\'t look to support HTTPS. %s', 'pwa' ), $https_more_details ) );
 		endif;
 	}
@@ -210,7 +210,7 @@ class WP_HTTPS_UI {
 	}
 
 	/**
-	 * Converts a URL from HTTP to HTTPS
+	 * Converts a URL from HTTP to HTTPS.
 	 *
 	 * @param string $url The URL to convert.
 	 * @return string $url The converted URL.
