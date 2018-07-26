@@ -90,7 +90,7 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 			array_merge(
 				$settings_error,
 				array(
-					'message' => 'The current offline page does not exist. Please select or create one.',
+					'message' => 'The current default offline page does not exist. Please select or create one.',
 				)
 			),
 			reset( $wp_settings_errors )
@@ -104,7 +104,7 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 			array_merge(
 				$settings_error,
 				array(
-					'message' => 'The currently offline page is in the trash. Please select or create one or <a href="edit.php?post_status=trash&post_type=page">restore the current page</a>.',
+					'message' => 'The default offline page is in the trash. Please select or create one or <a href="edit.php?post_status=trash&post_type=page">restore the current page</a>.',
 				)
 			),
 			reset( $wp_settings_errors )
@@ -149,7 +149,7 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 		$this->instance->render_settings();
 		$output = ob_get_clean();
 		$this->assertNotContains( 'Select an existing page:', $output );
-		$this->assertContains( 'Create a new offline page', $output );
+		$this->assertContains( 'Create a new default offline page', $output );
 		$this->assertContains( 'This page is for the Progressive Web App (PWA)', $output );
 
 		// Check when there are pages.
@@ -236,7 +236,7 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 			array_merge(
 				$settings_error,
 				array(
-					'message' => 'The current offline page does not exist. Please select or create one.',
+					'message' => 'The current default offline page does not exist. Please select or create one.',
 				)
 			),
 			reset( $wp_settings_errors )
@@ -253,7 +253,7 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 			array_merge(
 				$settings_error,
 				array(
-					'message' => 'The currently offline page is in the trash. Please select or create one or <a href="edit.php?post_status=trash&post_type=page">restore the current page</a>.',
+					'message' => 'The default offline page is in the trash. Please select or create one or <a href="edit.php?post_status=trash&post_type=page">restore the current page</a>.',
 				)
 			),
 			reset( $wp_settings_errors )
@@ -276,7 +276,7 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 			array_merge(
 				$settings_error,
 				array(
-					'message' => 'The current offline page does not exist. Please select or create one.',
+					'message' => 'The current default offline page does not exist. Please select or create one.',
 				)
 			),
 			reset( $wp_settings_errors )
@@ -294,7 +294,7 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 			array_merge(
 				$settings_error,
 				array(
-					'message' => 'The currently offline page is in the trash. Please select or create one or <a href="edit.php?post_status=trash&post_type=page">restore the current page</a>.',
+					'message' => 'The default offline page is in the trash. Please select or create one or <a href="edit.php?post_status=trash&post_type=page">restore the current page</a>.',
 				)
 			),
 			reset( $wp_settings_errors )
@@ -318,7 +318,7 @@ class Test_WP_Offline_Page_UI extends WP_UnitTestCase {
 		$this->assertEmpty( $this->instance->add_post_state( array(), $page ) );
 
 		add_option( WP_Offline_Page::OPTION_NAME, $page->ID );
-		$this->assertSame( array( 'Offline Page' ), $this->instance->add_post_state( array(), $page ) );
+		$this->assertSame( array( 'Default Offline Page' ), $this->instance->add_post_state( array(), $page ) );
 
 		update_option( WP_Offline_Page::OPTION_NAME, $page->ID + 10 );
 		$this->assertEmpty( $this->instance->add_post_state( array(), $page ) );

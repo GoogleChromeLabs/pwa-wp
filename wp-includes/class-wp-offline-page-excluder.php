@@ -6,12 +6,12 @@
  */
 
 /**
- * Class handles excluding the Offline Page's from the backend and frontend.
+ * Class handles excluding the default offline page's from the backend and frontend.
  */
 class WP_Offline_Page_Excluder {
 
 	/**
-	 * Instance of the Offline Page Manager.
+	 * Instance of the default offline page Manager.
 	 *
 	 * @var WP_Offline_Page
 	 */

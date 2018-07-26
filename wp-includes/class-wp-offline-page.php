@@ -6,7 +6,7 @@
  */
 
 /**
- * This class manages the Offline Page.
+ * This class manages the default offline page.
  */
 class WP_Offline_Page {
 
@@ -51,7 +51,7 @@ class WP_Offline_Page {
 	}
 
 	/**
-	 * Gets the offline page's ID.
+	 * Gets the default offline page's ID.
 	 *
 	 * @return int ID for the offline page.
 	 */

@@ -12,7 +12,7 @@
 class WP_Offline_Page_UI {
 
 	/**
-	 * The option group for the offline page option.
+	 * The option group for the default offline page option.
 	 *
 	 * @var string
 	 */
@@ -60,7 +60,7 @@ class WP_Offline_Page_UI {
 	}
 
 	/**
-	 * Registers the offline page setting.
+	 * Registers the default offline page setting.
 	 */
 	public function register_setting() {
 		register_setting(
@@ -77,6 +77,7 @@ class WP_Offline_Page_UI {
 	 * Sanitize callback for the setting.
 	 *
 	 * @param string $raw_setting The setting before sanitizing it.
+	 *
 	 * @return string|null The sanitized setting, or null if it's invalid.
 	 */
 	public function sanitize_callback( $raw_setting ) {
@@ -86,6 +87,7 @@ class WP_Offline_Page_UI {
 		if ( false === $this->add_settings_error( $offline_page ) ) {
 			return $sanitized_post_id;
 		}
+
 		return null;
 	}
 
@@ -117,7 +119,7 @@ class WP_Offline_Page_UI {
 
 			$create_text = __( 'create a new one', 'pwa' );
 		else :
-			$create_text = __( 'Create a new offline page', 'pwa' );
+			$create_text = __( 'Create a new default offline page', 'pwa' );
 		endif;
 		?>
 		<p>
@@ -130,7 +132,7 @@ class WP_Offline_Page_UI {
 				<a href="<?php echo esc_url( admin_url( 'options-reading.php?action=create-offline-page' ) ); ?>"><?php echo esc_html( $create_text ); ?></a>.
 			</span>
 		</p>
-		<p class="description"><?php esc_html_e( 'This page is for the Progressive Web App (PWA), providing a default offline page. It is similar to a 404 page.  Unlike a 404 page that displays when the content is not found, this offline page shows when the person\'s internet is down, such as during a flight, or intermittent, such as going through tunnel.', 'pwa' ); ?></p>
+		<p class="description"><?php esc_html_e( 'This page is for the Progressive Web App (PWA), providing a default offline page. It is similar to a 404 page.  Unlike a 404 page that displays when the content is not found, this default offline page shows when the person\'s internet is down, such as during a flight, or intermittent, such as going through tunnel.', 'pwa' ); ?></p>
 		<?php
 	}
 
@@ -172,7 +174,7 @@ class WP_Offline_Page_UI {
 			add_settings_error(
 				WP_Offline_Page::OPTION_NAME,
 				WP_Offline_Page::OPTION_NAME,
-				__( 'Unable to create the offline page.', 'pwa' ),
+				__( 'Unable to create the default offline page.', 'pwa' ),
 				'error'
 			);
 		} else {
@@ -182,7 +184,7 @@ class WP_Offline_Page_UI {
 	}
 
 	/**
-	 * Creates a new offline page.
+	 * Creates a new default offline page.
 	 *
 	 * @return int|WP_Error The page ID or WP_Error on failure.
 	 */
@@ -203,13 +205,15 @@ class WP_Offline_Page_UI {
 		}
 
 		update_option( WP_Offline_Page::OPTION_NAME, $page_id );
+
 		return $page_id;
 	}
 
 	/**
-	 * Get the default content for a new offline page.
+	 * Get the default content for a new default offline page.
 	 *
-	 * @todo In the future this could provide a shortcode (classic) or block (Gutenberg) that lists out the URLs that are available offline.
+	 * @todo In the future this could provide a shortcode (classic) or block (Gutenberg) that lists out the URLs that
+	 *       are available offline.
 	 *
 	 * @return string Default content.
 	 */
@@ -218,10 +222,11 @@ class WP_Offline_Page_UI {
 	}
 
 	/**
-	 * Add a setting error message when the Offline Page does not exist or is in trash.
+	 * Add a setting error message when the default offline page does not exist or is in trash.
 	 *
 	 * @param WP_Post|null|string $offline_page Optional. Instance of the page's `WP_Post` or `null`. Default is an
-	 *                                          empty string. When the default, attempts to look up the offline page.
+	 *                                          empty string. When the default, attempts to look up the default offline
+	 *                                          page.
 	 *
 	 * @return bool Returns true when setting error is added.
 	 */
@@ -238,7 +243,7 @@ class WP_Offline_Page_UI {
 			add_settings_error(
 				WP_Offline_Page::OPTION_NAME,
 				WP_Offline_Page::OPTION_NAME,
-				__( 'The current offline page does not exist. Please select or create one.', 'pwa' )
+				__( 'The current default offline page does not exist. Please select or create one.', 'pwa' )
 			);
 
 			return true;
@@ -250,7 +255,7 @@ class WP_Offline_Page_UI {
 				WP_Offline_Page::OPTION_NAME,
 				sprintf(
 					/* translators: URL to Pages Trash */
-					__( 'The currently offline page is in the trash. Please select or create one or <a href="%s">restore the current page</a>.', 'pwa' ),
+					__( 'The default offline page is in the trash. Please select or create one or <a href="%s">restore the current page</a>.', 'pwa' ),
 					'edit.php?post_status=trash&post_type=page'
 				)
 			);
@@ -262,7 +267,7 @@ class WP_Offline_Page_UI {
 	}
 
 	/**
-	 * When the given post is the offline page, add the state to the given post states.
+	 * When the given post is the default offline page, add the state to the given post states.
 	 *
 	 * @since 0.2.0
 	 *
@@ -273,7 +278,7 @@ class WP_Offline_Page_UI {
 	 */
 	public function add_post_state( array $post_states, $post ) {
 		if ( $this->manager->get_offline_page_id() === $post->ID ) {
-			$post_states[] = __( 'Offline Page', 'pwa' );
+			$post_states[] = __( 'Default Offline Page', 'pwa' );
 		}
 
 		return $post_states;
@@ -298,9 +303,10 @@ class WP_Offline_Page_UI {
 	}
 
 	/**
-	 * Check if the offline page does not exist.
+	 * Check if the default offline page does not exist.
 	 *
 	 * @param WP_Post|int $offline_page The offline page to check.
+	 *
 	 * @return bool Whether page does not exist.
 	 */
 	protected function does_not_exist( $offline_page ) {
@@ -312,9 +318,10 @@ class WP_Offline_Page_UI {
 	}
 
 	/**
-	 * Check if the offline page is in the trash.
+	 * Check if the default offline page is in the trash.
 	 *
 	 * @param WP_Post|int $offline_page The offline page to check.
+	 *
 	 * @return bool Whether the page is in the trash.
 	 */
 	protected function is_in_trash_error( $offline_page ) {
