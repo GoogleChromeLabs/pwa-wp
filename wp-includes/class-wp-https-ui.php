@@ -58,6 +58,7 @@ class WP_HTTPS_UI {
 	public function init() {
 		add_action( 'admin_init', array( $this, 'init_admin' ) );
 		add_action( 'admin_init', array( $this, 'filter_site_url_and_home' ) );
+		add_action( 'admin_init', array( $this, 'filter_header' ) );
 	}
 
 	/**
@@ -216,5 +217,29 @@ class WP_HTTPS_UI {
 	 */
 	public function convert_to_https( $url ) {
 		return str_replace( 'http://', self::HTTPS_PROTOCOL, $url );
+	}
+
+	/**
+	 * Conditionally filters the header, to add an Upgrade-Insecure-Requests value.
+	 */
+	public function filter_header() {
+		if ( self::OPTION_SELECTED_VALUE === get_option( self::UPGRADE_INSECURE_CONTENT_OPTION ) ) {
+			add_filter( 'wp_headers', array( $this, 'upgrade_insecure_requests' ) );
+		}
+	}
+
+	/**
+	 * Adds an upgrade-insecure-requests header.
+	 *
+	 * Upgrades all insecure requests to HTTPS, like scripts and images.
+	 * There's no fallback if the upgraded HTTPS request fails.
+	 *
+	 * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade-Insecure-Requests
+	 * @param array $headers The response headers.
+	 * @return array $headers The filtered response headers.
+	 */
+	public function upgrade_insecure_requests( $headers ) {
+		$headers['Upgrade-Insecure-Requests'] = '1';
+		return $headers;
 	}
 }

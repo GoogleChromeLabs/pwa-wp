@@ -64,6 +64,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->instance->init();
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'init_admin' ) ) );
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'filter_site_url_and_home' ) ) );
+		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'filter_header' ) ) );
 	}
 
 	/**
@@ -185,7 +186,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		add_filter( 'option_home', array( $this, 'convert_to_http' ), 11 );
 		add_filter( 'option_siteurl', array( $this, 'convert_to_http' ), 11 );
 
-		// Simulate 'HTTPS Ugrade' not being selected in the UI, where the filters shouldn't convert the URLs to HTTPS.
+		// Simulate 'HTTPS Upgrade' not being selected in the UI, where the filters shouldn't convert the URLs to HTTPS.
 		$this->instance->filter_site_url_and_home();
 		$this->assertNotEquals( 11, has_filter( 'option_home', array( $this->instance, 'convert_to_https' ) ) );
 		$this->assertNotEquals( 11, has_filter( 'option_siteurl', array( $this->instance, 'convert_to_https' ) ) );
@@ -229,5 +230,44 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 */
 	public function convert_to_http( $url ) {
 		return str_replace( 'https', 'http', $url );
+	}
+
+	/**
+	 * Test filter_header.
+	 *
+	 * @covers WP_HTTPS_UI::filter_header()
+	 */
+	public function test_filter_header() {
+		// Simulate 'Upgrade Insecure URLS' not being selected in the UI, where this shouldn't add a header via a filter.
+		update_option( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, '0' );
+		$this->instance->filter_header();
+		$this->assertFalse( has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
+
+		// Simulate 'Upgrade Insecure URLS' being selected, where this should add a header via a filter.
+		update_option( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, WP_HTTPS_UI::OPTION_SELECTED_VALUE );
+		$this->instance->filter_header();
+		$this->assertEquals( 10, has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
+	}
+
+	/**
+	 * Test upgrade_insecure_requests.
+	 *
+	 * @covers WP_HTTPS_UI::upgrade_insecure_requests()
+	 */
+	public function test_upgrade_insecure_requests() {
+		$initial_header = array(
+			'Cache-Control' => 'max-age=0',
+			'Host'          => 'example.com',
+		);
+
+		$this->assertEquals(
+			array_merge(
+				$initial_header,
+				array(
+					'Upgrade-Insecure-Requests' => '1',
+				)
+			),
+			$this->instance->upgrade_insecure_requests( $initial_header )
+		);
 	}
 }
