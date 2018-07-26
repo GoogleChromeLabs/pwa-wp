@@ -57,6 +57,11 @@ class WP_Offline_Page_Excluder {
 	 * @param WP_Query $query The WP_Query instance.
 	 */
 	public function exclude_from_query( WP_Query $query ) {
+		if ( $this->is_offline_page_query( $query ) ) {
+			add_action( 'wp_head', 'wp_no_robots' );
+			return;
+		}
+
 		if ( ! $this->is_okay_to_exclude( $query ) ) {
 			return;
 		}
@@ -113,11 +118,6 @@ class WP_Offline_Page_Excluder {
 			$screen = get_current_screen();
 
 			return ( 'nav-menus' === $screen->id );
-		}
-
-		// Don't exclude when the request is for the default offline page.
-		if ( $this->is_offline_page_query( $query ) ) {
-			return false;
 		}
 
 		return ( $query->is_page && $query->is_singular );

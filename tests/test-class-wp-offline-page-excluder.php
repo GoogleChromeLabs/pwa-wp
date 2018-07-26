@@ -124,6 +124,7 @@ EOB;
 		$this->go_to( "?page_id={$offline_id}" );
 		$this->assertFalse( $GLOBALS['wp_query']->is_404() );
 		$this->assertSame( $offline_id, get_queried_object()->ID );
+		$this->assertEquals( 10, has_action( 'wp_head', 'wp_no_robots' ) );
 
 		// Check that the offline page is found on the frontend.
 		$this->set_permalink_structure( '/%postname%/' );
@@ -131,6 +132,7 @@ EOB;
 		$this->assertEmpty( get_query_var( 'post__not_in' ) );
 		$this->assertFalse( $GLOBALS['wp_query']->is_404() );
 		$this->assertSame( $offline_id, get_queried_object()->ID );
+		$this->assertEquals( 10, has_action( 'wp_head', 'wp_no_robots' ) );
 
 		// Check that current 'post__not_in' merges with offline page id.
 		$this->post__not_in   = array();
