@@ -145,19 +145,20 @@ class WP_HTTPS_UI {
 			?>
 		</p>
 		<p style="margin-top: 20px;"><strong><?php esc_html_e( 'HTTPS Upgrade', 'pwa' ); ?></strong></p>
-		<p class="description"><?php esc_html_e( 'Your site appears to support HTTPS', 'pwa' ); ?></p>
 		<p>
 			<label><input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="radio" <?php checked( $upgrade_https_value, self::OPTION_SELECTED_VALUE ); ?> value="<?php echo esc_attr( self::OPTION_SELECTED_VALUE ); ?>"><?php esc_html_e( 'Yes', 'pwa' ); ?></label>
 			<label><input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="radio" <?php checked( self::OPTION_SELECTED_VALUE !== $upgrade_https_value ); ?> value="0" ><?php esc_html_e( 'No', 'pwa' ); ?></label>
 		</p>
+		<p class="description"><?php esc_html_e( 'Your site appears to support HTTPS', 'pwa' ); ?></p>
 
 		<p style="margin-top: 20px;"><strong><?php esc_html_e( 'Upgrade Insecure URLs', 'pwa' ); ?></strong></p>
-		<p class="description">
-			<?php echo wp_kses_post( printf( $insecure_content_description, $insecure_content_more_details ) ); ?>
 		<p>
 			<label><input name="<?php echo esc_attr( self::UPGRADE_INSECURE_CONTENT_OPTION ); ?>" type="radio" <?php checked( $upgrade_insecure_content, self::OPTION_SELECTED_VALUE ); ?> value="<?php echo esc_attr( self::OPTION_SELECTED_VALUE ); ?>"><?php esc_html_e( 'Yes', 'pwa' ); ?></label>
 			<label><input name="<?php echo esc_attr( self::UPGRADE_INSECURE_CONTENT_OPTION ); ?>" type="radio" <?php checked( self::OPTION_SELECTED_VALUE !== $upgrade_insecure_content ); ?> value="0" ><?php esc_html_e( 'No', 'pwa' ); ?></label>
 		</p>
+		<p class="description">
+			<?php echo wp_kses_post( sprintf( $insecure_content_description, $insecure_content_more_details ) ); ?>
+		<p>
 		<?php
 	}
 
