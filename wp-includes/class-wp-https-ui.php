@@ -36,7 +36,7 @@ class WP_HTTPS_UI {
 	 *
 	 * @var string
 	 */
-	const OPTION_SELECTED_VALUE = '1';
+	const OPTION_CHECKED_VALUE = '1';
 
 	/**
 	 * The ID of the settings section.
@@ -73,22 +73,51 @@ class WP_HTTPS_UI {
 	 * Registers the HTTPS settings.
 	 */
 	public function register_settings() {
-		$args = array(
-			'type'              => 'string',
-			'sanitize_callback' => 'wp_validate_boolean',
-		);
-
 		register_setting(
 			self::OPTION_GROUP,
 			self::UPGRADE_HTTPS_OPTION,
-			$args
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( $this, 'upgrade_https_sanitize_callback' ),
+			)
 		);
 
 		register_setting(
 			self::OPTION_GROUP,
 			self::UPGRADE_INSECURE_CONTENT_OPTION,
-			$args
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( $this, 'upgrade_insecure_content_sanitize_callback' ),
+			)
 		);
+	}
+
+	/**
+	 * Sanitization callback for the upgrade HTTPS option.
+	 *
+	 * @param string $raw_value The value to sanitize.
+	 * @return bool Whether the option is true or false.
+	 */
+	public function upgrade_https_sanitize_callback( $raw_value ) {
+		unset( $raw_value );
+		if ( isset( $_POST[ self::UPGRADE_HTTPS_OPTION ] ) ) { // WPCS: CSRF OK.
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Sanitization callback for the upgrade insecure content option.
+	 *
+	 * @param string $raw_value The value to sanitize.
+	 * @return bool Whether the option is true or false.
+	 */
+	public function upgrade_insecure_content_sanitize_callback( $raw_value ) {
+		unset( $raw_value );
+		if ( isset( $_POST[ self::UPGRADE_INSECURE_CONTENT_OPTION ] ) ) { // WPCS: CSRF OK.
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -149,17 +178,13 @@ class WP_HTTPS_UI {
 				) );
 				?>
 			</p>
-			<p style="margin-top: 20px;"><strong><?php esc_html_e( 'HTTPS Upgrade', 'pwa' ); ?></strong></p>
 			<p>
-				<label><input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="radio" <?php checked( $upgrade_https_value ); ?> value="<?php echo esc_attr( self::OPTION_SELECTED_VALUE ); ?>"><?php esc_html_e( 'Yes', 'pwa' ); ?></label>
-				<label><input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="radio" <?php checked( ! $upgrade_https_value ); ?> value="0" ><?php esc_html_e( 'No', 'pwa' ); ?></label>
+				<label><input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_https_value ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>"><?php esc_html_e( 'HTTPS Upgrade', 'pwa' ); ?></label>
 			</p>
 			<p class="description"><?php esc_html_e( 'Your site appears to support HTTPS', 'pwa' ); ?></p>
 
-			<p style="margin-top: 20px;"><strong><?php esc_html_e( 'Upgrade Insecure URLs', 'pwa' ); ?></strong></p>
-			<p>
-				<label><input name="<?php echo esc_attr( self::UPGRADE_INSECURE_CONTENT_OPTION ); ?>" type="radio" <?php checked( $upgrade_insecure_content ); ?> value="<?php echo esc_attr( self::OPTION_SELECTED_VALUE ); ?>"><?php esc_html_e( 'Yes', 'pwa' ); ?></label>
-				<label><input name="<?php echo esc_attr( self::UPGRADE_INSECURE_CONTENT_OPTION ); ?>" type="radio" <?php checked( ! $upgrade_insecure_content ); ?> value="0" ><?php esc_html_e( 'No', 'pwa' ); ?></label>
+			<p style="margin-top: 20px;">
+				<label><input name="<?php echo esc_attr( self::UPGRADE_INSECURE_CONTENT_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_insecure_content ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>"><?php esc_html_e( 'Upgrade Insecure URLs', 'pwa' ); ?></label>
 			</p>
 			<p class="description">
 				<?php echo wp_kses_post( sprintf( $insecure_content_description, $insecure_content_more_details ) ); ?>
@@ -191,7 +216,7 @@ class WP_HTTPS_UI {
 	 * Conditionally filters the 'siteurl' and 'home' values from wp-config and options.
 	 */
 	public function filter_site_url_and_home() {
-		if ( self::OPTION_SELECTED_VALUE === get_option( self::UPGRADE_HTTPS_OPTION ) ) {
+		if ( self::OPTION_CHECKED_VALUE === get_option( self::UPGRADE_HTTPS_OPTION ) ) {
 			add_filter( 'option_home', array( $this, 'convert_to_https' ), 11 );
 			add_filter( 'option_siteurl', array( $this, 'convert_to_https' ), 11 );
 		}
@@ -211,7 +236,7 @@ class WP_HTTPS_UI {
 	 * Conditionally filters the header, to add an Upgrade-Insecure-Requests value.
 	 */
 	public function filter_header() {
-		if ( self::OPTION_SELECTED_VALUE === get_option( self::UPGRADE_INSECURE_CONTENT_OPTION ) ) {
+		if ( self::OPTION_CHECKED_VALUE === get_option( self::UPGRADE_INSECURE_CONTENT_OPTION ) ) {
 			add_filter( 'wp_headers', array( $this, 'upgrade_insecure_requests' ) );
 		}
 	}

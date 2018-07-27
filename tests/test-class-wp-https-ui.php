@@ -76,25 +76,80 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		global $new_whitelist_options, $wp_registered_settings;
 
 		$expected_settings = array(
-			'type'              => 'string',
-			'group'             => WP_HTTPS_UI::OPTION_GROUP,
-			'description'       => '',
-			'sanitize_callback' => 'wp_validate_boolean',
-			'show_in_rest'      => false,
+			'type'         => 'string',
+			'group'        => WP_HTTPS_UI::OPTION_GROUP,
+			'description'  => '',
+			'show_in_rest' => false,
 		);
 
+		$expected_https_settings = array_merge(
+			$expected_settings,
+			array(
+				'sanitize_callback' => array( $this->instance, 'upgrade_https_sanitize_callback' ),
+			)
+		);
 		$this->instance->register_settings();
 		$this->assertTrue( in_array( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, $new_whitelist_options[ WP_HTTPS_UI::OPTION_GROUP ], true ) );
 		$this->assertEquals(
-			$expected_settings,
+			$expected_https_settings,
 			$wp_registered_settings[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ]
 		);
 
+		$expected_insecure_content_settings = array_merge(
+			$expected_settings,
+			array(
+				'sanitize_callback' => array( $this->instance, 'upgrade_insecure_content_sanitize_callback' ),
+			)
+		);
 		$this->assertTrue( in_array( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, $new_whitelist_options[ WP_HTTPS_UI::OPTION_GROUP ], true ) );
 		$this->assertEquals(
-			$expected_settings,
+			$expected_insecure_content_settings,
 			$wp_registered_settings[ WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION ]
 		);
+	}
+
+	/**
+	 * Test upgrade_https_sanitize_callback.
+	 *
+	 * @covers WP_HTTPS_UI::upgrade_https_sanitize_callback()
+	 */
+	public function test_upgrade_https_sanitize_callback() {
+		$this->assert_sanitize_callback( array( $this->instance, 'upgrade_https_sanitize_callback' ), WP_HTTPS_UI::UPGRADE_HTTPS_OPTION );
+	}
+
+	/**
+	 * Test upgrade_insecure_content_sanitize_callback.
+	 *
+	 * @covers WP_HTTPS_UI::upgrade_insecure_content_sanitize_callback()
+	 */
+	public function test_upgrade_insecure_content_sanitize_callback() {
+		$this->assert_sanitize_callback( array( $this->instance, 'upgrade_insecure_content_sanitize_callback' ), WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION );
+	}
+
+	/**
+	 * Tests the given sanitization callback.
+	 *
+	 * The sanitization callbacks for HTTPS and insecure content work the same,
+	 * in returning true if the $_POST value is set for their option.
+	 *
+	 * @param callable $callback The sanitize callback to test.
+	 * @param string   $option   The option name.
+	 */
+	public function assert_sanitize_callback( $callback, $option ) {
+		/**
+		 * Test the <input type="checkbox"> being checked.
+		 * This callback also does not evaluate the argument, so it could be anything.
+		 */
+		$_POST[ $option ] = WP_HTTPS_UI::OPTION_CHECKED_VALUE;
+		$this->assertTrue( call_user_func( $callback, 'foo' ) );
+
+		// The checkbox value could be anything, as long as the $_POST value isset().
+		$_POST[ $option ] = 'baz';
+		$this->assertTrue( call_user_func( $callback, 'foo' ) );
+
+		// If the $_POST value is not set, the callback should return false.
+		unset( $_POST[ $option ] );
+		$this->assertFalse( call_user_func( $callback, 'foo' ) );
 	}
 
 	/**
@@ -124,8 +179,8 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 */
 	public function test_render_settings() {
 		// Set the option values, which should appear in the <input type="radio"> elements.
-		update_option( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, WP_HTTPS_UI::OPTION_SELECTED_VALUE );
-		update_option( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, WP_HTTPS_UI::OPTION_SELECTED_VALUE );
+		update_option( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, WP_HTTPS_UI::OPTION_CHECKED_VALUE );
+		update_option( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, WP_HTTPS_UI::OPTION_CHECKED_VALUE );
 		update_option( 'siteurl', self::HTTPS_URL );
 		update_option( 'home', self::HTTPS_URL );
 		add_filter( 'set_url_scheme', array( $this->instance, 'convert_to_https' ) );
@@ -133,7 +188,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->instance->render_settings();
 		$output = ob_get_clean();
 
-		$this->assertContains( WP_HTTPS_UI::OPTION_SELECTED_VALUE, $output );
+		$this->assertContains( WP_HTTPS_UI::OPTION_CHECKED_VALUE, $output );
 		$this->assertContains( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, $output );
 		$this->assertContains( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, $output );
 		$this->assertContains( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to HTTPS on your site.', $output );
@@ -181,7 +236,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->assertEquals( $initial_url, apply_filters( 'option_siteurl', $initial_url ) );
 
 		// Simulate 'HTTPS Upgrade' being selected, where the filters should convert the URLs to HTTPS.
-		update_option( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, WP_HTTPS_UI::OPTION_SELECTED_VALUE );
+		update_option( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, WP_HTTPS_UI::OPTION_CHECKED_VALUE );
 		$this->instance->filter_site_url_and_home();
 
 		$this->assertEquals( 11, has_filter( 'option_home', array( $this->instance, 'convert_to_https' ) ) );
@@ -235,7 +290,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->assertFalse( has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
 
 		// Simulate 'Upgrade Insecure URLS' being selected, where this should add a header via a filter.
-		update_option( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, WP_HTTPS_UI::OPTION_SELECTED_VALUE );
+		update_option( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, WP_HTTPS_UI::OPTION_CHECKED_VALUE );
 		$this->instance->filter_header();
 		$this->assertEquals( 10, has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
 	}
