@@ -32,6 +32,7 @@ class WP_Offline_Page_Excluder {
 	public function init() {
 		add_filter( 'wp_dropdown_pages', array( $this, 'exclude_from_page_dropdown' ), 10, 2 );
 		add_action( 'parse_query', array( $this, 'exclude_from_query' ) );
+		add_action( 'wp_head', array( $this, 'show_no_robots_on_offline_page' ) );
 	}
 
 	/**
@@ -57,11 +58,6 @@ class WP_Offline_Page_Excluder {
 	 * @param WP_Query $query The WP_Query instance.
 	 */
 	public function exclude_from_query( WP_Query $query ) {
-		if ( $this->is_offline_page_query( $query ) ) {
-			add_action( 'wp_head', 'wp_no_robots' );
-			return;
-		}
-
 		if ( ! $this->is_okay_to_exclude( $query ) ) {
 			return;
 		}
@@ -76,6 +72,16 @@ class WP_Offline_Page_Excluder {
 	}
 
 	/**
+	 * Show no robots on the default offline page.
+	 */
+	public function show_no_robots_on_offline_page() {
+		global $wp_query;
+		if ( $this->is_offline_page_query( $wp_query ) ) {
+			wp_no_robots();
+		}
+	}
+
+	/**
 	 * Checks if the query is for the offline page.
 	 *
 	 * @param WP_Query $query The WP_Query instance.
@@ -83,15 +89,13 @@ class WP_Offline_Page_Excluder {
 	 * @return bool Whether an offline page query.
 	 */
 	protected function is_offline_page_query( WP_Query $query ) {
-		if ( $query->is_admin ) {
-			return false;
-		}
-
-		if ( ! $query->is_singular() ) {
-			return false;
-		}
-
-		return $this->manager->get_offline_page_id() === (int) $query->get_queried_object_id();
+		return (
+			! $query->is_admin
+			&&
+			$query->is_singular()
+			&&
+			$this->manager->get_offline_page_id() === (int) $query->get_queried_object_id()
+		);
 	}
 
 	/**
@@ -118,6 +122,11 @@ class WP_Offline_Page_Excluder {
 			$screen = get_current_screen();
 
 			return ( 'nav-menus' === $screen->id );
+		}
+
+		// Do no exclude when default offline page is requested.
+		if ( $this->is_offline_page_query( $query ) ) {
+			return false;
 		}
 
 		return ( $query->is_page && $query->is_singular );

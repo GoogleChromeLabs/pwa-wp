@@ -124,7 +124,6 @@ EOB;
 		$this->go_to( "?page_id={$offline_id}" );
 		$this->assertFalse( $GLOBALS['wp_query']->is_404() );
 		$this->assertSame( $offline_id, get_queried_object()->ID );
-		$this->assertEquals( 10, has_action( 'wp_head', 'wp_no_robots' ) );
 
 		// Check that the offline page is found on the frontend.
 		$this->set_permalink_structure( '/%postname%/' );
@@ -132,7 +131,6 @@ EOB;
 		$this->assertEmpty( get_query_var( 'post__not_in' ) );
 		$this->assertFalse( $GLOBALS['wp_query']->is_404() );
 		$this->assertSame( $offline_id, get_queried_object()->ID );
-		$this->assertEquals( 10, has_action( 'wp_head', 'wp_no_robots' ) );
 
 		// Check that current 'post__not_in' merges with offline page id.
 		$this->post__not_in   = array();
@@ -142,6 +140,44 @@ EOB;
 		$this->go_to( get_permalink( $this->post__not_in[0] ) );
 		remove_action( 'parse_query', array( $this, 'set_post__not_in' ), 5 );
 		$this->assertEquals( array_merge( $this->post__not_in, array( $offline_id ) ), get_query_var( 'post__not_in' ) );
+	}
+
+	/**
+	 * Test show_no_robots_on_offline_page.
+	 *
+	 * @covers WP_Offline_Page_Excluder::show_no_robots_on_offline_page()
+	 */
+	public function test_show_no_robots_on_offline_page() {
+		set_current_screen( 'front' );
+
+		$offline_id = $this->factory()->post->create( array(
+			'post_type'  => 'page',
+			'post_title' => 'Offline page',
+		) );
+		$page_id    = $this->factory()->post->create( array(
+			'post_type'  => 'page',
+			'post_title' => 'Accessing via Offline',
+		) );
+		add_option( WP_Offline_Page::OPTION_NAME, $offline_id );
+
+		// Check that the offline page is found when using the plan permalink.
+		$this->go_to( get_permalink( $page_id ) );
+		ob_start();
+		$this->instance->show_no_robots_on_offline_page();
+		$this->assertNotContains( "<meta name='robots' content='noindex,follow' />", ob_get_clean() );
+
+		// Check that the offline page is found when using the plan permalink.
+		$this->go_to( "?page_id={$offline_id}" );
+		ob_start();
+		$this->instance->show_no_robots_on_offline_page();
+		$this->assertContains( "<meta name='robots' content='noindex,follow' />", ob_get_clean() );
+
+		// Check that the offline page is found on the frontend.
+		$this->set_permalink_structure( '/%postname%/' );
+		$this->go_to( get_permalink( $offline_id ) );
+		ob_start();
+		$this->instance->show_no_robots_on_offline_page();
+		$this->assertContains( "<meta name='robots' content='noindex,follow' />", ob_get_clean() );
 	}
 
 	/**
