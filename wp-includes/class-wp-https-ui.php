@@ -165,7 +165,7 @@ class WP_HTTPS_UI {
 		 * The WP_HTTPS_Detection doesn't work with my local SSL certificate, and always returns false.
 		 * Also, change $this->is_currently_https() to ! $this->is_currently_https().
 		 * This is also for development only.
-		 * This main if block should only run if the site can use HTTPS, but the 'home' and 'siteurl' options aren't HTTPS.
+		 * This if block should only run if the site can use HTTPS, but the 'home' and 'siteurl' options aren't HTTPS.
 		 */
 		if ( $this->is_currently_https() && ! get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) ) :
 			?>
@@ -216,7 +216,7 @@ class WP_HTTPS_UI {
 	 * Conditionally filters the 'siteurl' and 'home' values from wp-config and options.
 	 */
 	public function filter_site_url_and_home() {
-		if ( self::OPTION_CHECKED_VALUE === get_option( self::UPGRADE_HTTPS_OPTION ) ) {
+		if ( get_option( self::UPGRADE_HTTPS_OPTION ) ) {
 			add_filter( 'option_home', array( $this, 'convert_to_https' ), 11 );
 			add_filter( 'option_siteurl', array( $this, 'convert_to_https' ), 11 );
 		}
@@ -236,7 +236,7 @@ class WP_HTTPS_UI {
 	 * Conditionally filters the header, to add an Upgrade-Insecure-Requests value.
 	 */
 	public function filter_header() {
-		if ( self::OPTION_CHECKED_VALUE === get_option( self::UPGRADE_INSECURE_CONTENT_OPTION ) ) {
+		if ( get_option( self::UPGRADE_INSECURE_CONTENT_OPTION ) ) {
 			add_filter( 'wp_headers', array( $this, 'upgrade_insecure_requests' ) );
 		}
 	}
