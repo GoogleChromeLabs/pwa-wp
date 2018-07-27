@@ -36,7 +36,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 *
 	 * @var string
 	 */
-	const NO_PROTOCOL_URL = '//baz.com';
+	const NO_PROTOCOL_URL = 'baz.com';
 
 	/**
 	 * Tested instance.
@@ -75,7 +75,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	public function test_register_settings() {
 		global $new_whitelist_options, $wp_registered_settings;
 
-		$expected_settings = array(
+		$base_expected_settings = array(
 			'type'         => 'string',
 			'group'        => WP_HTTPS_UI::OPTION_GROUP,
 			'description'  => '',
@@ -83,7 +83,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		);
 
 		$expected_https_settings = array_merge(
-			$expected_settings,
+			$base_expected_settings,
 			array(
 				'sanitize_callback' => array( $this->instance, 'upgrade_https_sanitize_callback' ),
 			)
@@ -96,7 +96,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		);
 
 		$expected_insecure_content_settings = array_merge(
-			$expected_settings,
+			$base_expected_settings,
 			array(
 				'sanitize_callback' => array( $this->instance, 'upgrade_insecure_content_sanitize_callback' ),
 			)
@@ -138,18 +138,18 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	public function assert_sanitize_callback( $callback, $option ) {
 		/**
 		 * Test the <input type="checkbox"> being checked.
-		 * This callback also does not evaluate the argument, so it could be anything.
+		 * This callback does not evaluate the argument, so it could be anything.
 		 */
 		$_POST[ $option ] = WP_HTTPS_UI::OPTION_CHECKED_VALUE;
 		$this->assertTrue( call_user_func( $callback, 'foo' ) );
 
 		// The checkbox value could be anything, as long as the $_POST value isset().
 		$_POST[ $option ] = 'baz';
-		$this->assertTrue( call_user_func( $callback, 'foo' ) );
+		$this->assertTrue( call_user_func( $callback, 'bar' ) );
 
 		// If the $_POST value is not set, the callback should return false.
 		unset( $_POST[ $option ] );
-		$this->assertFalse( call_user_func( $callback, 'foo' ) );
+		$this->assertFalse( call_user_func( $callback, 'baz' ) );
 	}
 
 	/**

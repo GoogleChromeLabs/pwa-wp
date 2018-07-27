@@ -46,13 +46,6 @@ class WP_HTTPS_UI {
 	const SETTING_ID = 'wp_upgrade_https';
 
 	/**
-	 * The HTTPS protocol
-	 *
-	 * @var string
-	 */
-	const HTTPS_PROTOCOL = 'https://';
-
-	/**
 	 * Inits the class.
 	 */
 	public function init() {
@@ -161,7 +154,7 @@ class WP_HTTPS_UI {
 		$insecure_content_description = esc_html__( 'Your home page doesn&#8217;t contain insecure URLs. However, there may be URLs on other pages that could be blocked. %s', 'pwa' );
 
 		/*
-		 * Todo: change ! get_option() to get_option, as this is only like this for development.
+		 * Todo: change ! get_option() to get_option, as this is only for development.
 		 * The WP_HTTPS_Detection doesn't work with my local SSL certificate, and always returns false.
 		 * Also, change $this->is_currently_https() to ! $this->is_currently_https().
 		 * This is also for development only.
@@ -242,7 +235,7 @@ class WP_HTTPS_UI {
 	}
 
 	/**
-	 * Adds an upgrade-insecure-requests header.
+	 * Adds an Upgrade-Insecure-Requests header.
 	 *
 	 * Upgrades all insecure requests to HTTPS, like scripts and images.
 	 * There's no fallback if the upgraded HTTPS request fails.
