@@ -93,10 +93,7 @@ class WP_HTTPS_UI {
 	 */
 	public function upgrade_https_sanitize_callback( $raw_value ) {
 		unset( $raw_value );
-		if ( isset( $_POST[ self::UPGRADE_HTTPS_OPTION ] ) ) { // WPCS: CSRF OK.
-			return true;
-		}
-		return false;
+		return isset( $_POST[ self::UPGRADE_HTTPS_OPTION ] ); // WPCS: CSRF OK.
 	}
 
 	/**
@@ -107,10 +104,7 @@ class WP_HTTPS_UI {
 	 */
 	public function upgrade_insecure_content_sanitize_callback( $raw_value ) {
 		unset( $raw_value );
-		if ( isset( $_POST[ self::UPGRADE_INSECURE_CONTENT_OPTION ] ) ) { // WPCS: CSRF OK.
-			return true;
-		}
-		return false;
+		return isset( $_POST[ self::UPGRADE_INSECURE_CONTENT_OPTION ] ); // WPCS: CSRF OK.
 	}
 
 	/**
