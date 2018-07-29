@@ -83,6 +83,8 @@ class WP_Service_Workers extends WP_Scripts {
 			wp_json_encode( 'https://storage.googleapis.com/workbox-cdn/releases/3.4.1/workbox-sw.js', 64 /* JSON_UNESCAPED_SLASHES */ )
 		);
 
+		$script .= sprintf( 'workbox.setConfig({ debug: Boolean( %s ) });', WP_DEBUG );
+
 		/**
 		 * Filters whether navigation preload is enabled.
 		 *
