@@ -6,6 +6,7 @@
  *
  * @package PWA
  */
+
 /**
  * Initialize $wp_service_workers if it has not been set.
  *
@@ -20,6 +21,7 @@ function wp_service_workers() {
 	}
 	return $wp_service_workers;
 }
+
 /**
  * Register a new service worker.
  *
@@ -34,6 +36,7 @@ function wp_service_workers() {
 function wp_register_service_worker( $handle, $src, $deps = array(), $scope = WP_Service_Workers::SCOPE_ALL ) {
 	return wp_service_workers()->register( $handle, $src, $deps, $scope );
 }
+
 /**
  * Get service worker URL by scope.
  *
@@ -47,11 +50,13 @@ function wp_get_service_worker_url( $scope = WP_Service_Workers::SCOPE_FRONT ) {
 		_doing_it_wrong( __FUNCTION__, esc_html__( 'Scope must be either WP_Service_Workers::SCOPE_FRONT or WP_Service_Workers::SCOPE_ADMIN.', 'pwa' ), '?' );
 		$scope = WP_Service_Workers::SCOPE_FRONT;
 	}
+
 	return add_query_arg(
 		array( 'wp_service_worker' => $scope ),
 		home_url( '/', 'https' )
 	);
 }
+
 /**
  * Print service workers' scripts that can be installed.
  *
@@ -60,19 +65,24 @@ function wp_get_service_worker_url( $scope = WP_Service_Workers::SCOPE_FRONT ) {
 function wp_print_service_workers() {
 	global $pagenow;
 	$scopes = array();
+
 	$on_front_domain = isset( $_SERVER['HTTP_HOST'] ) && wp_parse_url( home_url(), PHP_URL_HOST ) === $_SERVER['HTTP_HOST'];
 	$on_admin_domain = isset( $_SERVER['HTTP_HOST'] ) && wp_parse_url( admin_url(), PHP_URL_HOST ) === $_SERVER['HTTP_HOST'];
+
 	// Install the front service worker if currently on the home domain.
 	if ( $on_front_domain ) {
 		$scopes[ WP_Service_Workers::SCOPE_FRONT ] = home_url( '/', 'relative' ); // The home_url() here will account for subdirectory installs.
 	}
+
 	// Include admin service worker if it seems it will be used (and it can be installed).
 	if ( $on_admin_domain && ( is_user_logged_in() || is_admin() || in_array( $pagenow, array( 'wp-login.php', 'wp-signup.php', 'wp-activate.php' ), true ) ) ) {
 		$scopes[ WP_Service_Workers::SCOPE_ADMIN ] = wp_parse_url( admin_url( '/' ), PHP_URL_PATH );
 	}
+
 	if ( empty( $scopes ) ) {
 		return;
 	}
+
 	?>
 	<script>
 		if ( navigator.serviceWorker ) {
@@ -88,6 +98,7 @@ function wp_print_service_workers() {
 	</script>
 	<?php
 }
+
 /**
  * Register query var.
  *
@@ -99,6 +110,7 @@ function wp_add_service_worker_query_var( $query_vars ) {
 	$query_vars[] = 'wp_service_worker';
 	return $query_vars;
 }
+
 /**
  * If it's a service worker script page, display that.
  *

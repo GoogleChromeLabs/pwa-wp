@@ -6,6 +6,7 @@
  *
  * @package PWA
  */
+
 /**
  * Class used to register service workers.
  *
@@ -14,36 +15,42 @@
  * @see WP_Dependencies
  */
 class WP_Service_Workers extends WP_Scripts {
+
 	/**
 	 * Scope for front.
 	 *
 	 * @var int
 	 */
 	const SCOPE_FRONT = 1;
+
 	/**
 	 * Scope for admin.
 	 *
 	 * @var int
 	 */
 	const SCOPE_ADMIN = 2;
+
 	/**
 	 * Scope for both front and admin.
 	 *
 	 * @var int
 	 */
 	const SCOPE_ALL = 3;
+
 	/**
 	 * Param for service workers.
 	 *
 	 * @var string
 	 */
 	public $query_var = 'wp_service_worker';
+
 	/**
 	 * Output for service worker scope script.
 	 *
 	 * @var string
 	 */
 	public $output = '';
+
 	/**
 	 * Initialize the class.
 	 */
@@ -55,6 +62,7 @@ class WP_Service_Workers extends WP_Scripts {
 		 */
 		do_action_ref_array( 'wp_default_service_workers', array( &$this ) );
 	}
+
 	/**
 	 * Register service worker.
 	 *
@@ -71,8 +79,10 @@ class WP_Service_Workers extends WP_Scripts {
 			_doing_it_wrong( __METHOD__, esc_html__( 'Scope must be either WP_Service_Workers::SCOPE_ALL, WP_Service_Workers::SCOPE_FRONT, or WP_Service_Workers::SCOPE_ADMIN.', 'pwa' ), '0.1' );
 			$scope = self::SCOPE_ALL;
 		}
+
 		return parent::add( $handle, $src, $deps, false, compact( 'scope' ) );
 	}
+
 	/**
 	 * Get service worker logic for scope.
 	 *
@@ -81,30 +91,38 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function serve_request( $scope ) {
 		@header( 'Content-Type: text/javascript; charset=utf-8' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+
 		if ( self::SCOPE_FRONT !== $scope && self::SCOPE_ADMIN !== $scope ) {
 			status_header( 400 );
 			echo '/* invalid_scope_requested */';
 			return;
 		}
+
 		// @todo If $scope is admin should this admin_enqueue_scripts, and if front should it wp_enqueue_scripts?
 		$scope_items = array();
+
 		// Get handles from the relevant scope only.
 		foreach ( $this->registered as $handle => $item ) {
 			if ( $item->args['scope'] & $scope ) { // Yes, Bitwise AND intended. SCOPE_ALL & SCOPE_FRONT == true. SCOPE_ADMIN & SCOPE_FRONT == false.
 				$scope_items[] = $handle;
 			}
 		}
+
 		$this->output = '';
 		$this->do_items( $scope_items );
+
 		$file_hash = md5( $this->output );
 		@header( "Etag: $file_hash" ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+
 		$etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? trim( $_SERVER['HTTP_IF_NONE_MATCH'] ) : false;
 		if ( $file_hash === $etag_header ) {
 			status_header( 304 );
 			return;
 		}
+
 		echo $this->output; // phpcs:ignore WordPress.XSS.EscapeOutput, WordPress.Security.EscapeOutput
 	}
+
 	/**
 	 * Process one registered script.
 	 *
@@ -115,6 +133,7 @@ class WP_Service_Workers extends WP_Scripts {
 	public function do_item( $handle, $group = false ) {
 		$registered = $this->registered[ $handle ];
 		$invalid    = false;
+
 		if ( is_callable( $registered->src ) ) {
 			$this->output .= sprintf( "\n/* Source %s: */\n", $handle );
 			$this->output .= call_user_func( $registered->src ) . "\n";
@@ -130,12 +149,14 @@ class WP_Service_Workers extends WP_Scripts {
 		} else {
 			$invalid = true;
 		}
+
 		if ( $invalid ) {
 			/* translators: %s is script handle */
 			$error = sprintf( __( 'Service worker src is invalid for handle "%s".', 'pwa' ), $handle );
 			$this->output .= sprintf( "console.warn( %s );\n", wp_json_encode( $error ) );
 		}
 	}
+
 	/**
 	 * Remove URL scheme.
 	 *
@@ -145,6 +166,7 @@ class WP_Service_Workers extends WP_Scripts {
 	protected function remove_url_scheme( $schemed_url ) {
 		return preg_replace( '#^\w+:(?=//)#', '', $schemed_url );
 	}
+
 	/**
 	 * Get validated path to file.
 	 *
@@ -155,28 +177,37 @@ class WP_Service_Workers extends WP_Scripts {
 		if ( ! is_string( $url ) ) {
 			return new WP_Error( 'incorrect_path_format', esc_html__( 'URL has to be a string', 'pwa' ) );
 		}
+
 		$needs_base_url = ! preg_match( '|^(https?:)?//|', $url );
 		$base_url       = site_url();
+
 		if ( $needs_base_url ) {
 			$url = $base_url . $url;
 		}
+
 		// Strip URL scheme, query, and fragment.
 		$url = $this->remove_url_scheme( preg_replace( ':[\?#].*$:', '', $url ) );
+
 		$content_url  = $this->remove_url_scheme( content_url( '/' ) );
 		$allowed_host = wp_parse_url( $content_url, PHP_URL_HOST );
+
 		$url_host = wp_parse_url( $url, PHP_URL_HOST );
+
 		if ( $allowed_host !== $url_host ) {
 			/* translators: %s is file URL */
 			return new WP_Error( 'external_file_url', sprintf( __( 'URL is located on an external domain: %s.', 'pwa' ), $url_host ) );
 		}
+
 		$file_path = null;
 		if ( 0 === strpos( $url, $content_url ) ) {
 			$file_path = WP_CONTENT_DIR . substr( $url, strlen( $content_url ) - 1 );
 		}
+
 		if ( ! $file_path || false !== strpos( '../', $file_path ) || 0 !== validate_file( $file_path ) || ! file_exists( $file_path ) ) {
 			/* translators: %s is file URL */
 			return new WP_Error( 'file_path_not_found', sprintf( __( 'Unable to locate filesystem path for %s.', 'pwa' ), $url ) );
 		}
+
 		return $file_path;
 	}
 }

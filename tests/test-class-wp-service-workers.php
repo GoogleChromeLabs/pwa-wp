@@ -4,16 +4,19 @@
  *
  * @package PWA
  */
+
 /**
  * Tests for class WP_Web_App_Manifest.
  */
 class Test_WP_Service_Workers extends WP_UnitTestCase {
+
 	/**
 	 * Tested instance.
 	 *
 	 * @var WP_Service_Workers
 	 */
 	public $instance;
+
 	/**
 	 * Setup.
 	 *
@@ -26,6 +29,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		unset( $wp_actions['wp_default_service_workers'] );
 		$this->instance = wp_service_workers();
 	}
+
 	/**
 	 * Tear down.
 	 */
@@ -33,6 +37,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		parent::tearDown();
 		unset( $GLOBALS['wp_service_workers'] );
 	}
+
 	/**
 	 * Test class constructor.
 	 *
@@ -46,12 +51,14 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		$this->assertSame( $wp_service_workers, $this->instance );
 		$this->assertInstanceOf( 'WP_Service_Workers', $this->instance );
 		$this->instance->init();
+
 		unset( $wp_service_workers );
 		wp_service_workers();
 		$this->assertEquals( 2, did_action( 'wp_default_service_workers' ) );
 		wp_service_workers();
 		$this->assertEquals( 2, did_action( 'wp_default_service_workers' ) );
 	}
+
 	/**
 	 * Get scripts.
 	 */
@@ -83,6 +90,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 			),
 		);
 	}
+
 	/**
 	 * Test adding new service worker.
 	 *
@@ -108,6 +116,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		$this->assertEquals( $src, $registered_sw->src );
 		$this->assertEquals( $deps, $registered_sw->deps );
 	}
+
 	/**
 	 * Test using invalid scope.
 	 *
@@ -117,6 +126,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		$this->instance->register( 'foo', '/test-sw.js', array( 'bar' ), 'bad' );
 		$this->assertEquals( WP_Service_Workers::SCOPE_ALL, $this->instance->registered['foo']->args['scope'] );
 	}
+
 	/**
 	 * Test serve_request.
 	 *
@@ -127,9 +137,11 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		wp_service_workers()->register( 'bar', array( $this, 'return_bar_sw' ), array( 'foo' ), WP_Service_Workers::SCOPE_FRONT );
 		wp_service_workers()->register( 'baz', array( $this, 'return_baz_sw' ), array( 'foo' ), WP_Service_Workers::SCOPE_ADMIN );
 		wp_service_workers()->register( 'foo', array( $this, 'return_foo_sw' ), array(), WP_Service_Workers::SCOPE_ALL );
+
 		ob_start();
 		wp_service_workers()->serve_request( 'bad' );
 		$this->assertContains( 'invalid_scope_requested', ob_get_clean() );
+
 		ob_start();
 		wp_service_workers()->serve_request( WP_Service_Workers::SCOPE_FRONT );
 		$output = ob_get_clean();
@@ -139,9 +151,11 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		$this->assertTrue(
 			strpos( $output, $this->return_foo_sw() ) < strpos( $output, $this->return_bar_sw() )
 		);
+
 		ob_start();
 		wp_service_workers()->serve_request( WP_Service_Workers::SCOPE_ADMIN );
 		$output = ob_get_clean();
+
 		$this->assertContains( $this->return_foo_sw(), $output );
 		$this->assertNotContains( $this->return_bar_sw(), $output );
 		$this->assertContains( $this->return_baz_sw(), $output );
@@ -149,6 +163,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 			strpos( $output, $this->return_foo_sw() ) < strpos( $output, $this->return_baz_sw() )
 		);
 	}
+
 	/**
 	 * Test serve_request for bad src callback.
 	 *
@@ -163,6 +178,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		$output = ob_get_clean();
 		$this->assertContains( 'Service worker src is invalid', $output );
 	}
+
 	/**
 	 * Test serve_request bad src URL.
 	 *
@@ -177,6 +193,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		$output = ob_get_clean();
 		$this->assertContains( 'Service worker src is invalid', $output );
 	}
+
 	/**
 	 * Get some JS code.
 	 *
@@ -185,6 +202,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	public function return_foo_sw() {
 		return 'console.info("Hello Foo World");';
 	}
+
 	/**
 	 * Get some JS code.
 	 *
@@ -193,6 +211,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	public function return_bar_sw() {
 		return 'console.info("Hello Bar World");';
 	}
+
 	/**
 	 * Get some JS code.
 	 *
