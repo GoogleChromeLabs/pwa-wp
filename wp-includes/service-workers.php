@@ -88,10 +88,10 @@ function wp_print_service_workers() {
 		if ( navigator.serviceWorker ) {
 			window.addEventListener('load', function() {
 				<?php foreach ( $scopes as $name => $scope ) { ?>
-				navigator.serviceWorker.register(
-					<?php echo wp_json_encode( wp_get_service_worker_url( $name ) ); ?>,
-					<?php echo wp_json_encode( compact( 'scope' ) ); ?>
-				);
+					navigator.serviceWorker.register(
+						<?php echo wp_json_encode( wp_get_service_worker_url( $name ) ); ?>,
+						<?php echo wp_json_encode( compact( 'scope' ) ); ?>
+					);
 				<?php } ?>
 			} );
 		}
