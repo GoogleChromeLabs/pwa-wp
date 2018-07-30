@@ -34,6 +34,9 @@ require PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-detection.php';
 /** WP_Service_Workers Class */
 require PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-workers.php';
 
+/** WP_Offline_Page Class */
+require PWA_PLUGIN_DIR . '/wp-includes/class-wp-offline-page.php';
+
 /** WordPress Service Worker Functions */
 require PWA_PLUGIN_DIR . '/wp-includes/service-workers.php';
 
@@ -44,3 +47,5 @@ $wp_web_app_manifest = new WP_Web_App_Manifest();
 $wp_web_app_manifest->init();
 $wp_https_detection = new WP_HTTPS_Detection();
 $wp_https_detection->init();
+$wp_offline_page = new WP_Offline_Page();
+$wp_offline_page->init();
