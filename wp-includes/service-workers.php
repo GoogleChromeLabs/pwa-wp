@@ -123,3 +123,11 @@ function wp_service_worker_loaded() {
 		exit;
 	}
 }
+
+/**
+ * Disables concatenating scripts to leverage caching the assets via Service Worker instead.
+ */
+function wp_disable_script_concatenation() {
+	global $concatenate_scripts;
+	$concatenate_scripts = false; // WPCS: Override OK.
+}

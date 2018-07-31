@@ -62,6 +62,12 @@ class WP_Service_Workers extends WP_Scripts {
 			array()
 		);
 
+		$this->register(
+			'admin-cache-sw',
+			array( $this, 'get_caching_admin_assets_script' ),
+			array( 'workbox-sw' )
+		);
+
 		/**
 		 * Fires when the WP_Service_Workers instance is initialized.
 		 *
@@ -104,7 +110,26 @@ class WP_Service_Workers extends WP_Scripts {
 		} else {
 			$script .= "/* Navigation preload disabled. */\n";
 		}
+
 		return $script;
+	}
+
+	/**
+	 * Add cache first strategy for wp-admin .js and .css files.
+	 *
+	 * @todo This part should be replaced by PHP-level API layer, e.g. WP_Service_Workers::register_route().
+	 * @todo Missing image assets.
+	 * @todo Perhaps we should precache the assets instead.
+	 *
+	 * @return string Script.
+	 */
+	public function get_caching_admin_assets_script() {
+		return "workbox.routing.registerRoute(
+	/\\/(wp-admin|wp-includes).*\\.(?:js|css)/,
+	workbox.strategies.staleWhileRevalidate({
+		cacheName: 'assets-cache'
+	})
+);\n";
 	}
 
 	/**

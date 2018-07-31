@@ -13,3 +13,8 @@ foreach ( array( 'wp_print_scripts', 'admin_print_scripts', 'customize_controls_
 add_action( 'parse_request', 'wp_service_worker_loaded' );
 
 add_filter( 'query_vars', 'wp_add_service_worker_query_var' );
+
+// Disable contactenation of scripts and styles on admin pages.
+foreach ( array( 'wp_default_styles', 'wp_print_scripts' ) as $filter ) {
+	add_action( $filter, 'wp_disable_script_concatenation' );
+}
