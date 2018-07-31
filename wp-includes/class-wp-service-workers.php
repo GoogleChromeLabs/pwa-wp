@@ -153,6 +153,7 @@ class WP_Service_Workers extends WP_Scripts {
 		if ( $invalid ) {
 			/* translators: %s is script handle */
 			$error = sprintf( __( 'Service worker src is invalid for handle "%s".', 'pwa' ), $handle );
+			_doing_it_wrong( 'WP_Service_Workers::register', esc_html( $error ), '0.1' );
 			$this->output .= sprintf( "console.warn( %s );\n", wp_json_encode( $error ) );
 		}
 	}
