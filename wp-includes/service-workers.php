@@ -38,6 +38,17 @@ function wp_register_service_worker( $handle, $src, $deps = array(), $scope = WP
 }
 
 /**
+ * Register route and caching strategy.
+ *
+ * @param string $route Route.
+ * @param int    $strategy Strategy, can be WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE (@todo Add others).
+ * @param array  $args Array of args, can be cache_name, max_age, max_entries.
+ */
+function wp_register_caching_strategy( $route, $strategy = WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, $args = array() ) {
+    return wp_service_workers()->register_route( $route, $strategy, $args );
+}
+
+/**
  * Get service worker URL by scope.
  *
  * @since 0.1
