@@ -162,7 +162,7 @@ class WP_Service_Workers extends WP_Scripts {
 		if ( $invalid ) {
 			/* translators: %s is script handle */
 			$error = sprintf( __( 'Service worker src is invalid for handle "%s".', 'pwa' ), $handle );
-			_doing_it_wrong( 'WP_Service_Workers::register', esc_html( $error ), '0.1' );
+			@_doing_it_wrong( 'WP_Service_Workers::register', esc_html( $error ), '0.1' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged -- We want the error in the PHP log, but not in the JS output.
 			$this->output .= sprintf( "console.warn( %s );\n", wp_json_encode( $error ) );
 		}
 	}
