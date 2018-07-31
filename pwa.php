@@ -24,6 +24,7 @@
 define( 'PWA_VERSION', '0.1.0' );
 define( 'PWA_PLUGIN_FILE', __FILE__ );
 define( 'PWA_PLUGIN_DIR', dirname( __FILE__ ) );
+define( 'PWA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 /** WP_Web_App_Manifest Class */
 require PWA_PLUGIN_DIR . '/wp-includes/class-wp-web-app-manifest.php';

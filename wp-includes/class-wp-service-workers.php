@@ -38,6 +38,14 @@ class WP_Service_Workers extends WP_Scripts {
 	const SCOPE_ALL = 3;
 
 	/**
+	 * Stale while revalidate caching strategy.
+	 *
+	 * @todo Add more strategies.
+	 * @var int
+	 */
+	const STRATEGY_STALE_WHILE_REVALIDATE = 1;
+
+	/**
 	 * Param for service workers.
 	 *
 	 * @var string
@@ -52,6 +60,13 @@ class WP_Service_Workers extends WP_Scripts {
 	public $output = '';
 
 	/**
+	 * Script for caching strategies.
+	 *
+	 * @var string
+	 */
+	public $caching_strategies = '';
+
+	/**
 	 * Initialize the class.
 	 */
 	public function init() {
@@ -60,6 +75,12 @@ class WP_Service_Workers extends WP_Scripts {
 			'workbox-sw',
 			array( $this, 'get_workbox_script' ),
 			array()
+		);
+
+		$this->register(
+			'caching-utils-sw',
+			PWA_PLUGIN_URL . '/wp-includes/js/service-worker.js',
+			array( 'workbox-sw' )
 		);
 
 		/**
@@ -128,6 +149,55 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
+	 * Register route and caching strategy.
+	 *
+	 * @todo Maybe route should be an array -- $routes -- instead, this way the method could also be used for precaching.
+	 * @param string $route Route.
+	 * @param int    $strategy Strategy, can be self::STRATEGY_STALE_WHILE_REVALIDATE (@todo Add others).
+	 * @param array  $args Array of args, can be cache_name, max_age, max_entries.
+	 */
+	public function register_route( $route, $strategy, $args ) {
+
+		// @todo Should we support custom callbacks? Maybe WP_Service_Worker::register() is sufficient already.
+		// @todo Support pre-caching.
+		// @todo Add other strategies.
+		// @todo Add validation.
+		// @todo Logic for detecting conflicts.
+		switch ( $strategy ) {
+			default:
+				$strategy = 'staleWhileRevalidate';
+				break;
+		}
+
+		$this->caching_strategies .= $this->register_caching_strategy_for_route( $route, $strategy, $args );
+
+	}
+
+	/**
+	 * Register caching strategy for route.
+	 *
+	 * @param string $route Route.
+	 * @param int    $strategy Strategy, can be self::STRATEGY_STALE_WHILE_REVALIDATE (@todo Add others).
+	 * @param array  $args Array of args, can be cache_name, max_age, max_entries.
+	 * @return string Script.
+	 */
+	protected function register_caching_strategy_for_route( $route, $strategy, $args ) {
+		$script = "wp.serviceWorker.addCachingStrategy( '" . $route . "', '" . $strategy . "'";
+
+		if ( isset( $args['cache_name'] ) ) {
+			$script .= ", '" . $args['cache_name'] . "'";
+		}
+		foreach ( array( 'max_age, max_entries' ) as $param ) {
+			if ( isset( $args[ $param ] ) ) {
+				$script .= ', ' . $args[ $param ];
+			}
+		}
+		$script .= ' );';
+
+		return $script;
+	}
+
+	/**
 	 * Get service worker logic for scope.
 	 *
 	 * @see wp_service_worker_loaded()
@@ -154,6 +224,7 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$this->output = '';
 		$this->do_items( $scope_items );
+		$this->output .= $this->caching_strategies;
 
 		$file_hash = md5( $this->output );
 		@header( "Etag: $file_hash" ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
