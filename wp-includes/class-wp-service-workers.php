@@ -120,6 +120,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @todo This part should be replaced by PHP-level API layer, e.g. WP_Service_Workers::register_route().
 	 * @todo Missing image assets.
 	 * @todo Perhaps we should precache the assets instead.
+	 * @todo Use network in case of preview.
 	 *
 	 * @return string Script.
 	 */
