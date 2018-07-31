@@ -55,12 +55,56 @@ class WP_Service_Workers extends WP_Scripts {
 	 * Initialize the class.
 	 */
 	public function init() {
+
+		$this->register(
+			'workbox-sw',
+			array( $this, 'get_workbox_script' ),
+			array()
+		);
+
 		/**
 		 * Fires when the WP_Service_Workers instance is initialized.
 		 *
 		 * @param WP_Service_Workers $this WP_Service_Workers instance (passed by reference).
 		 */
 		do_action_ref_array( 'wp_default_service_workers', array( &$this ) );
+	}
+
+	/**
+	 * Get workbox script.
+	 *
+	 * @return string Script.
+	 */
+	public function get_workbox_script() {
+
+		// @todo The Workbox sources will probably need to be installed locally to avoid the external request(s).
+		$script = sprintf(
+			"importScripts( %s );\n",
+			wp_json_encode( 'https://storage.googleapis.com/workbox-cdn/releases/3.4.1/workbox-sw.js', 64 /* JSON_UNESCAPED_SLASHES */ )
+		);
+
+		$script .= sprintf( 'workbox.setConfig({ debug: Boolean( %s ) });', WP_DEBUG );
+
+		/**
+		 * Filters whether navigation preload is enabled.
+		 *
+		 * The filtered value will be sent as the Service-Worker-Navigation-Preload header value if a truthy string.
+		 * This filter should be set to return false to disable navigation preload such as when a site is using
+		 * the app shell model.
+		 *
+		 * @param bool|string $navigation_preload Whether to use navigation preload.
+		 */
+		$navigation_preload = apply_filters( 'service_worker_navigation_preload', true ); // @todo This needs to vary between admin and backend.
+		if ( false !== $navigation_preload ) {
+			if ( is_string( $navigation_preload ) ) {
+				$script .= sprintf( "workbox.navigationPreload.enable( %s );\n", wp_json_encode( $navigation_preload ) );
+			} else {
+				$script .= "workbox.navigationPreload.enable();\n";
+			}
+		} else {
+			$script .= "/* Navigation preload disabled. */\n";
+		}
+		return $script;
 	}
 
 	/**
