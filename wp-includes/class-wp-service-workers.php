@@ -98,13 +98,18 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function get_workbox_script() {
 
-		// @todo The Workbox sources will probably need to be installed locally to avoid the external request(s).
+		$workbox_dir = 'wp-includes/js/workbox-v3.4.1/';
+
 		$script = sprintf(
 			"importScripts( %s );\n",
-			wp_json_encode( 'https://storage.googleapis.com/workbox-cdn/releases/3.4.1/workbox-sw.js', 64 /* JSON_UNESCAPED_SLASHES */ )
+			wp_json_encode( PWA_PLUGIN_URL . $workbox_dir . 'workbox-sw.js', 64 /* JSON_UNESCAPED_SLASHES */ )
 		);
 
-		$script .= sprintf( 'workbox.setConfig({ debug: Boolean( %s ) });', WP_DEBUG );
+		$options = array(
+			'debug'            => WP_DEBUG,
+			'modulePathPrefix' => PWA_PLUGIN_URL . $workbox_dir,
+		);
+		$script .= sprintf( "workbox.setConfig( %s );\n", wp_json_encode( $options, 64 /* JSON_UNESCAPED_SLASHES */ ) );
 
 		/**
 		 * Filters whether navigation preload is enabled.
