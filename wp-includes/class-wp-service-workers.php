@@ -94,13 +94,11 @@ class WP_Service_Workers extends WP_Scripts {
 	public $output = '';
 
 	/**
-	 * Script for caching strategies.
+	 * Registered caching routes and scripts.
 	 *
-	 * @todo Create an array of registered strategies instead for better managing / conflict detection.
-	 *
-	 * @var string
+	 * @var array
 	 */
-	public $caching_strategies = '';
+	public $registered_caching_routes = array();
 
 	/**
 	 * Initialize the class.
@@ -201,8 +199,6 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function register_cached_route( $route, $strategy, $args = array() ) {
 
-		// @todo Should we support custom callbacks? Maybe WP_Service_Worker::register() is sufficient already.
-		// @todo Logic for detecting conflicts.
 		if ( ! in_array( $strategy, array(
 			self::STRATEGY_STALE_WHILE_REVALIDATE,
 			self::STRATEGY_CACHE_FIRST,
@@ -220,15 +216,22 @@ class WP_Service_Workers extends WP_Scripts {
 			if ( ! is_array( $route ) ) {
 				$route = array( $route );
 			}
-			$this->caching_strategies .= $this->register_precaching_for_routes( $route );
+
+			$this->registered_caching_routes[] = array(
+				'route'    => $route, // @todo route is Not the best name in case of array of routes for precaching.
+				'strategy' => $strategy,
+			);
 		} elseif ( ! is_string( $route ) ) {
 			/* translators: %s is caching strategy */
 			$error = sprintf( __( 'Route for the caching strategy %s must be a string.', 'pwa' ), $strategy );
 			_doing_it_wrong( __METHOD__, esc_html( $error, 'pwa' ), '0.2' );
 		} else {
-			$this->caching_strategies .= $this->register_caching_strategy_for_route( $route, $strategy, $args );
+			$this->registered_caching_routes[] = array(
+				'route'    => $route,
+				'strategy' => $strategy,
+				'args'     => $args,
+			);
 		}
-
 	}
 
 	/**
@@ -268,7 +271,7 @@ class WP_Service_Workers extends WP_Scripts {
 		$routes_list .= ']';
 
 		// @todo Change this to wp.serviceWorker.precaching.precacheAndRoute once the approach is clear.
-		return 'workbox.precaching.precacheAndRoute(' . $routes_list . ')';
+		return 'workbox.precaching.precacheAndRoute(' . $routes_list . ");\n";
 	}
 
 	/**
@@ -287,7 +290,7 @@ class WP_Service_Workers extends WP_Scripts {
 				$script .= ', ' . wp_json_encode( $args[ $param ] );
 			}
 		}
-		$script .= ' );';
+		$script .= " );\n";
 
 		return $script;
 	}
@@ -319,7 +322,7 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$this->output = '';
 		$this->do_items( $scope_items );
-		$this->output .= $this->caching_strategies;
+		$this->do_caching_routes();
 
 		$file_hash = md5( $this->output );
 		@header( "Etag: $file_hash" ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
@@ -331,6 +334,27 @@ class WP_Service_Workers extends WP_Scripts {
 		}
 
 		echo $this->output; // phpcs:ignore WordPress.XSS.EscapeOutput, WordPress.Security.EscapeOutput
+	}
+
+	/**
+	 * Add logic for routes caching to the request output.
+	 *
+	 * @todo Handle conflicts between routes.
+	 */
+	protected function do_caching_routes() {
+		$routes_to_precache = array();
+		foreach ( $this->registered_caching_routes as $caching_route ) {
+			if ( self::STRATEGY_PRECACHE === $caching_route['strategy'] ) {
+				$routes_to_precache = array_merge( $routes_to_precache, $caching_route['route'] );
+				continue;
+			}
+
+			$this->output .= $this->register_caching_strategy_for_route( $caching_route['route'], $caching_route['strategy'], $caching_route['args'] );
+		}
+
+		if ( ! empty( $routes_to_precache ) ) {
+			$this->output .= $this->register_precaching_for_routes( array_unique( $routes_to_precache ) );
+		}
 	}
 
 	/**
