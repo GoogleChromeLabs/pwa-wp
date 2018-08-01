@@ -163,35 +163,59 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->instance->add_settings_field();
 		$this->assertEquals(
 			array(
-				'id'       => WP_HTTPS_UI::SETTING_ID,
+				'id'       => WP_HTTPS_UI::HTTPS_SETTING_ID,
 				'title'    => 'HTTPS',
-				'callback' => array( $this->instance, 'render_settings' ),
+				'callback' => array( $this->instance, 'render_https_settings' ),
 				'args'     => array(),
 			),
-			$wp_settings_fields[ WP_HTTPS_UI::OPTION_GROUP ]['default'][ WP_HTTPS_UI::SETTING_ID ]
+			$wp_settings_fields[ WP_HTTPS_UI::OPTION_GROUP ]['default'][ WP_HTTPS_UI::HTTPS_SETTING_ID ]
+		);
+
+		$this->assertEquals(
+			array(
+				'id'       => WP_HTTPS_UI::CONTENT_SETTING_ID,
+				'title'    => 'Content Security',
+				'callback' => array( $this->instance, 'render_content_settings' ),
+				'args'     => array(),
+			),
+			$wp_settings_fields[ WP_HTTPS_UI::OPTION_GROUP ]['default'][ WP_HTTPS_UI::CONTENT_SETTING_ID ]
 		);
 	}
 
 	/**
-	 * Test render_settings.
+	 * Test render_https_settings.
 	 *
-	 * @covers WP_HTTPS_UI::render_settings()
+	 * @covers WP_HTTPS_UI::render_https_settings()
 	 */
-	public function test_render_settings() {
+	public function test_render_https_settings() {
 		// Set the option values, which should appear in the <input type="radio"> elements.
 		update_option( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, WP_HTTPS_UI::OPTION_CHECKED_VALUE );
-		update_option( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, WP_HTTPS_UI::OPTION_CHECKED_VALUE );
 		update_option( 'siteurl', self::HTTPS_URL );
 		update_option( 'home', self::HTTPS_URL );
 		add_filter( 'set_url_scheme', array( $this->instance, 'convert_to_https' ) );
 		ob_start();
-		$this->instance->render_settings();
+		$this->instance->render_https_settings();
 		$output = ob_get_clean();
 
 		$this->assertContains( WP_HTTPS_UI::OPTION_CHECKED_VALUE, $output );
 		$this->assertContains( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, $output );
-		$this->assertContains( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, $output );
 		$this->assertContains( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to HTTPS on your site.', $output );
+	}
+
+	/**
+	 * Test render_content_settings.
+	 *
+	 * @covers WP_HTTPS_UI::render_content_settings()
+	 */
+	public function test_render_content_settings() {
+		update_option( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, WP_HTTPS_UI::OPTION_CHECKED_VALUE );
+		ob_start();
+		$this->instance->render_content_settings();
+		$output = ob_get_clean();
+
+		$this->assertContains( WP_HTTPS_UI::OPTION_CHECKED_VALUE, $output );
+		$this->assertContains( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, $output );
+		$this->assertContains( 'Upgrade Insecure URLs', $output );
 	}
 
 	/**

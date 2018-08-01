@@ -39,11 +39,18 @@ class WP_HTTPS_UI {
 	const OPTION_CHECKED_VALUE = '1';
 
 	/**
-	 * The ID of the settings section.
+	 * The ID of the HTTPS settings section.
 	 *
 	 * @var string
 	 */
-	const SETTING_ID = 'wp_upgrade_https';
+	const HTTPS_SETTING_ID = 'wp_upgrade_https';
+
+	/**
+	 * The ID of the content settings section.
+	 *
+	 * @var string
+	 */
+	const CONTENT_SETTING_ID = 'wp_upgrade_insecure_content';
 
 	/**
 	 * Inits the class.
@@ -108,44 +115,34 @@ class WP_HTTPS_UI {
 	}
 
 	/**
-	 * Adds a settings field to the 'Reading Settings' page.
+	 * Adds a settings field to the 'General Settings' page.
 	 */
 	public function add_settings_field() {
 		add_settings_field(
-			self::SETTING_ID,
+			self::HTTPS_SETTING_ID,
 			__( 'HTTPS', 'pwa' ),
-			array( $this, 'render_settings' ),
+			array( $this, 'render_https_settings' ),
+			self::OPTION_GROUP
+		);
+
+		add_settings_field(
+			self::CONTENT_SETTING_ID,
+			__( 'Content Security', 'pwa' ),
+			array( $this, 'render_content_settings' ),
 			self::OPTION_GROUP
 		);
 	}
 
 	/**
-	 * Renders the HTTPS settings in /wp-admin on the Reading Settings page.
+	 * Renders the HTTPS settings in /wp-admin on the General Settings page.
 	 */
-	public function render_settings() {
-		$upgrade_https_value           = (bool) get_option( self::UPGRADE_HTTPS_OPTION );
-		$upgrade_insecure_content      = (bool) get_option( self::UPGRADE_INSECURE_CONTENT_OPTION );
-		$https_more_details            = sprintf(
+	public function render_https_settings() {
+		$upgrade_https_value = (bool) get_option( self::UPGRADE_HTTPS_OPTION );
+		$https_more_details  = sprintf(
 			'<a href="%s">%s</a>',
 			__( 'https://make.wordpress.org/support/user-manual/web-publishing/https-for-wordpress/', 'pwa' ),
 			esc_html__( 'More details', 'pwa' )
 		);
-		$insecure_content_more_details = sprintf(
-			'<a href="%s">%s</a>',
-			__( 'https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content/How_to_fix_website_with_mixed_content', 'pwa' ),
-			esc_html__( 'More details', 'pwa' )
-		);
-
-		/**
-		 * Todo: change this description based on what insecure content is found.
-		 *
-		 * Have a separate description for when there's only passive insecure content.
-		 * And one for when there's active and passive insecure content.
-		 *
-		 * @see https://github.com/xwp/pwa-wp/issues/17#issuecomment-406188455
-		 */
-		/* translators: %s: a link for more details */
-		$insecure_content_description = esc_html__( 'Your home page doesn&#8217;t contain insecure URLs. However, there may be URLs on other pages that could be blocked. %s', 'pwa' );
 
 		/*
 		 * Todo: change ! get_option() to get_option, as this is only for development.
@@ -169,18 +166,42 @@ class WP_HTTPS_UI {
 				<label><input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_https_value ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>"><?php esc_html_e( 'HTTPS Upgrade', 'pwa' ); ?></label>
 			</p>
 			<p class="description"><?php esc_html_e( 'Your site appears to support HTTPS', 'pwa' ); ?></p>
-
-			<p style="margin-top: 20px;">
-				<label><input name="<?php echo esc_attr( self::UPGRADE_INSECURE_CONTENT_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_insecure_content ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>"><?php esc_html_e( 'Upgrade Insecure URLs', 'pwa' ); ?></label>
-			</p>
-			<p class="description">
-				<?php echo wp_kses_post( sprintf( $insecure_content_description, $insecure_content_more_details ) ); ?>
-			<p>
 			<?php
 		else :
 			/* translators: %s: HTTPS more details link */
 			echo wp_kses_post( sprintf( __( 'Your site doesn&#8217;t look like it supports HTTPS. %s', 'pwa' ), $https_more_details ) );
 		endif;
+	}
+
+	/**
+	 * Renders the content settings in /wp-admin on the General Settings page.
+	 */
+	public function render_content_settings() {
+		/**
+		 * Todo: change this description based on what insecure content is found.
+		 *
+		 * Have a separate description for when there's only passive insecure content.
+		 * And one for when there's active and passive insecure content.
+		 *
+		 * @see https://github.com/xwp/pwa-wp/issues/17#issuecomment-406188455
+		 */
+		/* translators: %s: a link for more details */
+		$insecure_content_description  = __( 'Your home page doesn&#8217;t contain insecure URLs. However, there may be URLs on other pages that could be blocked. %s', 'pwa' );
+		$insecure_content_more_details = sprintf(
+			'<a href="%s">%s</a>',
+			__( 'https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content/How_to_fix_website_with_mixed_content', 'pwa' ),
+			__( 'More details', 'pwa' )
+		);
+		$upgrade_insecure_content      = (bool) get_option( self::UPGRADE_INSECURE_CONTENT_OPTION );
+
+		?>
+		<p>
+			<label><input name="<?php echo esc_attr( self::UPGRADE_INSECURE_CONTENT_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_insecure_content ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>"><?php esc_html_e( 'Upgrade Insecure URLs', 'pwa' ); ?></label>
+		</p>
+		<p class="description">
+			<?php echo wp_kses_post( sprintf( $insecure_content_description, $insecure_content_more_details ) ); ?>
+		<p>
+		<?php
 	}
 
 	/**
