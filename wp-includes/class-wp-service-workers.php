@@ -270,8 +270,7 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$routes_list .= ']';
 
-		// @todo Change this to wp.serviceWorker.precaching.precacheAndRoute once the approach is clear.
-		return 'workbox.precaching.precacheAndRoute(' . $routes_list . ");\n";
+		return 'wp.serviceWorker.precaching.precacheAndRoute(' . $routes_list . ");\n";
 	}
 
 	/**
@@ -283,15 +282,40 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @return string Script.
 	 */
 	protected function register_caching_strategy_for_route( $route, $strategy, $args ) {
-		$script = 'wp.serviceWorker.addCachingStrategy( ' . wp_json_encode( $route ) . ', ' . wp_json_encode( $strategy );
+		$script = '';
 
-		foreach ( array( 'cache_name, max_age, max_entries' ) as $param ) {
-			if ( isset( $args[ $param ] ) ) {
-				$script .= ', ' . wp_json_encode( $args[ $param ] );
-			}
+		if ( isset( $args['cache_name'] ) ) {
+			$script .= 'const args = {
+	cacheName: ' . wp_json_encode( $args['cache_name'] ) . '
+};';
 		}
-		$script .= " );\n";
+		if ( isset( $args['max_entries'] ) || isset( $args['max_age'] ) ) {
+			$script .= 'args.plugins = [
+	new wp.serviceWorker.expiration.Plugin({';
+			if ( isset( $args['max_age'] ) ) {
+				$script .= '
+		maxAgeSeconds: ' . wp_json_encode( $args['max_age'] );
+				$script .= isset( $args['max_entries'] ) ? ',' : '';
+			}
+			if ( isset( $args['max_entries'] ) ) {
+				$script .= '
+		maxEntries: ' . wp_json_encode( $args['max_entries'] );
+			}
+			$script .= '
+	})
+];';
+		}
 
+		$args_script = $script;
+
+		$script .= '
+wp.serviceWorker.routing.registerRoute(
+	new RegExp( ' . wp_json_encode( $route ) . ' ),
+	wp.serviceWorker.strategies.' . $strategy . '(';
+
+		$script .= ! empty( $args_script ) ? ' args ' : '';
+		$script .= ")
+);\n";
 		return $script;
 	}
 
