@@ -200,7 +200,7 @@ class WP_HTTPS_UI {
 		</p>
 		<p class="description">
 			<?php echo wp_kses_post( sprintf( $insecure_content_description, $insecure_content_more_details ) ); ?>
-		<p>
+		</p>
 		<?php
 	}
 

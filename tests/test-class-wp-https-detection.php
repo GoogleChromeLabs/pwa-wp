@@ -65,6 +65,38 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test get_insecure_content.
+	 *
+	 * @covers WP_HTTPS_Detection::get_insecure_content()
+	 */
+	public function test_get_insecure_content() {
+		$html_boilerplate = '<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=' . get_bloginfo( 'charset' ) . '"></head><body>%s</body></html>';
+		$insecure_img_src = 'http://example.com/baz';
+		$body             = sprintf(
+			$html_boilerplate,
+			sprintf(
+				'<img src="%s">',
+				$insecure_img_src
+			)
+		);
+		$this->assertEquals( array( $insecure_img_src ), $this->instance->get_insecure_content( compact( 'body' ), 'passive' ) );
+
+		$insecure_audio_src = 'http://example.com/foo';
+		$insecure_video_src = 'http://example.com/bar';
+		$body               = sprintf(
+			$html_boilerplate,
+			sprintf(
+				'<audio src="%s"></audio><video src="%s"></video>',
+				$insecure_audio_src,
+				$insecure_video_src
+			)
+		);
+		$insecure_urls      = $this->instance->get_insecure_content( compact( 'body' ), 'passive' );
+		$this->assertTrue( in_array( $insecure_audio_src, $insecure_urls, true ) );
+		$this->assertTrue( in_array( $insecure_video_src, $insecure_urls, true ) );
+	}
+
+	/**
 	 * Test schedule_cron.
 	 *
 	 * @covers WP_HTTPS_Detection::schedule_cron()

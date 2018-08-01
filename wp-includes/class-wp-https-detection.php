@@ -32,6 +32,30 @@ class WP_HTTPS_Detection {
 	const REQUEST_QUERY_VAR = 'https_detection_token';
 
 	/**
+	 * The tag names and attributes for insecure content types.
+	 *
+	 * @see https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content
+	 * @var array $insecure_content_type[][] {
+	 *     The insecure content types.
+	 *
+	 *     @type string    $tag       The name of the tag.
+	 *     @type string    $attribute The name of the attribute to check.
+	 * }
+	 */
+	public $insecure_content_types = array(
+		'passive' => array(
+			'img'   => 'src',
+			'audio' => 'src',
+			'video' => 'src',
+		),
+		'active'  => array(
+			'script' => 'src',
+			'link'   => 'href',
+			'iframe' => 'src',
+		),
+	);
+
+	/**
 	 * The number passed to the query var.
 	 *
 	 * @var int
@@ -117,6 +141,39 @@ class WP_HTTPS_Detection {
 		}
 
 		return 200 === wp_remote_retrieve_response_code( $response );
+	}
+
+	/**
+	 * Gets the URLs for passive insecure content in the response.
+	 *
+	 * @param array  $response  The response from a wp_remote_request().
+	 * @param string $type      The type of insecure content, either 'passive' or 'active'.
+	 * @return array Insecure URLs.
+	 */
+	public function get_insecure_content( $response, $type ) {
+		$tags_to_check         = $this->insecure_content_types[ $type ];
+		$libxml_previous_state = libxml_use_internal_errors( true );
+		$body                  = wp_remote_retrieve_body( $response );
+		$dom                   = new DOMDocument();
+		$dom->loadHTML( $body );
+		$insecure_urls = array();
+
+		foreach ( $tags_to_check as $tag => $attribute ) {
+			$nodes = $dom->getElementsByTagName( $tag );
+			foreach ( $nodes as $node ) {
+				if ( ! $node instanceof DOMElement || ! $node->hasAttribute( $attribute ) ) {
+					continue;
+				}
+				$url = $node->getAttribute( $attribute );
+				if ( 'http' === wp_parse_url( $url, PHP_URL_SCHEME ) ) {
+					$insecure_urls[] = $url;
+				}
+			}
+		}
+		libxml_clear_errors();
+		libxml_use_internal_errors( $libxml_previous_state );
+
+		return $insecure_urls;
 	}
 
 	/**
