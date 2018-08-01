@@ -4,8 +4,9 @@
  * Handle registering caching strategies.
  */
 
-// @todo Perhaps some other variable makes more sense?
-var wp = {};
+if ( ! self.wp ) {
+	self.wp = {};
+}
 
 wp.serviceWorker = {
 
@@ -19,7 +20,7 @@ wp.serviceWorker = {
 	 * @param {int}         maxEntries Max entries.
 	 */
 	addCachingStrategy: function ( route, strategy, cacheName, maxAge, maxEntries ) {
-		var args = {};
+		const args = {};
 
 		// @todo Logic for detecting conflicts.
 		if ( cacheName ) {

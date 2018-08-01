@@ -45,7 +45,7 @@ function wp_register_service_worker( $handle, $src, $deps = array(), $scope = WP
  * @param array  $args Array of args, can be cache_name, max_age, max_entries.
  */
 function wp_register_caching_strategy( $route, $strategy = WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, $args = array() ) {
-    return wp_service_workers()->register_route( $route, $strategy, $args );
+	return wp_service_workers()->register_route( $route, $strategy, $args );
 }
 
 /**
