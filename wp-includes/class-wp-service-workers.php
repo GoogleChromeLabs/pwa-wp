@@ -119,11 +119,6 @@ class WP_Service_Workers extends WP_Scripts {
 			array( 'workbox-sw' )
 		);
 
-		$this->register_cached_route( array(
-			'/wp-admin/js/accordion.js',
-			'/wp-admin/js/color-picker.js',
-		), self::STRATEGY_PRECACHE );
-
 		/**
 		 * Fires when the WP_Service_Workers instance is initialized.
 		 *
