@@ -146,27 +146,27 @@ class WP_HTTPS_Detection {
 	/**
 	 * Gets the URLs for passive insecure content in the response.
 	 *
-	 * @param array  $response  The response from a wp_remote_request().
-	 * @param string $type      The type of insecure content, either 'passive' or 'active'.
+	 * @param array $response The response from a wp_remote_request().
 	 * @return array Insecure URLs.
 	 */
-	public function get_insecure_content( $response, $type ) {
-		$tags_to_check         = $this->insecure_content_types[ $type ];
+	public function get_insecure_content( $response ) {
 		$libxml_previous_state = libxml_use_internal_errors( true );
 		$body                  = wp_remote_retrieve_body( $response );
 		$dom                   = new DOMDocument();
 		$dom->loadHTML( $body );
 		$insecure_urls = array();
 
-		foreach ( $tags_to_check as $tag => $attribute ) {
-			$nodes = $dom->getElementsByTagName( $tag );
-			foreach ( $nodes as $node ) {
-				if ( ! $node instanceof DOMElement || ! $node->hasAttribute( $attribute ) ) {
-					continue;
-				}
-				$url = $node->getAttribute( $attribute );
-				if ( 'http' === wp_parse_url( $url, PHP_URL_SCHEME ) ) {
-					$insecure_urls[] = $url;
+		foreach ( $this->insecure_content_types as $content_type => $tags_to_check ) {
+			foreach ( $tags_to_check as $tag => $attribute ) {
+				$nodes = $dom->getElementsByTagName( $tag );
+				foreach ( $nodes as $node ) {
+					if ( ! $node instanceof DOMElement || ! $node->hasAttribute( $attribute ) ) {
+						continue;
+					}
+					$url = $node->getAttribute( $attribute );
+					if ( 'http' === wp_parse_url( $url, PHP_URL_SCHEME ) ) {
+						$insecure_urls[ $content_type ][] = $url;
+					}
 				}
 			}
 		}

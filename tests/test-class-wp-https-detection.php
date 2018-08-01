@@ -79,7 +79,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 				$insecure_img_src
 			)
 		);
-		$this->assertEquals( array( $insecure_img_src ), $this->instance->get_insecure_content( compact( 'body' ), 'passive' ) );
+		$this->assertEquals( array( 'passive' => array( $insecure_img_src ) ), $this->instance->get_insecure_content( compact( 'body' ) ) );
 
 		$insecure_audio_src = 'http://example.com/foo';
 		$insecure_video_src = 'http://example.com/bar';
@@ -91,9 +91,33 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 				$insecure_video_src
 			)
 		);
-		$insecure_urls      = $this->instance->get_insecure_content( compact( 'body' ), 'passive' );
-		$this->assertTrue( in_array( $insecure_audio_src, $insecure_urls, true ) );
-		$this->assertTrue( in_array( $insecure_video_src, $insecure_urls, true ) );
+		$insecure_urls      = $this->instance->get_insecure_content( compact( 'body' ) );
+		$this->assertTrue( in_array( $insecure_audio_src, $insecure_urls['passive'], true ) );
+		$this->assertTrue( in_array( $insecure_video_src, $insecure_urls['passive'], true ) );
+
+		// Allow interpolating tags into the <head>.
+		$html_boilerplate    = '<!DOCTYPE html><html><head>%s</head><body>%s</body></html>';
+		$insecure_script_src = 'http://example.com/script';
+		$insecure_link_href  = 'http://example.com/link';
+		$body                = sprintf(
+			$html_boilerplate,
+			sprintf(
+				'<script src="%s"></script><link href="%s" rel="stylesheet">', // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript, WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet
+				$insecure_script_src,
+				$insecure_link_href
+			),
+			sprintf(
+				'<audio src="%s"></audio>',
+				$insecure_audio_src
+			)
+		);
+		$this->assertEquals(
+			array(
+				'passive' => array( $insecure_audio_src ),
+				'active'  => array( $insecure_script_src, $insecure_link_href ),
+			),
+			$this->instance->get_insecure_content( compact( 'body' ) )
+		);
 	}
 
 	/**
