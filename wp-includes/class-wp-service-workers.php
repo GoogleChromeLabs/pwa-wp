@@ -105,23 +105,21 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function init() {
 
+		if ( ! function_exists( 'list_files' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
 		$this->register(
 			'workbox-sw',
 			array( $this, 'get_workbox_script' ),
 			array()
 		);
 
-		$this->register(
-			'caching-utils-sw',
-			PWA_PLUGIN_URL . '/wp-includes/js/service-worker.js',
-			array( 'workbox-sw' )
-		);
-
-		$this->register(
-			'admin-cache-sw',
-			array( $this, 'get_caching_admin_assets_script' ),
-			array( 'caching-utils-sw' )
-		);
+		if ( SCRIPT_DEBUG || is_preview() ) {
+			$this->register_cached_route( '/(wp-admin|wp-includes)/.*\.(?:js|css)/', self::STRATEGY_NETWORK_ONLY );
+		} else {
+			$this->precache_admin_assets();
+		}
 
 		/**
 		 * Fires when the WP_Service_Workers instance is initialized.
@@ -170,26 +168,52 @@ class WP_Service_Workers extends WP_Scripts {
 		} else {
 			$script .= "/* Navigation preload disabled. */\n";
 		}
+
+		$script .= '
+if ( ! self.wp ) {
+	self.wp = {};
+}
+
+wp.serviceWorker = workbox;';
+
 		return $script;
 	}
 
 	/**
-	 * Add cache first strategy for wp-admin .js and .css files.
+	 * Add precaching for wp-admin and wp-includes .js and .css files.
 	 *
-	 * @todo This part should be replaced by PHP-level API layer, e.g. WP_Service_Workers::register_route().
-	 * @todo Missing image assets.
-	 * @todo Perhaps we should precache the assets instead.
-	 * @todo Use network in case of preview.
-	 *
-	 * @return string Script.
+	 * @todo Images are not precached.
 	 */
-	public function get_caching_admin_assets_script() {
-		return "workbox.routing.registerRoute(
-	/\\/(wp-admin|wp-includes).*\\.(?:js|css)/,
-	workbox.strategies.staleWhileRevalidate({
-		cacheName: 'assets-cache'
-	})
-);\n";
+	protected function precache_admin_assets() {
+
+		$routes      = array();
+		$admin_dir   = ABSPATH . 'wp-admin/';
+		$admin_files = array_merge( list_files( $admin_dir . 'css/' ), list_files( $admin_dir . 'js/' ) );
+		$inc_files   = list_files( ABSPATH . WPINC . '/js/' );
+
+		foreach ( $admin_files as $filename ) {
+			$ext = pathinfo( $filename, PATHINFO_EXTENSION );
+			if ( ! in_array( $ext, array( 'js', 'css' ), true ) ) {
+				continue;
+			}
+			$routes[] = strstr( $filename, '/wp-admin' );
+		}
+
+		foreach ( $inc_files as $filename ) {
+			$ext = pathinfo( $filename, PATHINFO_EXTENSION );
+			if ( ! in_array( $ext, array( 'js', 'css' ), true ) ) {
+				continue;
+			}
+
+			// @todo This will cache both min.js and .js, however, not all the files have .min.js. Is it OK to cache all the files?
+			$routes[] = strstr( $filename, '/wp-includes' );
+		}
+
+		if ( empty( $routes ) ) {
+			return;
+		}
+
+		$this->register_cached_route( $routes, self::STRATEGY_PRECACHE );
 	}
 
 	/**
@@ -282,10 +306,10 @@ class WP_Service_Workers extends WP_Scripts {
 					$routes_list .= ',';
 				}
 				$routes_list .= '
-{
-	url: ' . wp_json_encode( $route ) . ',
-	revision: ' . wp_json_encode( $hash ) . ',
-}';
+	{
+		url: ' . wp_json_encode( $route ) . ',
+		revision: ' . wp_json_encode( $hash ) . ',
+	}';
 			}
 		}
 
@@ -295,7 +319,11 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$routes_list .= ']';
 
-		return 'wp.serviceWorker.precaching.precacheAndRoute(' . $routes_list . ");\n";
+		return 'wp.serviceWorker.precaching.precacheAndRoute(' . $routes_list . ",
+  {
+    ignoreUrlParametersMatching: [/.*/]
+  }
+);\n";
 	}
 
 	/**
