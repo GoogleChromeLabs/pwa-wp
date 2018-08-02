@@ -186,34 +186,47 @@ wp.serviceWorker = workbox;';
 	 */
 	protected function precache_admin_assets() {
 
-		$routes      = array();
 		$admin_dir   = ABSPATH . 'wp-admin/';
 		$admin_files = array_merge( list_files( $admin_dir . 'css/' ), list_files( $admin_dir . 'js/' ) );
-		$inc_files   = list_files( ABSPATH . WPINC . '/js/' );
+		$inc_files   = array_merge( list_files( ABSPATH . WPINC . '/js/' ), list_files( ABSPATH . WPINC . '/css/' ) );
 
-		foreach ( $admin_files as $filename ) {
-			$ext = pathinfo( $filename, PATHINFO_EXTENSION );
-			if ( ! in_array( $ext, array( 'js', 'css' ), true ) ) {
-				continue;
-			}
-			$routes[] = strstr( $filename, '/wp-admin' );
-		}
-
-		foreach ( $inc_files as $filename ) {
-			$ext = pathinfo( $filename, PATHINFO_EXTENSION );
-			if ( ! in_array( $ext, array( 'js', 'css' ), true ) ) {
-				continue;
-			}
-
-			// @todo This will cache both min.js and .js, however, not all the files have .min.js. Is it OK to cache all the files?
-			$routes[] = strstr( $filename, '/wp-includes' );
-		}
+		$routes = array_merge(
+			$this->get_routes_from_file_list( $admin_files, 'wp-admin' ),
+			$this->get_routes_from_file_list( $inc_files, 'wp-includes' )
+		);
 
 		if ( empty( $routes ) ) {
 			return;
 		}
 
 		$this->register_cached_route( $routes, self::STRATEGY_PRECACHE );
+	}
+
+	/**
+	 * Get routes from file paths list.
+	 *
+	 * @param array  $list List of file paths.
+	 * @param string $folder Folder -- either 'wp-admin' or 'wp-includes'.
+	 * @return array List of routes.
+	 */
+	protected function get_routes_from_file_list( $list, $folder ) {
+		$routes = array();
+		foreach ( $list as $filename ) {
+			$ext = pathinfo( $filename, PATHINFO_EXTENSION );
+			if ( ! in_array( $ext, array( 'js', 'css' ), true ) ) {
+				continue;
+			}
+
+			// Only precache minified CSS files.
+			if ( 'css' === $ext && '.min.css' !== substr( $filename, -strlen( '.min.css' ) ) ) {
+				continue;
+			}
+
+			// @todo This will cache both min.js and .js, however, not all the files have .min.js. Is it OK to cache all the files?
+			$routes[] = strstr( $filename, '/' . $folder );
+		}
+
+		return $routes;
 	}
 
 	/**
