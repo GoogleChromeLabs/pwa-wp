@@ -25,6 +25,13 @@ class WP_HTTPS_Detection {
 	const HTTPS_SUPPORT_OPTION_NAME = 'is_https_supported';
 
 	/**
+	 * The option name for the insecure content.
+	 *
+	 * @var string
+	 */
+	const INSECURE_CONTENT_OPTION_NAME = 'insecure_content';
+
+	/**
 	 * The query var key for HTTPS detection, used to verify that the request is from the same origin.
 	 *
 	 * @var string
@@ -70,6 +77,7 @@ class WP_HTTPS_Detection {
 		add_action( self::CRON_HOOK, array( $this, 'update_option_https_support' ) );
 		add_filter( 'cron_request', array( $this, 'ensure_http_if_sslverify' ), PHP_INT_MAX );
 		add_action( 'parse_query', array( $this, 'verify_https_check' ) );
+		add_action( 'init', array( $this, 'set_mock_insecure_content' ) );
 		$wp_https_ui = new WP_HTTPS_UI();
 		$wp_https_ui->init();
 	}
@@ -174,6 +182,43 @@ class WP_HTTPS_Detection {
 		libxml_use_internal_errors( $libxml_previous_state );
 
 		return $insecure_urls;
+	}
+
+	/**
+	 * Sets mock insecure content, only for testing.
+	 *
+	 * @todo: Remove this later, as this is only for development.
+	 */
+	public function set_mock_insecure_content() {
+		update_option(
+			self::INSECURE_CONTENT_OPTION_NAME,
+			array(
+				'passive' => array(
+					'http://example.com/foo-passive',
+					'http://example.com/bar-passive',
+					'http://example.com/baz-passive',
+					'http://example.com/var-passive',
+					'http://example.com/something-passive',
+					'http://example.com/example-passive',
+					'http://example.com/this-passive',
+					'http://example.com/mab-passive',
+				),
+				'active'  => array(
+					'http://example.com/foo-active',
+					'http://example.com/bar-active',
+					'http://example.com/baz-active',
+					'http://example.com/var-active',
+					'http://example.com/ex-active',
+					'http://example.com/something-active',
+					'http://example.com/example-active',
+					'http://example.com/this-active',
+					'http://example.com/mab-active',
+					'http://example.com/zoom-active',
+					'http://example.com/this-active',
+					'http://example.com/won-active',
+				),
+			)
+		);
 	}
 
 	/**

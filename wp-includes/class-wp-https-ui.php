@@ -53,6 +53,13 @@ class WP_HTTPS_UI {
 	const CONTENT_SETTING_ID = 'wp_upgrade_insecure_content';
 
 	/**
+	 * The number of initial URLs that are shown.
+	 *
+	 * @var int
+	 */
+	const INITIAL_URLS_SHOWN = 5;
+
+	/**
 	 * Inits the class.
 	 */
 	public function init() {
@@ -157,7 +164,7 @@ class WP_HTTPS_UI {
 				<?php
 				echo wp_kses_post( sprintf(
 					/* translators: %s: a link for more details */
-					esc_html__( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to HTTPS on your site. %s', 'pwa' ),
+					esc_html__( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to HTTPS. %s', 'pwa' ),
 					$https_more_details
 				) );
 				?>
@@ -177,31 +184,69 @@ class WP_HTTPS_UI {
 	 * Renders the content settings in /wp-admin on the General Settings page.
 	 */
 	public function render_content_settings() {
-		/**
-		 * Todo: change this description based on what insecure content is found.
-		 *
-		 * Have a separate description for when there's only passive insecure content.
-		 * And one for when there's active and passive insecure content.
-		 *
-		 * @see https://github.com/xwp/pwa-wp/issues/17#issuecomment-406188455
-		 */
-		/* translators: %s: a link for more details */
-		$insecure_content_description  = __( 'Your home page doesn&#8217;t contain insecure URLs. However, there may be URLs on other pages that could be blocked. %s', 'pwa' );
+		$insecure_urls            = get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME );
+		$all_insecure_urls        = isset( $insecure_urls['active'], $insecure_urls['passive'] ) ? array_merge( $insecure_urls['active'], $insecure_urls['passive'] ) : array();
+		$total_urls_count         = count( $all_insecure_urls );
+		$upgrade_insecure_content = (bool) get_option( self::UPGRADE_INSECURE_CONTENT_OPTION );
+
+		if ( ! empty( $insecure_urls['active'] ) ) {
+			/* translators: %s: a link for more details */
+			$description = __( 'There appear to be non-HTTPS URLs on your home page. Please resolve these, or upgrade and ensure your site looks as expected. %s', 'pwa' );
+		} elseif ( ! empty( $insecure_urls['passive'] ) ) {
+			/* translators: %s: a link for more details */
+			$description = __( 'There appears to be only passive insecure content on your home page, which typically does not cause browser errors. %s', 'pwa' );
+		} else {
+			/* translators: %s: a link for more details */
+			$description = __( 'Your home page doesn&#8217;t look to contain insecure URLs. However, there may be URLs on other pages that could be blocked. %s', 'pwa' );
+		}
 		$insecure_content_more_details = sprintf(
 			'<a href="%s">%s</a>',
 			__( 'https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content/How_to_fix_website_with_mixed_content', 'pwa' ),
 			__( 'More details', 'pwa' )
 		);
-		$upgrade_insecure_content      = (bool) get_option( self::UPGRADE_INSECURE_CONTENT_OPTION );
 
 		?>
 		<p>
 			<label><input name="<?php echo esc_attr( self::UPGRADE_INSECURE_CONTENT_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_insecure_content ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>"><?php esc_html_e( 'Upgrade Insecure URLs', 'pwa' ); ?></label>
 		</p>
 		<p class="description">
-			<?php echo wp_kses_post( sprintf( $insecure_content_description, $insecure_content_more_details ) ); ?>
+			<?php echo wp_kses_post( sprintf( $description, $insecure_content_more_details ) ); ?>
 		</p>
 		<?php
+		/**
+		 * Only display the insecure URLs if there is active insecure content, like scripts and stylesheets.
+		 * These are more of a security risk than passive insecure content, like <img>, <video>, and <audio> elements.
+		 */
+		if ( ! empty( $insecure_urls['active'] ) ) :
+			?>
+			<p style="margin-top: 20px;"><?php esc_html_e( 'Insecure Content', 'pwa' ); ?></p>
+			<ul>
+				<?php
+				for ( $i = 0; $i < self::INITIAL_URLS_SHOWN; $i++ ) :
+					if ( empty( $all_insecure_urls[ $i ] ) ) :
+						continue;
+					endif;
+					?>
+					<li><a href="<?php echo esc_attr( $all_insecure_urls[ $i ] ); ?>"><?php echo esc_html( $all_insecure_urls[ $i ] ); ?></a></li>
+				<?php endfor; ?>
+			</ul>
+			<?php if ( $total_urls_count > self::INITIAL_URLS_SHOWN ) : ?>
+				<details>
+					<summary><?php esc_html_e( 'More insecure content', 'pwa' ); ?></summary>
+					<ul>
+						<?php
+						for ( $i = self::INITIAL_URLS_SHOWN; $i < $total_urls_count; $i++ ) :
+							if ( empty( $all_insecure_urls[ $i ] ) ) :
+								continue;
+							endif;
+							?>
+							<li><a href="<?php echo esc_attr( $all_insecure_urls[ $i ] ); ?>"><?php echo esc_html( $all_insecure_urls[ $i ] ); ?></a></li>
+						<?php endfor; ?>
+					</ul>
+				</details>
+				<?php
+			endif;
+		endif;
 	}
 
 	/**
