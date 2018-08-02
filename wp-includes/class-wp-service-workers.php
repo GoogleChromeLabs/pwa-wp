@@ -309,8 +309,19 @@ class WP_Service_Workers extends WP_Scripts {
 		$args_script = $script;
 
 		$script .= '
-wp.serviceWorker.routing.registerRoute(
-	new RegExp( ' . wp_json_encode( $route ) . ' ),
+wp.serviceWorker.routing.registerRoute(';
+
+		// Check if the route is regex or string literal.
+		$is_regex_string = @preg_match( $route, '' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+
+		if ( false === $is_regex_string ) {
+			$script .= '
+	' . wp_json_encode( $route );
+		} else {
+			$script .= '
+	new RegExp( ' . wp_json_encode( $route ) . ' )';
+		}
+		$script .= ',
 	wp.serviceWorker.strategies.' . $strategy . '(';
 
 		$script .= ! empty( $args_script ) ? ' args ' : '';

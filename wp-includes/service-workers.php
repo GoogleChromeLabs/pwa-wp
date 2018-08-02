@@ -40,7 +40,7 @@ function wp_register_service_worker( $handle, $src, $deps = array(), $scope = WP
 /**
  * Register route and caching strategy.
  *
- * @param string|array $route Route.
+ * @param string|array $route Route: string literal or regex pattern.
  * @param string       $strategy Strategy, can be WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
  *                         WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY,
  *                         WP_Service_Workers::STRATEGY_NETWORK_ONLY, WP_Service_Workers::::STRATEGY_PRECACHE.
