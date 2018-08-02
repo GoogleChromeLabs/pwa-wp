@@ -38,6 +38,48 @@ class WP_Service_Workers extends WP_Scripts {
 	const SCOPE_ALL = 3;
 
 	/**
+	 * Stale while revalidate caching strategy.
+	 *
+	 * @var string
+	 */
+	const STRATEGY_STALE_WHILE_REVALIDATE = 'staleWhileRevalidate';
+
+	/**
+	 * Cache first caching strategy.
+	 *
+	 * @var string
+	 */
+	const STRATEGY_CACHE_FIRST = 'cacheFirst';
+
+	/**
+	 * Network first caching strategy.
+	 *
+	 * @var string
+	 */
+	const STRATEGY_NETWORK_FIRST = 'networkFirst';
+
+	/**
+	 * Cache only caching strategy.
+	 *
+	 * @var string
+	 */
+	const STRATEGY_CACHE_ONLY = 'cacheOnly';
+
+	/**
+	 * Network only caching strategy.
+	 *
+	 * @var string
+	 */
+	const STRATEGY_NETWORK_ONLY = 'networkOnly';
+
+	/**
+	 * Precache.
+	 *
+	 * @var string
+	 */
+	const STRATEGY_PRECACHE = 'precache';
+
+	/**
 	 * Param for service workers.
 	 *
 	 * @var string
@@ -52,6 +94,13 @@ class WP_Service_Workers extends WP_Scripts {
 	public $output = '';
 
 	/**
+	 * Registered caching routes and scripts.
+	 *
+	 * @var array
+	 */
+	public $registered_caching_routes = array();
+
+	/**
 	 * Initialize the class.
 	 */
 	public function init() {
@@ -63,9 +112,15 @@ class WP_Service_Workers extends WP_Scripts {
 		);
 
 		$this->register(
+			'caching-utils-sw',
+			PWA_PLUGIN_URL . '/wp-includes/js/service-worker.js',
+			array( 'workbox-sw' )
+		);
+
+		$this->register(
 			'admin-cache-sw',
 			array( $this, 'get_caching_admin_assets_script' ),
-			array( 'workbox-sw' )
+			array( 'caching-utils-sw' )
 		);
 
 		/**
@@ -83,13 +138,18 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function get_workbox_script() {
 
-		// @todo The Workbox sources will probably need to be installed locally to avoid the external request(s).
+		$workbox_dir = 'wp-includes/js/workbox-v3.4.1/';
+
 		$script = sprintf(
 			"importScripts( %s );\n",
-			wp_json_encode( 'https://storage.googleapis.com/workbox-cdn/releases/3.4.1/workbox-sw.js', 64 /* JSON_UNESCAPED_SLASHES */ )
+			wp_json_encode( PWA_PLUGIN_URL . $workbox_dir . 'workbox-sw.js', 64 /* JSON_UNESCAPED_SLASHES */ )
 		);
 
-		$script .= sprintf( 'workbox.setConfig({ debug: Boolean( %s ) });', WP_DEBUG );
+		$options = array(
+			'debug'            => WP_DEBUG,
+			'modulePathPrefix' => PWA_PLUGIN_URL . $workbox_dir,
+		);
+		$script .= sprintf( "workbox.setConfig( %s );\n", wp_json_encode( $options, 64 /* JSON_UNESCAPED_SLASHES */ ) );
 
 		/**
 		 * Filters whether navigation preload is enabled.
@@ -110,7 +170,6 @@ class WP_Service_Workers extends WP_Scripts {
 		} else {
 			$script .= "/* Navigation preload disabled. */\n";
 		}
-
 		return $script;
 	}
 
@@ -154,6 +213,149 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
+	 * Register route and caching strategy.
+	 *
+	 * @todo Figure out a better name for $route since it can also be a list.
+	 * @param string|array $route Route or list of routes.
+	 * @param string       $strategy Strategy, can be WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
+	 *                         WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY,
+	 *                         WP_Service_Workers::STRATEGY_NETWORK_ONLY, WP_Service_Workers::::STRATEGY_PRECACHE.
+	 * @param array        $args Array of args, can include cache_name, max_age, max_entries.
+	 */
+	public function register_cached_route( $route, $strategy, $args = array() ) {
+
+		if ( ! in_array( $strategy, array(
+			self::STRATEGY_STALE_WHILE_REVALIDATE,
+			self::STRATEGY_CACHE_FIRST,
+			self::STRATEGY_CACHE_ONLY,
+			self::STRATEGY_NETWORK_FIRST,
+			self::STRATEGY_NETWORK_ONLY,
+			self::STRATEGY_PRECACHE,
+		), true ) ) {
+			_doing_it_wrong( __METHOD__, esc_html__( 'Strategy must be either WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
+	            WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY, or WP_Service_Workers::STRATEGY_NETWORK_ONLY.', 'pwa' ), '0.2' );
+			return;
+		}
+
+		if ( self::STRATEGY_PRECACHE === $strategy ) {
+			if ( ! is_array( $route ) ) {
+				$route = array( $route );
+			}
+
+			$this->registered_caching_routes[] = array(
+				'route'    => $route, // @todo route is Not the best name in case of array of routes for precaching.
+				'strategy' => $strategy,
+			);
+		} elseif ( ! is_string( $route ) ) {
+			/* translators: %s is caching strategy */
+			$error = sprintf( __( 'Route for the caching strategy %s must be a string.', 'pwa' ), $strategy );
+			_doing_it_wrong( __METHOD__, esc_html( $error, 'pwa' ), '0.2' );
+		} else {
+			$this->registered_caching_routes[] = array(
+				'route'    => $route,
+				'strategy' => $strategy,
+				'args'     => $args,
+			);
+		}
+	}
+
+	/**
+	 * Register precaching for routes. Gets the hashes of files' contents and adds as revision for each route.
+	 *
+	 * @param array $routes Array of routes.
+	 * @return string Precaching logic.
+	 */
+	protected function register_precaching_for_routes( $routes ) {
+
+		$routes_list = '[';
+
+		foreach ( $routes as $route ) {
+			$validated_path = $this->get_validated_file_path( $route, false );
+			if ( ! is_wp_error( $validated_path ) ) {
+				$file_content = @file_get_contents( $validated_path ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
+				if ( ! $file_content ) {
+					continue;
+				}
+
+				$hash = md5( $file_content );
+				if ( '[' !== $routes_list ) {
+					$routes_list .= ',';
+				}
+				$routes_list .= '
+{
+	url: ' . wp_json_encode( $route ) . ',
+	revision: ' . wp_json_encode( $hash ) . ',
+}';
+			}
+		}
+
+		if ( '[' === $routes_list ) {
+			return '';
+		}
+
+		$routes_list .= ']';
+
+		return 'wp.serviceWorker.precaching.precacheAndRoute(' . $routes_list . ");\n";
+	}
+
+	/**
+	 * Register caching strategy for route.
+	 *
+	 * @param string $route Route.
+	 * @param int    $strategy Caching strategy.
+	 * @param array  $args Array of args, can be cache_name, max_age, max_entries.
+	 * @return string Script.
+	 */
+	protected function register_caching_strategy_for_route( $route, $strategy, $args ) {
+		$script = '';
+
+		if ( isset( $args['cache_name'] ) ) {
+			$script .= 'const args = {
+	cacheName: ' . wp_json_encode( $args['cache_name'] ) . '
+};';
+		}
+		if ( isset( $args['max_entries'] ) || isset( $args['max_age'] ) ) {
+			$script .= 'args.plugins = [
+	new wp.serviceWorker.expiration.Plugin({';
+			if ( isset( $args['max_age'] ) ) {
+				$script .= '
+		maxAgeSeconds: ' . wp_json_encode( $args['max_age'] );
+				$script .= isset( $args['max_entries'] ) ? ',' : '';
+			}
+			if ( isset( $args['max_entries'] ) ) {
+				$script .= '
+		maxEntries: ' . wp_json_encode( $args['max_entries'] );
+			}
+			$script .= '
+	})
+];';
+		}
+
+		$args_script = $script;
+
+		$script .= '
+wp.serviceWorker.routing.registerRoute(';
+
+		// Check if the route is regex or string literal.
+		$is_regex_string = @preg_match( $route, '' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+
+		if ( false === $is_regex_string ) {
+			$script .= '
+	' . wp_json_encode( $route );
+		} else {
+			$script .= '
+	new RegExp( ' . wp_json_encode( $route ) . ' )';
+		}
+		$script .= ',
+	wp.serviceWorker.strategies.' . $strategy . '(';
+
+		$script .= ! empty( $args_script ) ? ' args ' : '';
+		$script .= ")
+);\n";
+		return $script;
+	}
+
+	/**
 	 * Get service worker logic for scope.
 	 *
 	 * @see wp_service_worker_loaded()
@@ -180,6 +382,7 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$this->output = '';
 		$this->do_items( $scope_items );
+		$this->do_caching_routes();
 
 		$file_hash = md5( $this->output );
 		@header( "Etag: $file_hash" ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
@@ -191,6 +394,27 @@ class WP_Service_Workers extends WP_Scripts {
 		}
 
 		echo $this->output; // phpcs:ignore WordPress.XSS.EscapeOutput, WordPress.Security.EscapeOutput
+	}
+
+	/**
+	 * Add logic for routes caching to the request output.
+	 *
+	 * @todo Handle conflicts between routes.
+	 */
+	protected function do_caching_routes() {
+		$routes_to_precache = array();
+		foreach ( $this->registered_caching_routes as $caching_route ) {
+			if ( self::STRATEGY_PRECACHE === $caching_route['strategy'] ) {
+				$routes_to_precache = array_merge( $routes_to_precache, $caching_route['route'] );
+				continue;
+			}
+
+			$this->output .= $this->register_caching_strategy_for_route( $caching_route['route'], $caching_route['strategy'], $caching_route['args'] );
+		}
+
+		if ( ! empty( $routes_to_precache ) ) {
+			$this->output .= $this->register_precaching_for_routes( array_unique( $routes_to_precache ) );
+		}
 	}
 
 	/**
@@ -242,9 +466,10 @@ class WP_Service_Workers extends WP_Scripts {
 	 * Get validated path to file.
 	 *
 	 * @param string $url Relative path.
+	 * @param bool   $allow_content_only If to allow path from content directory only. Defaults to true.
 	 * @return null|string|WP_Error
 	 */
-	protected function get_validated_file_path( $url ) {
+	protected function get_validated_file_path( $url, $allow_content_only = true ) {
 		if ( ! is_string( $url ) ) {
 			return new WP_Error( 'incorrect_path_format', esc_html__( 'URL has to be a string', 'pwa' ) );
 		}
@@ -260,11 +485,20 @@ class WP_Service_Workers extends WP_Scripts {
 		$url = $this->remove_url_scheme( preg_replace( ':[\?#].*$:', '', $url ) );
 
 		$content_url  = $this->remove_url_scheme( content_url( '/' ) );
-		$allowed_host = wp_parse_url( $content_url, PHP_URL_HOST );
+		$includes_url = $this->remove_url_scheme( includes_url( '/' ) );
+		$admin_url    = $this->remove_url_scheme( get_admin_url( null, '/' ) );
 
+		$allowed_hosts = array(
+			wp_parse_url( $content_url, PHP_URL_HOST ),
+		);
+
+		if ( false === $allow_content_only ) {
+			$allowed_hosts[] = wp_parse_url( $includes_url, PHP_URL_HOST );
+			$allowed_hosts[] = wp_parse_url( $admin_url, PHP_URL_HOST );
+		}
 		$url_host = wp_parse_url( $url, PHP_URL_HOST );
 
-		if ( $allowed_host !== $url_host ) {
+		if ( ! in_array( $url_host, $allowed_hosts, true ) ) {
 			/* translators: %s is file URL */
 			return new WP_Error( 'external_file_url', sprintf( __( 'URL is located on an external domain: %s.', 'pwa' ), $url_host ) );
 		}
@@ -272,6 +506,12 @@ class WP_Service_Workers extends WP_Scripts {
 		$file_path = null;
 		if ( 0 === strpos( $url, $content_url ) ) {
 			$file_path = WP_CONTENT_DIR . substr( $url, strlen( $content_url ) - 1 );
+		} elseif ( false === $allow_content_only ) {
+			if ( 0 === strpos( $url, $includes_url ) ) {
+				$file_path = ABSPATH . WPINC . substr( $url, strlen( $includes_url ) - 1 );
+			} elseif ( 0 === strpos( $url, $admin_url ) ) {
+				$file_path = ABSPATH . 'wp-admin' . substr( $url, strlen( $admin_url ) - 1 );
+			}
 		}
 
 		if ( ! $file_path || false !== strpos( '../', $file_path ) || 0 !== validate_file( $file_path ) || ! file_exists( $file_path ) ) {
