@@ -94,18 +94,6 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 			$expected_https_settings,
 			$wp_registered_settings[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ]
 		);
-
-		$expected_insecure_content_settings = array_merge(
-			$base_expected_settings,
-			array(
-				'sanitize_callback' => array( $this->instance, 'upgrade_insecure_content_sanitize_callback' ),
-			)
-		);
-		$this->assertTrue( in_array( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, $new_whitelist_options[ WP_HTTPS_UI::OPTION_GROUP ], true ) );
-		$this->assertEquals(
-			$expected_insecure_content_settings,
-			$wp_registered_settings[ WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION ]
-		);
 	}
 
 	/**
@@ -115,15 +103,6 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 */
 	public function test_upgrade_https_sanitize_callback() {
 		$this->assert_sanitize_callback( array( $this->instance, 'upgrade_https_sanitize_callback' ), WP_HTTPS_UI::UPGRADE_HTTPS_OPTION );
-	}
-
-	/**
-	 * Test upgrade_insecure_content_sanitize_callback.
-	 *
-	 * @covers WP_HTTPS_UI::upgrade_insecure_content_sanitize_callback()
-	 */
-	public function test_upgrade_insecure_content_sanitize_callback() {
-		$this->assert_sanitize_callback( array( $this->instance, 'upgrade_insecure_content_sanitize_callback' ), WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION );
 	}
 
 	/**
@@ -160,6 +139,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	public function test_add_settings_field() {
 		global $wp_settings_fields;
 
+		add_filter( 'set_url_scheme', array( $this->instance, 'convert_to_https' ) );
 		$this->instance->add_settings_field();
 		$this->assertEquals(
 			array(
@@ -170,16 +150,6 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 			),
 			$wp_settings_fields[ WP_HTTPS_UI::OPTION_GROUP ]['default'][ WP_HTTPS_UI::HTTPS_SETTING_ID ]
 		);
-
-		$this->assertEquals(
-			array(
-				'id'       => WP_HTTPS_UI::CONTENT_SETTING_ID,
-				'title'    => 'Content Security',
-				'callback' => array( $this->instance, 'render_content_settings' ),
-				'args'     => array(),
-			),
-			$wp_settings_fields[ WP_HTTPS_UI::OPTION_GROUP ]['default'][ WP_HTTPS_UI::CONTENT_SETTING_ID ]
-		);
 	}
 
 	/**
@@ -188,11 +158,18 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_UI::render_https_settings()
 	 */
 	public function test_render_https_settings() {
-		// Set the option values, which should appear in the <input type="radio"> elements.
+		// Set the option value, which should appear in the <input type="checkbox"> elements.
 		update_option( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, WP_HTTPS_UI::OPTION_CHECKED_VALUE );
 		update_option( 'siteurl', self::HTTPS_URL );
 		update_option( 'home', self::HTTPS_URL );
 		add_filter( 'set_url_scheme', array( $this->instance, 'convert_to_https' ) );
+		update_option(
+			WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME,
+			array(
+				'active'  => array( self::HTTP_URL ),
+				'passive' => array( self::HTTP_URL ),
+			)
+		);
 		ob_start();
 		$this->instance->render_https_settings();
 		$output = ob_get_clean();
@@ -200,22 +177,8 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->assertContains( WP_HTTPS_UI::OPTION_CHECKED_VALUE, $output );
 		$this->assertContains( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, $output );
 		$this->assertContains( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to HTTPS.', $output );
-	}
-
-	/**
-	 * Test render_content_settings.
-	 *
-	 * @covers WP_HTTPS_UI::render_content_settings()
-	 */
-	public function test_render_content_settings() {
-		update_option( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, WP_HTTPS_UI::OPTION_CHECKED_VALUE );
-		ob_start();
-		$this->instance->render_content_settings();
-		$output = ob_get_clean();
-
-		$this->assertContains( WP_HTTPS_UI::OPTION_CHECKED_VALUE, $output );
-		$this->assertContains( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, $output );
-		$this->assertContains( 'Upgrade Insecure URLs', $output );
+		$this->assertContains( 'There are 2 non-HTTPS URLs on your home page.', $output );
+		$this->assertContains( self::HTTP_URL, $output );
 	}
 
 	/**
@@ -309,12 +272,19 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 */
 	public function test_filter_header() {
 		// Simulate 'Upgrade Insecure URLS' not being selected in the UI, where this shouldn't add a header via a filter.
-		update_option( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, '0' );
+		update_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME, '' );
 		$this->instance->filter_header();
 		$this->assertFalse( has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
 
-		// Simulate 'Upgrade Insecure URLS' being selected, where this should add a header via a filter.
-		update_option( WP_HTTPS_UI::UPGRADE_INSECURE_CONTENT_OPTION, WP_HTTPS_UI::OPTION_CHECKED_VALUE );
+		// If there is active insecure content, this should add the filter.
+		update_option(
+			WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME,
+			array(
+				'active' => array(
+					'http://example.com/active-foo',
+				),
+			)
+		);
 		$this->instance->filter_header();
 		$this->assertEquals( 10, has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
 	}
