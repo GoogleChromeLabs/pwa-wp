@@ -181,14 +181,20 @@ wp.serviceWorker = workbox;';
 
 	/**
 	 * Add precaching for wp-admin and wp-includes .js and .css files.
-	 *
-	 * @todo Images are not precached.
 	 */
 	protected function precache_admin_assets() {
 
 		$admin_dir   = ABSPATH . 'wp-admin/';
-		$admin_files = array_merge( list_files( $admin_dir . 'css/' ), list_files( $admin_dir . 'js/' ) );
-		$inc_files   = array_merge( list_files( ABSPATH . WPINC . '/js/' ), list_files( ABSPATH . WPINC . '/css/' ) );
+		$admin_files = array_merge(
+			list_files( $admin_dir . 'css/' ),
+			list_files( $admin_dir . 'js/' ),
+			list_files( $admin_dir . 'images/' )
+		);
+		$inc_files   = array_merge(
+			list_files( ABSPATH . WPINC . '/js/' ),
+			list_files( ABSPATH . WPINC . '/css/' ),
+			list_files( ABSPATH . WPINC . '/images/' )
+		);
 
 		$routes = array_merge(
 			$this->get_routes_from_file_list( $admin_files, 'wp-admin' ),
@@ -213,16 +219,21 @@ wp.serviceWorker = workbox;';
 		$routes = array();
 		foreach ( $list as $filename ) {
 			$ext = pathinfo( $filename, PATHINFO_EXTENSION );
-			if ( ! in_array( $ext, array( 'js', 'css' ), true ) ) {
+			if ( ! in_array( $ext, array( 'js', 'css', 'png', 'gif', 'svg' ), true ) ) {
 				continue;
 			}
 
-			// Only precache minified CSS files.
+			// Only precache minified files in case there is one.
 			if ( 'css' === $ext && '.min.css' !== substr( $filename, -strlen( '.min.css' ) ) ) {
 				continue;
+			} elseif ( 'js' === $ext && '.min.js' !== substr( $filename, -strlen( '.min.js' ) ) ) {
+
+				// If there exists a minified file in the array, then skip this.
+				if ( in_array( str_replace( '.js', '.min.js', $filename ), $list, true ) ) {
+					continue;
+				}
 			}
 
-			// @todo This will cache both min.js and .js, however, not all the files have .min.js. Is it OK to cache all the files?
 			$routes[] = strstr( $filename, '/' . $folder );
 		}
 
