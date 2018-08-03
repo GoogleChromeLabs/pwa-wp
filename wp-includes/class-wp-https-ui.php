@@ -165,11 +165,12 @@ class WP_HTTPS_UI {
 			return;
 		}
 
-		$all_insecure_urls = isset( $insecure_urls_option['active'], $insecure_urls_option['passive'] ) ? array_merge( $insecure_urls_option['active'], $insecure_urls_option['passive'] ) : array();
-		$total_urls_count  = count( $all_insecure_urls );
-		$description       = sprintf(
+		$insecure_content_id = 'insecure-content';
+		$all_insecure_urls   = isset( $insecure_urls_option['active'], $insecure_urls_option['passive'] ) ? array_merge( $insecure_urls_option['active'], $insecure_urls_option['passive'] ) : array();
+		$total_urls_count    = count( $all_insecure_urls );
+		$description         = sprintf(
 			/* translators: %1$d is the number of non-secure URLs, %1$s is a link for more details */
-			__( 'There are %1$d non-HTTPS URLs on your home page. They will be upgraded to HTTPS automatically, but you might check to be sure your page looks as expected. %1$s', 'pwa' ),
+			__( 'There are %1$d non-HTTPS URLs on your home page. They will be upgraded to HTTPS automatically, but you might check to be sure your page looks as expected. %2$s', 'pwa' ),
 			$total_urls_count,
 			sprintf(
 				'<a href="%s">%s</a>',
@@ -179,35 +180,45 @@ class WP_HTTPS_UI {
 		);
 
 		?>
-		<p style="margin-top: 20px;" class="description">
-			<?php echo wp_kses_post( $description ); ?>
-		</p>
-		<ul>
-			<?php
-			for ( $i = 0; $i < self::INITIAL_URLS_SHOWN; $i++ ) :
-				if ( empty( $all_insecure_urls[ $i ] ) ) :
-					continue;
-				endif;
-				?>
-				<li><a href="<?php echo esc_attr( $all_insecure_urls[ $i ] ); ?>"><?php echo esc_html( $all_insecure_urls[ $i ] ); ?></a></li>
-			<?php endfor; ?>
-		</ul>
-		<?php if ( $total_urls_count > self::INITIAL_URLS_SHOWN ) : ?>
-			<details style="max-width: 400px; max-height: 200px; overflow-y: scroll">
-				<summary><?php esc_html_e( 'More', 'pwa' ); ?></summary>
-				<ul>
-					<?php
-					for ( $i = self::INITIAL_URLS_SHOWN; $i < $total_urls_count; $i++ ) :
-						if ( empty( $all_insecure_urls[ $i ] ) ) :
-							continue;
-						endif;
-						?>
-						<li><a href="<?php echo esc_attr( $all_insecure_urls[ $i ] ); ?>"><?php echo esc_html( $all_insecure_urls[ $i ] ); ?></a></li>
-					<?php endfor; ?>
-				</ul>
-			</details>
-			<?php
-		endif;
+		<div id="<?php echo esc_attr( $insecure_content_id ); ?>" <?php echo ! $upgrade_https_value ? 'class="hidden"' : ''; ?>>
+			<p style="margin-top: 20px;" class="description">
+				<?php echo wp_kses_post( $description ); ?>
+			</p>
+			<ul>
+				<?php
+				for ( $i = 0; $i < self::INITIAL_URLS_SHOWN; $i++ ) :
+					if ( empty( $all_insecure_urls[ $i ] ) ) :
+						continue;
+					endif;
+					?>
+					<li><a href="<?php echo esc_attr( $all_insecure_urls[ $i ] ); ?>"><?php echo esc_html( $all_insecure_urls[ $i ] ); ?></a></li>
+				<?php endfor; ?>
+			</ul>
+			<?php if ( $total_urls_count > self::INITIAL_URLS_SHOWN ) : ?>
+				<details style="max-width: 400px; max-height: 200px; overflow-y: scroll">
+					<summary><?php esc_html_e( 'More', 'pwa' ); ?></summary>
+					<ul>
+						<?php
+						for ( $i = self::INITIAL_URLS_SHOWN; $i < $total_urls_count; $i++ ) :
+							if ( empty( $all_insecure_urls[ $i ] ) ) :
+								continue;
+							endif;
+							?>
+							<li><a href="<?php echo esc_attr( $all_insecure_urls[ $i ] ); ?>"><?php echo esc_html( $all_insecure_urls[ $i ] ); ?></a></li>
+						<?php endfor; ?>
+					</ul>
+				</details>
+			<?php endif; ?>
+		</div>
+		<script>
+			//  On checking 'HTTPS Upgrade,' toggle the display of the insecure URLs, as they don't apply unless it's checked.
+			(function ( $ ) {
+				$( 'input[type=checkbox][name="<?php echo esc_js( self::UPGRADE_HTTPS_OPTION ); ?>"]' ).on( 'change', function() {
+					$( '#<?php echo esc_js( $insecure_content_id ); ?>' ).toggleClass( 'hidden' );
+				} );
+			})( jQuery );
+		</script>
+		<?php
 	}
 
 	/**
