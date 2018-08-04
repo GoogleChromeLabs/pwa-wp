@@ -102,33 +102,20 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_UI::upgrade_https_sanitize_callback()
 	 */
 	public function test_upgrade_https_sanitize_callback() {
-		$this->assert_sanitize_callback( array( $this->instance, 'upgrade_https_sanitize_callback' ), WP_HTTPS_UI::UPGRADE_HTTPS_OPTION );
-	}
-
-	/**
-	 * Tests the given sanitization callback.
-	 *
-	 * The sanitization callbacks for HTTPS and insecure content work the same,
-	 * in returning true if the $_POST value is set for their option.
-	 *
-	 * @param callable $callback The sanitize callback to test.
-	 * @param string   $option   The option name.
-	 */
-	public function assert_sanitize_callback( $callback, $option ) {
 		/**
 		 * Test the <input type="checkbox"> being checked.
 		 * This callback does not evaluate the argument, so it could be anything.
 		 */
-		$_POST[ $option ] = WP_HTTPS_UI::OPTION_CHECKED_VALUE;
-		$this->assertTrue( call_user_func( $callback, 'foo' ) );
+		$_POST[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ] = WP_HTTPS_UI::OPTION_CHECKED_VALUE;
+		$this->assertTrue( $this->instance->upgrade_https_sanitize_callback( 'foo' ) );
 
 		// The checkbox value could be anything, as long as the $_POST value isset().
-		$_POST[ $option ] = 'baz';
-		$this->assertTrue( call_user_func( $callback, 'bar' ) );
+		$_POST[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ] = 'baz';
+		$this->assertTrue( $this->instance->upgrade_https_sanitize_callback( 'bar' ) );
 
 		// If the $_POST value is not set, the callback should return false.
-		unset( $_POST[ $option ] );
-		$this->assertFalse( call_user_func( $callback, 'baz' ) );
+		unset( $_POST[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ] );
+		$this->assertFalse( $this->instance->upgrade_https_sanitize_callback( 'baz' ) );
 	}
 
 	/**
@@ -272,8 +259,18 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_UI::filter_header()
 	 */
 	public function test_filter_header() {
-		// Simulate 'Upgrade Insecure URLS' not being selected in the UI, where this shouldn't add a header via a filter.
+		// If there is no insecure content at all, this should not add the filter.
 		update_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME, '' );
+		$this->instance->filter_header();
+		$this->assertFalse( has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
+
+		// If there is only passive insecure content, this should not add the filter.
+		update_option(
+			WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME,
+			array(
+				'passive' => array( self::HTTP_URL ),
+			)
+		);
 		$this->instance->filter_header();
 		$this->assertFalse( has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
 

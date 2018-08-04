@@ -77,9 +77,11 @@ class WP_HTTPS_Detection {
 		add_action( self::CRON_HOOK, array( $this, 'update_option_https_support' ) );
 		add_filter( 'cron_request', array( $this, 'ensure_http_if_sslverify' ), PHP_INT_MAX );
 		add_action( 'parse_query', array( $this, 'verify_https_check' ) );
-		add_action( 'init', array( $this, 'set_mock_insecure_content' ) );
 		$wp_https_ui = new WP_HTTPS_UI();
 		$wp_https_ui->init();
+
+		// @todo: remove this, as it's only for development.
+		add_action( 'init', array( $this, 'set_mock_insecure_content' ) );
 	}
 
 	/**
@@ -152,10 +154,15 @@ class WP_HTTPS_Detection {
 	}
 
 	/**
-	 * Gets the URLs for passive insecure content in the response.
+	 * Gets the URLs with insecure content in the response.
 	 *
 	 * @param array $response The response from a wp_remote_request().
-	 * @return array Insecure URLs.
+	 * @return array $insecure_content[][] {
+	 *     The insecure content, by type.
+	 *
+	 *     @type string[]  $passive The passive insecure URLs.
+	 *     @type string[]  $active  The active insecure URLs.
+	 * }
 	 */
 	public function get_insecure_content( $response ) {
 		$libxml_previous_state = libxml_use_internal_errors( true );
