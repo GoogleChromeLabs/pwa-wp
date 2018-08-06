@@ -3,7 +3,7 @@
 /**
  * Handle registering caching strategies.
  *
- * @todo This can probably be moved away from separate JS file to PHP if there's no additional abstraction layer needed.
+ * @todo Handle conflicts between routes.
  */
 
 if ( ! self.wp ) {

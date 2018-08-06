@@ -226,6 +226,12 @@ class WP_Service_Workers extends WP_Scripts {
 			$error = sprintf( __( 'Route for the caching strategy %s must be a string.', 'pwa' ), $strategy );
 			_doing_it_wrong( __METHOD__, esc_html( $error, 'pwa' ), '0.2' );
 		} else {
+
+			// Set default to string literal for route.
+			if ( ! isset( $args['regex'] ) ) {
+				$args['regex'] = false;
+			}
+
 			$this->registered_caching_routes[] = array(
 				'route'    => $route,
 				'strategy' => $strategy,
@@ -312,7 +318,7 @@ class WP_Service_Workers extends WP_Scripts {
 wp.serviceWorker.routing.registerRoute(';
 
 		// Check if the route is regex or string literal.
-		$is_regex_string = @preg_match( $route, '' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+		$is_regex_string = isset( $args['regex'] ) && true === $args['regex'];
 
 		if ( false === $is_regex_string ) {
 			$script .= '
@@ -373,8 +379,6 @@ wp.serviceWorker.routing.registerRoute(';
 
 	/**
 	 * Add logic for routes caching to the request output.
-	 *
-	 * @todo Handle conflicts between routes.
 	 */
 	protected function do_caching_routes() {
 		$routes_to_precache = array();
