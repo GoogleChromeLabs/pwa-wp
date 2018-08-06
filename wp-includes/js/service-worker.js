@@ -50,7 +50,7 @@ class WPRouter extends wp.serviceWorker.routing.Router {
 			// @todo Confirm approach for conflicting routes: for example perhaps we shouldn't consider multiple matches but same strategy a conflict. Maybe we should still use the first matching route and warn about others.
 			// If more than 1 match was found, log the conflicts.
 		} else {
-			workbox.core._private.logger.warn( `Multiple matches found for ${url.href}. Skipping route.` );
+			wp.serviceWorker.core._private.logger.warn( `Multiple matches found for ${url.href}. Skipping route.` );
 			return { handler: undefined, params: undefined };
 		}
 	}
@@ -89,7 +89,7 @@ class WPRouter extends wp.serviceWorker.routing.Router {
 
 			{
 				if ( ! ( capture.startsWith( '/' ) || capture.startsWith( 'http' ) ) ) {
-					throw new workbox.core._private.WorkboxError('invalid-string', {
+					throw new wp.serviceWorker.core._private.WorkboxError('invalid-string', {
 						moduleName: 'workbox-routing',
 						className: 'WPRouter',
 						funcName: 'registerRoute',
@@ -103,14 +103,14 @@ class WPRouter extends wp.serviceWorker.routing.Router {
 				// See https://github.com/pillarjs/path-to-regexp#parameters
 				const wildcards = '[*:?+]';
 				if (valueToCheck.match(new RegExp(`${wildcards}`))) {
-					workbox.core._private.logger.debug(`The '$capture' parameter contains an Express-style wildcard ` + `character (${wildcards}). Strings are now always interpreted as ` + `exact matches; use a RegExp for partial or wildcard matches.`);
+					wp.serviceWorker.core._private.logger.debug(`The '$capture' parameter contains an Express-style wildcard ` + `character (${wildcards}). Strings are now always interpreted as ` + `exact matches; use a RegExp for partial or wildcard matches.`);
 				}
 			}
 
 			const matchCallback = ({ url }) => {
 				{
 					if (url.pathname === captureUrl.pathname && url.origin !== captureUrl.origin) {
-						workbox.core._private.logger.debug(`${capture} only partially matches the cross-origin URL ` + `${url}. This route will only handle cross-origin requests ` + `if they match the entire URL.`);
+						wp.serviceWorker.core._private.logger.debug(`${capture} only partially matches the cross-origin URL ` + `${url}. This route will only handle cross-origin requests ` + `if they match the entire URL.`);
 					}
 				}
 
@@ -125,7 +125,7 @@ class WPRouter extends wp.serviceWorker.routing.Router {
 		} else if ( capture instanceof wp.serviceWorker.routing.Route ) {
 			route = capture;
 		} else {
-			throw new workbox.core._private.WorkboxError('unsupported-route-type', {
+			throw new wp.serviceWorker.core._private.WorkboxError('unsupported-route-type', {
 				moduleName: 'workbox-routing',
 				className: 'WPRouter',
 				funcName: 'registerRoute',
