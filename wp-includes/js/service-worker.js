@@ -146,28 +146,3 @@ self.addEventListener( 'fetch', event => {
 		event.respondWith( responsePromise );
 	}
 } );
-
-// Add custom offline / error response serving.
-let networkFirstHandler = workbox.strategies.networkFirst({
-	cacheName: 'default',
-	plugins: [
-		new wp.serviceWorker.cacheableResponse.Plugin({
-			statuses: [200]
-		} )
-	],
-} );
-
-const matcher = ( {event} ) => event.request.mode === 'navigate';
-const handler = (args) => networkFirstHandler.handle(args).then( ( response ) => {
-
-	// In case of error. @todo Separate handling of error case to add more information about the error?
-	if ( response && ! response.ok ) {
-		return caches.match( '/offline.html' );
-	} else {
-
-		// If no response, return offline page.
-		return ( ! response ) ? caches.match( '/offline.html' ) : response;
-	}
-} );
-
-wp.serviceWorker.WPRouter.registerRoute( matcher, handler );

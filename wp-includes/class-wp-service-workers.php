@@ -117,8 +117,14 @@ class WP_Service_Workers extends WP_Scripts {
 			array( 'workbox-sw' )
 		);
 
-		// @todo offline.html doesn't actually exist, should we create one dynamically when the chosen offline page changes?
-		$this->register_cached_route( '/offline.html', self::STRATEGY_PRECACHE );
+		$offline_page_id = (int) get_option( WP_Offline_Page::OPTION_NAME, 0 );
+		if ( $offline_page_id ) {
+			$this->register(
+				'offline-sw',
+				array( $this, 'configure_offline_page' ),
+				'workbox-sw'
+			);
+		}
 
 		/**
 		 * Fires when the WP_Service_Workers instance is initialized.
@@ -126,6 +132,51 @@ class WP_Service_Workers extends WP_Scripts {
 		 * @param WP_Service_Workers $this WP_Service_Workers instance (passed by reference).
 		 */
 		do_action_ref_array( 'wp_default_service_workers', array( &$this ) );
+	}
+
+	/**
+	 * Configure offline page based on the saved offline page value.
+	 *
+	 * @return string Script.
+	 */
+	protected function configure_offline_page() {
+		$offline_page_id = (int) get_option( WP_Offline_Page::OPTION_NAME, 0 );
+		$offline_post    = get_post( $offline_page_id );
+
+		// @todo This should probably be the response of the GET request instead.
+		$revision          = md5( $offline_post->post_content );
+		$offline_page_link = $this->remove_url_scheme( get_the_permalink( $offline_page_id ) );
+
+		$script = '
+wp.serviceWorker.precaching.precacheAndRoute([
+	{
+		url: ' . wp_json_encode( $offline_page_link ) . ',
+		revision: ' . wp_json_encode( $revision ) . ',
+	}
+]);
+
+// Add custom offline / error response serving.
+let networkFirstHandler = wp.serviceWorker.strategies.networkFirst( {
+	plugins: [
+		new wp.serviceWorker.cacheableResponse.Plugin( {
+			statuses: [200]
+		} )
+	],
+} );
+
+const matcher = ( {event} ) => event.request.mode === "navigate";
+const handler = (args) => networkFirstHandler.handle( args ).then( ( response ) => {
+	// In case of error. @todo Separate handling of error case to add more information about the error?
+	if ( response && ! response.ok ) {
+		return caches.match( ' . wp_json_encode( $offline_page_link ) . ' );
+	} else {
+		// If no response, return offline page.
+		return ( ! response ) ? caches.match( ' . wp_json_encode( $offline_page_link ) . ' ) : response;
+	}
+} );
+
+wp.serviceWorker.WPRouter.registerRoute( matcher, handler );';
+		return $script;
 	}
 
 	/**
@@ -255,22 +306,38 @@ class WP_Service_Workers extends WP_Scripts {
 
 		foreach ( $routes as $route ) {
 			$validated_path = $this->get_validated_file_path( $route, false );
+			$content        = '';
+
+			// If it's not a file.
 			if ( ! is_wp_error( $validated_path ) ) {
-				$file_content = @file_get_contents( $validated_path ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
-				if ( ! $file_content ) {
-					continue;
+				$content = @file_get_contents( $validated_path ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
+			} else {
+
+				// Maybe it's an URL.
+				$needs_base_url = ! preg_match( '|^(https?:)?//|', $route );
+				$base_url       = site_url();
+
+				if ( $needs_base_url ) {
+					$route = $base_url . $route;
 				}
 
-				$hash = md5( $file_content );
-				if ( '[' !== $routes_list ) {
-					$routes_list .= ',';
-				}
-				$routes_list .= '
+				// @todo Remove this and add real revisioning logic instead for URLs.
+				$content = 'offline-post';
+			}
+
+			if ( empty( $content ) ) {
+				continue;
+			}
+
+			$hash = md5( $content );
+			if ( '[' !== $routes_list ) {
+				$routes_list .= ',';
+			}
+			$routes_list .= '
 {
 	url: ' . wp_json_encode( $route ) . ',
 	revision: ' . wp_json_encode( $hash ) . ',
 }';
-			}
 		}
 
 		if ( '[' === $routes_list ) {
@@ -493,10 +560,6 @@ wp.serviceWorker.WPRouter.registerRoute(';
 				$file_path = ABSPATH . WPINC . substr( $url, strlen( $includes_url ) - 1 );
 			} elseif ( 0 === strpos( $url, $admin_url ) ) {
 				$file_path = ABSPATH . 'wp-admin' . substr( $url, strlen( $admin_url ) - 1 );
-
-				// @todo Should we remove this? This allows precaching files within the root directory.
-			} else {
-				$file_path = ABSPATH . substr( $url, strlen( $this->remove_url_scheme( $base_url ) ) );
 			}
 		}
 
