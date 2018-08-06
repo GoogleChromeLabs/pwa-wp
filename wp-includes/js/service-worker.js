@@ -81,11 +81,11 @@ class WPRouter extends wp.serviceWorker.routing.Router {
 	 *
 	 * @alias workbox.routing.registerRoute
 	 */
-	registerRoute(capture, handler, method = 'GET') {
+	registerRoute( capture, handler, method = 'GET' ) {
 		let route;
 
-		if (typeof capture === 'string') {
-			const captureUrl = new URL(capture, location);
+		if ( typeof capture === 'string' ) {
+			const captureUrl = new URL( capture, location );
 
 			{
 				if ( ! ( capture.startsWith( '/' ) || capture.startsWith( 'http' ) ) ) {
@@ -138,11 +138,36 @@ class WPRouter extends wp.serviceWorker.routing.Router {
 	}
 }
 
+// Init custom router.
 wp.serviceWorker.WPRouter = new WPRouter();
-
 self.addEventListener( 'fetch', event => {
 	const responsePromise = wp.serviceWorker.WPRouter.handleRequest( event );
 	if ( responsePromise ) {
 		event.respondWith( responsePromise );
 	}
 } );
+
+// Add custom offline / error response serving.
+let networkFirstHandler = workbox.strategies.networkFirst({
+	cacheName: 'default',
+	plugins: [
+		new wp.serviceWorker.cacheableResponse.Plugin({
+			statuses: [200]
+		} )
+	],
+} );
+
+const matcher = ( {event} ) => event.request.mode === 'navigate';
+const handler = (args) => networkFirstHandler.handle(args).then( ( response ) => {
+
+	// In case of error. @todo Separate handling of error case to add more information about the error?
+	if ( response && ! response.ok ) {
+		return caches.match( '/offline.html' );
+	} else {
+
+		// If no response, return offline page.
+		return ( ! response ) ? caches.match( '/offline.html' ) : response;
+	}
+} );
+
+wp.serviceWorker.WPRouter.registerRoute( matcher, handler );

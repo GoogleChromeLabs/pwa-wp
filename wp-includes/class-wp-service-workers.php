@@ -117,6 +117,9 @@ class WP_Service_Workers extends WP_Scripts {
 			array( 'workbox-sw' )
 		);
 
+		// @todo offline.html doesn't actually exist, should we create one dynamically when the chosen offline page changes?
+		$this->register_cached_route( '/offline.html', self::STRATEGY_PRECACHE );
+
 		/**
 		 * Fires when the WP_Service_Workers instance is initialized.
 		 *
@@ -490,6 +493,10 @@ wp.serviceWorker.WPRouter.registerRoute(';
 				$file_path = ABSPATH . WPINC . substr( $url, strlen( $includes_url ) - 1 );
 			} elseif ( 0 === strpos( $url, $admin_url ) ) {
 				$file_path = ABSPATH . 'wp-admin' . substr( $url, strlen( $admin_url ) - 1 );
+
+				// @todo Should we remove this? This allows precaching files within the root directory.
+			} else {
+				$file_path = ABSPATH . substr( $url, strlen( $this->remove_url_scheme( $base_url ) ) );
 			}
 		}
 
