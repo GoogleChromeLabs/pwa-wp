@@ -315,7 +315,7 @@ class WP_Service_Workers extends WP_Scripts {
 		$args_script = $script;
 
 		$script .= '
-wp.serviceWorker.routing.registerRoute(';
+wp.serviceWorker.WPRouter.registerRoute(';
 
 		// Check if the route is regex or string literal.
 		$is_regex_string = isset( $args['regex'] ) && true === $args['regex'];
