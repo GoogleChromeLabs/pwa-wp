@@ -64,8 +64,8 @@ wp.serviceWorker = workbox;
 		 * strategy to the Router. This method will generate a Route for you if needed and
 		 * call [Router.registerRoute()]{@link workbox.routing.Router#registerRoute}.
 		 *
-		 * @param {RegExp|string|workbox.routing.Route~matchCallback|workbox.routing.Route} capture If the capture param is a `Route`, all other arguments will be ignored.
-		 * @param {workbox.routing.Route~handlerCallback} handler A callback function that returns a Promise resulting in a Response.
+		 * @param {RegExp|string|workbox.routing.Route~matchCallback|workbox.routing.Route|Function} capture - If the capture param is a `Route`, all other arguments will be ignored.
+		 * @param {workbox.routing.Route~handlerCallback|Function} handler - A callback function that returns a Promise resulting in a Response.
 		 * @param {string} [method='GET'] The HTTP method to match the Route against.
 		 * @return {workbox.routing.Route} The generated `Route`(Useful for unregistering).
 		 *

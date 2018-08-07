@@ -144,39 +144,18 @@ class WP_Service_Workers extends WP_Scripts {
 		$offline_post    = get_post( $offline_page_id );
 
 		// @todo This should probably be the response of the GET request instead.
-		$revision          = md5( $offline_post->post_content );
-		$offline_page_link = $this->remove_url_scheme( get_the_permalink( $offline_page_id ) );
+		$replacements = array(
+			'OFFLINE_PAGE_URL' => wp_json_encode( $this->remove_url_scheme( get_the_permalink( $offline_page_id ) ) ),
+			'OFFLINE_PAGE_REV' => wp_json_encode( md5( $offline_post->post_content ) ),
+		);
 
-		$script = '
-wp.serviceWorker.precaching.precacheAndRoute([
-	{
-		url: ' . wp_json_encode( $offline_page_link ) . ',
-		revision: ' . wp_json_encode( $revision ) . ',
-	}
-]);
+		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/offline-page-handling.template.js' ); // phpcs:ignore
 
-// Add custom offline / error response serving.
-let networkFirstHandler = wp.serviceWorker.strategies.networkFirst( {
-	plugins: [
-		new wp.serviceWorker.cacheableResponse.Plugin( {
-			statuses: [200]
-		} )
-	],
-} );
-
-const matcher = ( {event} ) => event.request.mode === "navigate";
-const handler = (args) => networkFirstHandler.handle( args ).then( ( response ) => {
-	// In case of error. @todo Separate handling of error case to add more information about the error?
-	if ( response && ! response.ok ) {
-		return caches.match( ' . wp_json_encode( $offline_page_link ) . ' );
-	} else {
-		// If no response, return offline page.
-		return ( ! response ) ? caches.match( ' . wp_json_encode( $offline_page_link ) . ' ) : response;
-	}
-} );
-
-wp.serviceWorker.WPRouter.registerRoute( matcher, handler );';
-		return $script;
+		return str_replace(
+			array_keys( $replacements ),
+			array_values( $replacements ),
+			$script
+		);
 	}
 
 	/**
@@ -261,8 +240,7 @@ wp.serviceWorker.WPRouter.registerRoute( matcher, handler );';
 			self::STRATEGY_NETWORK_ONLY,
 			self::STRATEGY_PRECACHE,
 		), true ) ) {
-			_doing_it_wrong( __METHOD__, esc_html__( 'Strategy must be either WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
-	            WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY, or WP_Service_Workers::STRATEGY_NETWORK_ONLY.', 'pwa' ), '0.2' );
+			_doing_it_wrong( __METHOD__, esc_html__( 'Strategy must be either WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST, WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY, or WP_Service_Workers::STRATEGY_NETWORK_ONLY.', 'pwa' ), '0.2' );
 			return;
 		}
 
