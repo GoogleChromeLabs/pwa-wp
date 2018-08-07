@@ -267,7 +267,7 @@ class WP_Service_Workers extends WP_Scripts {
 					continue;
 				}
 
-				$hash = md5( $file_content );
+				$hash          = md5( $file_content );
 				$routes_list[] = array(
 					'url'      => $route,
 					'revision' => $hash,
