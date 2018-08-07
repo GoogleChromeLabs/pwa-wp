@@ -150,12 +150,9 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	protected function configure_offline_page() {
 		$offline_page_id = (int) get_option( WP_Offline_Page::OPTION_NAME, 0 );
-		$offline_post    = get_post( $offline_page_id );
 
-		// @todo This should probably be the response of the GET request instead.
 		$replacements = array(
 			'OFFLINE_PAGE_URL' => wp_json_encode( $this->remove_url_scheme( get_the_permalink( $offline_page_id ) ) ),
-			'OFFLINE_PAGE_REV' => wp_json_encode( $offline_post->post_modified ),
 		);
 
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/offline-page-handling.template.js' ); // phpcs:ignore
