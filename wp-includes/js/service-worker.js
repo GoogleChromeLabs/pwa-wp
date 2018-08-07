@@ -21,39 +21,40 @@ wp.serviceWorker = workbox;
 			const routes = this._routes.get( event.request.method ) || [];
 			let matches = 0,
 				matchResult,
-				matchedRoute = null;
+				firstMatch;
 			for ( const route of routes ) {
 				matchResult = route.match( { url, event } );
 				if ( matchResult ) {
 					matches++;
-					matchedRoute = route;
+
+					// First match.
+					if ( 1 === matches ) {
+						if ( Array.isArray( matchResult ) && 0 === matchResult.length ) {
+							// Instead of passing an empty array in as params, use undefined.
+							matchResult = undefined;
+						} else if ( matchResult.constructor === Object && Object.keys( matchResult ).length === 0 || matchResult === true ) {
+							// Instead of passing an empty object in as params, use undefined.
+							matchResult = undefined;
+						}
+
+						firstMatch = {
+							route,
+							params: matchResult,
+							handler: route.handler
+						};
+					}
 				}
 			}
 
 			// If we didn't have a match, then return undefined values.
 			if ( 0 === matches ) {
 				return { handler: undefined, params: undefined };
-			} else if ( 1 === matches ) {
-				// If there was exactly one match.
-				if ( Array.isArray( matchResult ) && 0 === matchResult.length ) {
-					// Instead of passing an empty array in as params, use undefined.
-					matchResult = undefined;
-				} else if ( matchResult.constructor === Object && Object.keys( matchResult ).length === 0 || matchResult === true ) {
-					// Instead of passing an empty object in as params, use undefined.
-					matchResult = undefined;
-				}
-
-				return {
-					matchedRoute,
-					params: matchResult,
-					handler: matchedRoute.handler
-				};
-
-				// @todo Confirm approach for conflicting routes: for example perhaps we shouldn't consider multiple matches but same strategy a conflict. Maybe we should still use the first matching route and warn about others.
-				// If more than 1 match was found, log the conflicts.
 			} else {
-				wp.serviceWorker.core._private.logger.warn( `Multiple matches found for ${url.href}. Skipping route.` );
-				return { handler: undefined, params: undefined };
+				// Log conflicting routes and return the first.
+				if ( 1 < matches ) {
+					wp.serviceWorker.core._private.logger.warn( `Multiple matches found for ${url.href}. Routing the first match.` );
+				}
+				return firstMatch;
 			}
 		}
 
