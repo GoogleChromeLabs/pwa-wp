@@ -121,7 +121,7 @@ class WP_Offline_Page_Excluder {
 		if ( $query->is_admin ) {
 			$screen = get_current_screen();
 
-			return ( 'nav-menus' === $screen->id );
+			return ( $screen && 'nav-menus' === $screen->id );
 		}
 
 		// Do no exclude when default offline page is requested.
