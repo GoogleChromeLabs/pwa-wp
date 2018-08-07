@@ -355,11 +355,7 @@ class WP_Service_Workers extends WP_Scripts {
 			}
 
 			if ( ! isset( $params['revision'] ) ) {
-				$file_content = @file_get_contents( $validated_path ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
-				if ( ! $file_content ) {
-					continue;
-				}
-				$params['revision'] = md5( $file_content );
+				$params['revision'] = get_bloginfo( 'version' );
 			}
 			$routes_list[] = array(
 				'url'      => $params['url'],
