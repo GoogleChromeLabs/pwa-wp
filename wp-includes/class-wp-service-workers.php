@@ -183,7 +183,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	protected function precache_admin_assets() {
 
-		$admin_dir   = ABSPATH . 'wp-admin/';
+		$admin_dir    = ABSPATH . 'wp-admin/';
 		$admin_images = list_files( $admin_dir . 'images/' );
 		$inc_images   = list_files( ABSPATH . WPINC . '/images/' );
 
