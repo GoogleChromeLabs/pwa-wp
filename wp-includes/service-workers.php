@@ -65,7 +65,12 @@ function wp_register_route_caching_strategy( $route, $strategy = WP_Service_Work
  *
  * @since 0.2
  *
- * @param array $routes Array of routes, each route must be a string literal.
+ * @param array $routes {
+ *      Array of routes.
+ *
+ *      @type string $url      URL of the route.
+ *      @type string $revision Revision (optional).
+ * }
  */
 function wp_register_routes_precaching( $routes ) {
 	return wp_service_workers()->register_precached_routes( $routes );

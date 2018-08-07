@@ -115,8 +115,14 @@ class WP_Service_Workers extends WP_Scripts {
 			array()
 		);
 
-		if ( SCRIPT_DEBUG || is_preview() ) {
-			$this->register_cached_route( '/(wp-admin|wp-includes)/.*\.(?:js|css)/', self::STRATEGY_NETWORK_ONLY );
+		$this->register(
+			'caching-utils-sw',
+			PWA_PLUGIN_URL . '/wp-includes/js/service-worker.js',
+			array( 'workbox-sw' )
+		);
+
+		if ( SCRIPT_DEBUG ) {
+			$this->register_cached_route( '/(wp-admin|wp-includes)/.*\.(?:js|css|gif|png|svg)/', self::STRATEGY_NETWORK_ONLY, array(), true );
 		} else {
 			$this->precache_admin_assets();
 		}
@@ -169,13 +175,6 @@ class WP_Service_Workers extends WP_Scripts {
 			$script .= "/* Navigation preload disabled. */\n";
 		}
 
-		$script .= '
-if ( ! self.wp ) {
-	self.wp = {};
-}
-
-wp.serviceWorker = workbox;';
-
 		return $script;
 	}
 
@@ -185,27 +184,44 @@ wp.serviceWorker = workbox;';
 	protected function precache_admin_assets() {
 
 		$admin_dir   = ABSPATH . 'wp-admin/';
-		$admin_files = array_merge(
-			list_files( $admin_dir . 'css/' ),
-			list_files( $admin_dir . 'js/' ),
-			list_files( $admin_dir . 'images/' )
-		);
-		$inc_files   = array_merge(
-			list_files( ABSPATH . WPINC . '/js/' ),
-			list_files( ABSPATH . WPINC . '/css/' ),
-			list_files( ABSPATH . WPINC . '/images/' )
-		);
+		$admin_images = list_files( $admin_dir . 'images/' );
+		$inc_images   = list_files( ABSPATH . WPINC . '/images/' );
 
 		$routes = array_merge(
-			$this->get_routes_from_file_list( $admin_files, 'wp-admin' ),
-			$this->get_routes_from_file_list( $inc_files, 'wp-includes' )
+			$this->get_routes_from_file_list( $admin_images, 'wp-admin' ),
+			$this->get_routes_from_file_list( $inc_images, 'wp-includes' ),
+			$this->get_admin_routes_from_dependency_list( wp_scripts()->registered ),
+			$this->get_admin_routes_from_dependency_list( wp_styles()->registered )
 		);
 
 		if ( empty( $routes ) ) {
 			return;
 		}
 
-		$this->register_cached_route( $routes, self::STRATEGY_PRECACHE );
+		$this->register_precached_routes( $routes );
+	}
+
+	/**
+	 * Get routes from dependency list.
+	 *
+	 * @param array $dependencies Array of _WP_Dependency objects.
+	 * @return array Array of routes.
+	 */
+	protected function get_admin_routes_from_dependency_list( $dependencies ) {
+		$routes = array();
+		foreach ( $dependencies as $handle => $params ) {
+
+			// Only precache scripts from wp-admin and wp-includes.
+			if ( false === strpos( $params->src, 'wp-admin' ) && false === strpos( $params->src, 'wp-includes' ) ) {
+				continue;
+			}
+			$revision = false === $params->ver ? get_bloginfo( 'version' ) : $params->ver;
+			$routes[] = array(
+				'url'      => $params->src,
+				'revision' => $revision,
+			);
+		}
+		return $routes;
 	}
 
 	/**
@@ -219,22 +235,14 @@ wp.serviceWorker = workbox;';
 		$routes = array();
 		foreach ( $list as $filename ) {
 			$ext = pathinfo( $filename, PATHINFO_EXTENSION );
-			if ( ! in_array( $ext, array( 'js', 'css', 'png', 'gif', 'svg' ), true ) ) {
+			if ( ! in_array( $ext, array( 'png', 'gif', 'svg' ), true ) ) {
 				continue;
 			}
 
-			// Only precache minified files in case there is one.
-			if ( 'css' === $ext && '.min.css' !== substr( $filename, -strlen( '.min.css' ) ) ) {
-				continue;
-			} elseif ( 'js' === $ext && '.min.js' !== substr( $filename, -strlen( '.min.js' ) ) ) {
-
-				// If there exists a minified file in the array, then skip this.
-				if ( in_array( str_replace( '.js', '.min.js', $filename ), $list, true ) ) {
-					continue;
-				}
-			}
-
-			$routes[] = strstr( $filename, '/' . $folder );
+			$routes[] = array(
+				'url'      => strstr( $filename, '/' . $folder ),
+				'revision' => get_bloginfo( 'version' ),
+			);
 		}
 
 		return $routes;
@@ -309,11 +317,16 @@ wp.serviceWorker = workbox;';
 	/**
 	 * Register routes / files for precaching.
 	 *
-	 * @param array $routes Array of routes, each route must be a string literal.
+	 * @param array $routes {
+	 *      Array of routes.
+	 *
+	 *      @type string $url      URL of the route.
+	 *      @type string $revision Revision (optional).
+	 * }
 	 */
 	public function register_precached_routes( $routes ) {
 		if ( ! is_array( $routes ) || empty( $routes ) ) {
-			_doing_it_wrong( __METHOD__, esc_html__( 'Routes must be an array consisting of string literals.', 'pwa' ), '0.2' );
+			_doing_it_wrong( __METHOD__, esc_html__( 'Routes must be an array.', 'pwa' ), '0.2' );
 			return;
 		}
 		$this->registered_precaching_routes = array_merge(
@@ -332,27 +345,33 @@ wp.serviceWorker = workbox;';
 
 		$routes_list = array();
 
-		foreach ( $routes as $route ) {
-			$validated_path = $this->get_validated_file_path( $route, false );
-			if ( ! is_wp_error( $validated_path ) ) {
+		foreach ( $routes as $route => $params ) {
+			if ( ! isset( $params['url'] ) ) {
+				continue;
+			}
+			$validated_path = $this->get_validated_file_path( $params['url'], false );
+			if ( is_wp_error( $validated_path ) ) {
+				continue;
+			}
+
+			if ( ! isset( $params['revision'] ) ) {
 				$file_content = @file_get_contents( $validated_path ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
 				if ( ! $file_content ) {
 					continue;
 				}
-
-				$hash          = md5( $file_content );
-				$routes_list[] = array(
-					'url'      => $route,
-					'revision' => $hash,
-				);
+				$params['revision'] = md5( $file_content );
 			}
+			$routes_list[] = array(
+				'url'      => $params['url'],
+				'revision' => $params['revision'],
+			);
 		}
 
 		if ( empty( $routes_list ) ) {
 			return '';
 		}
 
-		return sprintf( "wp.serviceWorker.precaching.precacheAndRoute( %s );\n{
+		return sprintf( "wp.serviceWorker.precaching.precacheAndRoute( %s,\n{
     ignoreUrlParametersMatching: [/.*/]
   }
 );\n", wp_json_encode( $routes_list ) );
@@ -486,8 +505,7 @@ wp.serviceWorker.WPRouter.registerRoute(';
 	 * Add logic for precaching to the request output.
 	 */
 	protected function do_precaching_routes() {
-		$routes_to_precache = array_unique( $this->registered_precaching_routes );
-		$this->output      .= $this->register_precaching_for_routes( array_unique( $routes_to_precache ) );
+		$this->output .= $this->register_precaching_for_routes( $this->registered_precaching_routes );
 	}
 
 	/**
