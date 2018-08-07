@@ -345,22 +345,21 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$routes_list = array();
 
-		foreach ( $routes as $route => $params ) {
-			if ( ! isset( $params['url'] ) ) {
-				continue;
-			}
-			$validated_path = $this->get_validated_file_path( $params['url'], false );
-			if ( is_wp_error( $validated_path ) ) {
+		foreach ( $routes as $route ) {
+			if ( ! isset( $route['url'] ) ) {
 				continue;
 			}
 
 			if ( ! isset( $params['revision'] ) ) {
-				$params['revision'] = get_bloginfo( 'version' );
+				$route['revision'] = get_bloginfo( 'version' );
 			}
-			$routes_list[] = array(
-				'url'      => $params['url'],
-				'revision' => $params['revision'],
-			);
+
+			$validated_path = $this->get_validated_file_path( $route['url'], false );
+			if ( is_wp_error( $validated_path ) ) {
+				continue;
+			}
+
+			$routes_list[] = $route;
 		}
 
 		if ( empty( $routes_list ) ) {
