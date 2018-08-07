@@ -146,7 +146,7 @@ class WP_Service_Workers extends WP_Scripts {
 		// @todo This should probably be the response of the GET request instead.
 		$replacements = array(
 			'OFFLINE_PAGE_URL' => wp_json_encode( $this->remove_url_scheme( get_the_permalink( $offline_page_id ) ) ),
-			'OFFLINE_PAGE_REV' => wp_json_encode( md5( $offline_post->post_content ) ),
+			'OFFLINE_PAGE_REV' => wp_json_encode( $offline_post->post_modified ),
 		);
 
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/offline-page-handling.template.js' ); // phpcs:ignore
