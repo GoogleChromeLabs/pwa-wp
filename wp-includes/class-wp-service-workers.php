@@ -372,12 +372,12 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Register precaching for routes. Gets the hashes of files' contents and adds as revision for each route.
+	 * Gets the script for precaching routes.
 	 *
 	 * @param array $routes Array of routes.
 	 * @return string Precaching logic.
 	 */
-	protected function register_precaching_for_routes( $routes ) {
+	protected function get_precaching_for_routes_script( $routes ) {
 
 		$routes_list = array();
 		foreach ( $routes as $route ) {
@@ -410,7 +410,7 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Register caching strategy for route.
+	 * Get the caching strategy script for route.
 	 *
 	 * @param string $route Route.
 	 * @param int    $strategy Caching strategy.
@@ -424,7 +424,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @param bool   $is_regex If the route is regex.
 	 * @return string Script.
 	 */
-	protected function register_caching_strategy_for_route( $route, $strategy, $strategy_args, $is_regex ) {
+	protected function get_caching_for_routes_script( $route, $strategy, $strategy_args, $is_regex ) {
 		$script = '';
 
 		if ( isset( $strategy_args['cache_name'] ) ) {
@@ -537,7 +537,7 @@ wp.serviceWorker.WPRouter.registerRoute(';
 	 * Add logic for precaching to the request output.
 	 */
 	protected function do_precaching_routes() {
-		$this->output .= $this->register_precaching_for_routes( $this->registered_precaching_routes );
+		$this->output .= $this->get_precaching_for_routes_script( array_unique( $this->registered_precaching_routes ) );
 	}
 
 	/**
@@ -545,7 +545,7 @@ wp.serviceWorker.WPRouter.registerRoute(';
 	 */
 	protected function do_caching_routes() {
 		foreach ( $this->registered_caching_routes as $caching_route ) {
-			$this->output .= $this->register_caching_strategy_for_route( $caching_route['route'], $caching_route['strategy'], $caching_route['strategy_args'], $caching_route['is_regex'] );
+			$this->output .= $this->get_caching_for_routes_script( $caching_route['route'], $caching_route['strategy'], $caching_route['strategy_args'], $caching_route['is_regex'] );
 		}
 	}
 
