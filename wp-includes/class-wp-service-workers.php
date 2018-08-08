@@ -188,9 +188,11 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Register route and caching strategy.
+	 * Register route and caching strategy using regex pattern for route.
 	 *
-	 * @param string $route Route.
+	 * @since 0.2
+	 *
+	 * @param string $route Route, has to be valid regex.
 	 * @param string $strategy Strategy, can be WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
 	 *                         WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY,
 	 *                         WP_Service_Workers::STRATEGY_NETWORK_ONLY.
@@ -201,10 +203,47 @@ class WP_Service_Workers extends WP_Scripts {
 	 *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
 	 *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
 	 * }
-	 * @param bool   $is_regex If the route is regex or not. Defaults to false.
-	 * @return string Script.
 	 */
-	public function register_cached_route( $route, $strategy, $strategy_args = array(), $is_regex = false ) {
+	public function register_cached_route_pattern( $route, $strategy = self::STRATEGY_STALE_WHILE_REVALIDATE, $strategy_args = array() ) {
+		$this->register_cached_route( $route, $strategy, $strategy_args, true );
+	}
+
+	/**
+	 * Register route and caching strategy for URL.
+	 *
+	 * @since 0.2
+	 *
+	 * @param string $route Route, has to be string literal.
+	 * @param string $strategy Strategy, can be WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
+	 *                         WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY,
+	 *                         WP_Service_Workers::STRATEGY_NETWORK_ONLY.
+	 * @param array  $strategy_args {
+	 *     An array of strategy arguments.
+	 *
+	 *     @type string $cache_name Cache name.
+	 *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
+	 *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
+	 * }
+	 */
+	public function register_cached_route_url( $route, $strategy = self::STRATEGY_STALE_WHILE_REVALIDATE, $strategy_args = array() ) {
+		$this->register_cached_route( $route, $strategy, $strategy_args, false );
+	}
+
+	/**
+	 * Register route and caching strategy.
+	 *
+	 * @param string $route Route.
+	 * @param string $strategy Strategy.
+	 * @param array  $strategy_args {
+	 *     An array of strategy arguments.
+	 *
+	 *     @type string $cache_name Cache name.
+	 *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
+	 *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
+	 * }
+	 * @param bool   $is_regex If the route is regex or not. Defaults to false.
+	 */
+	protected function register_cached_route( $route, $strategy, $strategy_args = array(), $is_regex = false ) {
 
 		if ( ! in_array( $strategy, array(
 			self::STRATEGY_STALE_WHILE_REVALIDATE,
@@ -236,11 +275,16 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Register routes / files for precaching.
 	 *
-	 * @param array $routes Array of routes, each route must be a string literal.
+	 * @param array $routes {
+	 *      Array of routes.
+	 *
+	 *      @type string $url      URL of the route.
+	 *      @type string $revision Revision (optional).
+	 * }
 	 */
 	public function register_precached_routes( $routes ) {
 		if ( ! is_array( $routes ) || empty( $routes ) ) {
-			_doing_it_wrong( __METHOD__, esc_html__( 'Routes must be an array consisting of string literals.', 'pwa' ), '0.2' );
+			_doing_it_wrong( __METHOD__, esc_html__( 'Routes must be an array.', 'pwa' ), '0.2' );
 			return;
 		}
 		$this->registered_precaching_routes = array_merge(
@@ -258,27 +302,28 @@ class WP_Service_Workers extends WP_Scripts {
 	protected function register_precaching_for_routes( $routes ) {
 
 		$routes_list = array();
-
 		foreach ( $routes as $route ) {
-			$validated_path = $this->get_validated_file_path( $route, false );
-			if ( ! is_wp_error( $validated_path ) ) {
-				$file_content = @file_get_contents( $validated_path ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
-				if ( ! $file_content ) {
-					continue;
-				}
-
-				$hash          = md5( $file_content );
-				$routes_list[] = array(
-					'url'      => $route,
-					'revision' => $hash,
-				);
+			if ( ! isset( $route['url'] ) ) {
+				continue;
 			}
-		}
+			if ( ! isset( $route['revision'] ) ) {
+				$route['revision'] = get_bloginfo( 'version' );
+			}
+			$validated_path = $this->get_validated_file_path( $route, false );
 
+			// If it's not a file may it's an URL.
+			if ( is_wp_error( $validated_path ) ) {
+				$needs_base_url = ! preg_match( '|^(https?:)?//|', $route['url'] );
+				$base_url       = site_url();
+				if ( $needs_base_url ) {
+					$route['url'] = $base_url . $route['url'];
+				}
+			}
+			$routes_list[] = $route;
+		}
 		if ( empty( $routes_list ) ) {
 			return '';
 		}
-
 		return sprintf( "wp.serviceWorker.precaching.precacheAndRoute( %s );\n", wp_json_encode( $routes_list ) );
 	}
 
