@@ -121,9 +121,7 @@ class WP_Service_Workers extends WP_Scripts {
 			array( 'workbox-sw' )
 		);
 
-		if ( SCRIPT_DEBUG ) {
-			$this->register_cached_route( '/(wp-admin|wp-includes)/.*\.(?:js|css|gif|png|svg)/', self::STRATEGY_NETWORK_ONLY, array(), true );
-		} else {
+		if ( ! SCRIPT_DEBUG ) {
 			$this->precache_admin_assets();
 		}
 
