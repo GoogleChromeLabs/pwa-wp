@@ -455,8 +455,7 @@ wp.serviceWorker.WPRouter.registerRoute(';
 	 * Add logic for precaching to the request output.
 	 */
 	protected function do_precaching_routes() {
-		$routes_to_precache = array_unique( $this->registered_precaching_routes );
-		$this->output      .= $this->register_precaching_for_routes( array_unique( $routes_to_precache ) );
+		$this->output .= $this->register_precaching_for_routes( array_unique( $this->registered_precaching_routes ) );
 	}
 
 	/**
