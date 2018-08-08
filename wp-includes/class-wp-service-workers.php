@@ -131,7 +131,7 @@ class WP_Service_Workers extends WP_Scripts {
 				array(
 					'url'      => $this->remove_url_scheme( get_the_permalink( $offline_page_id ) ),
 					'revision' => $offline_post->post_modified,
-				)
+				),
 			) );
 		}
 
