@@ -188,62 +188,21 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Register route and caching strategy using regex pattern for route.
-	 *
-	 * @since 0.2
-	 *
-	 * @param string $route Route, has to be valid regex.
-	 * @param string $strategy Strategy, can be WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
-	 *                         WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY,
-	 *                         WP_Service_Workers::STRATEGY_NETWORK_ONLY.
-	 * @param array  $strategy_args {
-	 *     An array of strategy arguments.
-	 *
-	 *     @type string $cache_name Cache name.
-	 *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
-	 *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
-	 * }
-	 */
-	public function register_cached_route_pattern( $route, $strategy = self::STRATEGY_STALE_WHILE_REVALIDATE, $strategy_args = array() ) {
-		$this->register_cached_route( $route, $strategy, $strategy_args, true );
-	}
-
-	/**
-	 * Register route and caching strategy for URL.
-	 *
-	 * @since 0.2
-	 *
-	 * @param string $route Route, has to be string literal.
-	 * @param string $strategy Strategy, can be WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
-	 *                         WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY,
-	 *                         WP_Service_Workers::STRATEGY_NETWORK_ONLY.
-	 * @param array  $strategy_args {
-	 *     An array of strategy arguments.
-	 *
-	 *     @type string $cache_name Cache name.
-	 *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
-	 *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
-	 * }
-	 */
-	public function register_cached_route_url( $route, $strategy = self::STRATEGY_STALE_WHILE_REVALIDATE, $strategy_args = array() ) {
-		$this->register_cached_route( $route, $strategy, $strategy_args, false );
-	}
-
-	/**
 	 * Register route and caching strategy.
 	 *
-	 * @param string $route Route.
-	 * @param string $strategy Strategy.
+	 * @param string $route    Route regular expression, without delimiters.
+	 * @param string $strategy Strategy, can be WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
+	 *                         WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY,
+	 *                         WP_Service_Workers::STRATEGY_NETWORK_ONLY.
 	 * @param array  $strategy_args {
 	 *     An array of strategy arguments.
 	 *
-	 *     @type string $cache_name Cache name.
+	 *     @type string $cache_name Cache name. Optional.
 	 *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
 	 *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
 	 * }
-	 * @param bool   $is_regex If the route is regex or not. Defaults to false.
 	 */
-	protected function register_cached_route( $route, $strategy, $strategy_args = array(), $is_regex = false ) {
+	public function register_cached_route( $route, $strategy, $strategy_args = array() ) {
 
 		if ( ! in_array( $strategy, array(
 			self::STRATEGY_STALE_WHILE_REVALIDATE,
@@ -260,14 +219,13 @@ class WP_Service_Workers extends WP_Scripts {
 		if ( ! is_string( $route ) ) {
 			/* translators: %s is caching strategy */
 			$error = sprintf( __( 'Route for the caching strategy %s must be a string.', 'pwa' ), $strategy );
-			_doing_it_wrong( __METHOD__, esc_html( $error, 'pwa' ), '0.2' );
+			_doing_it_wrong( __METHOD__, esc_html( $error ), '0.2' );
 		} else {
 
 			$this->registered_caching_routes[] = array(
 				'route'         => $route,
 				'strategy'      => $strategy,
 				'strategy_args' => $strategy_args,
-				'is_regex'      => $is_regex,
 			);
 		}
 	}
@@ -339,10 +297,9 @@ class WP_Service_Workers extends WP_Scripts {
 	 *     @type array  $plugins    Array of plugins with configuration. The key of each plugin must match the plugins name.
 	 *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
 	 * }
-	 * @param bool   $is_regex If the route is regex.
 	 * @return string Script.
 	 */
-	protected function get_caching_for_routes_script( $route, $strategy, $strategy_args, $is_regex ) {
+	protected function get_caching_for_routes_script( $route, $strategy, $strategy_args ) {
 		$script = '';
 
 		if ( isset( $strategy_args['cache_name'] ) ) {
@@ -393,13 +350,8 @@ args.plugins = [';
 		$script .= '
 wp.serviceWorker.WPRouter.registerRoute(';
 
-		if ( false === $is_regex ) {
-			$script .= '
-	' . wp_json_encode( $route );
-		} else {
-			$script .= '
+		$script .= '
 	new RegExp( ' . wp_json_encode( $route ) . ' )';
-		}
 		$script .= ',
 	wp.serviceWorker.strategies.' . $strategy . '(';
 
@@ -472,7 +424,7 @@ wp.serviceWorker.WPRouter.registerRoute(';
 	 */
 	protected function do_caching_routes() {
 		foreach ( $this->registered_caching_routes as $caching_route ) {
-			$this->output .= $this->get_caching_for_routes_script( $caching_route['route'], $caching_route['strategy'], $caching_route['strategy_args'], $caching_route['is_regex'] );
+			$this->output .= $this->get_caching_for_routes_script( $caching_route['route'], $caching_route['strategy'], $caching_route['strategy_args'] );
 		}
 	}
 
