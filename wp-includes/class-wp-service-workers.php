@@ -261,22 +261,13 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$routes_list = array();
 		foreach ( $routes as $route ) {
-			if ( ! isset( $route['url'] ) ) {
-				continue;
+			if ( is_string( $route ) ) {
+				$route = array( 'url' => $route );
 			}
 			if ( ! isset( $route['revision'] ) ) {
 				$route['revision'] = get_bloginfo( 'version' );
 			}
-			$validated_path = $this->get_validated_file_path( $route, false );
 
-			// If it's not a file may it's an URL.
-			if ( is_wp_error( $validated_path ) ) {
-				$needs_base_url = ! preg_match( '|^(https?:)?//|', $route['url'] );
-				$base_url       = site_url();
-				if ( $needs_base_url ) {
-					$route['url'] = $base_url . $route['url'];
-				}
-			}
 			$routes_list[] = $route;
 		}
 		if ( empty( $routes_list ) ) {
@@ -491,36 +482,35 @@ class WP_Service_Workers extends WP_Scripts {
 	 * Get validated path to file.
 	 *
 	 * @param string $url Relative path.
-	 * @param bool   $allow_content_only If to allow path from content directory only. Defaults to true.
 	 * @return null|string|WP_Error
 	 */
-	protected function get_validated_file_path( $url, $allow_content_only = true ) {
-		if ( ! is_string( $url ) ) {
-			return new WP_Error( 'incorrect_path_format', esc_html__( 'URL has to be a string', 'pwa' ) );
-		}
-
-		$needs_base_url = ! preg_match( '|^(https?:)?//|', $url );
-		$base_url       = site_url();
-
+	protected function get_validated_file_path( $url ) {
+		$needs_base_url = (
+			! is_bool( $url )
+			&&
+			! preg_match( '|^(https?:)?//|', $url )
+			&&
+			! ( $this->content_url && 0 === strpos( $url, $this->content_url ) )
+		);
 		if ( $needs_base_url ) {
-			$url = $base_url . $url;
+			$url = $this->base_url . $url;
 		}
+
+		$url_scheme_pattern = '#^\w+:(?=//)#';
 
 		// Strip URL scheme, query, and fragment.
-		$url = $this->remove_url_scheme( preg_replace( ':[\?#].*$:', '', $url ) );
+		$url = preg_replace( $url_scheme_pattern, '', preg_replace( ':[\?#].*$:', '', $url ) );
 
-		$content_url  = $this->remove_url_scheme( content_url( '/' ) );
-		$includes_url = $this->remove_url_scheme( includes_url( '/' ) );
-		$admin_url    = $this->remove_url_scheme( get_admin_url( null, '/' ) );
+		$includes_url = preg_replace( $url_scheme_pattern, '', includes_url( '/' ) );
+		$content_url  = preg_replace( $url_scheme_pattern, '', content_url( '/' ) );
+		$admin_url    = preg_replace( $url_scheme_pattern, '', get_admin_url( null, '/' ) );
 
 		$allowed_hosts = array(
+			wp_parse_url( $includes_url, PHP_URL_HOST ),
 			wp_parse_url( $content_url, PHP_URL_HOST ),
+			wp_parse_url( $admin_url, PHP_URL_HOST ),
 		);
 
-		if ( false === $allow_content_only ) {
-			$allowed_hosts[] = wp_parse_url( $includes_url, PHP_URL_HOST );
-			$allowed_hosts[] = wp_parse_url( $admin_url, PHP_URL_HOST );
-		}
 		$url_host = wp_parse_url( $url, PHP_URL_HOST );
 
 		if ( ! in_array( $url_host, $allowed_hosts, true ) ) {
@@ -528,22 +518,28 @@ class WP_Service_Workers extends WP_Scripts {
 			return new WP_Error( 'external_file_url', sprintf( __( 'URL is located on an external domain: %s.', 'pwa' ), $url_host ) );
 		}
 
+		$base_path = null;
 		$file_path = null;
 		if ( 0 === strpos( $url, $content_url ) ) {
-			$file_path = WP_CONTENT_DIR . substr( $url, strlen( $content_url ) - 1 );
-		} elseif ( false === $allow_content_only ) {
-			if ( 0 === strpos( $url, $includes_url ) ) {
-				$file_path = ABSPATH . WPINC . substr( $url, strlen( $includes_url ) - 1 );
-			} elseif ( 0 === strpos( $url, $admin_url ) ) {
-				$file_path = ABSPATH . 'wp-admin' . substr( $url, strlen( $admin_url ) - 1 );
-			}
+			$base_path = WP_CONTENT_DIR;
+			$file_path = substr( $url, strlen( $content_url ) - 1 );
+		} elseif ( 0 === strpos( $url, $includes_url ) ) {
+			$base_path = ABSPATH . WPINC;
+			$file_path = substr( $url, strlen( $includes_url ) - 1 );
+		} elseif ( 0 === strpos( $url, $admin_url ) ) {
+			$base_path = ABSPATH . 'wp-admin';
+			$file_path = substr( $url, strlen( $admin_url ) - 1 );
 		}
 
-		if ( ! $file_path || false !== strpos( '../', $file_path ) || 0 !== validate_file( $file_path ) || ! file_exists( $file_path ) ) {
+		if ( ! $file_path || false !== strpos( $file_path, '../' ) || false !== strpos( $file_path, '..\\' ) ) {
+			/* translators: %s is file URL */
+			return new WP_Error( 'file_path_not_allowed', sprintf( __( 'Disallowed URL filesystem path for %s.', 'pwa' ), $url ) );
+		}
+		if ( ! file_exists( $base_path . $file_path ) ) {
 			/* translators: %s is file URL */
 			return new WP_Error( 'file_path_not_found', sprintf( __( 'Unable to locate filesystem path for %s.', 'pwa' ), $url ) );
 		}
 
-		return $file_path;
+		return $base_path . $file_path;
 	}
 }
