@@ -10,7 +10,7 @@ if ( ! self.wp ) {
 
 wp.serviceWorker = workbox;
 
-( () => {
+{
 
 	/**
 	 * Custom router for handling conflicts between registered routes.
@@ -132,7 +132,7 @@ wp.serviceWorker = workbox;
 	// Init custom router.
 	wp.serviceWorker.WPRouter = new WPRouter();
 
-} )();
+}
 
 self.addEventListener( 'fetch', event => {
 	const responsePromise = wp.serviceWorker.WPRouter.handleRequest( event );
