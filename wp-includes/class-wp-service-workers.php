@@ -430,7 +430,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 * Add logic for precaching to the request output.
 	 */
 	protected function do_precaching_routes() {
-		$this->output .= $this->get_precaching_for_routes_script( array_unique( $this->registered_precaching_routes ) );
+		$this->output .= $this->get_precaching_for_routes_script( $this->registered_precaching_routes ); // Once PHP 5.3 is minimum version, add array_unique() with SORT_REGULAR.
 	}
 
 	/**
