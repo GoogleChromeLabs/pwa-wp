@@ -38,6 +38,43 @@ function wp_register_service_worker( $handle, $src, $deps = array(), $scope = WP
 }
 
 /**
+ * Register route and caching strategy using regex pattern for route.
+ *
+ * @since 0.2
+ *
+ * @param string $route Route, has to be valid regex.
+ * @param string $strategy Strategy, can be WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
+ *                         WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY,
+ *                         WP_Service_Workers::STRATEGY_NETWORK_ONLY.
+ * @param array  $strategy_args {
+ *     An array of strategy arguments.
+ *
+ *     @type string $cache_name Cache name.
+ *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
+ *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
+ * }
+ */
+function wp_register_route_caching_strategy( $route, $strategy = WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, $strategy_args = array() ) {
+	wp_service_workers()->register_cached_route( $route, $strategy, $strategy_args );
+}
+
+/**
+ * Register routes / files for precaching.
+ *
+ * @since 0.2
+ *
+ * @param array $routes {
+ *      Array of routes.
+ *
+ *      @type string $url      URL of the route.
+ *      @type string $revision Revision (optional).
+ * }
+ */
+function wp_register_routes_precaching( $routes ) {
+	return wp_service_workers()->register_precached_routes( $routes );
+}
+
+/**
  * Get service worker URL by scope.
  *
  * @since 0.1

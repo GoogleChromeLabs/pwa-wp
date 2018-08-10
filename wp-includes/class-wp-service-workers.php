@@ -38,6 +38,41 @@ class WP_Service_Workers extends WP_Scripts {
 	const SCOPE_ALL = 3;
 
 	/**
+	 * Stale while revalidate caching strategy.
+	 *
+	 * @var string
+	 */
+	const STRATEGY_STALE_WHILE_REVALIDATE = 'staleWhileRevalidate';
+
+	/**
+	 * Cache first caching strategy.
+	 *
+	 * @var string
+	 */
+	const STRATEGY_CACHE_FIRST = 'cacheFirst';
+
+	/**
+	 * Network first caching strategy.
+	 *
+	 * @var string
+	 */
+	const STRATEGY_NETWORK_FIRST = 'networkFirst';
+
+	/**
+	 * Cache only caching strategy.
+	 *
+	 * @var string
+	 */
+	const STRATEGY_CACHE_ONLY = 'cacheOnly';
+
+	/**
+	 * Network only caching strategy.
+	 *
+	 * @var string
+	 */
+	const STRATEGY_NETWORK_ONLY = 'networkOnly';
+
+	/**
 	 * Param for service workers.
 	 *
 	 * @var string
@@ -52,15 +87,84 @@ class WP_Service_Workers extends WP_Scripts {
 	public $output = '';
 
 	/**
+	 * Registered caching routes and scripts.
+	 *
+	 * @var array
+	 */
+	public $registered_caching_routes = array();
+
+	/**
+	 * Registered routes and files for precaching.
+	 *
+	 * @var array
+	 */
+	public $registered_precaching_routes = array();
+
+	/**
 	 * Initialize the class.
 	 */
 	public function init() {
+
+		$this->register(
+			'workbox-sw',
+			array( $this, 'get_workbox_script' ),
+			array()
+		);
+
+		$this->register(
+			'caching-utils-sw',
+			PWA_PLUGIN_URL . '/wp-includes/js/service-worker.js',
+			array( 'workbox-sw' )
+		);
+
 		/**
 		 * Fires when the WP_Service_Workers instance is initialized.
 		 *
 		 * @param WP_Service_Workers $this WP_Service_Workers instance (passed by reference).
 		 */
 		do_action_ref_array( 'wp_default_service_workers', array( &$this ) );
+	}
+
+	/**
+	 * Get workbox script.
+	 *
+	 * @return string Script.
+	 */
+	public function get_workbox_script() {
+
+		$workbox_dir = 'wp-includes/js/workbox-v3.4.1/';
+
+		$script = sprintf(
+			"importScripts( %s );\n",
+			wp_json_encode( PWA_PLUGIN_URL . $workbox_dir . 'workbox-sw.js', 64 /* JSON_UNESCAPED_SLASHES */ )
+		);
+
+		$options = array(
+			'debug'            => WP_DEBUG,
+			'modulePathPrefix' => PWA_PLUGIN_URL . $workbox_dir,
+		);
+		$script .= sprintf( "workbox.setConfig( %s );\n", wp_json_encode( $options, 64 /* JSON_UNESCAPED_SLASHES */ ) );
+
+		/**
+		 * Filters whether navigation preload is enabled.
+		 *
+		 * The filtered value will be sent as the Service-Worker-Navigation-Preload header value if a truthy string.
+		 * This filter should be set to return false to disable navigation preload such as when a site is using
+		 * the app shell model.
+		 *
+		 * @param bool|string $navigation_preload Whether to use navigation preload.
+		 */
+		$navigation_preload = apply_filters( 'service_worker_navigation_preload', true ); // @todo This needs to vary between admin and backend.
+		if ( false !== $navigation_preload ) {
+			if ( is_string( $navigation_preload ) ) {
+				$script .= sprintf( "workbox.navigationPreload.enable( %s );\n", wp_json_encode( $navigation_preload ) );
+			} else {
+				$script .= "workbox.navigationPreload.enable();\n";
+			}
+		} else {
+			$script .= "/* Navigation preload disabled. */\n";
+		}
+		return $script;
 	}
 
 	/**
@@ -81,6 +185,185 @@ class WP_Service_Workers extends WP_Scripts {
 		}
 
 		return parent::add( $handle, $src, $deps, false, compact( 'scope' ) );
+	}
+
+	/**
+	 * Register route and caching strategy.
+	 *
+	 * @param string $route    Route regular expression, without delimiters.
+	 * @param string $strategy Strategy, can be WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
+	 *                         WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY,
+	 *                         WP_Service_Workers::STRATEGY_NETWORK_ONLY.
+	 * @param array  $strategy_args {
+	 *     An array of strategy arguments.
+	 *
+	 *     @type string $cache_name Cache name. Optional.
+	 *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
+	 *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
+	 * }
+	 */
+	public function register_cached_route( $route, $strategy, $strategy_args = array() ) {
+
+		if ( ! in_array( $strategy, array(
+			self::STRATEGY_STALE_WHILE_REVALIDATE,
+			self::STRATEGY_CACHE_FIRST,
+			self::STRATEGY_CACHE_ONLY,
+			self::STRATEGY_NETWORK_FIRST,
+			self::STRATEGY_NETWORK_ONLY,
+		), true ) ) {
+			_doing_it_wrong( __METHOD__, esc_html__( 'Strategy must be either WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
+	            WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY, or WP_Service_Workers::STRATEGY_NETWORK_ONLY.', 'pwa' ), '0.2' );
+			return;
+		}
+
+		if ( ! is_string( $route ) ) {
+			/* translators: %s is caching strategy */
+			$error = sprintf( __( 'Route for the caching strategy %s must be a string.', 'pwa' ), $strategy );
+			_doing_it_wrong( __METHOD__, esc_html( $error ), '0.2' );
+		} else {
+
+			$this->registered_caching_routes[] = array(
+				'route'         => $route,
+				'strategy'      => $strategy,
+				'strategy_args' => $strategy_args,
+			);
+		}
+	}
+
+	/**
+	 * Register routes / files for precaching.
+	 *
+	 * @param array $routes {
+	 *      Array of routes.
+	 *
+	 *      @type string $url      URL of the route.
+	 *      @type string $revision Revision (optional).
+	 * }
+	 */
+	public function register_precached_routes( $routes ) {
+		if ( ! is_array( $routes ) || empty( $routes ) ) {
+			_doing_it_wrong( __METHOD__, esc_html__( 'Routes must be an array.', 'pwa' ), '0.2' );
+			return;
+		}
+		$this->registered_precaching_routes = array_merge(
+			$routes,
+			$this->registered_precaching_routes
+		);
+	}
+
+	/**
+	 * Gets the script for precaching routes.
+	 *
+	 * @param array $routes Array of routes.
+	 * @return string Precaching logic.
+	 */
+	protected function get_precaching_for_routes_script( $routes ) {
+
+		$routes_list = array();
+		foreach ( $routes as $route ) {
+			if ( is_string( $route ) ) {
+				$route = array( 'url' => $route );
+			}
+			if ( ! isset( $route['revision'] ) ) {
+				$route['revision'] = get_bloginfo( 'version' );
+			}
+
+			$routes_list[] = $route;
+		}
+		if ( empty( $routes_list ) ) {
+			return '';
+		}
+		return sprintf( "wp.serviceWorker.precaching.precacheAndRoute( %s );\n", wp_json_encode( $routes_list ) );
+	}
+
+	/**
+	 * Get the caching strategy script for route.
+	 *
+	 * @param string $route Route.
+	 * @param int    $strategy Caching strategy.
+	 * @param array  $strategy_args {
+	 *     An array of strategy arguments. If argument keys are supplied in snake_case, they'll be converted to camelCase for JS.
+	 *
+	 *     @type string $cache_name    Cache name to store and retrieve requests.
+	 *     @type array  $plugins       Array of plugins with configuration. The key of each plugin must match the plugins name, with values being strategy options. Optional.
+	 *                                 See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
+	 *     @type array  $fetch_options Fetch options. Not supported by cacheOnly strategy. Optional.
+	 *     @type array  $match_options Match options. Not supported by networkOnly strategy. Optional.
+	 * }
+	 * @return string Script.
+	 */
+	protected function get_caching_for_routes_script( $route, $strategy, $strategy_args ) {
+		$script = '{'; // Begin lexical scope.
+
+		// Extract plugins since not JSON-serializable as-is.
+		$plugins = array();
+		if ( isset( $strategy_args['plugins'] ) ) {
+			$plugins = $strategy_args['plugins'];
+			unset( $strategy_args['plugins'] );
+		}
+
+		$exported_strategy_args = array();
+		foreach ( $strategy_args as $strategy_arg_name => $strategy_arg_value ) {
+			if ( false !== strpos( $strategy_arg_name, '_' ) ) {
+				$strategy_arg_name = preg_replace_callback( '/_[a-z]/', array( $this, 'convert_snake_case_to_camel_case_callback' ), $strategy_arg_name );
+			}
+			$exported_strategy_args[ $strategy_arg_name ] = $strategy_arg_value;
+		}
+
+		$script .= sprintf( 'const strategyArgs = %s;', wp_json_encode( $exported_strategy_args ) );
+
+		if ( is_array( $plugins ) ) {
+
+			$recognized_plugins = array(
+				'backgroundSync',
+				'broadcastUpdate',
+				'cacheableResponse',
+				'expiration',
+				'rangeRequests',
+			);
+
+			$plugins_js = array();
+			foreach ( $plugins as $plugin_name => $plugin_args ) {
+				if ( false !== strpos( $plugin_name, '_' ) ) {
+					$plugin_name = preg_replace_callback( '/_[a-z]/', array( $this, 'convert_snake_case_to_camel_case_callback' ), $plugin_name );
+				}
+
+				if ( ! in_array( $plugin_name, $recognized_plugins, true ) ) {
+					_doing_it_wrong( 'WP_Service_Workers::register_cached_route', esc_html__( 'Unrecognized plugin', 'pwa' ), '0.2' );
+				} else {
+					$plugins_js[] = sprintf(
+						'new wp.serviceWorker[ %s ].Plugin( %s )',
+						wp_json_encode( $plugin_name ),
+						empty( $plugin_args ) ? '{}' : wp_json_encode( $plugin_args )
+					);
+				}
+			}
+
+			$script .= sprintf( 'strategyArgs.plugins = [%s];', implode( ', ', $plugins_js ) );
+		}
+
+		$script .= sprintf(
+			'wp.serviceWorker.WPRouter.registerRoute( new RegExp( %s ), wp.serviceWorker.strategies[ %s ]( strategyArgs ) );',
+			wp_json_encode( $route ),
+			wp_json_encode( $strategy )
+		);
+
+		$script .= '}'; // End lexical scope.
+
+		return $script;
+	}
+
+	/**
+	 * Convert snake_case to camelCase.
+	 *
+	 * This is is used by `preg_replace_callback()` for the pattern /_[a-z]/.
+	 *
+	 * @see WP_Service_Workers::get_caching_for_routes_script()
+	 * @param array $matches Matches.
+	 * @return string Replaced string.
+	 */
+	protected function convert_snake_case_to_camel_case_callback( $matches ) {
+		return strtoupper( ltrim( $matches[0], '_' ) );
 	}
 
 	/**
@@ -119,6 +402,8 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$this->output = '';
 		$this->do_items( $scope_items );
+		$this->do_precaching_routes();
+		$this->do_caching_routes();
 
 		$file_hash = md5( $this->output );
 		@header( "ETag: $file_hash" ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
@@ -130,6 +415,22 @@ class WP_Service_Workers extends WP_Scripts {
 		}
 
 		echo $this->output; // phpcs:ignore WordPress.XSS.EscapeOutput, WordPress.Security.EscapeOutput
+	}
+
+	/**
+	 * Add logic for precaching to the request output.
+	 */
+	protected function do_precaching_routes() {
+		$this->output .= $this->get_precaching_for_routes_script( $this->registered_precaching_routes ); // Once PHP 5.3 is minimum version, add array_unique() with SORT_REGULAR.
+	}
+
+	/**
+	 * Add logic for routes caching to the request output.
+	 */
+	protected function do_caching_routes() {
+		foreach ( $this->registered_caching_routes as $caching_route ) {
+			$this->output .= $this->get_caching_for_routes_script( $caching_route['route'], $caching_route['strategy'], $caching_route['strategy_args'] );
+		}
 	}
 
 	/**
@@ -184,40 +485,61 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @return null|string|WP_Error
 	 */
 	protected function get_validated_file_path( $url ) {
-		if ( ! is_string( $url ) ) {
-			return new WP_Error( 'incorrect_path_format', esc_html__( 'URL has to be a string', 'pwa' ) );
-		}
-
-		$needs_base_url = ! preg_match( '|^(https?:)?//|', $url );
-		$base_url       = site_url();
-
+		$needs_base_url = (
+			! is_bool( $url )
+			&&
+			! preg_match( '|^(https?:)?//|', $url )
+			&&
+			! ( $this->content_url && 0 === strpos( $url, $this->content_url ) )
+		);
 		if ( $needs_base_url ) {
-			$url = $base_url . $url;
+			$url = $this->base_url . $url;
 		}
+
+		$url_scheme_pattern = '#^\w+:(?=//)#';
 
 		// Strip URL scheme, query, and fragment.
-		$url = $this->remove_url_scheme( preg_replace( ':[\?#].*$:', '', $url ) );
+		$url = preg_replace( $url_scheme_pattern, '', preg_replace( ':[\?#].*$:', '', $url ) );
 
-		$content_url  = $this->remove_url_scheme( content_url( '/' ) );
-		$allowed_host = wp_parse_url( $content_url, PHP_URL_HOST );
+		$includes_url = preg_replace( $url_scheme_pattern, '', includes_url( '/' ) );
+		$content_url  = preg_replace( $url_scheme_pattern, '', content_url( '/' ) );
+		$admin_url    = preg_replace( $url_scheme_pattern, '', get_admin_url( null, '/' ) );
+
+		$allowed_hosts = array(
+			wp_parse_url( $includes_url, PHP_URL_HOST ),
+			wp_parse_url( $content_url, PHP_URL_HOST ),
+			wp_parse_url( $admin_url, PHP_URL_HOST ),
+		);
 
 		$url_host = wp_parse_url( $url, PHP_URL_HOST );
 
-		if ( $allowed_host !== $url_host ) {
+		if ( ! in_array( $url_host, $allowed_hosts, true ) ) {
 			/* translators: %s is file URL */
 			return new WP_Error( 'external_file_url', sprintf( __( 'URL is located on an external domain: %s.', 'pwa' ), $url_host ) );
 		}
 
+		$base_path = null;
 		$file_path = null;
 		if ( 0 === strpos( $url, $content_url ) ) {
-			$file_path = WP_CONTENT_DIR . substr( $url, strlen( $content_url ) - 1 );
+			$base_path = WP_CONTENT_DIR;
+			$file_path = substr( $url, strlen( $content_url ) - 1 );
+		} elseif ( 0 === strpos( $url, $includes_url ) ) {
+			$base_path = ABSPATH . WPINC;
+			$file_path = substr( $url, strlen( $includes_url ) - 1 );
+		} elseif ( 0 === strpos( $url, $admin_url ) ) {
+			$base_path = ABSPATH . 'wp-admin';
+			$file_path = substr( $url, strlen( $admin_url ) - 1 );
 		}
 
-		if ( ! $file_path || false !== strpos( '../', $file_path ) || 0 !== validate_file( $file_path ) || ! file_exists( $file_path ) ) {
+		if ( ! $file_path || false !== strpos( $file_path, '../' ) || false !== strpos( $file_path, '..\\' ) ) {
+			/* translators: %s is file URL */
+			return new WP_Error( 'file_path_not_allowed', sprintf( __( 'Disallowed URL filesystem path for %s.', 'pwa' ), $url ) );
+		}
+		if ( ! file_exists( $base_path . $file_path ) ) {
 			/* translators: %s is file URL */
 			return new WP_Error( 'file_path_not_found', sprintf( __( 'Unable to locate filesystem path for %s.', 'pwa' ), $url ) );
 		}
 
-		return $file_path;
+		return $base_path . $file_path;
 	}
 }
