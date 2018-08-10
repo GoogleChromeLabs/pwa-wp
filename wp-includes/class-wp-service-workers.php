@@ -416,6 +416,15 @@ wp.serviceWorker.WPRouter.registerRoute(';
 	 * @param int $scope Scope of the Service Worker.
 	 */
 	public function serve_request( $scope ) {
+		/*
+		 * Per Workbox <https://developers.google.com/web/tools/workbox/guides/service-worker-checklist#cache-control_of_your_service_worker_file>:
+		 * "Generally, most developers will want to set the Cache-Control header to no-cache,
+		 * forcing browsers to always check the server for a new service worker file."
+		 * Nevertheless, an ETag header is also sent with support for Conditional Requests
+		 * to save on needlessly re-downloading the same service worker with each page load.
+		 */
+		@header( 'Cache-Control: no-cache' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+
 		@header( 'Content-Type: text/javascript; charset=utf-8' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 
 		if ( self::SCOPE_FRONT !== $scope && self::SCOPE_ADMIN !== $scope ) {
@@ -440,7 +449,7 @@ wp.serviceWorker.WPRouter.registerRoute(';
 		$this->do_caching_routes();
 
 		$file_hash = md5( $this->output );
-		@header( "Etag: $file_hash" ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+		@header( "ETag: $file_hash" ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 
 		$etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? trim( $_SERVER['HTTP_IF_NONE_MATCH'] ) : false;
 		if ( $file_hash === $etag_header ) {
@@ -497,7 +506,7 @@ wp.serviceWorker.WPRouter.registerRoute(';
 		if ( $invalid ) {
 			/* translators: %s is script handle */
 			$error = sprintf( __( 'Service worker src is invalid for handle "%s".', 'pwa' ), $handle );
-			_doing_it_wrong( 'WP_Service_Workers::register', esc_html( $error ), '0.1' );
+			@_doing_it_wrong( 'WP_Service_Workers::register', esc_html( $error ), '0.1' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged -- We want the error in the PHP log, but not in the JS output.
 			$this->output .= sprintf( "console.warn( %s );\n", wp_json_encode( $error ) );
 		}
 	}
