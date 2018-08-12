@@ -46,13 +46,6 @@ class WP_HTTPS_UI {
 	const CONTENT_SETTING_ID = 'wp_upgrade_insecure_content';
 
 	/**
-	 * The number of initial URLs that are shown.
-	 *
-	 * @var int
-	 */
-	const INITIAL_URLS_SHOWN = 5;
-
-	/**
 	 * Inits the class.
 	 */
 	public function init() {
@@ -184,9 +177,9 @@ class WP_HTTPS_UI {
 			<p style="margin-top: 20px;" class="description">
 				<?php echo wp_kses_post( $description ); ?>
 			</p>
-			<ul>
+			<ul style="max-width: 400px; height: 220px; overflow-y: auto">
 				<?php
-				for ( $i = 0; $i < self::INITIAL_URLS_SHOWN; $i++ ) :
+				for ( $i = 0; $i < $total_urls_count; $i++ ) :
 					if ( empty( $all_insecure_urls[ $i ] ) ) :
 						continue;
 					endif;
@@ -194,21 +187,6 @@ class WP_HTTPS_UI {
 					<li><a href="<?php echo esc_attr( $all_insecure_urls[ $i ] ); ?>"><?php echo esc_html( $all_insecure_urls[ $i ] ); ?></a></li>
 				<?php endfor; ?>
 			</ul>
-			<?php if ( $total_urls_count > self::INITIAL_URLS_SHOWN ) : ?>
-				<details style="max-width: 400px; max-height: 200px; overflow-y: scroll">
-					<summary><?php esc_html_e( 'More', 'pwa' ); ?></summary>
-					<ul>
-						<?php
-						for ( $i = self::INITIAL_URLS_SHOWN; $i < $total_urls_count; $i++ ) :
-							if ( empty( $all_insecure_urls[ $i ] ) ) :
-								continue;
-							endif;
-							?>
-							<li><a href="<?php echo esc_attr( $all_insecure_urls[ $i ] ); ?>"><?php echo esc_html( $all_insecure_urls[ $i ] ); ?></a></li>
-						<?php endfor; ?>
-					</ul>
-				</details>
-			<?php endif; ?>
 		</div>
 		<script>
 			//  On checking 'HTTPS Upgrade,' toggle the display of the insecure URLs, as they don't apply unless it's checked.
