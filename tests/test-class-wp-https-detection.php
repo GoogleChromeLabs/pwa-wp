@@ -32,7 +32,6 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 		$this->instance = new WP_HTTPS_Detection();
-		add_filter( 'wp_die_handler', array( $this, 'get_handler_to_prevent_exiting' ), 11 );
 		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
 	}
 
@@ -46,7 +45,6 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		$this->assertEquals( 10, has_action( 'wp', array( $this->instance, 'schedule_cron' ) ) );
 		$this->assertEquals( 10, has_action( WP_HTTPS_Detection::CRON_HOOK, array( $this->instance, 'update_option_https_support' ) ) );
 		$this->assertEquals( PHP_INT_MAX, has_filter( 'cron_request', array( $this->instance, 'ensure_http_if_sslverify' ) ) );
-		$this->assertEquals( 10, has_action( 'parse_query', array( $this->instance, 'verify_https_check' ) ) );
 	}
 
 	/**
@@ -70,7 +68,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_Detection::get_insecure_content()
 	 */
 	public function test_get_insecure_content() {
-		$html_boilerplate = '<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=' . get_bloginfo( 'charset' ) . '"></head><body>%s</body></html>';
+		$html_boilerplate = '<!DOCTYPE html><html><head><meta http-equiv="content-type"></head><body>%s</body></html>';
 		$insecure_img_src = 'http://example.com/baz';
 		$body             = sprintf(
 			$html_boilerplate,
@@ -185,6 +183,23 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test has_proper_manifest.
+	 *
+	 * @covers WP_HTTPS_Detection::has_proper_manifest()
+	 */
+	public function test_has_proper_manifest() {
+		$html_boilerplate          = '<!DOCTYPE html><html><head>%s</head><body></body></html>';
+		$document_without_manifest = sprintf( $html_boilerplate, '<meta property="og:type" content="website" />' );
+		$this->assertFalse( $this->instance->has_proper_manifest( $document_without_manifest ) );
+
+		$document_with_incorrect_manifest_url = sprintf( $html_boilerplate, '<link rel="manifest" href="https://example.com/incorrect-manifest-location">' );
+		$this->assertFalse( $this->instance->has_proper_manifest( $document_with_incorrect_manifest_url ) );
+
+		$document_with_proper_manifest = sprintf( $html_boilerplate, '<link rel="manifest" href="' . rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ) . '">' );
+		$this->assertTrue( $this->instance->has_proper_manifest( $document_with_proper_manifest ) );
+	}
+
+	/**
 	 * Test ensure_http_if_sslverify.
 	 *
 	 * @covers WP_HTTPS_Detection::ensure_http_if_sslverify()
@@ -221,30 +236,6 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test verify_https_check.
-	 *
-	 * @covers WP_Query::verify_https_check()
-	 */
-	public function test_verify_https_check() {
-		$query_var = wp_rand();
-		$wp_query  = new WP_Query( array(
-			WP_HTTPS_Detection::REQUEST_QUERY_VAR => $query_var,
-		) );
-
-		// The query var is present in WP_Query, so this should pass the message to wp_die().
-		$this->instance->verify_https_check( $wp_query );
-		$this->assertEquals( wp_hash( $query_var, 'nonce' ), $this->wp_die_message );
-
-		$this->wp_die_message = null;
-		$wp_query             = new WP_Query();
-
-		// The query var is not present in WP_Query, so this shouldn't call wp_die().
-		$this->instance->verify_https_check( $wp_query );
-		$this->assertEquals( null, $this->wp_die_message );
-
-	}
-
-	/**
 	 * Alters the response, to simulate a scenario where HTTPS isn't supported.
 	 *
 	 * @param WP_HTTP_Requests_Response $response The response object.
@@ -265,35 +256,16 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Gets the handler to prevent exiting from the tests.
-	 *
-	 * @return array
-	 */
-	public function get_handler_to_prevent_exiting() {
-		return array( $this, 'prevent_exiting_from_tests' );
-	}
-
-	/**
-	 * Prevents exiting early from tests, by overriding the handler for wp_die().
-	 *
-	 * @param string $message The message passed to wp_die().
-	 */
-	public function prevent_exiting_from_tests( $message ) {
-		$this->wp_die_message = $message;
-	}
-
-	/**
 	 * Overrides the response body from wp_remote_get().
 	 *
-	 * This is needed because WP_HTTPS_Detection::verify_https_check() calls wp_die(),
-	 * and the wp_die() handler had to be overridden to prevent the tests from stopping.
-	 * So this mocks the expected response.
+	 * This mocks the expected response,
+	 * by adding a <link rel="manifest"> with the correct href value.
 	 *
 	 * @return array The response.
 	 */
 	public function mock_successful_response() {
 		return array(
-			'body'     => sprintf( '<html><body>%s</body></html>', wp_hash( $this->instance->query_var_number, 'nonce' ) ),
+			'body'     => sprintf( '<html><head><link rel="manifest" href="%s"></head><body></body></html>', rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ) ),
 			'response' => array(
 				'code' => 200,
 			),

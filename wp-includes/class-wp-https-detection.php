@@ -63,20 +63,12 @@ class WP_HTTPS_Detection {
 	);
 
 	/**
-	 * The number passed to the query var.
-	 *
-	 * @var int
-	 */
-	public $query_var_number;
-
-	/**
 	 * Inits the class.
 	 */
 	public function init() {
 		add_action( 'wp', array( $this, 'schedule_cron' ) );
 		add_action( self::CRON_HOOK, array( $this, 'update_option_https_support' ) );
 		add_filter( 'cron_request', array( $this, 'ensure_http_if_sslverify' ), PHP_INT_MAX );
-		add_action( 'parse_query', array( $this, 'verify_https_check' ) );
 		$wp_https_ui = new WP_HTTPS_UI();
 		$wp_https_ui->init();
 
@@ -125,11 +117,11 @@ class WP_HTTPS_Detection {
 	 * @return boolean|WP_Error Whether HTTPS is supported, or a WP_Error.
 	 */
 	public function check_https_support() {
-		$this->query_var_number = wp_rand();
-		$response               = wp_remote_request(
+		// Add an arbitrary query arg to prevent a cached response.
+		$response = wp_remote_request(
 			add_query_arg(
-				self::REQUEST_QUERY_VAR,
-				$this->query_var_number,
+				'a',
+				'',
 				home_url( '/', 'https' )
 			),
 			array(
@@ -143,7 +135,9 @@ class WP_HTTPS_Detection {
 			return $response;
 		}
 
-		if ( false === strpos( wp_remote_retrieve_body( $response ), wp_hash( $this->query_var_number, 'nonce' ) ) ) {
+		$body = wp_remote_retrieve_body( $response );
+
+		if ( ! $this->has_proper_manifest( $body ) ) {
 			return new WP_Error(
 				'invalid_https_validation_source',
 				__( 'There was an issue in the request for HTTPS verification. It might not have been from the same origin.', 'default' )
@@ -151,6 +145,24 @@ class WP_HTTPS_Detection {
 		}
 
 		return 200 === wp_remote_retrieve_response_code( $response );
+	}
+
+	/**
+	 * Gets whether the body has a manifest <link>, with the proper href value.
+	 *
+	 * @param string $body The body of the response.
+	 * @return boolean Whether the body has a proper manifest.
+	 */
+	public function has_proper_manifest( $body ) {
+		$dom = new DOMDocument();
+		$dom->loadHTML( $body );
+
+		foreach ( $dom->getElementsByTagName( 'link' ) as $link ) {
+			if ( $link->hasAttribute( 'href' ) && $link->getAttribute( 'href' ) === rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -242,21 +254,5 @@ class WP_HTTPS_Detection {
 			$request['args']['sslverify'] = false;
 		}
 		return $request;
-	}
-
-	/**
-	 * If the query has the query var, call die() with the hashed query var.
-	 *
-	 * This uses wp_die() instead of die(),
-	 * because it allows filtering the handler: 'wp_die_handler'.
-	 * This prevents stopping the unit tests.
-	 *
-	 * @param WP_Query $wp_query The query object.
-	 */
-	public function verify_https_check( $wp_query ) {
-		$query_var = $wp_query->get( self::REQUEST_QUERY_VAR );
-		if ( ! empty( $query_var ) ) {
-			wp_die( wp_hash( $query_var, 'nonce' ) ); // WPCS: XSS ok.
-		}
 	}
 }
