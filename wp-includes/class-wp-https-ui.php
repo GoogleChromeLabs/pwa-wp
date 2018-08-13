@@ -85,6 +85,7 @@ class WP_HTTPS_UI {
 	 *
 	 * Only add this if the site can support HTTPS,
 	 * but the home and siteurl option values are not HTTPS (WordPress Address and Site Address).
+	 * This UI would not apply if those URLs are already HTTPS.
 	 */
 	public function add_settings_field() {
 		/*
@@ -112,7 +113,7 @@ class WP_HTTPS_UI {
 		$https_more_details  = sprintf(
 			'<a href="%s">%s</a>',
 			__( 'https://make.wordpress.org/support/user-manual/web-publishing/https-for-wordpress/', 'pwa' ),
-			esc_html__( 'More details', 'pwa' )
+			__( 'More details', 'pwa' )
 		);
 
 		?>
@@ -120,7 +121,7 @@ class WP_HTTPS_UI {
 			<?php
 			echo wp_kses_post( sprintf(
 				/* translators: %s: a link for more details */
-				esc_html__( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to HTTPS. %s', 'pwa' ),
+				__( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to HTTPS. %s', 'pwa' ),
 				$https_more_details
 			) );
 			?>
@@ -154,6 +155,11 @@ class WP_HTTPS_UI {
 			)
 		);
 
+		/**
+		 * Add class="hidden" to this <div> if the 'HTTPS Upgrade' checkbox isn't checked.
+		 * This insecure content UI does not apply if the user isn't upgrading to HTTPS,
+		 * as there will be no need to upgrade insecure requests.
+		 */
 		?>
 		<div id="<?php echo esc_attr( $insecure_content_id ); ?>" <?php echo ! $upgrade_https_value ? 'class="hidden"' : ''; ?>>
 			<p style="margin-top: 20px;" class="description">
@@ -174,7 +180,7 @@ class WP_HTTPS_UI {
 			//  On checking 'HTTPS Upgrade,' toggle the display of the insecure URLs, as they don't apply unless it's checked.
 			(function ( $ ) {
 				$( 'input[type=checkbox][name="<?php echo esc_js( self::UPGRADE_HTTPS_OPTION ); ?>"]' ).on( 'change', function() {
-					$( '#<?php echo esc_js( $insecure_content_id ); ?>' ).toggleClass( 'hidden' );
+					$( '#<?php echo esc_attr( $insecure_content_id ); ?>' ).toggleClass( 'hidden' );
 				} );
 			})( jQuery );
 		</script>
@@ -183,6 +189,9 @@ class WP_HTTPS_UI {
 
 	/**
 	 * Whether the options indicate that the site is currently using HTTPS.
+	 *
+	 * Returns true only if the siteurl and home option values are HTTPS.
+	 * These are also known as the WordPress Address (URL) and Site Address (URL) in the 'General Settings' page.
 	 *
 	 * @return bool Whether currently HTTPS.
 	 */
@@ -222,9 +231,9 @@ class WP_HTTPS_UI {
 	 * Only adds this if there is active insecure content.
 	 * Normally, the risk in upgrading insecure requests is that when a HTTP URL is upgraded to HTTPS, it could fail.
 	 * And there's no fallback.
-	 * But if there are active insecure URLs, the browser already blocks them.
+	 * But if there are active insecure URLs like for scripts, the browser already blocks them.
 	 * So they're failing already, and upgrading them at least gives them a chance.
-	 * This does not add the header if there is no or only passive insecure content detected.
+	 * This does not add the header if there is no or only passive insecure content like images.
 	 * Those are less of a security risk, and upgrading them to HTTPS might cause them to fail, with no fallback.
 	 *
 	 * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade-Insecure-Requests

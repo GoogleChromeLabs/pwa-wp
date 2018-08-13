@@ -39,14 +39,12 @@ class WP_HTTPS_Detection {
 	const INSECURE_CONTENT_OPTION_NAME = 'insecure_content';
 
 	/**
-	 * The query var key for HTTPS detection, used to verify that the request is from the same origin.
-	 *
-	 * @var string
-	 */
-	const REQUEST_QUERY_VAR = 'https_detection_token';
-
-	/**
 	 * The tag names and attributes for insecure content types.
+	 *
+	 * These are organized by 'passive' and 'active' to show the security risk they pose.
+	 * Passive insecure content is less of a risk, and includes images and media.
+	 * The tag name indicates the tag to search for, and the attribute is where the URL will be.
+	 * For example, in the <img> tag, the URL will be in the 'src'.
 	 *
 	 * @see https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content
 	 * @var array $insecure_content_type[][] {
@@ -84,15 +82,6 @@ class WP_HTTPS_Detection {
 	}
 
 	/**
-	 * Gets whether HTTPS is supported, using the stored result of the loopback request.
-	 *
-	 * @return boolean
-	 */
-	public static function is_https_supported() {
-		return (bool) get_option( self::HTTPS_SUPPORT_OPTION_NAME );
-	}
-
-	/**
 	 * Schedules a cron event to check for HTTPS support.
 	 */
 	public function schedule_cron() {
@@ -102,8 +91,10 @@ class WP_HTTPS_Detection {
 	}
 
 	/**
-	 * Makes a request to find whether HTTPS is supported, and stores the result in an option.
-	 * If the request is a WP_Error, this does not update the option.
+	 * Makes a request to find whether HTTPS is supported, and stores the results in options.
+	 *
+	 * Updates the options for HTTPS support and insecure content.
+	 * But if the request is a WP_Error, this does not update the options.
 	 */
 	public function update_https_support_options() {
 		$https_support_response = $this->check_https_support();
@@ -114,7 +105,7 @@ class WP_HTTPS_Detection {
 	}
 
 	/**
-	 * Makes a request to the home URL to determine whether HTTPS is supported.
+	 * Makes a loopback request to the homepage to determine whether HTTPS is supported.
 	 *
 	 * @return array|WP_Error A response from a loopback request to the homepage, or a WP_Error.
 	 */
