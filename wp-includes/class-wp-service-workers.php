@@ -130,7 +130,7 @@ class WP_Service_Workers extends WP_Scripts {
 
 			// Register precaching for offline page route.
 			$offline_post         = get_post( $offline_page_id );
-			$content_asset_routes = $this->get_offline_post_content_img_routes( $offline_post );
+			$content_asset_routes = $this->get_offline_post_image_routes( $offline_post );
 			$this->register_precached_routes( array_merge(
 				array(
 					array(
@@ -172,12 +172,12 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Get routes for images found in the content of offline post.
+	 * Get routes for images found in the content of offline post and for the featured image.
 	 *
 	 * @param WP_Post $post Post object.
 	 * @return array Array of routes.
 	 */
-	protected function get_offline_post_content_img_routes( $post ) {
+	protected function get_offline_post_image_routes( $post ) {
 		$routes = array();
 		preg_match_all( '/< *img[^>]*src *= *["\']?([^"\']*)/i', $post->post_content, $matches );
 		if ( isset( $matches[1] ) && ! empty( $matches[1] ) ) {
@@ -187,6 +187,14 @@ class WP_Service_Workers extends WP_Scripts {
 					'revision' => $post->post_modified,
 				);
 			}
+		}
+
+		$featured_img_url = get_the_post_thumbnail_url( $post->ID );
+		if ( false !== $featured_img_url ) {
+			$routes[] = array(
+				'url'      => $this->remove_url_scheme( $featured_img_url ),
+				'revision' => $post->post_modified,
+			);
 		}
 
 		return $routes;
