@@ -157,8 +157,13 @@ class WP_HTTPS_UI {
 
 		$description = sprintf(
 			/* translators: %1$d is the number of non-secure URLs, %1$s is a link for more details */
-			__( 'There are %1$d non-HTTPS URLs on your home page. They will be upgraded to HTTPS automatically, but you might check to be sure your page looks as expected. %2$s', 'pwa' ),
-			$total_urls_count,
+			_n(
+				'There is %1$d non-HTTPS URL on your home page. It will be upgraded to HTTPS automatically, but you might check to be sure your page looks as expected. %2$s',
+				'There are %1$d non-HTTPS URLs on your home page. They will be upgraded to HTTPS automatically, but you might check to be sure your page looks as expected. %2$s',
+				$total_urls_count,
+				'pwa'
+			),
+			number_format_i18n( $total_urls_count ),
 			sprintf(
 				'<a href="%s">%s</a>',
 				__( 'https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content/How_to_fix_website_with_mixed_content', 'pwa' ),
