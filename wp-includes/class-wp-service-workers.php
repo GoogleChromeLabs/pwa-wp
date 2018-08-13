@@ -188,7 +188,8 @@ class WP_Service_Workers extends WP_Scripts {
 			$this->get_routes_from_file_list( $admin_images, 'wp-admin' ),
 			$this->get_routes_from_file_list( $inc_images, 'wp-includes' ),
 			$this->get_admin_routes_from_dependency_list( wp_scripts()->registered ),
-			$this->get_admin_routes_from_dependency_list( wp_styles()->registered )
+			$this->get_admin_routes_from_dependency_list( wp_styles()->registered ),
+			$this->get_woff_file_list()
 		);
 
 		if ( empty( $routes ) ) {
@@ -219,6 +220,25 @@ class WP_Service_Workers extends WP_Scripts {
 			);
 		}
 		return $routes;
+	}
+
+	/**
+	 * Get static list of .woff files to precache.
+	 *
+	 * @return array
+	 */
+	protected function get_woff_file_list() {
+		return array(
+			array(
+				'url' => '/wp-includes/fonts/dashicons.woff',
+			),
+			array(
+				'url' => '/wp-includes/js/tinymce/skins/lightgray/fonts/tinymce-small.woff',
+			),
+			array(
+				'url' => '/wp-includes/js/tinymce/skins/lightgray/fonts/tinymce.woff',
+			),
+		);
 	}
 
 	/**
