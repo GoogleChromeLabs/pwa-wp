@@ -105,6 +105,11 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function init() {
 
+		// Only init if it's for the service worker.
+		if ( ! isset( $_REQUEST['wp_service_worker'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.NoNonceVerification
+			return;
+		}
+
 		if ( ! function_exists( 'list_files' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
