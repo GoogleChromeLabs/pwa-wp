@@ -18,6 +18,13 @@ class WP_HTTPS_Detection {
 	const CRON_HOOK = 'check_https_support';
 
 	/**
+	 * The interval at which to run the cron hook.
+	 *
+	 * @var string
+	 */
+	const CRON_INTERVAL = 'twicedaily';
+
+	/**
 	 * The option name for whether HTTPS is supported.
 	 *
 	 * @var string
@@ -90,13 +97,13 @@ class WP_HTTPS_Detection {
 	 */
 	public function schedule_cron() {
 		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
-			wp_schedule_event( time(), 'hourly', self::CRON_HOOK );
+			wp_schedule_event( time(), self::CRON_INTERVAL, self::CRON_HOOK );
 		}
 	}
 
 	/**
 	 * Makes a request to find whether HTTPS is supported, and stores the result in an option.
-	 * If the request is a WP_Error, don't update the option.
+	 * If the request is a WP_Error, this does not update the option.
 	 */
 	public function update_https_support_options() {
 		$https_support_response = $this->check_https_support();
@@ -109,7 +116,7 @@ class WP_HTTPS_Detection {
 	/**
 	 * Makes a request to the home URL to determine whether HTTPS is supported.
 	 *
-	 * @return array|WP_Error A response from a loopback request to the homepage.
+	 * @return array|WP_Error A response from a loopback request to the homepage, or a WP_Error.
 	 */
 	public function check_https_support() {
 		// Add an arbitrary query arg to prevent a cached response.
@@ -135,7 +142,7 @@ class WP_HTTPS_Detection {
 		if ( ! $this->has_proper_manifest( $body ) ) {
 			return new WP_Error(
 				'invalid_https_validation_source',
-				__( 'There was an issue in the request for HTTPS verification. It might not have been from the same origin.', 'default' )
+				__( 'There was an issue in the request for HTTPS verification.', 'pwa' )
 			);
 		}
 
@@ -153,7 +160,7 @@ class WP_HTTPS_Detection {
 		$dom->loadHTML( $body );
 
 		foreach ( $dom->getElementsByTagName( 'link' ) as $link ) {
-			if ( $link->hasAttribute( 'href' ) && $link->getAttribute( 'href' ) === rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ) ) {
+			if ( $link->getAttribute( 'href' ) === rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ) ) {
 				return true;
 			}
 		}

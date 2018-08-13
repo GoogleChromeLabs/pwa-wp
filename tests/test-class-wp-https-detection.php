@@ -141,8 +141,8 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		$this->assertEquals(
 			array(
 				'args'     => array(),
-				'interval' => HOUR_IN_SECONDS,
-				'schedule' => 'hourly',
+				'interval' => DAY_IN_SECONDS / 2,
+				'schedule' => 'twicedaily',
 			),
 			reset( $https_check_cron[ WP_HTTPS_Detection::CRON_HOOK ] )
 		);
@@ -201,7 +201,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		$document_without_manifest = sprintf( $html_boilerplate, '<meta property="og:type" content="website" />' );
 		$this->assertFalse( $this->instance->has_proper_manifest( $document_without_manifest ) );
 
-		$document_with_incorrect_manifest_url = sprintf( $html_boilerplate, '<link rel="manifest" href="https://example.com/incorrect-manifest-location">' );
+		$document_with_incorrect_manifest_url = sprintf( $html_boilerplate, '<link rel="manifest" href="https://example.com/incorrect-manifest-location"><link rel="test-link-no-href">' );
 		$this->assertFalse( $this->instance->has_proper_manifest( $document_with_incorrect_manifest_url ) );
 
 		$document_with_proper_manifest = sprintf( $html_boilerplate, '<link rel="manifest" href="' . rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ) . '">' );
