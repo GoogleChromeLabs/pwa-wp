@@ -200,7 +200,7 @@ class WP_HTTPS_UI {
 	 * Conditionally filters the 'siteurl' and 'home' values from wp-config and options.
 	 */
 	public function filter_site_url_and_home() {
-		if ( get_option( self::UPGRADE_HTTPS_OPTION ) ) {
+		if ( get_option( self::UPGRADE_HTTPS_OPTION ) && ! $this->is_currently_https() ) {
 			add_filter( 'option_home', array( $this, 'convert_to_https' ), 11 );
 			add_filter( 'option_siteurl', array( $this, 'convert_to_https' ), 11 );
 		}
@@ -224,14 +224,14 @@ class WP_HTTPS_UI {
 	 * And there's no fallback.
 	 * But if there are active insecure URLs, the browser already blocks them.
 	 * So they're failing already, and upgrading them at least gives them a chance.
-	 * This does not add the header if there is no or only passive insecure content detected
-	 * Those are less of a security risk, and upgrading them to HTTPS might cause them to fail (with no fallback).
+	 * This does not add the header if there is no or only passive insecure content detected.
+	 * Those are less of a security risk, and upgrading them to HTTPS might cause them to fail, with no fallback.
 	 *
 	 * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade-Insecure-Requests
 	 */
 	public function filter_header() {
 		$insecure_urls = get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME );
-		if ( get_option( self::UPGRADE_HTTPS_OPTION ) && ! empty( $insecure_urls['active'] ) ) {
+		if ( ! empty( $insecure_urls['active'] ) && get_option( self::UPGRADE_HTTPS_OPTION ) && ! $this->is_currently_https() ) {
 			add_filter( 'wp_headers', array( $this, 'upgrade_insecure_requests' ) );
 		}
 	}
