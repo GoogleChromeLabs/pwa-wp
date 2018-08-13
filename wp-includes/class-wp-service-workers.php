@@ -119,6 +119,9 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$offline_page_id = (int) get_option( WP_Offline_Page::OPTION_NAME, 0 );
 		if ( $offline_page_id ) {
+
+			// Cache relevant theme assets.
+			$this->register_cached_route( '/wp-content/.*\.(?:css|gif|png|jpg|jpeg)', self::STRATEGY_STALE_WHILE_REVALIDATE );
 			$this->register(
 				'offline-sw',
 				array( $this, 'configure_offline_page' ),
@@ -126,12 +129,16 @@ class WP_Service_Workers extends WP_Scripts {
 			);
 
 			// Register precaching for offline page route.
-			$offline_post = get_post( $offline_page_id );
-			$this->register_precached_routes( array(
+			$offline_post         = get_post( $offline_page_id );
+			$content_asset_routes = $this->get_offline_post_content_img_routes( $offline_post );
+			$this->register_precached_routes( array_merge(
 				array(
-					'url'      => $this->remove_url_scheme( get_the_permalink( $offline_page_id ) ),
-					'revision' => $offline_post->post_modified,
+					array(
+						'url'      => $this->remove_url_scheme( get_the_permalink( $offline_page_id ) ),
+						'revision' => $offline_post->post_modified,
+					),
 				),
+				$content_asset_routes
 			) );
 		}
 
@@ -162,6 +169,27 @@ class WP_Service_Workers extends WP_Scripts {
 			array_values( $replacements ),
 			$script
 		);
+	}
+
+	/**
+	 * Get routes for images found in the content of offline post.
+	 *
+	 * @param WP_Post $post Post object.
+	 * @return array Array of routes.
+	 */
+	protected function get_offline_post_content_img_routes( $post ) {
+		$routes = array();
+		preg_match_all( '/< *img[^>]*src *= *["\']?([^"\']*)/i', $post->post_content, $matches );
+		if ( isset( $matches[1] ) && ! empty( $matches[1] ) ) {
+			foreach ( $matches[1] as $src ) {
+				$routes[] = array(
+					'url'      => $this->remove_url_scheme( $src ),
+					'revision' => $post->post_modified,
+				);
+			}
+		}
+
+		return $routes;
 	}
 
 	/**
