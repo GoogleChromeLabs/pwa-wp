@@ -105,29 +105,27 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function init() {
 
-		// Only init if it's for the service worker.
-		if ( ! isset( $_REQUEST['wp_service_worker'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.NoNonceVerification
-			return;
-		}
+		// Only run if it's for the service worker.
+		if ( isset( $_REQUEST['wp_service_worker'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.NoNonceVerification
+			if ( ! function_exists( 'list_files' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+			}
 
-		if ( ! function_exists( 'list_files' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-		}
+			$this->register(
+				'workbox-sw',
+				array( $this, 'get_workbox_script' ),
+				array()
+			);
 
-		$this->register(
-			'workbox-sw',
-			array( $this, 'get_workbox_script' ),
-			array()
-		);
+			$this->register(
+				'caching-utils-sw',
+				PWA_PLUGIN_URL . '/wp-includes/js/service-worker.js',
+				array( 'workbox-sw' )
+			);
 
-		$this->register(
-			'caching-utils-sw',
-			PWA_PLUGIN_URL . '/wp-includes/js/service-worker.js',
-			array( 'workbox-sw' )
-		);
-
-		if ( ! SCRIPT_DEBUG ) {
-			$this->precache_admin_assets();
+			if ( ! SCRIPT_DEBUG ) {
+				$this->precache_admin_assets();
+			}
 		}
 
 		/**

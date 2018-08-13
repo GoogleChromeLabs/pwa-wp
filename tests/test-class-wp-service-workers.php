@@ -195,6 +195,25 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test registering precached routes.
+	 *
+	 * @covers WP_Service_Workers::register_precached_routes()
+	 */
+	public function test_register_precached_routes() {
+		$routes = array(
+			array(
+				'url' => '/wp-admin/test-route',
+			),
+		);
+		wp_service_workers()->register_precached_routes( $routes );
+
+		$this->assertEquals( 1, count( wp_service_workers()->registered_precaching_routes ) );
+		$this->assertEquals( array(
+			'url' => '/wp-admin/test-route',
+		), wp_service_workers()->registered_precaching_routes[0] );
+	}
+
+	/**
 	 * Get some JS code.
 	 *
 	 * @return string JS example code.
