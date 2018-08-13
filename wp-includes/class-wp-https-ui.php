@@ -39,13 +39,6 @@ class WP_HTTPS_UI {
 	const HTTPS_SETTING_ID = 'wp_upgrade_https';
 
 	/**
-	 * The ID of the content settings section.
-	 *
-	 * @var string
-	 */
-	const CONTENT_SETTING_ID = 'wp_upgrade_insecure_content';
-
-	/**
 	 * Inits the class.
 	 */
 	public function init() {
@@ -85,17 +78,6 @@ class WP_HTTPS_UI {
 	public function upgrade_https_sanitize_callback( $raw_value ) {
 		unset( $raw_value );
 		return isset( $_POST[ self::UPGRADE_HTTPS_OPTION ] ); // WPCS: CSRF OK.
-	}
-
-	/**
-	 * Sanitization callback for the upgrade insecure content option.
-	 *
-	 * @param string $raw_value The value to sanitize.
-	 * @return bool Whether the option is true or false.
-	 */
-	public function upgrade_insecure_content_sanitize_callback( $raw_value ) {
-		unset( $raw_value );
-		return isset( $_POST[ self::UPGRADE_INSECURE_CONTENT_OPTION ] ); // WPCS: CSRF OK.
 	}
 
 	/**
@@ -249,7 +231,7 @@ class WP_HTTPS_UI {
 	 */
 	public function filter_header() {
 		$insecure_urls = get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME );
-		if ( ! empty( $insecure_urls['active'] ) ) {
+		if ( get_option( self::UPGRADE_HTTPS_OPTION ) && ! empty( $insecure_urls['active'] ) ) {
 			add_filter( 'wp_headers', array( $this, 'upgrade_insecure_requests' ) );
 		}
 	}
