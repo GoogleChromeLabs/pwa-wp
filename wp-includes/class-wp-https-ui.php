@@ -141,10 +141,21 @@ class WP_HTTPS_UI {
 			return;
 		}
 
-		$insecure_content_id = 'insecure-content';
-		$all_insecure_urls   = isset( $insecure_urls_option['active'], $insecure_urls_option['passive'] ) ? array_merge( $insecure_urls_option['active'], $insecure_urls_option['passive'] ) : array();
-		$total_urls_count    = count( $all_insecure_urls );
-		$description         = sprintf(
+		$insecure_content_id   = 'insecure-content';
+		$passive_insecure_urls = isset( $insecure_urls_option['passive'] ) ? $insecure_urls_option['passive'] : array();
+		$active_insecure_urls  = isset( $insecure_urls_option['active'] ) ? $insecure_urls_option['active'] : array();
+		$all_insecure_urls     = array_merge( $passive_insecure_urls, $active_insecure_urls );
+		$total_urls_count      = count( $all_insecure_urls );
+
+		/**
+		 * If there are no active insecure URLs, do not display the insecure URLs.
+		 * In that case, this won't upgrade insecure requests, and there's less of a reason to notify the user.
+		 */
+		if ( ! count( $active_insecure_urls ) ) {
+			return;
+		}
+
+		$description = sprintf(
 			/* translators: %1$d is the number of non-secure URLs, %1$s is a link for more details */
 			__( 'There are %1$d non-HTTPS URLs on your home page. They will be upgraded to HTTPS automatically, but you might check to be sure your page looks as expected. %2$s', 'pwa' ),
 			$total_urls_count,
@@ -165,7 +176,7 @@ class WP_HTTPS_UI {
 			<p style="margin-top: 20px;" class="description">
 				<?php echo wp_kses_post( $description ); ?>
 			</p>
-			<ul style="max-width: 400px; height: 220px; overflow-y: auto">
+			<ul style="max-width: 400px; max-height: 220px; overflow-y: auto">
 				<?php
 				for ( $i = 0; $i < $total_urls_count; $i++ ) :
 					if ( empty( $all_insecure_urls[ $i ] ) ) :
@@ -233,7 +244,7 @@ class WP_HTTPS_UI {
 	 * And there's no fallback.
 	 * But if there are active insecure URLs like for scripts, the browser already blocks them.
 	 * So they're failing already, and upgrading them at least gives them a chance.
-	 * This does not add the header if there is no or only passive insecure content like images.
+	 * This does not add the header if there is no or only passive insecure content like
 	 * Those are less of a security risk, and upgrading them to HTTPS might cause them to fail, with no fallback.
 	 *
 	 * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade-Insecure-Requests
