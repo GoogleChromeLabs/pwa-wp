@@ -98,23 +98,18 @@ class WP_HTTPS_Detection {
 	 * Makes a request to find whether HTTPS is supported, and stores the result in an option.
 	 * If the request is a WP_Error, don't update the option.
 	 */
-	public function update_option_https_support() {
-		$https_support = $this->check_https_support();
-		if ( is_bool( $https_support ) ) {
-			update_option( self::HTTPS_SUPPORT_OPTION_NAME, $https_support );
+	public function update_https_support_options() {
+		$https_support_response = $this->check_https_support();
+		if ( ! is_wp_error( $https_support_response ) ) {
+			update_option( self::HTTPS_SUPPORT_OPTION_NAME, 200 === wp_remote_retrieve_response_code( $https_support_response ) );
+			update_option( self::INSECURE_CONTENT_OPTION_NAME, $this->get_insecure_content( $https_support_response ) );
 		}
 	}
 
 	/**
 	 * Makes a request to the home URL to determine whether HTTPS is supported.
 	 *
-	 * To ensure the request is from the correct origin,
-	 * this passes a query var of a random number to the request.
-	 * Then, the 'parse_query' hook verify_https_check() looks for the query var.
-	 * If it's present, it calls wp_die() with a hash of the query var.
-	 * This method then ensures that the hash is present in the response body,
-	 *
-	 * @return boolean|WP_Error Whether HTTPS is supported, or a WP_Error.
+	 * @return array|WP_Error A response from a loopback request to the homepage.
 	 */
 	public function check_https_support() {
 		// Add an arbitrary query arg to prevent a cached response.
@@ -144,7 +139,7 @@ class WP_HTTPS_Detection {
 			);
 		}
 
-		return 200 === wp_remote_retrieve_response_code( $response );
+		return $response;
 	}
 
 	/**

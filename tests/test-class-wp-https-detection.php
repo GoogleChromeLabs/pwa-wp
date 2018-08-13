@@ -11,6 +11,13 @@
 class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 
 	/**
+	 * The response code for an unsucessful loopback request to an HTTPS URL.
+	 *
+	 * @var int
+	 */
+	const INCORRECT_RESPONSE_CODE = 301;
+
+	/**
 	 * Tested instance.
 	 *
 	 * @var WP_HTTPS_Detection
@@ -142,23 +149,23 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test update_option_https_support.
+	 * Test update_https_support_options.
 	 *
-	 * @covers WP_HTTPS_Detection::update_option_https_support()
+	 * @covers WP_HTTPS_Detection::update_https_support_options()
 	 */
-	public function test_update_option_https_support() {
-		$this->instance->update_option_https_support();
+	public function test_update_https_support_options() {
+		$this->instance->update_https_support_options();
 		$this->assertTrue( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
 
 		// There should be HTTPS support, as check_https_support() should return true.
 		add_filter( 'http_response', array( $this, 'mock_error_response' ) );
-		$this->instance->update_option_https_support();
+		$this->instance->update_https_support_options();
 		$this->assertTrue( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
 		remove_filter( 'http_response', array( $this, 'mock_error_response' ) );
 
 		// The response is a 301, so the option value should be false.
 		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
-		$this->instance->update_option_https_support();
+		$this->instance->update_https_support_options();
 		$this->assertFalse( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
 		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
 	}
@@ -169,16 +176,18 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_Detection::check_https_support()
 	 */
 	public function test_check_https_support() {
-		$this->assertTrue( $this->instance->check_https_support() );
+		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
+		$https_support = $this->instance->check_https_support();
+		$this->assertEquals(
+			array( 'code' => 200 ),
+			$https_support['response']
+		);
+		$this->assertContains( '<link rel="manifest"', $https_support['body'] );
 
-		// The response is a WP_Error.
-		add_filter( 'http_response', array( $this, 'mock_error_response' ) );
-		$this->assertTrue( is_wp_error( $this->instance->check_https_support() ) );
-		remove_filter( 'http_response', array( $this, 'mock_error_response' ) );
-
-		// The response should cause check_https_support() to be false.
+		// The response should have a code of 301.
 		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
-		$this->assertFalse( $this->instance->check_https_support() );
+		$https_support = $this->instance->check_https_support();
+		$this->assertEquals( array( 'code' => self::INCORRECT_RESPONSE_CODE ), $https_support['response'] );
 		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
 	}
 
@@ -242,7 +251,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @return WP_HTTP_Requests_Response $response The filtered response object.
 	 */
 	public function mock_incorrect_response( $response ) {
-		$response['response']['code'] = 301;
+		$response['response']['code'] = self::INCORRECT_RESPONSE_CODE;
 		return $response;
 	}
 
