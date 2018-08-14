@@ -1,12 +1,16 @@
 /* global OFFLINE_PAGE_URL */
-( () => {
+{
 
 	// Add custom offline / error response serving.
 	const networkFirstHandler = wp.serviceWorker.strategies.networkFirst( {
 		plugins: [
 			new wp.serviceWorker.cacheableResponse.Plugin( {
 				statuses: [200]
-			} )
+			} ),
+			{
+				// Prevent storing navigated pages in the cache; the offline page will be pre-cached.
+				cacheWillUpdate: () => { return null; }
+			}
 		],
 	} );
 
@@ -23,4 +27,4 @@
 	} );
 	wp.serviceWorker.WPRouter.registerRoute( matcher, handler );
 
-} )();
+}
