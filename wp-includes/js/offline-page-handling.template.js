@@ -1,30 +1,21 @@
-/* global OFFLINE_PAGE_URL */
-{
+/* global OFFLINE_PAGE_URL, ADMIN_URL_PATTERN */
 
-	// Add custom offline / error response serving.
-	const networkFirstHandler = wp.serviceWorker.strategies.networkFirst( {
-		plugins: [
-			new wp.serviceWorker.cacheableResponse.Plugin( {
-				statuses: [200]
-			} ),
-			{
-				// Prevent storing navigated pages in the cache; the offline page will be pre-cached.
-				cacheWillUpdate: () => { return null; }
-			}
-		],
-	} );
-
-	const matcher = ( {event} ) => event.request.mode === 'navigate';
-
-	const handler = (args) => networkFirstHandler.handle( args ).then( ( response ) => {
-		// In case of error. @todo Separate handling of error case to add more information about the error?
-		if ( response && ! response.ok ) {
-			return caches.match( OFFLINE_PAGE_URL );
-		} else {
-			// If no response, return offline page.
-			return ( ! response ) ? caches.match( OFFLINE_PAGE_URL ) : response;
-		}
-	} );
-	wp.serviceWorker.WPRouter.registerRoute( matcher, handler );
-
-}
+// @todo Should this use setDefaultHandler?
+wp.serviceWorker.WPRouter.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
+	( {event} ) => {
+		return fetch( event.request )
+			.then( ( response ) => {
+				// @todo Send response.status and response.statusText to client for display.
+				return response.ok ? response : caches.match( OFFLINE_PAGE_URL );
+			} )
+			.catch( ( error ) => {
+				// @todo Send error.message to the client for display.
+				return caches.match( OFFLINE_PAGE_URL ) || error;
+			} );
+	},
+	{
+		blacklist: [
+			new RegExp( ADMIN_URL_PATTERN )
+		]
+	}
+) );

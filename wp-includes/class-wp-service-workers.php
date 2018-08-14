@@ -171,6 +171,7 @@ class WP_Service_Workers extends WP_Scripts {
 			);
 		}
 
+		// @todo This needs to be added at the very end of the service worker so the navigation routing will apply after all others.
 		$this->register(
 			'offline-sw',
 			array( $this, 'get_offline_page_serving_script' ),
@@ -193,7 +194,8 @@ class WP_Service_Workers extends WP_Scripts {
 		}
 
 		$replacements = array(
-			'OFFLINE_PAGE_URL' => wp_json_encode( get_permalink( $offline_page ) ),
+			'OFFLINE_PAGE_URL'  => wp_json_encode( get_permalink( $offline_page ) ),
+			'ADMIN_URL_PATTERN' => wp_json_encode( '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)' ),
 		);
 
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/offline-page-handling.template.js' ); // phpcs:ignore
