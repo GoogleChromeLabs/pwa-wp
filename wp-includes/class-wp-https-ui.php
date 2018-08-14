@@ -89,13 +89,10 @@ class WP_HTTPS_UI {
 	 */
 	public function add_settings_field() {
 		/*
-		 * Todo: change ! get_option() to get_option, as this is only for development.
-		 * The WP_HTTPS_Detection doesn't work with my local SSL certificate, and always returns false.
-		 * Also, change $this->is_currently_https() to ! $this->is_currently_https().
-		 * This is also for development only.
-		 * This if block should only run if the site can use HTTPS, but the 'home' and 'siteurl' options aren't HTTPS.
+		 * Todo: add ! before $this->is_currently_https(), as this is only for development.
+		 * It allows developing this while the siteurl and home values are HTTPS.
 		 */
-		if ( $this->is_currently_https() && ! get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) ) {
+		if ( $this->is_currently_https() ) {
 			add_settings_field(
 				self::HTTPS_SETTING_ID,
 				__( 'HTTPS', 'pwa' ),
@@ -156,14 +153,8 @@ class WP_HTTPS_UI {
 		}
 
 		$description = sprintf(
-			/* translators: %1$d is the number of non-secure URLs, %1$s is a link for more details */
-			_n(
-				'There is %1$d non-HTTPS URL on your home page. It will be upgraded to HTTPS automatically, but you might check to be sure your page looks as expected. %2$s',
-				'There are %1$d non-HTTPS URLs on your home page. They will be upgraded to HTTPS automatically, but you might check to be sure your page looks as expected. %2$s',
-				$total_urls_count,
-				'pwa'
-			),
-			number_format_i18n( $total_urls_count ),
+			/* translators: %s is a link for more details */
+			__( 'We found content on your site that wasn&#39;t loading correctly over HTTPS. While we will try to fix these links automatically, you might check to be sure your pages work as expected. %s', 'pwa' ),
 			sprintf(
 				'<a href="%s">%s</a>',
 				__( 'https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content/How_to_fix_website_with_mixed_content', 'pwa' ),

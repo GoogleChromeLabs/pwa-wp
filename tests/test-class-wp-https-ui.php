@@ -164,7 +164,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->assertContains( WP_HTTPS_UI::OPTION_CHECKED_VALUE, $output );
 		$this->assertContains( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, $output );
 		$this->assertContains( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to HTTPS.', $output );
-		$this->assertContains( 'There are 2 non-HTTPS URLs on your home page.', $output );
+		$this->assertContains( 'While we will try to fix these links automatically, you might check to be sure your pages work as expected.', $output );
 		$this->assertContains( self::HTTP_URL, $output );
 		$this->assertNotContains( 'class="hidden"', $output );
 	}
