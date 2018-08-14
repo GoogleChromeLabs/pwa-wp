@@ -117,39 +117,7 @@ class WP_Service_Workers extends WP_Scripts {
 			array( 'workbox-sw' )
 		);
 
-		$offline_page_id = (int) get_option( WP_Offline_Page::OPTION_NAME, 0 );
-		if ( $offline_page_id ) {
-
-			// Cache parent and child theme assets at runtime.
-			$theme_asset_pattern = preg_quote( trailingslashit( get_stylesheet_directory_uri() ), '/' );
-			if ( get_template() !== get_stylesheet() ) {
-				$theme_asset_pattern .= '|' . preg_quote( trailingslashit( get_template_directory_uri() ), '/' );
-			}
-			$theme_asset_pattern = '^(' . $theme_asset_pattern . ').+';
-			$this->register_cached_route(
-				$theme_asset_pattern,
-				self::STRATEGY_STALE_WHILE_REVALIDATE
-			);
-
-			$this->register(
-				'offline-sw',
-				array( $this, 'configure_offline_page' ),
-				'workbox-sw'
-			);
-
-			// Register precaching for offline page route.
-			$offline_post         = get_post( $offline_page_id );
-			$content_asset_routes = $this->get_offline_post_image_routes( $offline_post );
-			$this->register_precached_routes( array_merge(
-				array(
-					array(
-						'url'      => $this->remove_url_scheme( get_the_permalink( $offline_page_id ) ),
-						'revision' => $offline_post->post_modified,
-					),
-				),
-				$content_asset_routes
-			) );
-		}
+		$this->add_offline_page_caching();
 
 		/**
 		 * Fires when the WP_Service_Workers instance is initialized.
@@ -160,15 +128,72 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Configure offline page based on the saved offline page value.
+	 * Get offline page.
+	 *
+	 * @return WP_Post|null Offline page if selected and published, or else null.
+	 */
+	protected function get_offline_page() {
+		$offline_page_id = (int) get_option( WP_Offline_Page::OPTION_NAME, 0 );
+		if ( ! $offline_page_id ) {
+			return null;
+		}
+		if ( 'publish' !== get_post_status( $offline_page_id ) ) {
+			return null;
+		}
+		return get_post( $offline_page_id );
+	}
+
+	/**
+	 * Add caching for the offline page.
+	 *
+	 * When an offline page has been selected and this page is published, add this offline page to the precache.
+	 * Also include the featured image that the offline page has associated with it, as well as any selected
+	 * background image and header image. Otherwise, enable runtime stale-while-revalidate caching of all other
+	 * theme assets so that they will be available on the offline page.
+	 *
+	 * @todo It may be unsafe to use staleWhileRevalidate caching here. It may be safer to do networkFirst, at least when SCRIPT_DEBUG is enabled.
+	 */
+	protected function add_offline_page_caching() {
+		$offline_page = $this->get_offline_page();
+		if ( ! $offline_page ) {
+			return;
+		}
+
+		// Cache parent and child theme assets at runtime.
+		$this->register_cached_route(
+			'^' . preg_quote( trailingslashit( get_stylesheet_directory_uri() ), '/' ) . '.+',
+			self::STRATEGY_STALE_WHILE_REVALIDATE
+		);
+		if ( get_template() !== get_stylesheet() ) {
+			$this->register_cached_route(
+				'^' . preg_quote( trailingslashit( get_template_directory_uri() ), '/' ) . '.+',
+				self::STRATEGY_STALE_WHILE_REVALIDATE
+			);
+		}
+
+		$this->register(
+			'offline-sw',
+			array( $this, 'get_offline_page_serving_script' ),
+			'workbox-sw'
+		);
+
+		// Register precaching for offline page route.
+		$this->register_precached_routes( $this->get_offline_page_precache_entries() );
+	}
+
+	/**
+	 * Get script for returning offline page in case of network or server error.
 	 *
 	 * @return string Script.
 	 */
-	protected function configure_offline_page() {
-		$offline_page_id = (int) get_option( WP_Offline_Page::OPTION_NAME, 0 );
+	protected function get_offline_page_serving_script() {
+		$offline_page = $this->get_offline_page();
+		if ( ! $offline_page ) {
+			return '';
+		}
 
 		$replacements = array(
-			'OFFLINE_PAGE_URL' => wp_json_encode( $this->remove_url_scheme( get_the_permalink( $offline_page_id ) ) ),
+			'OFFLINE_PAGE_URL' => wp_json_encode( get_permalink( $offline_page ) ),
 		);
 
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/offline-page-handling.template.js' ); // phpcs:ignore
@@ -181,32 +206,46 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Get routes for images found in the content of offline post and for the featured image.
+	 * Get the precache entries  for images found in the content of offline post and for the featured image.
 	 *
-	 * @param WP_Post $post Post object.
-	 * @return array Array of routes.
+	 * @return array Array of precache entries, including url and revision for each.
 	 */
-	protected function get_offline_post_image_routes( $post ) {
-		$routes = array();
-		preg_match_all( '/< *img[^>]*src *= *["\']?([^"\']*)/i', $post->post_content, $matches );
-		if ( isset( $matches[1] ) && ! empty( $matches[1] ) ) {
-			foreach ( $matches[1] as $src ) {
-				$routes[] = array(
-					'url'      => $this->remove_url_scheme( $src ),
-					'revision' => $post->post_modified,
+	protected function get_offline_page_precache_entries() {
+		$precache_entries = array();
+
+		$offline_page = $this->get_offline_page();
+		if ( ! $offline_page ) {
+			return $precache_entries;
+		}
+
+		$precache_entries[] = array(
+			'url'      => get_permalink( $offline_page ),
+			'revision' => $offline_page->post_modified_gmt,
+		);
+
+		$featured_image_id = get_post_thumbnail_id( $offline_page );
+		if ( $featured_image_id && get_post( $featured_image_id ) ) {
+			$featured_image_attachment = get_post( $featured_image_id );
+
+			$image_size = 'post-thumbnail';
+			$image_urls = array(
+				wp_get_attachment_image_url( $featured_image_attachment->ID, $image_size ),
+			);
+
+			// Extract image URLs from the srcset.
+			if ( preg_match_all( '#(?:^|\s)(https://\S+)#', (string) wp_get_attachment_image_srcset( $featured_image_attachment->ID, $image_size ), $matches ) ) {
+				$image_urls = array_merge( $image_urls, $matches[1] );
+			}
+
+			foreach ( array_unique( $image_urls ) as $image_url ) {
+				$precache_entries[] = array(
+					'url'      => $image_url,
+					'revision' => $featured_image_attachment->post_modified,
 				);
 			}
 		}
 
-		$featured_img_url = get_the_post_thumbnail_url( $post->ID );
-		if ( false !== $featured_img_url ) {
-			$routes[] = array(
-				'url'      => $this->remove_url_scheme( $featured_img_url ),
-				'revision' => $post->post_modified,
-			);
-		}
-
-		return $routes;
+		return $precache_entries;
 	}
 
 	/**
@@ -550,16 +589,6 @@ class WP_Service_Workers extends WP_Scripts {
 			@_doing_it_wrong( 'WP_Service_Workers::register', esc_html( $error ), '0.1' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged -- We want the error in the PHP log, but not in the JS output.
 			$this->output .= sprintf( "console.warn( %s );\n", wp_json_encode( $error ) );
 		}
-	}
-
-	/**
-	 * Remove URL scheme.
-	 *
-	 * @param string $schemed_url URL.
-	 * @return string URL.
-	 */
-	protected function remove_url_scheme( $schemed_url ) {
-		return preg_replace( '#^\w+:(?=//)#', '', $schemed_url );
 	}
 
 	/**
