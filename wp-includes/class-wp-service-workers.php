@@ -208,7 +208,22 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Get the precache entries  for images found in the content of offline post and for the featured image.
+	 * Get the URLs for a given attachment image and size.
+	 *
+	 * @param int          $attachment_id Attachment ID.
+	 * @param string|array $image_size    Image size.
+	 * @return array
+	 */
+	protected function get_attachment_image_urls( $attachment_id, $image_size ) {
+		if ( preg_match_all( '#(?:^|\s)(https://\S+)#', (string) wp_get_attachment_image_srcset( $attachment_id, $image_size ), $matches ) ) {
+			return $matches[1];
+		} else {
+			return array();
+		}
+	}
+
+	/**
+	 * Get the precache entries for the offline page and its featured image, as well as theme assets for custom header, background, and logo.
 	 *
 	 * @return array Array of precache entries, including url and revision for each.
 	 */
@@ -225,24 +240,61 @@ class WP_Service_Workers extends WP_Scripts {
 			'revision' => $offline_page->post_modified_gmt,
 		);
 
+		// Cache the offline page's featured image.
 		$featured_image_id = get_post_thumbnail_id( $offline_page );
 		if ( $featured_image_id && get_post( $featured_image_id ) ) {
-			$featured_image_attachment = get_post( $featured_image_id );
-
+			$attachment = get_post( $featured_image_id );
 			$image_size = 'post-thumbnail';
 			$image_urls = array(
-				wp_get_attachment_image_url( $featured_image_attachment->ID, $image_size ),
+				wp_get_attachment_image_url( $attachment->ID, $image_size ),
 			);
 
 			// Extract image URLs from the srcset.
-			if ( preg_match_all( '#(?:^|\s)(https://\S+)#', (string) wp_get_attachment_image_srcset( $featured_image_attachment->ID, $image_size ), $matches ) ) {
-				$image_urls = array_merge( $image_urls, $matches[1] );
-			}
+			$image_urls = array_merge( $image_urls, $this->get_attachment_image_urls( $attachment->ID, $image_size ) );
 
 			foreach ( array_unique( $image_urls ) as $image_url ) {
 				$precache_entries[] = array(
 					'url'      => $image_url,
-					'revision' => $featured_image_attachment->post_modified,
+					'revision' => $attachment->post_modified,
+				);
+			}
+		}
+
+		// Cache the theme's custom logo.
+		if ( current_theme_supports( 'custom-logo' ) && get_theme_mod( 'custom_logo' ) ) {
+			$attachment = get_post( get_theme_mod( 'custom_logo' ) );
+			$image_urls = $this->get_attachment_image_urls( $attachment->ID, 'full' );
+			$image_src  = wp_get_attachment_image_src( $attachment->ID, 'full' );
+			if ( $image_src ) {
+				$image_urls[] = $image_src[0];
+			}
+			foreach ( array_unique( $image_urls ) as $image_url ) {
+				$precache_entries[] = array(
+					'url'      => $image_url,
+					'revision' => $attachment->post_modified,
+				);
+			}
+		}
+
+		// Cache the theme's background image.
+		if ( current_theme_supports( 'custom-background' ) && get_background_image() ) {
+			$precache_entries[] = array(
+				// There is no attachment available, so we cannot obtain the modified date as the revision.
+				'url' => get_background_image(),
+			);
+		}
+
+		// Cache the theme's header image.
+		if ( current_theme_supports( 'custom-header' ) && get_custom_header() ) {
+			$header       = get_custom_header();
+			$attachment   = get_post( get_custom_header()->attachment_id );
+			$image_urls   = $this->get_attachment_image_urls( $attachment->ID, array( $header->width, $header->height ) );
+			$image_urls[] = get_header_image();
+
+			foreach ( array_unique( $image_urls ) as $image_url ) {
+				$precache_entries[] = array(
+					'url'      => $image_url,
+					'revision' => $attachment->post_modified,
 				);
 			}
 		}
