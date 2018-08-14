@@ -15,6 +15,12 @@
  * @see WP_Dependencies
  */
 class WP_Service_Workers extends WP_Scripts {
+	/**
+	 * Param for service workers.
+	 *
+	 * @var string
+	 */
+	const QUERY_VAR = 'wp_service_worker';
 
 	/**
 	 * Scope for front.
@@ -71,13 +77,6 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @var string
 	 */
 	const STRATEGY_NETWORK_ONLY = 'networkOnly';
-
-	/**
-	 * Param for service workers.
-	 *
-	 * @var string
-	 */
-	public $query_var = 'wp_service_worker';
 
 	/**
 	 * Output for service worker scope script.
