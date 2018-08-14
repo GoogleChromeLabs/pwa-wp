@@ -116,7 +116,9 @@ class WP_Service_Workers extends WP_Scripts {
 			array( 'workbox-sw' )
 		);
 
-		$this->add_offline_page_caching();
+		if ( self::SCOPE_FRONT === (int) get_query_var( self::QUERY_VAR ) ) {
+			$this->add_offline_page_caching();
+		}
 
 		/**
 		 * Fires when the WP_Service_Workers instance is initialized.
