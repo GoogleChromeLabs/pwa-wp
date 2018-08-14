@@ -120,8 +120,17 @@ class WP_Service_Workers extends WP_Scripts {
 		$offline_page_id = (int) get_option( WP_Offline_Page::OPTION_NAME, 0 );
 		if ( $offline_page_id ) {
 
-			// Cache relevant theme assets.
-			$this->register_cached_route( '/wp-content/.*\.(?:css|gif|png|jpg|jpeg)', self::STRATEGY_STALE_WHILE_REVALIDATE );
+			// Cache parent and child theme assets at runtime.
+			$theme_asset_pattern = preg_quote( trailingslashit( get_stylesheet_directory_uri() ), '/' );
+			if ( get_template() !== get_stylesheet() ) {
+				$theme_asset_pattern .= '|' . preg_quote( trailingslashit( get_template_directory_uri() ), '/' );
+			}
+			$theme_asset_pattern = '^(' . $theme_asset_pattern . ').+';
+			$this->register_cached_route(
+				$theme_asset_pattern,
+				self::STRATEGY_STALE_WHILE_REVALIDATE
+			);
+
 			$this->register(
 				'offline-sw',
 				array( $this, 'configure_offline_page' ),
