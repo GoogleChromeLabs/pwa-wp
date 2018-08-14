@@ -129,13 +129,21 @@ wp.serviceWorker = workbox;
 		}
 	}
 
-	// Init custom router.
-	wp.serviceWorker.WPRouter = new WPRouter();
+	wp.serviceWorker.WPRouter = WPRouter;
 
+	const publicAPI = Object.freeze({
+		RegExpRoute: wp.serviceWorker.routing.RegExpRoute,
+		Route: wp.serviceWorker.routing.Route,
+		Router: wp.serviceWorker.routing.Router,
+		NavigationRoute: wp.serviceWorker.routing.NavigationRoute
+	});
+
+	wp.serviceWorker.routing = Object.assign( new WPRouter(), publicAPI );
 }
 
+// @todo There is another 'fetch' handler being for DefaultRouter added in the workbox-routing module which will be unused since.
 self.addEventListener( 'fetch', event => {
-	const responsePromise = wp.serviceWorker.WPRouter.handleRequest( event );
+	const responsePromise = wp.serviceWorker.routing.handleRequest( event );
 	if ( responsePromise ) {
 		event.respondWith( responsePromise );
 	}

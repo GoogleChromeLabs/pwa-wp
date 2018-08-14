@@ -1,7 +1,7 @@
 /* global OFFLINE_PAGE_URL, ADMIN_URL_PATTERN */
 
 // @todo Should this use setDefaultHandler?
-wp.serviceWorker.WPRouter.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
+wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
 	( {event} ) => {
 		return fetch( event.request )
 			.then( ( response ) => {

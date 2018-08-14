@@ -468,7 +468,7 @@ class WP_Service_Workers extends WP_Scripts {
 		}
 
 		$script .= sprintf(
-			'wp.serviceWorker.WPRouter.registerRoute( new RegExp( %s ), wp.serviceWorker.strategies[ %s ]( strategyArgs ) );',
+			'wp.serviceWorker.routing.registerRoute( new RegExp( %s ), wp.serviceWorker.strategies[ %s ]( strategyArgs ) );',
 			wp_json_encode( $route ),
 			wp_json_encode( $strategy )
 		);
