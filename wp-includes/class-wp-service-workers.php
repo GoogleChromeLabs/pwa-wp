@@ -180,14 +180,24 @@ class WP_Service_Workers extends WP_Scripts {
 			return;
 		}
 
+		// The CSS and JS files are precached.
+		$runtime_cached_extensions = array(
+			'png',
+			'gif',
+			'jpeg',
+			'jpg',
+			'svg',
+			'woff',
+		);
+
 		// Cache parent and child theme assets at runtime.
 		$this->register_cached_route(
-			'^' . preg_quote( trailingslashit( get_stylesheet_directory_uri() ), '/' ) . '.+',
+			'^' . preg_quote( trailingslashit( get_stylesheet_directory_uri() ), '/' ) . '.+\.(' . implode( '|', $runtime_cached_extensions ) . ')',
 			self::STRATEGY_STALE_WHILE_REVALIDATE
 		);
 		if ( get_template() !== get_stylesheet() ) {
 			$this->register_cached_route(
-				'^' . preg_quote( trailingslashit( get_template_directory_uri() ), '/' ) . '.+',
+				'^' . preg_quote( trailingslashit( get_template_directory_uri() ), '/' ) . '.+\.(' . implode( '|', $runtime_cached_extensions ) . ')',
 				self::STRATEGY_STALE_WHILE_REVALIDATE
 			);
 		}
