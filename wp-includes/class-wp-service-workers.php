@@ -172,7 +172,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 * background image and header image. Otherwise, enable runtime stale-while-revalidate caching of all other
 	 * theme assets so that they will be available on the offline page.
 	 *
-	 * @todo It may be unsafe to use staleWhileRevalidate caching here. It may be safer to do networkFirst, at least when SCRIPT_DEBUG is enabled.
+	 * @todo It may be unsafe to use staleWhileRevalidate caching here. It is needed for caching background images in stylesheets. It may be safer to do networkFirst, at least when SCRIPT_DEBUG is enabled.
 	 */
 	protected function add_offline_page_caching() {
 		$offline_page = $this->get_offline_page();
@@ -316,6 +316,68 @@ class WP_Service_Workers extends WP_Scripts {
 				$precache_entries[] = array(
 					'url'      => $image_url,
 					'revision' => $attachment->post_modified,
+				);
+			}
+		}
+
+		// @todo Exclude external scripts and styles from precache?
+		wp_enqueue_scripts();
+
+		// Preload enqueued scripts.
+		wp_scripts()->all_deps( wp_scripts()->queue );
+		foreach ( wp_scripts()->to_do as $handle ) {
+			if ( ! isset( wp_scripts()->registered[ $handle ] ) ) {
+				continue;
+			}
+			$dependency = wp_scripts()->registered[ $handle ];
+
+			// Skip bundles.
+			if ( ! $dependency->src ) {
+				continue;
+			}
+
+			$src = $dependency->src;
+
+			if ( ! empty( $dependency->ver ) ) {
+				$src = add_query_arg( 'ver', $dependency->ver, $src );
+			}
+
+			/** This filter is documented in wp-includes/class.wp-scripts.php */
+			$src = apply_filters( 'script_loader_src', $src, $handle );
+
+			if ( $src ) {
+				$precache_entries[] = array(
+					'url'      => $src,
+					'revision' => $dependency->ver,
+				);
+			}
+		}
+
+		// Preload enqueued styles.
+		wp_styles()->all_deps( wp_styles()->queue );
+		foreach ( wp_styles()->to_do as $handle ) {
+			if ( ! isset( wp_styles()->registered[ $handle ] ) ) {
+				continue;
+			}
+			$dependency = wp_styles()->registered[ $handle ];
+
+			// Skip bundles.
+			if ( ! $dependency->src ) {
+				continue;
+			}
+
+			$src = $dependency->src;
+			if ( ! empty( $dependency->ver ) ) {
+				$src = add_query_arg( 'ver', $dependency->ver, $src );
+			}
+
+			/** This filter is documented in wp-includes/class.wp-styles.php */
+			$src = apply_filters( 'style_loader_src', $src, $handle );
+
+			if ( $src ) {
+				$precache_entries[] = array(
+					'url'      => $src,
+					'revision' => $dependency->ver,
 				);
 			}
 		}
@@ -471,6 +533,8 @@ class WP_Service_Workers extends WP_Scripts {
 		if ( empty( $routes_list ) ) {
 			return '';
 		}
+
+		// @todo We should not do precacheAndRoute here. We should just call precache. Otherwise then use staleWhileRevalidate.
 		return sprintf( "wp.serviceWorker.precaching.precacheAndRoute( %s );\n", wp_json_encode( $routes_list ) );
 	}
 
