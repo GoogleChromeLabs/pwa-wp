@@ -221,6 +221,14 @@ class WP_HTTPS_UI {
 			})( jQuery );
 		</script>
 		<style>
+			.insecure-urls,
+			button.view-urls {
+				margin-left: 5px;
+			}
+			.insecure-urls li {
+				padding: 4px 0;
+				margin-bottom: 0;
+			}
 			.insecure-urls li:nth-child(odd) {
 				background: rgba(255,255,255,0.6);
 			}
