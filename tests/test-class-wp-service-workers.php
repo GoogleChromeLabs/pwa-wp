@@ -23,10 +23,11 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	 * @inheritdoc
 	 */
 	public function setUp() {
-		global $wp_actions, $wp_default_service_workers;
+		global $wp_actions, $wp_service_workers;
 		parent::setUp();
-		unset( $wp_default_service_workers );
 		unset( $wp_actions['wp_default_service_workers'] );
+		$wp_service_workers = null;
+
 		$this->instance = wp_service_workers();
 	}
 

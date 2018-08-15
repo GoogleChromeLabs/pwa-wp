@@ -44,6 +44,9 @@ require PWA_PLUGIN_DIR . '/wp-includes/service-workers.php';
 /** Amend default filters */
 require PWA_PLUGIN_DIR . '/wp-includes/default-filters.php';
 
+/** Functions to add to query.php file. */
+require PWA_PLUGIN_DIR . '/wp-includes/query.php';
+
 $wp_web_app_manifest = new WP_Web_App_Manifest();
 $wp_web_app_manifest->init();
 $wp_https_detection = new WP_HTTPS_Detection();
