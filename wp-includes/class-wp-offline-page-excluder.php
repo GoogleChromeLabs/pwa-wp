@@ -58,6 +58,10 @@ class WP_Offline_Page_Excluder {
 	 * @param WP_Query $query The WP_Query instance.
 	 */
 	public function exclude_from_query( WP_Query $query ) {
+
+		// This could be could be defined in WP_Query class instead if merging to core.
+		$query->is_offline = $this->is_offline_page_query( $query );
+
 		if ( ! $this->is_okay_to_exclude( $query ) ) {
 			return;
 		}
