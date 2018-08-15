@@ -170,6 +170,25 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test get_truncated_url.
+	 *
+	 * @covers WP_HTTPS_UI::get_truncated_url()
+	 */
+	public function test_get_truncated_url() {
+		// When a URL is under the maximum character length, this method shouldn't alter it.
+		$short_url = 'http://example.com/foo-bar';
+		$this->assertEquals( $short_url, $this->instance->get_truncated_url( $short_url ) );
+
+		// This URL shouldn't be altered, as it's still not over the limit.
+		$url_at_limit_but_not_above = 'http://example.com/foo-passive/foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-';
+		$this->assertEquals( $url_at_limit_but_not_above, $this->instance->get_truncated_url( $url_at_limit_but_not_above ) );
+
+		// The URL is over the limit, so this should truncate it and add the ellipsis.
+		$url_over_limit = $url_at_limit_but_not_above . 'baz';
+		$this->assertEquals( $url_at_limit_but_not_above . '&hellip;', $this->instance->get_truncated_url( $url_over_limit ) );
+	}
+
+	/**
 	 * Test is_currently_https.
 	 *
 	 * @covers WP_HTTPS_UI::is_currently_https()

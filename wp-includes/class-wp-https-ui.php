@@ -46,6 +46,13 @@ class WP_HTTPS_UI {
 	const NUMBER_INITIAL_URLS = 5;
 
 	/**
+	 * The max character length of the URL, after which it will be truncated with an ellipsis.
+	 *
+	 * @var int
+	 */
+	const MAX_URL_LENGTH = 75;
+
+	/**
 	 * Inits the class.
 	 */
 	public function init() {
@@ -192,15 +199,20 @@ class WP_HTTPS_UI {
 					if ( ! isset( $all_insecure_urls[ $i ] ) ) :
 						break;
 					endif;
+
+					$url           = $all_insecure_urls[ $i ];
+					$truncated_url = $this->get_truncated_url( $url );
 					?>
-					<li><a href="<?php echo esc_attr( $all_insecure_urls[ $i ] ); ?>"><?php echo esc_html( $all_insecure_urls[ $i ] ); ?></a></li>
+					<li><a href="<?php echo esc_attr( $url ); ?>"><?php echo esc_html( $truncated_url ); ?></a></li>
 				<?php endfor; ?>
 			</ul>
 			<ul class="<?php echo esc_attr( $insecure_urls_class ); ?> hidden">
 				<?php
 				for ( $i = self::NUMBER_INITIAL_URLS; $i < $total_urls_count; $i++ ) :
+					$url           = $all_insecure_urls[ $i ];
+					$truncated_url = $this->get_truncated_url( $url );
 					?>
-					<li><a href="<?php echo esc_attr( $all_insecure_urls[ $i ] ); ?>"><?php echo esc_html( $all_insecure_urls[ $i ] ); ?></a></li>
+					<li><a href="<?php echo esc_attr( $url ); ?>"><?php echo esc_html( $truncated_url ); ?></a></li>
 				<?php endfor; ?>
 			</ul>
 			<?php if ( $total_urls_count > self::NUMBER_INITIAL_URLS ) : ?>
@@ -234,6 +246,20 @@ class WP_HTTPS_UI {
 			}
 		</style>
 		<?php
+	}
+
+	/**
+	 * Gets the URL, which is truncated with an ellipsis if it goes over the maximum character length.
+	 *
+	 * @param string $url URL The URL to truncate.
+	 * @return string $url The processed URL.
+	 */
+	public function get_truncated_url( $url ) {
+		if ( strlen( $url ) <= self::MAX_URL_LENGTH ) {
+			return $url;
+		} else {
+			return substr( $url, 0, self::MAX_URL_LENGTH ) . '&hellip;';
+		}
 	}
 
 	/**
