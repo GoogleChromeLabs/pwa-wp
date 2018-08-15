@@ -155,8 +155,9 @@ function wp_add_service_worker_query_var( $query_vars ) {
  * @see rest_api_loaded()
  */
 function wp_service_worker_loaded() {
-	if ( isset( $GLOBALS['wp']->query_vars[ WP_Service_Workers::QUERY_VAR ] ) ) {
-		wp_service_workers()->serve_request( intval( $GLOBALS['wp']->query_vars[ WP_Service_Workers::QUERY_VAR ] ) );
+	$scope = wp_service_workers()->get_current_scope();
+	if ( 0 !== $scope ) {
+		wp_service_workers()->serve_request( $scope );
 		exit;
 	}
 }

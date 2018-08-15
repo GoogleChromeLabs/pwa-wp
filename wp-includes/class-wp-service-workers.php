@@ -116,7 +116,7 @@ class WP_Service_Workers extends WP_Scripts {
 			array( 'workbox-sw' )
 		);
 
-		if ( self::SCOPE_FRONT === (int) get_query_var( self::QUERY_VAR ) ) {
+		if ( self::SCOPE_FRONT === $this->get_current_scope() ) {
 			$this->add_offline_page_caching();
 		}
 
@@ -126,6 +126,26 @@ class WP_Service_Workers extends WP_Scripts {
 		 * @param WP_Service_Workers $this WP_Service_Workers instance (passed by reference).
 		 */
 		do_action_ref_array( 'wp_default_service_workers', array( &$this ) );
+	}
+
+	/**
+	 * Get the current scope for the service worker request.
+	 *
+	 * @return int Scope. Either SCOPE_FRONT, SCOPE_ADMIN, or if neither then 0.
+	 * @global WP $wp
+	 */
+	public function get_current_scope() {
+		global $wp;
+		if ( ! isset( $wp->query_vars[ self::QUERY_VAR ] ) || ! is_numeric( $wp->query_vars[ self::QUERY_VAR ] ) ) {
+			return 0;
+		}
+		$scope = (int) $wp->query_vars[ self::QUERY_VAR ];
+		if ( self::SCOPE_FRONT === $scope ) {
+			return self::SCOPE_FRONT;
+		} elseif ( self::SCOPE_ADMIN === $scope ) {
+			return self::SCOPE_ADMIN;
+		}
+		return 0;
 	}
 
 	/**
@@ -547,6 +567,7 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Get service worker logic for scope.
 	 *
+	 * @todo This could do an action to register_service_workers with the supplied $scope.
 	 * @see wp_service_worker_loaded()
 	 * @param int $scope Scope of the Service Worker.
 	 */
