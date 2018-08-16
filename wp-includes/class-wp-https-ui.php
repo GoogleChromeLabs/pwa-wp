@@ -139,13 +139,13 @@ class WP_HTTPS_UI {
 			<?php
 			echo wp_kses_post( sprintf(
 				/* translators: %s: a link for more details */
-				__( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to HTTPS. %s', 'pwa' ),
+				__( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to it. %s', 'pwa' ),
 				$https_more_details
 			) );
 			?>
 		</p>
 		<p>
-			<label><input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_https_value ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>"><?php esc_html_e( 'HTTPS Upgrade', 'pwa' ); ?></label>
+			<label><input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_https_value ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>"><?php esc_html_e( 'Upgrade to secure connection', 'pwa' ); ?></label>
 		</p>
 		<?php
 
