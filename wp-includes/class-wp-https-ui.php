@@ -159,13 +159,13 @@ class WP_HTTPS_UI {
 			return;
 		}
 
-		$insecure_content_id    = 'insecure-content';
-		$view_urls_button_class = 'view-urls';
-		$insecure_urls_class    = 'insecure-urls';
-		$passive_insecure_urls  = isset( $insecure_urls_option['passive'] ) ? $insecure_urls_option['passive'] : array();
-		$active_insecure_urls   = isset( $insecure_urls_option['active'] ) ? $insecure_urls_option['active'] : array();
-		$all_insecure_urls      = array_merge( $passive_insecure_urls, $active_insecure_urls );
-		$total_urls_count       = count( $all_insecure_urls );
+		$insecure_content_id   = 'insecure-content';
+		$show_more_button_id   = 'view-urls';
+		$insecure_urls_class   = 'insecure-urls';
+		$passive_insecure_urls = isset( $insecure_urls_option['passive'] ) ? $insecure_urls_option['passive'] : array();
+		$active_insecure_urls  = isset( $insecure_urls_option['active'] ) ? $insecure_urls_option['active'] : array();
+		$all_insecure_urls     = array_merge( $passive_insecure_urls, $active_insecure_urls );
+		$total_urls_count      = count( $all_insecure_urls );
 
 		/**
 		 * If there are no active insecure URLs, do not display the insecure URLs.
@@ -192,7 +192,7 @@ class WP_HTTPS_UI {
 		 */
 		?>
 		<div id="<?php echo esc_attr( $insecure_content_id ); ?>" <?php echo ! $upgrade_https_value ? 'class="hidden"' : ''; ?>>
-			<p style="margin-top: 20px;" class="description">
+			<p style="margin: 20px 0;" class="description">
 				<?php echo wp_kses_post( $description ); ?>
 			</p>
 			<ul class="<?php echo esc_attr( $insecure_urls_class ); ?>">
@@ -226,7 +226,7 @@ class WP_HTTPS_UI {
 				</ul>
 			<?php endwhile; ?>
 			<?php if ( $total_urls_count > self::NUMBER_INITIAL_URLS ) : ?>
-				<button class="button button-secondary <?php echo esc_attr( $view_urls_button_class ); ?>"><?php echo esc_html_e( 'Show more', 'pwa' ); ?></button>
+				<button id="<?php echo esc_attr( $show_more_button_id ); ?>" class="button button-secondary"><?php esc_html_e( 'Show more', 'pwa' ); ?></button>
 			<?php endif; ?>
 		</div>
 		<script>
@@ -237,7 +237,7 @@ class WP_HTTPS_UI {
 					$( '#<?php echo esc_attr( $insecure_content_id ); ?>' ).toggleClass( 'hidden' );
 				} );
 
-				$( 'button.<?php echo esc_attr( $view_urls_button_class ); ?>' ).on( 'click', function( event ) {
+				$( '#<?php echo esc_attr( $show_more_button_id ); ?>' ).on( 'click', function( event ) {
 					event.preventDefault();
 					$( '.<?php echo esc_attr( $insecure_urls_class ); ?>.hidden' ).first().removeClass( 'hidden' );
 
@@ -252,16 +252,21 @@ class WP_HTTPS_UI {
 			})( jQuery );
 		</script>
 		<style>
-			.insecure-urls,
-			button.view-urls {
-				margin-left: 5px;
+			.insecure-urls {
+				margin: 0 0 0 5px;
 			}
+
 			.insecure-urls li {
 				padding: 4px 0;
 				margin-bottom: 0;
 			}
+
 			.insecure-urls li:nth-child(odd) {
 				background: rgba(255,255,255,0.6);
+			}
+
+			#view-urls {
+				margin-top: 10px;
 			}
 		</style>
 		<?php
