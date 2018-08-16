@@ -116,6 +116,7 @@ class WP_Service_Workers extends WP_Scripts {
 			array( 'workbox-sw' )
 		);
 
+		// @todo Move to WP_Offline_Page.
 		if ( self::SCOPE_FRONT === $this->get_current_scope() ) {
 			$this->add_offline_page_caching();
 		}
@@ -149,22 +150,6 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Get offline page.
-	 *
-	 * @return WP_Post|null Offline page if selected and published, or else null.
-	 */
-	protected function get_offline_page() {
-		$offline_page_id = (int) get_option( WP_Offline_Page::OPTION_NAME, 0 );
-		if ( ! $offline_page_id ) {
-			return null;
-		}
-		if ( 'publish' !== get_post_status( $offline_page_id ) ) {
-			return null;
-		}
-		return get_post( $offline_page_id );
-	}
-
-	/**
 	 * Add caching for the offline page.
 	 *
 	 * When an offline page has been selected and this page is published, add this offline page to the precache.
@@ -172,10 +157,11 @@ class WP_Service_Workers extends WP_Scripts {
 	 * background image and header image. Otherwise, enable runtime stale-while-revalidate caching of all other
 	 * theme assets so that they will be available on the offline page.
 	 *
+	 * @todo Move to WP_Offline_Page.
 	 * @todo It may be unsafe to use staleWhileRevalidate caching here. It is needed for caching background images in stylesheets. It may be safer to do networkFirst, at least when SCRIPT_DEBUG is enabled.
 	 */
 	protected function add_offline_page_caching() {
-		$offline_page = $this->get_offline_page();
+		$offline_page = null; // @todo
 		if ( ! $offline_page ) {
 			return;
 		}
@@ -216,6 +202,7 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Get script for returning offline page in case of network or server error.
 	 *
+	 * @todo Move to WP_Offline_Page.
 	 * @return string Script.
 	 */
 	protected function get_offline_page_serving_script() {
@@ -256,6 +243,7 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Get the precache entries for the offline page and its featured image, as well as theme assets for custom header, background, and logo.
 	 *
+	 * @todo Move to WP_Offline_Page.
 	 * @return array Array of precache entries, including url and revision for each.
 	 */
 	protected function get_offline_page_precache_entries() {
