@@ -220,16 +220,21 @@ class WP_HTTPS_UI {
 			<?php endif; ?>
 		</div>
 		<script>
-			// On checking 'HTTPS Upgrade,' toggle the display of the insecure URLs, as they don't apply unless it's checked.
+
 			(function ( $ ) {
+				// On checking 'HTTPS Upgrade,' toggle the display of the insecure URLs, as they don't apply unless it's checked.
 				$( 'input[type=checkbox][name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>"]' ).on( 'change', function() {
 					$( '#<?php echo esc_attr( $insecure_content_id ); ?>' ).toggleClass( 'hidden' );
 				} );
+
 				$( 'button.<?php echo esc_attr( $view_urls_button_class ); ?>' ).on( 'click', function( event ) {
 					event.preventDefault();
 					$( '.<?php echo esc_attr( $insecure_urls_class ); ?>.hidden' ).removeClass( 'hidden' );
 					$( this ).addClass( 'hidden' );
 				} );
+
+				// Move this UI under the Site Address (URL) <tr> on the General Settings page.
+				$( '#<?php echo esc_attr( $insecure_content_id ); ?>' ).parents( 'tr' ).insertAfter( $( 'label[for=home]' ).parents( 'tr') );
 			})( jQuery );
 		</script>
 		<style>
