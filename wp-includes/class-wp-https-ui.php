@@ -41,9 +41,16 @@ class WP_HTTPS_UI {
 	/**
 	 * The number of URLs that show initially.
 	 *
+	 * @var int
+	 */
+	const NUMBER_INITIAL_URLS = 4;
+
+	/**
+	 * The number of URLs in each <ul>, which display on clicking 'Show more'.
+	 *
 	 * @var string
 	 */
-	const NUMBER_INITIAL_URLS = 5;
+	const NUMBER_URLS_IN_EACH_UL = 10;
 
 	/**
 	 * The max character length of the URL, after which it will be truncated with an ellipsis.
@@ -159,11 +166,6 @@ class WP_HTTPS_UI {
 		$active_insecure_urls   = isset( $insecure_urls_option['active'] ) ? $insecure_urls_option['active'] : array();
 		$all_insecure_urls      = array_merge( $passive_insecure_urls, $active_insecure_urls );
 		$total_urls_count       = count( $all_insecure_urls );
-		$view_all_urls_text     = sprintf(
-			/* translators: %d is the number of URLs */
-			__( 'View all %d URLs', 'pwa' ),
-			$total_urls_count
-		);
 
 		/**
 		 * If there are no active insecure URLs, do not display the insecure URLs.
@@ -206,17 +208,25 @@ class WP_HTTPS_UI {
 					<li><a href="<?php echo esc_attr( $url ); ?>"><?php echo esc_html( $truncated_url ); ?></a></li>
 				<?php endfor; ?>
 			</ul>
-			<ul class="<?php echo esc_attr( $insecure_urls_class ); ?> hidden">
-				<?php
-				for ( $i = self::NUMBER_INITIAL_URLS; $i < $total_urls_count; $i++ ) :
-					$url           = $all_insecure_urls[ $i ];
-					$truncated_url = $this->get_truncated_url( $url );
-					?>
-					<li><a href="<?php echo esc_attr( $url ); ?>"><?php echo esc_html( $truncated_url ); ?></a></li>
-				<?php endfor; ?>
-			</ul>
+			<?php
+			// Output the <ul> elements that display on clicking 'Show more'.
+			while ( isset( $all_insecure_urls[ $i ] ) ) :
+				?>
+				<ul class="<?php echo esc_attr( $insecure_urls_class ); ?> hidden">
+					<?php
+					for ( $j = 0; $j < self::NUMBER_URLS_IN_EACH_UL; $j++ ) :
+						if ( ! isset( $all_insecure_urls[ $i ] ) ) {
+							break;
+						}
+						$url           = $all_insecure_urls[ $i++ ];
+						$truncated_url = $this->get_truncated_url( $url );
+						?>
+						<li><a href="<?php echo esc_attr( $url ); ?>"><?php echo esc_html( $truncated_url ); ?></a></li>
+					<?php endfor; ?>
+				</ul>
+			<?php endwhile; ?>
 			<?php if ( $total_urls_count > self::NUMBER_INITIAL_URLS ) : ?>
-				<button class="button button-secondary <?php echo esc_attr( $view_urls_button_class ); ?>"><?php echo esc_html( $view_all_urls_text ); ?></button>
+				<button class="button button-secondary <?php echo esc_attr( $view_urls_button_class ); ?>"><?php echo esc_html_e( 'Show more', 'pwa' ); ?></button>
 			<?php endif; ?>
 		</div>
 		<script>
@@ -229,8 +239,12 @@ class WP_HTTPS_UI {
 
 				$( 'button.<?php echo esc_attr( $view_urls_button_class ); ?>' ).on( 'click', function( event ) {
 					event.preventDefault();
-					$( '.<?php echo esc_attr( $insecure_urls_class ); ?>.hidden' ).removeClass( 'hidden' );
-					$( this ).addClass( 'hidden' );
+					$( '.<?php echo esc_attr( $insecure_urls_class ); ?>.hidden' ).first().removeClass( 'hidden' );
+
+					// If there are no more insecure URLs that are hidden, hide the 'Show more' button.
+					if ( ! $( '.<?php echo esc_attr( $insecure_urls_class ); ?>.hidden' ).length ) {
+						$( this ).addClass( 'hidden' );
+					}
 				} );
 
 				// Move this UI under the Site Address (URL) <tr> on the General Settings page.
