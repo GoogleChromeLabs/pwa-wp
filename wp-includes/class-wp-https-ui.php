@@ -167,11 +167,8 @@ class WP_HTTPS_UI {
 		$all_insecure_urls     = array_merge( $passive_insecure_urls, $active_insecure_urls );
 		$total_urls_count      = count( $all_insecure_urls );
 
-		/**
-		 * If there are no active insecure URLs, do not display the insecure URLs.
-		 * In that case, this won't upgrade insecure requests, and there's less of a reason to notify the user.
-		 */
-		if ( ! count( $active_insecure_urls ) ) {
+		// If there are no insecure URLs, do not display URLs.
+		if ( ! count( $all_insecure_urls ) ) {
 			return;
 		}
 
