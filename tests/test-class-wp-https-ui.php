@@ -278,37 +278,21 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_UI::filter_header()
 	 */
 	public function test_filter_header() {
-		// If there is no insecure content at all, this should not add the filter.
-		update_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME, '' );
+		// If the option to upgrade to HTTPS is not true, this should not add the filter.
+		update_option( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, '' );
 		$this->instance->filter_header();
 		$this->assertFalse( has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
 
-		// If there is only passive insecure content, this should not add the filter.
-		update_option(
-			WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME,
-			array(
-				'passive' => array( self::HTTP_URL ),
-			)
-		);
-		$this->instance->filter_header();
-		$this->assertFalse( has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
-
-		// If there is active insecure content, but the option to upgrade to HTTPS isn't true, this should not add the filter.
-		update_option(
-			WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME,
-			array(
-				'active' => array(
-					'http://example.com/active-foo',
-				),
-			)
-		);
-		$this->instance->filter_header();
-		$this->assertNotEquals( 10, has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
-
-		// If there is active insecure content and the option to upgrade to HTTPS is true, this should add the filter.
+		// If the option to upgrade to HTTPS is true, this should add the filter.
 		update_option( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, true );
 		$this->instance->filter_header();
 		$this->assertEquals( 10, has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
+		remove_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) );
+
+		// If the siteurl and home use HTTPS, this should not add the filter, as this site already uses HTTPS.
+		add_filter( 'option_siteurl', array( $this->instance, 'convert_to_https' ), 11 );
+		add_filter( 'option_home', array( $this->instance, 'convert_to_https' ), 11 );
+		$this->assertFalse( has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
 	}
 
 	/**

@@ -338,8 +338,7 @@ class WP_HTTPS_UI {
 	 * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade-Insecure-Requests
 	 */
 	public function filter_header() {
-		$insecure_urls = get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME );
-		if ( ! empty( $insecure_urls['active'] ) && get_option( self::UPGRADE_HTTPS_OPTION ) && ! $this->is_currently_https() ) {
+		if ( get_option( self::UPGRADE_HTTPS_OPTION ) && ! $this->is_currently_https() ) {
 			add_filter( 'wp_headers', array( $this, 'upgrade_insecure_requests' ) );
 		}
 	}
