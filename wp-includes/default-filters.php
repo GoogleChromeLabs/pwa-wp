@@ -12,4 +12,5 @@ foreach ( array( 'wp_print_scripts', 'admin_print_scripts', 'customize_controls_
 
 add_action( 'parse_request', 'wp_service_worker_loaded' );
 
-add_filter( 'query_vars', 'wp_add_service_worker_query_var' );
+add_action( 'wp_head', 'wp_add_error_template_no_robots' );
+add_action( 'error_head', 'wp_add_error_template_no_robots' );

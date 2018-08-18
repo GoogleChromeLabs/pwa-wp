@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains the offline (and 500) header template
+ * Contains the error (offline and 500) header template
  *
  * When the site cannot be reached because it is offline or the user is offline, this file is used to
  * create the header output if the active theme does not include a header-offline.php template.
@@ -19,11 +19,11 @@
 
 	<?php
 	/**
-	 * Prints scripts or data in the offline template <head> tag.
+	 * Prints scripts or data in the error template <head> tag.
 	 *
 	 * @since 0.2
 	 */
-	do_action( 'offline_head' );
+	do_action( 'error_head' );
 	?>
 </head>
 <body <?php body_class(); ?>>

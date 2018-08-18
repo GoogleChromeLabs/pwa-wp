@@ -137,18 +137,6 @@ function wp_print_service_workers() {
 }
 
 /**
- * Register query var.
- *
- * @since 0.1
- * @param array $query_vars Query vars.
- * @return array Query vars.
- */
-function wp_add_service_worker_query_var( $query_vars ) {
-	$query_vars[] = WP_Service_Workers::QUERY_VAR;
-	return $query_vars;
-}
-
-/**
  * If it's a service worker script page, display that.
  *
  * @since 0.1
