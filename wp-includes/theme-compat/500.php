@@ -16,7 +16,7 @@ pwa_get_header( 'error' );
 ?>
 <main>
 	<h1><?php esc_html_e( 'Oops! Something went wrong.', 'pwa' ); ?></h1>
-	<p><?php esc_html_e( 'Something prevented . Please try again.', 'pwa' ); ?></p>
+	<p><?php esc_html_e( 'Something prevented the page from being rendered. Please try again.', 'pwa' ); ?></p>
 </main>
 <?php
 
