@@ -1,2 +1,2 @@
 wp-includes/js/service-worker.js
-wp-includes/js/offline-page-handling.template.js
+wp-includes/js/service-worker-error-response-handling.js

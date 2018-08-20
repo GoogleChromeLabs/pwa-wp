@@ -116,10 +116,13 @@ class WP_Service_Workers extends WP_Scripts {
 			array( 'workbox-sw' )
 		);
 
-		// @todo Move to WP_Offline_Page.
-		if ( self::SCOPE_FRONT === $this->get_current_scope() ) {
-			$this->add_offline_page_caching();
-		}
+		// @todo Add precache as a default script?
+		// @todo This needs to be added at the very end of the service worker so the navigation routing will apply after all others.
+		$this->register(
+			'error-response-handling',
+			array( $this, 'get_error_response_handling_script' ),
+			array( 'workbox-sw' )
+		);
 
 		/**
 		 * Fires when the WP_Service_Workers instance is initialized.
@@ -150,237 +153,100 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Add caching for the offline page.
+	 * Get script for handling of error responses when the user is offline or when there is an internal server error.
 	 *
-	 * When an offline page has been selected and this page is published, add this offline page to the precache.
-	 * Also include the featured image that the offline page has associated with it, as well as any selected
-	 * background image and header image. Otherwise, enable runtime stale-while-revalidate caching of all other
-	 * theme assets so that they will be available on the offline page.
-	 *
-	 * @todo Move to WP_Offline_Page.
-	 * @todo It may be unsafe to use staleWhileRevalidate caching here. It is needed for caching background images in stylesheets. It may be safer to do networkFirst, at least when SCRIPT_DEBUG is enabled.
+	 * @return string Script.
 	 */
-	protected function add_offline_page_caching() {
-		$offline_page = null; // @todo
-		if ( ! $offline_page ) {
-			return;
+	public function get_error_response_handling_script() {
+
+		$revision = sprintf( '%s-v%s', get_template(), wp_get_theme( get_template() )->Version );
+		if ( get_template() !== get_stylesheet() ) {
+			$revision .= sprintf( ';%s-v%s', get_stylesheet(), wp_get_theme( get_stylesheet() )->Version );
 		}
 
-		// The CSS and JS files are precached.
-		$runtime_cached_extensions = array(
-			'png',
-			'gif',
-			'jpeg',
-			'jpg',
-			'svg',
-			'woff',
-		);
+		$scope = $this->get_current_scope();
+		if ( self::SCOPE_FRONT === $scope ) {
+			$offline_error_precache_entry = array(
+				'url'      => add_query_arg( 'wp_error_template', 'offline', home_url( '/' ) ),
+				'revision' => $revision,
+			);
+			$server_error_precache_entry  = array(
+				'url'      => add_query_arg( 'wp_error_template', '500', home_url( '/' ) ),
+				'revision' => $revision,
+			);
 
-		// Cache parent and child theme assets at runtime.
-		$this->register_cached_route(
-			'^' . preg_quote( trailingslashit( get_stylesheet_directory_uri() ), '/' ) . '.+\.(' . implode( '|', $runtime_cached_extensions ) . ')',
-			self::STRATEGY_STALE_WHILE_REVALIDATE
-		);
-		if ( get_template() !== get_stylesheet() ) {
-			$this->register_cached_route(
-				'^' . preg_quote( trailingslashit( get_template_directory_uri() ), '/' ) . '.+\.(' . implode( '|', $runtime_cached_extensions ) . ')',
-				self::STRATEGY_STALE_WHILE_REVALIDATE
+			/**
+			 * Filters what is precached to serve as the offline error response on the frontend.
+			 *
+			 * The URL returned in this array will be precached by the service worker and served as the response when
+			 * the client is offline or their connection fails. To prevent this behavior, this value can be filtered
+			 * to return false. When a theme or plugin makes a change to the response, the revision value in the array
+			 * must be incremented to ensure the URL is re-fetched to store in the precache.
+			 *
+			 * @since 0.2
+			 *
+			 * @param array|false $entry {
+			 *     Offline error precache entry.
+			 *
+			 *     @type string $url      URL to page that shows the offline error template.
+			 *     @type string $revision Revision for the template. This defaults to the template and stylesheet names, with their respective theme versions.
+			 * }
+			 */
+			$offline_error_precache_entry = apply_filters( 'wp_offline_error_precache_entry', $offline_error_precache_entry );
+
+			/**
+			 * Filters what is precached to serve as the internal server error response on the frontend.
+			 *
+			 * The URL returned in this array will be precached by the service worker and served as the response when
+			 * the server returns a 500 internal server error . To prevent this behavior, this value can be filtered
+			 * to return false. When a theme or plugin makes a change to the response, the revision value in the array
+			 * must be incremented to ensure the URL is re-fetched to store in the precache.
+			 *
+			 * @since 0.2
+			 *
+			 * @param array $entry {
+			 *     Server error precache entry.
+			 *
+			 *     @type string $url      URL to page that shows the server error template.
+			 *     @type string $revision Revision for the template. This defaults to the template and stylesheet names, with their respective theme versions.
+			 * }
+			 */
+			$server_error_precache_entry = apply_filters( 'wp_server_error_precache_entry', $server_error_precache_entry );
+
+		} else {
+			$offline_error_precache_entry = array(
+				'url'      => add_query_arg( 'code', 'offline', admin_url( 'admin-ajax.php?action=wp_error_template' ) ), // Upon core merge, this would use admin_url( 'error.php' ).
+				'revision' => PWA_VERSION, // Upon core merge, this should be the core version.
+			);
+			$server_error_precache_entry  = array(
+				'url'      => add_query_arg( 'code', '500', admin_url( 'admin-ajax.php?action=wp_error_template' ) ), // Upon core merge, this would use admin_url( 'error.php' ).
+				'revision' => PWA_VERSION, // Upon core merge, this should be the core version.
 			);
 		}
 
-		// @todo This needs to be added at the very end of the service worker so the navigation routing will apply after all others.
-		$this->register(
-			'offline-sw',
-			array( $this, 'get_offline_page_serving_script' ),
-			'workbox-sw'
-		);
+		$this->register_precached_routes( array_filter( array(
+			$offline_error_precache_entry,
+			$server_error_precache_entry,
+		) ) );
 
-		// Register precaching for offline page route.
-		$this->register_precached_routes( $this->get_offline_page_precache_entries() );
-	}
-
-	/**
-	 * Get script for returning offline page in case of network or server error.
-	 *
-	 * @todo Move to WP_Offline_Page.
-	 * @return string Script.
-	 */
-	protected function get_offline_page_serving_script() {
-		$offline_page = $this->get_offline_page();
-		if ( ! $offline_page ) {
-			return '';
+		$blacklist_patterns = array();
+		if ( self::SCOPE_FRONT === $scope ) {
+			$blacklist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)';
 		}
 
 		$replacements = array(
-			'OFFLINE_PAGE_URL'  => wp_json_encode( get_permalink( $offline_page ) ),
-			'ADMIN_URL_PATTERN' => wp_json_encode( '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)' ),
+			'ERROR_OFFLINE_URL'  => isset( $offline_error_precache_entry['url'] ) ? wp_json_encode( $offline_error_precache_entry['url'] ) : null,
+			'ERROR_500_URL'      => isset( $server_error_precache_entry['url'] ) ? wp_json_encode( $server_error_precache_entry['url'] ) : null,
+			'BLACKLIST_PATTERNS' => wp_json_encode( $blacklist_patterns ),
 		);
 
-		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/offline-page-handling.template.js' ); // phpcs:ignore
+		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-error-response-handling.js' ); // phpcs:ignore
 
 		return str_replace(
 			array_keys( $replacements ),
 			array_values( $replacements ),
 			$script
 		);
-	}
-
-	/**
-	 * Get the URLs for a given attachment image and size.
-	 *
-	 * @param int          $attachment_id Attachment ID.
-	 * @param string|array $image_size    Image size.
-	 * @return array
-	 */
-	protected function get_attachment_image_urls( $attachment_id, $image_size ) {
-		if ( preg_match_all( '#(?:^|\s)(https://\S+)#', (string) wp_get_attachment_image_srcset( $attachment_id, $image_size ), $matches ) ) {
-			return $matches[1];
-		} else {
-			return array();
-		}
-	}
-
-	/**
-	 * Get the precache entries for the offline page and its featured image, as well as theme assets for custom header, background, and logo.
-	 *
-	 * @todo Move to WP_Offline_Page.
-	 * @return array Array of precache entries, including url and revision for each.
-	 */
-	protected function get_offline_page_precache_entries() {
-		$precache_entries = array();
-
-		$offline_page = $this->get_offline_page();
-		if ( ! $offline_page ) {
-			return $precache_entries;
-		}
-
-		$precache_entries[] = array(
-			'url'      => get_permalink( $offline_page ),
-			'revision' => $offline_page->post_modified_gmt,
-		);
-
-		// Cache the offline page's featured image.
-		$featured_image_id = get_post_thumbnail_id( $offline_page );
-		if ( $featured_image_id && get_post( $featured_image_id ) ) {
-			$attachment = get_post( $featured_image_id );
-			$image_size = 'post-thumbnail';
-			$image_urls = array(
-				wp_get_attachment_image_url( $attachment->ID, $image_size ),
-			);
-
-			// Extract image URLs from the srcset.
-			$image_urls = array_merge( $image_urls, $this->get_attachment_image_urls( $attachment->ID, $image_size ) );
-
-			foreach ( array_unique( $image_urls ) as $image_url ) {
-				$precache_entries[] = array(
-					'url'      => $image_url,
-					'revision' => $attachment->post_modified,
-				);
-			}
-		}
-
-		// Cache the theme's custom logo.
-		if ( current_theme_supports( 'custom-logo' ) && get_theme_mod( 'custom_logo' ) ) {
-			$attachment = get_post( get_theme_mod( 'custom_logo' ) );
-			$image_urls = $this->get_attachment_image_urls( $attachment->ID, 'full' );
-			$image_src  = wp_get_attachment_image_src( $attachment->ID, 'full' );
-			if ( $image_src ) {
-				$image_urls[] = $image_src[0];
-			}
-			foreach ( array_unique( $image_urls ) as $image_url ) {
-				$precache_entries[] = array(
-					'url'      => $image_url,
-					'revision' => $attachment->post_modified,
-				);
-			}
-		}
-
-		// Cache the theme's background image.
-		if ( current_theme_supports( 'custom-background' ) && get_background_image() ) {
-			$precache_entries[] = array(
-				// There is no attachment available, so we cannot obtain the modified date as the revision.
-				'url' => get_background_image(),
-			);
-		}
-
-		// Cache the theme's header image.
-		if ( current_theme_supports( 'custom-header' ) && get_custom_header() ) {
-			$header       = get_custom_header();
-			$attachment   = get_post( get_custom_header()->attachment_id );
-			$image_urls   = $this->get_attachment_image_urls( $attachment->ID, array( $header->width, $header->height ) );
-			$image_urls[] = get_header_image();
-
-			foreach ( array_unique( $image_urls ) as $image_url ) {
-				$precache_entries[] = array(
-					'url'      => $image_url,
-					'revision' => $attachment->post_modified,
-				);
-			}
-		}
-
-		// @todo Exclude external scripts and styles from precache?
-		wp_enqueue_scripts();
-
-		// Preload enqueued scripts.
-		wp_scripts()->all_deps( wp_scripts()->queue );
-		foreach ( wp_scripts()->to_do as $handle ) {
-			if ( ! isset( wp_scripts()->registered[ $handle ] ) ) {
-				continue;
-			}
-			$dependency = wp_scripts()->registered[ $handle ];
-
-			// Skip bundles.
-			if ( ! $dependency->src ) {
-				continue;
-			}
-
-			$src = $dependency->src;
-
-			if ( ! empty( $dependency->ver ) ) {
-				$src = add_query_arg( 'ver', $dependency->ver, $src );
-			}
-
-			/** This filter is documented in wp-includes/class.wp-scripts.php */
-			$src = apply_filters( 'script_loader_src', $src, $handle );
-
-			if ( $src ) {
-				$precache_entries[] = array(
-					'url'      => $src,
-					'revision' => $dependency->ver,
-				);
-			}
-		}
-
-		// Preload enqueued styles.
-		wp_styles()->all_deps( wp_styles()->queue );
-		foreach ( wp_styles()->to_do as $handle ) {
-			if ( ! isset( wp_styles()->registered[ $handle ] ) ) {
-				continue;
-			}
-			$dependency = wp_styles()->registered[ $handle ];
-
-			// Skip bundles.
-			if ( ! $dependency->src ) {
-				continue;
-			}
-
-			$src = $dependency->src;
-			if ( ! empty( $dependency->ver ) ) {
-				$src = add_query_arg( 'ver', $dependency->ver, $src );
-			}
-
-			/** This filter is documented in wp-includes/class.wp-styles.php */
-			$src = apply_filters( 'style_loader_src', $src, $handle );
-
-			if ( $src ) {
-				$precache_entries[] = array(
-					'url'      => $src,
-					'revision' => $dependency->ver,
-				);
-			}
-		}
-
-		return $precache_entries;
 	}
 
 	/**
@@ -629,11 +495,38 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Get service worker logic for scope.
 	 *
-	 * @todo This could do an action to register_service_workers with the supplied $scope.
 	 * @see wp_service_worker_loaded()
 	 * @param int $scope Scope of the Service Worker.
 	 */
 	public function serve_request( $scope ) {
+
+		// @todo Opt to move this outside of serving request so that we can use the existence of the registered scripts for whether to install the service worker to begin with?
+		if ( self::SCOPE_FRONT === $scope ) {
+			/**
+			 * Fires before serving the frontend service worker, when its scripts should be registered.
+			 *
+			 * @since 0.2
+			 * @param WP_Service_Workers $this
+			 */
+			do_action( 'wp_register_service_worker_front_scripts', $this );
+		} elseif ( self::SCOPE_ADMIN === $scope ) {
+			/**
+			 * Fires before serving the frontend service worker, when its scripts should be registered.
+			 *
+			 * @since 0.2
+			 * @param WP_Service_Workers $this
+			 */
+			do_action( 'wp_register_service_worker_admin_scripts', $this );
+		}
+
+		/**
+		 * Fires before serving the service worker, when its scripts should be registered.
+		 *
+		 * @since 0.2
+		 * @param WP_Service_Workers $this
+		 */
+		do_action( 'wp_register_service_worker_scripts', $this );
+
 		/*
 		 * Per Workbox <https://developers.google.com/web/tools/workbox/guides/service-worker-checklist#cache-control_of_your_service_worker_file>:
 		 * "Generally, most developers will want to set the Cache-Control header to no-cache,

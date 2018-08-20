@@ -5,7 +5,7 @@
  * When the site cannot be reached because it is offline or the user is offline, this file is used to
  * create the header output if the active theme does not include a header-offline.php template.
  *
- * @todo Consider loading this template in _default_wp_die_handler() to easily allow themes to override the template by simply defining an error.php template.
+ * @todo Consider loading this template in _default_wp_die_handler() if not is_admin() to easily allow themes to override the template by simply defining an error.php template.
  *
  * @package PWA
  * @since 0.2.0

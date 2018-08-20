@@ -2,6 +2,8 @@
 /**
  * Sets up the default filters and actions for PWA hooks.
  *
+ * Hooks in here would be added to wp-includes/default-filters.php in core.
+ *
  * @package PWA
  */
 

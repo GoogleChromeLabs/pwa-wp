@@ -8,6 +8,7 @@
  * @link https://core.trac.wordpress.org/ticket/13239
  *
  * @package PWA
+ * @subpackage Template
  * @since 0.2.0
  */
 

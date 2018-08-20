@@ -1,8 +1,11 @@
 <?php
 /**
+ * Query API: WP_Query class
+ *
  * Add hooks to amend behavior of WP_Query.
  *
  * @package PWA
+ * @subpackage Query
  * @since 0.2
  */
 

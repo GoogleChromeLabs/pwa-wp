@@ -5,6 +5,7 @@
  * Code in this file would be added/amended to wp-includes/general-template.php in core.
  *
  * @package PWA
+ * @subpackage Template
  * @since 0.2.0
  */
 

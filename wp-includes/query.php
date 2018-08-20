@@ -1,9 +1,12 @@
 <?php
 /**
- * Functions for query.php file.
+ * WordPress Query API
+ *
+ * Functions here would be added to wp-includes/query.php in core.
  *
  * @since 0.2
  * @package PWA
+ * @subpackage Query
  */
 
 /**

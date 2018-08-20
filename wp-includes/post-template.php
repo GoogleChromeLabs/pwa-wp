@@ -5,6 +5,7 @@
  * Functions that amend wp-includes/post-template.php
  *
  * @package PWA
+ * @subpackage Template
  * @since 0.2
  */
 
