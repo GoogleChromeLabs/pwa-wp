@@ -17,6 +17,33 @@ pwa_get_header( 'error' );
 <main>
 	<h1><?php esc_html_e( 'Oops! Something went wrong.', 'pwa' ); ?></h1>
 	<p><?php esc_html_e( 'Something prevented the page from being rendered. Please try again.', 'pwa' ); ?></p>
+	<details id="error-details" hidden>
+		<summary><?php esc_html_e( 'More details', 'pwa' ); ?></summary>
+		<iframe style="width:100%;" srcdoc=""></iframe>
+		<script>
+			{
+				// Broadcast a request to obtain the original response text from the internal server error response and
+				// display it inside a details iframe if the 500 response included any body (such as an error message).
+				const clientUrl = location.href;
+				const channel = new BroadcastChannel( 'wordpress-server-errors' );
+				channel.onmessage = ( event ) => {
+					if ( event.data && event.data.requestUrl && clientUrl === event.data.requestUrl ) {
+						channel.onmessage = null;
+						channel.close();
+
+						// Populate the details with the information if available.
+						if ( event.data.bodyText.trim().length > 0 ) {
+							const details = document.getElementById( 'error-details' );
+							const iframe = details.querySelector( 'iframe' );
+							iframe.srcdoc = event.data.bodyText;
+							details.hidden = false;
+						}
+					}
+				};
+				channel.postMessage( { clientUrl } )
+			}
+		</script>
+	</details>
 </main>
 <?php
 
