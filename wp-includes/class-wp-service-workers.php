@@ -398,8 +398,9 @@ class WP_Service_Workers extends WP_Scripts {
 			return '';
 		}
 
+		// @todo This should include 'ver' among the ignoreUrlParametersMatching.
 		// @todo We should not do precacheAndRoute here. We should just call precache. Otherwise then use staleWhileRevalidate.
-		return sprintf( "wp.serviceWorker.precaching.precacheAndRoute( %s );\n", wp_json_encode( $routes_list ) );
+		return sprintf( "wp.serviceWorker.precaching.precacheAndRoute( %s );\n", wp_json_encode( $routes_list, 128 | 64 /* JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES */ ) );
 	}
 
 	/**
@@ -502,30 +503,35 @@ class WP_Service_Workers extends WP_Scripts {
 
 		// @todo Opt to move this outside of serving request so that we can use the existence of the registered scripts for whether to install the service worker to begin with?
 		if ( self::SCOPE_FRONT === $scope ) {
+			wp_enqueue_scripts();
+
 			/**
-			 * Fires before serving the frontend service worker, when its scripts should be registered.
+			 * Fires before serving the frontend service worker, when its scripts should be registered, caching routes established, and assets precached.
 			 *
 			 * @since 0.2
 			 * @param WP_Service_Workers $this
 			 */
-			do_action( 'wp_register_service_worker_front_scripts', $this );
+			do_action( 'wp_front_service_worker', $this );
 		} elseif ( self::SCOPE_ADMIN === $scope ) {
+			/** This hook is documented in wp-admin/admin-header.php */
+			do_action( 'admin_enqueue_scripts', 'index.php' ); // @todo Is 'index.php' the best here?
+
 			/**
-			 * Fires before serving the frontend service worker, when its scripts should be registered.
+			 * Fires before serving the wp-admin service worker, when its scripts should be registered, caching routes established, and assets precached.
 			 *
 			 * @since 0.2
 			 * @param WP_Service_Workers $this
 			 */
-			do_action( 'wp_register_service_worker_admin_scripts', $this );
+			do_action( 'wp_admin_service_worker', $this );
 		}
 
 		/**
-		 * Fires before serving the service worker, when its scripts should be registered.
+		 * Fires before serving the service worker (both front and admin), when its scripts should be registered, caching routes established, and assets precached.
 		 *
 		 * @since 0.2
 		 * @param WP_Service_Workers $this
 		 */
-		do_action( 'wp_register_service_worker_scripts', $this );
+		do_action( 'wp_service_worker', $this );
 
 		/*
 		 * Per Workbox <https://developers.google.com/web/tools/workbox/guides/service-worker-checklist#cache-control_of_your_service_worker_file>:
@@ -544,7 +550,6 @@ class WP_Service_Workers extends WP_Scripts {
 			return;
 		}
 
-		// @todo If $scope is admin should this admin_enqueue_scripts, and if front should it wp_enqueue_scripts?
 		$scope_items = array();
 
 		// Get handles from the relevant scope only.
