@@ -20,12 +20,29 @@ switch ( isset( $_REQUEST['code'] ) ? sanitize_key( $_REQUEST['code'] ) : null )
 		break;
 	case '500':
 		$title    = __( 'Internal Server Error', 'pwa' );
-		$title    = get_admin_page_title();
 		$content  = sprintf( '<h1>%s</h1>', esc_html__( 'A server error occurred.', 'pwa' ) );
 		$content .= sprintf(
-			'<p>%s</p><details hidden id="error-details"></details>',
+			'<p>%s</p>',
 			esc_html__( 'Something went wrong which prevented WordPress from serving a response. Please check your error logs.', 'pwa' )
 		);
+		ob_start();
+		?>
+		<details id="error-details" hidden>
+			<summary><?php esc_html_e( 'More details', 'pwa' ); ?></summary>
+			<iframe id="error-details__iframe" style="width:100%;" srcdoc=""></iframe>
+			<script>
+			function renderErrorDetails( data ) {
+				if ( data.bodyText.trim().length ) {
+					const details = document.getElementById( 'error-details' );
+					details.querySelector( 'iframe' ).srcdoc = data.bodyText;
+					details.hidden = false;
+				}
+			}
+			</script>
+			<?php wp_print_service_worker_error_details_script( 'renderErrorDetails' ); ?>
+		</details>
+		<?php
+		$content .= ob_get_clean();
 		break;
 	default:
 		$title   = __( 'Unrecognized Error', 'pwa' );
