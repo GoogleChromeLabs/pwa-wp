@@ -104,19 +104,20 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function init() {
 
+		// @todo This shouldn't be done here. It should not be a registered script but done unconditionallly in \WP_Service_Workers::serve_request() before do_items().
 		$this->register(
 			'workbox-sw',
 			array( $this, 'get_workbox_script' ),
 			array()
 		);
 
+		// @todo This shouldn't be done here. It should not be a registered script but done unconditionallly in \WP_Service_Workers::serve_request() before do_items().
 		$this->register(
 			'caching-utils-sw',
 			PWA_PLUGIN_URL . '/wp-includes/js/service-worker.js',
 			array( 'workbox-sw' )
 		);
 
-		// @todo Add precache as a default script?
 		// @todo This needs to be added at the very end of the service worker so the navigation routing will apply after all others.
 		$this->register(
 			'error-response-handling',
@@ -241,6 +242,7 @@ class WP_Service_Workers extends WP_Scripts {
 		);
 
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-error-response-handling.js' ); // phpcs:ignore
+		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
 
 		return str_replace(
 			array_keys( $replacements ),
@@ -401,9 +403,6 @@ class WP_Service_Workers extends WP_Scripts {
 
 			$ver = false === $dependency->ver ? get_bloginfo( 'version' ) : $dependency->ver;
 
-			// @todo Opt to remove 'ver' in favor of having arg included among ignoreUrlParametersMatching.
-			$src = add_query_arg( 'ver', $ver, $src );
-
 			/** This filter is documented in wp-includes/class.wp-scripts.php */
 			$src = apply_filters( 'script_loader_src', $src, $handle );
 
@@ -444,9 +443,6 @@ class WP_Service_Workers extends WP_Scripts {
 
 			$ver = false === $dependency->ver ? get_bloginfo( 'version' ) : $dependency->ver;
 
-			// @todo Opt to remove 'ver' in favor of having arg included among ignoreUrlParametersMatching.
-			$src = add_query_arg( 'ver', $ver, $src );
-
 			/** This filter is documented in wp-includes/class.wp-styles.php */
 			$src = apply_filters( 'style_loader_src', $src, $handle );
 
@@ -480,13 +476,19 @@ class WP_Service_Workers extends WP_Scripts {
 
 			$routes_list[] = $route;
 		}
-		if ( empty( $routes_list ) ) {
-			return '';
-		}
 
-		// @todo This should include 'ver' among the ignoreUrlParametersMatching.
-		// @todo We should not do precacheAndRoute here. We should just call precache. Otherwise then use staleWhileRevalidate.
-		return sprintf( "wp.serviceWorker.precaching.precacheAndRoute( %s );\n", wp_json_encode( $routes_list, 128 | 64 /* JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES */ ) );
+		$replacements = array(
+			'PRECACHE_ENTRIES' => wp_json_encode( $routes_list, 128 | 64 /* JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES */ ),
+		);
+
+		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-precaching.js' ); // phpcs:ignore
+		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
+
+		return str_replace(
+			array_keys( $replacements ),
+			array_values( $replacements ),
+			$script
+		);
 	}
 
 	/**
