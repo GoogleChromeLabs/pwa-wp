@@ -111,6 +111,30 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test is_upgraded_url_valid.
+	 *
+	 * @covers WP_HTTPS_Detection::is_upgraded_url_valid()
+	 */
+	public function test_is_upgraded_url_valid() {
+		$initial_url = 'http://example.com/foo-bar';
+
+		// Mock a response code of 301, so this should be false.
+		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
+		$this->assertFalse( $this->instance->is_upgraded_url_valid( $initial_url ) );
+		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
+
+		// Mock a response that is a WP_Error, where this method should also return false.
+		add_filter( 'http_response', array( $this, 'mock_error_response' ) );
+		$this->assertFalse( $this->instance->is_upgraded_url_valid( $initial_url ) );
+		remove_filter( 'http_response', array( $this, 'mock_error_response' ) );
+
+		// Mock a successful response, where this method should return true.
+		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
+		$this->assertTrue( $this->instance->is_upgraded_url_valid( $initial_url ) );
+		remove_filter( 'http_response', array( $this, 'mock_successful_response' ) );
+	}
+
+	/**
 	 * Test schedule_cron.
 	 *
 	 * @covers WP_HTTPS_Detection::schedule_cron()

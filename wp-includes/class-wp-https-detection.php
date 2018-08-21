@@ -197,6 +197,23 @@ class WP_HTTPS_Detection {
 	}
 
 	/**
+	 * Whether a request to the HTTPS version of a URL succeeds.
+	 *
+	 * When using the Upgrade-Insecure-Requests header,
+	 * HTTP URLs will be upgraded to HTTPS.
+	 * But if they fail, there is no fallback.
+	 * So this finds whether the upgraded HTTPS URL succeeds.
+	 *
+	 * @param string $url The HTTP URL to convert to HTTPS and make a request for.
+	 * @return bool Whether the upgraded URL succeeds.
+	 */
+	public function is_upgraded_url_valid( $url ) {
+		$upgraded_url = preg_replace( '#^http(?=://)#', 'https', $url );
+		$response     = wp_remote_get( $upgraded_url );
+		return 200 === wp_remote_retrieve_response_code( $response );
+	}
+
+	/**
 	 * Sets mock insecure content, only for testing.
 	 *
 	 * @todo: Remove this later, as this is only for development.
