@@ -5,7 +5,7 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 	( {event} ) => {
 		return fetch( event.request )
 			.then( ( response ) => {
-				if ( response.ok ) {
+				if ( response.status < 500 ) {
 					return response;
 				}
 				const { request } = event;
