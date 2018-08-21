@@ -19,7 +19,7 @@ pwa_get_header( 'error' );
 	<p><?php esc_html_e( 'Something prevented the page from being rendered. Please try again.', 'pwa' ); ?></p>
 	<details id="error-details" hidden>
 		<summary><?php esc_html_e( 'More details', 'pwa' ); ?></summary>
-		<iframe id="error-details__iframe" style="width:100%;" srcdoc=""></iframe>
+		<iframe style="width:100%;" srcdoc=""></iframe>
 		<script>
 		function renderErrorDetails( data ) {
 			if ( data.bodyText.trim().length ) {
