@@ -376,6 +376,92 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
+	 * Register scripts which are pre-cached.
+	 *
+	 * @todo Consider storing the script $handles to refer to later by the offline page for what to dequeue.
+	 * @since 0.2
+	 * @param array $handles Script handles.
+	 */
+	public function register_precached_scripts( $handles ) {
+		$precache_entries = array();
+		$original_to_do   = wp_scripts()->to_do;
+		wp_scripts()->all_deps( $handles );
+		foreach ( wp_scripts()->to_do as $handle ) {
+			if ( ! isset( wp_scripts()->registered[ $handle ] ) ) {
+				continue;
+			}
+			$dependency = wp_scripts()->registered[ $handle ];
+
+			// Skip bundles.
+			if ( ! $dependency->src ) {
+				continue;
+			}
+
+			$src = $dependency->src;
+
+			$ver = false === $dependency->ver ? get_bloginfo( 'version' ) : $dependency->ver;
+
+			// @todo Opt to remove 'ver' in favor of having arg included among ignoreUrlParametersMatching.
+			$src = add_query_arg( 'ver', $ver, $src );
+
+			/** This filter is documented in wp-includes/class.wp-scripts.php */
+			$src = apply_filters( 'script_loader_src', $src, $handle );
+
+			if ( $src ) {
+				$precache_entries[] = array(
+					'url'      => $src,
+					'revision' => (string) $ver,
+				);
+			}
+		}
+		$this->register_precached_routes( $precache_entries );
+		wp_scripts()->to_do = $original_to_do; // Restore original scripts to do.
+	}
+
+	/**
+	 * Register styles which are pre-cached.
+	 *
+	 * @todo Consider storing the style $handles to refer to later by the offline page for what to dequeue.
+	 * @since 0.2
+	 * @param array $handles style handles.
+	 */
+	public function register_precached_styles( $handles ) {
+		$precache_entries = array();
+		$original_to_do   = wp_styles()->to_do;
+		wp_styles()->all_deps( $handles );
+		foreach ( wp_styles()->to_do as $handle ) {
+			if ( ! isset( wp_styles()->registered[ $handle ] ) ) {
+				continue;
+			}
+			$dependency = wp_styles()->registered[ $handle ];
+
+			// Skip bundles.
+			if ( ! $dependency->src ) {
+				continue;
+			}
+
+			$src = $dependency->src;
+
+			$ver = false === $dependency->ver ? get_bloginfo( 'version' ) : $dependency->ver;
+
+			// @todo Opt to remove 'ver' in favor of having arg included among ignoreUrlParametersMatching.
+			$src = add_query_arg( 'ver', $ver, $src );
+
+			/** This filter is documented in wp-includes/class.wp-styles.php */
+			$src = apply_filters( 'style_loader_src', $src, $handle );
+
+			if ( $src ) {
+				$precache_entries[] = array(
+					'url'      => $src,
+					'revision' => (string) $ver,
+				);
+			}
+		}
+		$this->register_precached_routes( $precache_entries );
+		wp_styles()->to_do = $original_to_do; // Restore original styles to do.
+	}
+
+	/**
 	 * Gets the script for precaching routes.
 	 *
 	 * @param array $routes Array of routes.
