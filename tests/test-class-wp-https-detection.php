@@ -11,11 +11,25 @@
 class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 
 	/**
-	 * The response code for an unsucessful loopback request to an HTTPS URL.
+	 * The response code for an unsuccessful request to an HTTPS URL.
 	 *
 	 * @var int
 	 */
 	const INCORRECT_RESPONSE_CODE = 301;
+
+	/**
+	 * A mock HTTPS URL.
+	 *
+	 * @var string
+	 */
+	const HTTPS_URL = 'https://example.com/foo';
+
+	/**
+	 * A mock HTTP URL.
+	 *
+	 * @var string
+	 */
+	const HTTP_URL = 'http://example.com/baz';
 
 	/**
 	 * Tested instance.
@@ -39,6 +53,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 		$this->instance = new WP_HTTPS_Detection();
+		$this->instance->init();
 		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
 	}
 
@@ -48,9 +63,8 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_Detection::init()
 	 */
 	public function test_init() {
-		$this->instance->init();
 		$this->assertEquals( 10, has_action( 'wp', array( $this->instance, 'schedule_cron' ) ) );
-		$this->assertEquals( 10, has_action( WP_HTTPS_Detection::CRON_HOOK, array( $this->instance, 'update_option_https_support' ) ) );
+		$this->assertEquals( 10, has_action( WP_HTTPS_Detection::CRON_HOOK, array( $this->instance, 'update_https_support_options' ) ) );
 		$this->assertEquals( PHP_INT_MAX, has_filter( 'cron_request', array( $this->instance, 'ensure_http_if_sslverify' ) ) );
 	}
 
@@ -183,6 +197,28 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test is_currently_https.
+	 *
+	 * @covers WP_HTTPS_UI::is_currently_https()
+	 */
+	public function test_is_currently_https() {
+		// If both of these options have an HTTP URL, the method should return false.
+		update_option( 'siteurl', self::HTTP_URL );
+		update_option( 'home', self::HTTP_URL );
+		$this->assertFalse( $this->instance->is_currently_https() );
+
+		// If one of these options has an HTTP URL, the method should return false.
+		update_option( 'siteurl', self::HTTPS_URL );
+		$this->assertFalse( $this->instance->is_currently_https() );
+
+		// If both of these options have an HTTPS URL, the method should return true.
+		update_option( 'siteurl', self::HTTPS_URL );
+		update_option( 'home', self::HTTPS_URL );
+		add_filter( 'set_url_scheme', array( $this, 'convert_to_https' ) );
+		$this->assertTrue( $this->instance->is_currently_https() );
+	}
+
+	/**
 	 * Test check_https_support.
 	 *
 	 * @covers WP_HTTPS_Detection::check_https_support()
@@ -291,5 +327,15 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 				'code' => 200,
 			),
 		);
+	}
+
+	/**
+	 * Converts a URL from HTTP to HTTPS.
+	 *
+	 * @param string $url The URL to convert.
+	 * @return string $url The converted URL.
+	 */
+	public function convert_to_https( $url ) {
+		return preg_replace( '#^http(?=://)#', 'https', $url );
 	}
 }

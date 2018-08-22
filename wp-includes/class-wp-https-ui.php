@@ -60,6 +60,22 @@ class WP_HTTPS_UI {
 	const MAX_URL_LENGTH = 75;
 
 	/**
+	 * The instance of WP_HTTPS_Detection.
+	 *
+	 * @var WP_HTTPS_Detection
+	 */
+	public $wp_https_detection;
+
+	/**
+	 * WP_HTTPS_UI constructor.
+	 *
+	 * @param WP_HTTPS_Detection $wp_https_detection An instance of WP_HTTPS_Detection.
+	 */
+	public function __construct( $wp_https_detection ) {
+		$this->wp_https_detection = $wp_https_detection;
+	}
+
+	/**
 	 * Inits the class.
 	 */
 	public function init() {
@@ -113,7 +129,7 @@ class WP_HTTPS_UI {
 		 * Todo: add ! before $this->is_currently_https(), as this is only for development.
 		 * It allows developing this while the siteurl and home values are HTTPS.
 		 */
-		if ( $this->is_currently_https() ) {
+		if ( $this->wp_https_detection->is_currently_https() ) {
 			add_settings_field(
 				self::HTTPS_SETTING_ID,
 				__( 'HTTPS', 'pwa' ),
@@ -288,28 +304,10 @@ class WP_HTTPS_UI {
 	}
 
 	/**
-	 * Whether the options indicate that the site is currently using HTTPS.
-	 *
-	 * Returns true only if the siteurl and home option values are HTTPS.
-	 * These are also known as the WordPress Address (URL) and Site Address (URL) in the 'General Settings' page.
-	 *
-	 * @return bool Whether currently HTTPS.
-	 */
-	public function is_currently_https() {
-		$urls = array( home_url(), site_url() );
-		foreach ( $urls as $url ) {
-			if ( 'https' !== wp_parse_url( $url, PHP_URL_SCHEME ) ) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	/**
 	 * Conditionally filters the 'siteurl' and 'home' values from wp-config and options.
 	 */
 	public function filter_site_url_and_home() {
-		if ( get_option( self::UPGRADE_HTTPS_OPTION ) && ! $this->is_currently_https() ) {
+		if ( get_option( self::UPGRADE_HTTPS_OPTION ) && ! $this->wp_https_detection->is_currently_https() ) {
 			add_filter( 'option_home', array( $this, 'convert_to_https' ), 11 );
 			add_filter( 'option_siteurl', array( $this, 'convert_to_https' ), 11 );
 		}
@@ -331,7 +329,7 @@ class WP_HTTPS_UI {
 	 * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade-Insecure-Requests
 	 */
 	public function filter_header() {
-		if ( get_option( self::UPGRADE_HTTPS_OPTION ) && ! $this->is_currently_https() ) {
+		if ( get_option( self::UPGRADE_HTTPS_OPTION ) && ! $this->wp_https_detection->is_currently_https() ) {
 			add_filter( 'wp_headers', array( $this, 'upgrade_insecure_requests' ) );
 		}
 	}

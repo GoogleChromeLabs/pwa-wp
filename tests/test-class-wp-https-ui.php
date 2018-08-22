@@ -52,7 +52,8 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 */
 	public function setUp() {
 		parent::setUp();
-		$this->instance = new WP_HTTPS_UI();
+		$wp_https_detection = new WP_HTTPS_Detection();
+		$this->instance     = new WP_HTTPS_UI( $wp_https_detection );
 	}
 
 	/**
@@ -186,28 +187,6 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		// The URL is over the limit, so this should truncate it and add the ellipsis.
 		$url_over_limit = $url_at_limit_but_not_above . 'baz';
 		$this->assertEquals( $url_at_limit_but_not_above . '&hellip;', $this->instance->get_truncated_url( $url_over_limit ) );
-	}
-
-	/**
-	 * Test is_currently_https.
-	 *
-	 * @covers WP_HTTPS_UI::is_currently_https()
-	 */
-	public function test_is_currently_https() {
-		// If both of these options have an HTTP URL, the method should return false.
-		update_option( 'siteurl', self::HTTP_URL );
-		update_option( 'home', self::HTTP_URL );
-		$this->assertFalse( $this->instance->is_currently_https() );
-
-		// If one of these options has an HTTP URL, the method should return false.
-		update_option( 'siteurl', self::HTTPS_URL );
-		$this->assertFalse( $this->instance->is_currently_https() );
-
-		// If both of these options have an HTTPS URL, the method should return true.
-		update_option( 'siteurl', self::HTTPS_URL );
-		update_option( 'home', self::HTTPS_URL );
-		add_filter( 'set_url_scheme', array( $this->instance, 'convert_to_https' ) );
-		$this->assertTrue( $this->instance->is_currently_https() );
 	}
 
 	/**

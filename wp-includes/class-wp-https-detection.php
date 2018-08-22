@@ -72,9 +72,9 @@ class WP_HTTPS_Detection {
 	 */
 	public function init() {
 		add_action( 'wp', array( $this, 'schedule_cron' ) );
-		add_action( self::CRON_HOOK, array( $this, 'update_option_https_support' ) );
+		add_action( self::CRON_HOOK, array( $this, 'update_https_support_options' ) );
 		add_filter( 'cron_request', array( $this, 'ensure_http_if_sslverify' ), PHP_INT_MAX );
-		$wp_https_ui = new WP_HTTPS_UI();
+		$wp_https_ui = new WP_HTTPS_UI( $this );
 		$wp_https_ui->init();
 
 		// @todo: remove this, as it's only for development.
@@ -97,11 +97,34 @@ class WP_HTTPS_Detection {
 	 * But if the request is a WP_Error, this does not update the options.
 	 */
 	public function update_https_support_options() {
+		// If the home and siteurl values are already HTTPS, there's no need to prepare these options for the UI.
+		if ( $this->is_currently_https() ) {
+			return;
+		}
+
 		$https_support_response = $this->check_https_support();
 		if ( ! is_wp_error( $https_support_response ) ) {
 			update_option( self::HTTPS_SUPPORT_OPTION_NAME, 200 === wp_remote_retrieve_response_code( $https_support_response ) );
 			update_option( self::INSECURE_CONTENT_OPTION_NAME, $this->get_insecure_content( $https_support_response ) );
 		}
+	}
+
+	/**
+	 * Whether the options indicate that the site is currently using HTTPS.
+	 *
+	 * Returns true only if the siteurl and home option values are HTTPS.
+	 * These are also known as the WordPress Address (URL) and Site Address (URL) in the 'General Settings' page.
+	 *
+	 * @return bool Whether currently HTTPS.
+	 */
+	public function is_currently_https() {
+		$urls = array( home_url(), site_url() );
+		foreach ( $urls as $url ) {
+			if ( 'https' !== wp_parse_url( $url, PHP_URL_SCHEME ) ) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
