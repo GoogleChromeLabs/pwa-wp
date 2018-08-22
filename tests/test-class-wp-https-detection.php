@@ -183,10 +183,10 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		$this->instance->update_https_support_options();
 		$this->assertTrue( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
 
-		// There should be HTTPS support, as check_https_support() should return true.
+		// The HTTPS support option should be false, as the request for the HTTPS page failed.
 		add_filter( 'http_response', array( $this, 'mock_error_response' ) );
 		$this->instance->update_https_support_options();
-		$this->assertTrue( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
+		$this->assertFalse( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
 		remove_filter( 'http_response', array( $this, 'mock_error_response' ) );
 
 		// The response is a 301, so the option value should be false.

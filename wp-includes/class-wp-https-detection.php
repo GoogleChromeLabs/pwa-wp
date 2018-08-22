@@ -94,18 +94,25 @@ class WP_HTTPS_Detection {
 	 * Makes a request to find whether HTTPS is supported, and stores the results in options.
 	 *
 	 * Updates the options for HTTPS support and insecure content.
-	 * But if the request is a WP_Error, this does not update the options.
+	 * But if the request is a WP_Error, this does not update the option for insecure content.
 	 */
 	public function update_https_support_options() {
-		// If the home and siteurl values are already HTTPS, there's no need to prepare these options for the UI.
+		// If the home and siteurl values are already HTTPS, there's no need to update these options for the UI, as the UI won't display.
 		if ( $this->is_currently_https() ) {
 			return;
 		}
 
 		$https_support_response = $this->check_https_support();
+		update_option(
+			self::HTTPS_SUPPORT_OPTION_NAME,
+			! is_wp_error( $https_support_response ) && 200 === wp_remote_retrieve_response_code( $https_support_response )
+		);
+
 		if ( ! is_wp_error( $https_support_response ) ) {
-			update_option( self::HTTPS_SUPPORT_OPTION_NAME, 200 === wp_remote_retrieve_response_code( $https_support_response ) );
-			update_option( self::INSECURE_CONTENT_OPTION_NAME, $this->get_insecure_content( $https_support_response ) );
+			$insecure_content = $this->get_insecure_content( $https_support_response );
+			if ( ! is_wp_error( $insecure_content ) ) {
+				update_option( self::INSECURE_CONTENT_OPTION_NAME, false );
+			}
 		}
 	}
 
@@ -189,7 +196,7 @@ class WP_HTTPS_Detection {
 	 * If a request to the upgraded URL does not succeed, this includes it in the returned URL(s).
 	 *
 	 * @param array $response The response from a wp_remote_request().
-	 * @return array $insecure_content[][] {
+	 * @return array|WP_Error $insecure_content[][] {
 	 *     The insecure content, by type.
 	 *
 	 *     @type string[]  $passive The passive insecure URLs.
@@ -199,7 +206,14 @@ class WP_HTTPS_Detection {
 	public function get_insecure_content( $response ) {
 		$libxml_previous_state = libxml_use_internal_errors( true );
 		$body                  = wp_remote_retrieve_body( $response );
-		$dom                   = new DOMDocument();
+		if ( empty( $body ) ) {
+			return new WP_Error(
+				'insecure_content_request_empty_body',
+				__( 'The request for insecure content returned an empty body.', 'pwa' )
+			);
+		}
+
+		$dom = new DOMDocument();
 		$dom->loadHTML( $body );
 		$insecure_urls = array();
 

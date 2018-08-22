@@ -136,7 +136,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	public function test_add_settings_field() {
 		global $wp_settings_fields;
 
-		add_filter( 'set_url_scheme', array( $this->instance, 'convert_to_https' ) );
+		add_filter( 'set_url_scheme', array( $this, 'convert_to_http' ) );
 		$this->instance->add_settings_field();
 		$this->assertEquals(
 			array(

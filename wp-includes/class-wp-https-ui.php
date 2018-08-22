@@ -129,7 +129,7 @@ class WP_HTTPS_UI {
 		 * Todo: add ! before $this->is_currently_https(), as this is only for development.
 		 * It allows developing this while the siteurl and home values are HTTPS.
 		 */
-		if ( $this->wp_https_detection->is_currently_https() ) {
+		if ( ! $this->wp_https_detection->is_currently_https() ) {
 			add_settings_field(
 				self::HTTPS_SETTING_ID,
 				__( 'HTTPS', 'pwa' ),
