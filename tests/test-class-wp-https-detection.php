@@ -60,6 +60,9 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_Detection::get_insecure_content()
 	 */
 	public function test_get_insecure_content() {
+		// Mock a response code of 301, so is_upgraded_url_valid() is false for every URL and they are all reported.
+		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
+
 		$html_boilerplate = '<!DOCTYPE html><html><head><meta http-equiv="content-type"></head><body>%s</body></html>';
 		$insecure_img_src = 'http://example.com/baz';
 		$body             = sprintf(

@@ -159,7 +159,11 @@ class WP_HTTPS_Detection {
 	}
 
 	/**
-	 * Gets the URLs with insecure content in the response.
+	 * Gets the URLs with insecure content in the response that could not be upgraded to HTTPS.
+	 *
+	 * Finds insecure content in the HTML document, including images, scripts, and stylesheets.
+	 * And attempts to upgrade the HTTP URL to HTTPS with is_upgraded_url_valid().
+	 * If a request to the upgraded URL does not succeed, this includes it in the returned URL(s).
 	 *
 	 * @param array $response The response from a wp_remote_request().
 	 * @return array $insecure_content[][] {
@@ -184,7 +188,7 @@ class WP_HTTPS_Detection {
 						continue;
 					}
 					$url = $node->getAttribute( $attribute );
-					if ( 'http' === wp_parse_url( $url, PHP_URL_SCHEME ) ) {
+					if ( 'http' === wp_parse_url( $url, PHP_URL_SCHEME ) && ! $this->is_upgraded_url_valid( $url ) ) {
 						$insecure_urls[ $content_type ][] = $url;
 					}
 				}

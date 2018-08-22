@@ -174,7 +174,7 @@ class WP_HTTPS_UI {
 
 		$description = sprintf(
 			/* translators: %s is a link for more details */
-			__( 'We found content on your site that wasn&#39;t loading correctly over HTTPS. While we will try to fix these links automatically, you might check to be sure your pages work as expected. %s', 'pwa' ),
+			__( 'We found non-HTTPS content on your site that could not be upgraded. %s', 'pwa' ),
 			sprintf(
 				'<a href="%s">%s</a>',
 				__( 'https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content/How_to_fix_website_with_mixed_content', 'pwa' ),
@@ -323,14 +323,6 @@ class WP_HTTPS_UI {
 
 	/**
 	 * Conditionally filters the header, to add an Upgrade-Insecure-Requests value.
-	 *
-	 * Only adds this if there is active insecure content.
-	 * Normally, the risk in upgrading insecure requests is that when a HTTP URL is upgraded to HTTPS, it could fail.
-	 * And there's no fallback.
-	 * But if there are active insecure URLs like for scripts, the browser already blocks them.
-	 * So they're failing already, and upgrading them at least gives them a chance.
-	 * This does not add the header if there is no or only passive insecure content like
-	 * Those are less of a security risk, and upgrading them to HTTPS might cause them to fail, with no fallback.
 	 *
 	 * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade-Insecure-Requests
 	 */
