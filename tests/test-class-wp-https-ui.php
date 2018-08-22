@@ -57,6 +57,15 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test __construct.
+	 *
+	 * @covers WP_HTTPS_UI::__construct()
+	 */
+	public function test_construct() {
+		$this->assertEquals( 'WP_HTTPS_Detection', get_class( $this->instance->wp_https_detection ) );
+	}
+
+	/**
 	 * Test init.
 	 *
 	 * @covers WP_HTTPS_UI::init()

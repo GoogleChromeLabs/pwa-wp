@@ -11,7 +11,7 @@
 class WP_HTTPS_UI {
 
 	/**
-	 * The option group.
+	 * The option group, indicating that this UI should be on the 'General Settings' page.
 	 *
 	 * @var string
 	 */
@@ -39,7 +39,7 @@ class WP_HTTPS_UI {
 	const HTTPS_SETTING_ID = 'wp_upgrade_https';
 
 	/**
-	 * The number of URLs that show initially.
+	 * The maximum number of URLs that show initially, before clicking 'Show more'.
 	 *
 	 * @var int
 	 */
@@ -245,7 +245,7 @@ class WP_HTTPS_UI {
 		<script>
 
 			(function ( $ ) {
-				// On checking 'HTTPS Upgrade,' toggle the display of the insecure URLs, as they don't apply unless it's checked.
+				// On checking 'Upgrade to secure connection,' toggle the display of the insecure URLs, as they don't apply unless it's checked.
 				$( 'input[type=checkbox][name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>"]' ).on( 'change', function() {
 					$( '#<?php echo esc_attr( $insecure_content_id ); ?>' ).toggleClass( 'hidden' );
 				} );
@@ -304,7 +304,7 @@ class WP_HTTPS_UI {
 	}
 
 	/**
-	 * Conditionally filters the 'siteurl' and 'home' values from wp-config and options.
+	 * Conditionally filters the 'siteurl' and 'home' values from the wp-config and options.
 	 */
 	public function filter_site_url_and_home() {
 		if ( get_option( self::UPGRADE_HTTPS_OPTION ) && ! $this->wp_https_detection->is_currently_https() ) {
