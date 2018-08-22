@@ -189,7 +189,7 @@ class WP_HTTPS_UI {
 		 */
 		?>
 		<div id="<?php echo esc_attr( $insecure_content_id ); ?>" <?php echo ! $upgrade_https_value ? 'class="hidden"' : ''; ?>>
-			<p style="margin: 20px 0;" class="description">
+			<p class="description">
 				<?php echo wp_kses_post( $description ); ?>
 			</p>
 			<ul class="<?php echo esc_attr( $insecure_urls_class ); ?>">
@@ -249,21 +249,25 @@ class WP_HTTPS_UI {
 			})( jQuery );
 		</script>
 		<style>
-			.insecure-urls {
+			.<?php echo esc_attr( $insecure_urls_class ); ?> {
 				margin: 0 0 0 5px;
 			}
 
-			.insecure-urls li {
+			.<?php echo esc_attr( $insecure_urls_class ); ?> li {
 				padding: 4px 0;
 				margin-bottom: 0;
 			}
 
-			.insecure-urls li:nth-child(odd) {
+			.<?php echo esc_attr( $insecure_urls_class ); ?> li:nth-child(odd) {
 				background: rgba(255,255,255,0.6);
 			}
 
-			#view-urls {
+			#<?php echo esc_attr( $show_more_button_id ); ?> {
 				margin-top: 10px;
+			}
+
+			#<?php echo esc_attr( $insecure_content_id ); ?> .description {
+				margin: 20px 0;
 			}
 		</style>
 		<?php
