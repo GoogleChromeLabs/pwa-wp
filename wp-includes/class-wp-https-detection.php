@@ -39,32 +39,18 @@ class WP_HTTPS_Detection {
 	const INSECURE_CONTENT_OPTION_NAME = 'insecure_content';
 
 	/**
-	 * The tag names and attributes for insecure content types.
-	 *
-	 * These are organized by 'passive' and 'active' to show the security risk they pose.
-	 * Passive insecure content is less of a risk, and includes images and media.
-	 * The tag name indicates the tag to search for, and the attribute is where the URL will be.
-	 * For example, in the <img> tag, the URL will be in the 'src'.
+	 * The tag names for insecure content types.
 	 *
 	 * @see https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content
-	 * @var array $insecure_content_type[][] {
-	 *     The insecure content types.
-	 *
-	 *     @type string    $tag       The name of the tag.
-	 *     @type string    $attribute The name of the attribute to check.
-	 * }
+	 * @var array
 	 */
 	public $insecure_content_types = array(
-		'passive' => array(
-			'img'   => 'src',
-			'audio' => 'src',
-			'video' => 'src',
-		),
-		'active'  => array(
-			'script' => 'src',
-			'link'   => 'href',
-			'iframe' => 'src',
-		),
+		'img',
+		'audio',
+		'video',
+		'script',
+		'link',
+		'iframe',
 	);
 
 	/**
@@ -190,19 +176,14 @@ class WP_HTTPS_Detection {
 	}
 
 	/**
-	 * Gets the URLs with insecure content in the response that could not be upgraded to HTTPS.
+	 * Gets the URLs with insecure content in the response.
 	 *
-	 * Finds insecure content in the HTML document, including images, scripts, and stylesheets.
-	 * And attempts to upgrade the HTTP URL to HTTPS with is_upgraded_url_valid().
-	 * If a request to the upgraded URL does not succeed, this includes it in the returned URL(s).
+	 * This includes images, scripts, and stylesheets.
+	 * But it only looks at the HTML document in the $response body.
+	 * If a script requests an insecure script, this will not detect that.
 	 *
 	 * @param array $response The response from a wp_remote_request().
-	 * @return array|WP_Error $insecure_content[][] {
-	 *     The insecure content, by type.
-	 *
-	 *     @type string[]  $passive The passive insecure URLs.
-	 *     @type string[]  $active  The active insecure URLs.
-	 * }
+	 * @return array|WP_Error The URLs for insecure content, or a WP_Error.
 	 */
 	public function get_insecure_content( $response ) {
 		$libxml_previous_state = libxml_use_internal_errors( true );
@@ -218,26 +199,27 @@ class WP_HTTPS_Detection {
 		$dom->loadHTML( $body );
 		$insecure_urls = array();
 
-		foreach ( $this->insecure_content_types as $content_type => $tags_to_check ) {
-			foreach ( $tags_to_check as $tag => $attribute ) {
-				$nodes = $dom->getElementsByTagName( $tag );
-				foreach ( $nodes as $node ) {
-					if (
-						! $node instanceof DOMElement
-						||
-						! $node->hasAttribute( $attribute )
-						||
-						( 'link' === $tag && 'stylesheet' !== $node->getAttribute( 'rel' ) )
-					) {
-						continue;
-					}
-					$url = $node->getAttribute( $attribute );
-					if ( 'http' === wp_parse_url( $url, PHP_URL_SCHEME ) ) {
-						$insecure_urls[ $content_type ][] = $url;
-					}
+		foreach ( $this->insecure_content_types as $tag ) {
+			$nodes     = $dom->getElementsByTagName( $tag );
+			$attribute = 'link' === $tag ? 'href' : 'src';
+			foreach ( $nodes as $node ) {
+				if (
+					! $node instanceof DOMElement
+					||
+					! $node->hasAttribute( $attribute )
+					||
+					// Other <link
+					( 'link' === $tag && 'stylesheet' !== $node->getAttribute( 'rel' ) )
+				) {
+					continue;
+				}
+				$url = $node->getAttribute( $attribute );
+				if ( 'http' === wp_parse_url( $url, PHP_URL_SCHEME ) ) {
+					$insecure_urls[] = $url;
 				}
 			}
 		}
+
 		libxml_clear_errors();
 		libxml_use_internal_errors( $libxml_previous_state );
 

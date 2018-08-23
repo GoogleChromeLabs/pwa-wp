@@ -162,11 +162,9 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		add_filter( 'set_url_scheme', array( $this->instance, 'convert_to_https' ) );
 		update_option(
 			WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME,
-			array(
-				'active'  => array( self::HTTP_URL ),
-				'passive' => array( self::HTTP_URL ),
-			)
+			array( self::HTTP_URL )
 		);
+
 		ob_start();
 		$this->instance->render_https_settings();
 		$output = ob_get_clean();
