@@ -271,6 +271,13 @@ class WP_Service_Workers extends WP_Scripts {
 		);
 		$script .= sprintf( "workbox.setConfig( %s );\n", wp_json_encode( $options, 64 /* JSON_UNESCAPED_SLASHES */ ) );
 
+		$cache_name_details = array(
+			'prefix' => 'wordpress',
+			'suffix' => 'v1',
+		);
+
+		$script .= sprintf( 'workbox.core.setCacheNameDetails(%s);', wp_json_encode( $cache_name_details ) );
+
 		/**
 		 * Filters whether navigation preload is enabled.
 		 *
