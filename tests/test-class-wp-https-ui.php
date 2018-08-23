@@ -298,7 +298,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 			array_merge(
 				$initial_header,
 				array(
-					'Upgrade-Insecure-Requests' => '1',
+					'Content-Security-Policy' => 'upgrade-insecure-requests',
 				)
 			),
 			$this->instance->upgrade_insecure_requests( $initial_header )

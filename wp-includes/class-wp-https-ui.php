@@ -338,7 +338,7 @@ class WP_HTTPS_UI {
 	 * @return array $headers The filtered response headers.
 	 */
 	public function upgrade_insecure_requests( $headers ) {
-		$headers['Upgrade-Insecure-Requests'] = '1';
+		$headers['Content-Security-Policy'] = 'upgrade-insecure-requests';
 		return $headers;
 	}
 }
