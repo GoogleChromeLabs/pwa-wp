@@ -171,19 +171,22 @@ class WP_HTTPS_Detection {
 	 */
 	public function has_proper_manifest( $body ) {
 		$libxml_previous_state = libxml_use_internal_errors( true );
-		$dom = new DOMDocument( '1.0' );
+		$dom                   = new DOMDocument( '1.0' );
 		$dom->loadHTML( $body );
+		$has_manifest = false;
 
 		foreach ( $dom->getElementsByTagName( 'link' ) as $link ) {
 			if ( $link->getAttribute( 'href' ) === rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ) ) {
-				return true;
+				$has_manifest = true;
+				break;
 			}
 		}
 
+		// Store $has_manifest in a variable instead of returning true the foreach loop, so these functions always run.
 		libxml_clear_errors();
 		libxml_use_internal_errors( $libxml_previous_state );
 
-		return false;
+		return $has_manifest;
 	}
 
 	/**
