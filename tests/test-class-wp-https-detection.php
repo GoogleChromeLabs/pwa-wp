@@ -154,17 +154,24 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
 		$this->instance->update_https_support_options();
 		$this->assertTrue( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
+		$this->assertEquals( array( self::HTTP_URL ), get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME ) );
 		remove_filter( 'http_response', array( $this, 'mock_successful_response' ) );
+		delete_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME );
 
-		// The HTTPS support option should be false, as the request for the HTTPS page failed.
+		/*
+		 * The HTTPS support option should be false, as the request for the HTTPS page failed.
+		 * And because the request failed, it should not update the insecure content option.
+		 */
 		$this->instance->update_https_support_options();
 		$this->assertFalse( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
+		$this->assertEmpty( get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME ) );
 		remove_filter( 'http_response', array( $this, 'mock_error_response' ) );
 
 		// The response is a 301, so the option value should be false.
 		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
 		$this->instance->update_https_support_options();
 		$this->assertFalse( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
+		$this->assertEmpty( get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME ) );
 		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
 	}
 
@@ -294,7 +301,14 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 */
 	public function mock_successful_response() {
 		return array(
-			'body'     => sprintf( '<html><head><link rel="manifest" href="%s"></head><body></body></html>', set_url_scheme( rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ), 'https' ) ),
+			'body'     => sprintf(
+				'<html><head><link rel="manifest" href="%s"></head><body>%s</body></html>',
+				set_url_scheme( rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ), 'https' ),
+				sprintf(
+					'<img src="%s">',
+					self::HTTP_URL
+				)
+			),
 			'response' => array(
 				'code' => 200,
 			),

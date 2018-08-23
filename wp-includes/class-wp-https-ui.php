@@ -172,7 +172,7 @@ class WP_HTTPS_UI {
 		<?php
 
 		$all_insecure_urls = get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME );
-		$total_urls_count  = is_array( $all_insecure_urls) && ! empty( $all_insecure_urls ) ? count( $all_insecure_urls ) : 0;
+		$total_urls_count  = is_array( $all_insecure_urls ) && ! empty( $all_insecure_urls ) ? count( $all_insecure_urls ) : 0;
 
 		// Exit if there is no insecure URL to display.
 		if ( ! $total_urls_count ) {
