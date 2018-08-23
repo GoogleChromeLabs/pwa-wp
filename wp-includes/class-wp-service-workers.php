@@ -532,14 +532,7 @@ class WP_Service_Workers extends WP_Scripts {
 			$exported_strategy_args[ $strategy_arg_name ] = $strategy_arg_value;
 		}
 
-		$script .= sprintf(
-			'const strategyArgs = %s;',
-			empty( $exported_strategy_args ) ? '{}' : wp_json_encode( $exported_strategy_args )
-		);
-
-		if ( ! isset( $exported_strategy_args['cacheName'] ) ) {
-			$script .= 'strategyArgs.cacheName = wp.serviceWorker.core.cacheNames.runtime;';
-		}
+		$script .= sprintf( 'const strategyArgs = %s;', wp_json_encode( $exported_strategy_args ) );
 
 		if ( is_array( $plugins ) ) {
 
