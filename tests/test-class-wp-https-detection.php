@@ -327,7 +327,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 */
 	public function mock_response_incorrect_manifest() {
 		return array(
-			'body' => '<html><head><link rel="manifest" href="https://example.com/incorrect-manifest-location"></head><body>%s</body></html>',
+			'body'     => '<html><head><link rel="manifest" href="https://example.com/incorrect-manifest-location"></head><body>%s</body></html>',
 			'response' => array(
 				'code' => 200,
 			),
