@@ -39,12 +39,12 @@ class WP_HTTPS_Detection {
 	const INSECURE_CONTENT_OPTION_NAME = 'insecure_content';
 
 	/**
-	 * The tag names for insecure content types.
+	 * The tag names for insecure content
 	 *
 	 * @see https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content
 	 * @var array
 	 */
-	public $insecure_content_types = array(
+	public $insecure_content_tags = array(
 		'img',
 		'audio',
 		'video',
@@ -59,7 +59,8 @@ class WP_HTTPS_Detection {
 	public function init() {
 		add_action( 'wp', array( $this, 'schedule_cron' ) );
 		add_action( self::CRON_HOOK, array( $this, 'update_https_support_options' ) );
-		add_filter( 'cron_request', array( $this, 'ensure_http_if_sslverify' ), PHP_INT_MAX );
+		add_filter( 'cron_request', array( $this, 'conditionally_prevent_sslverify' ), PHP_INT_MAX );
+
 		$wp_https_ui = new WP_HTTPS_UI( $this );
 		$wp_https_ui->init();
 	}
@@ -80,11 +81,6 @@ class WP_HTTPS_Detection {
 	 * But if the request is a WP_Error, this does not update the option for insecure content.
 	 */
 	public function update_https_support_options() {
-		// If the home and siteurl values are already HTTPS, there's no need to update these options for the UI, as the UI won't display.
-		if ( $this->is_currently_https() ) {
-			return;
-		}
-
 		$https_support_response = $this->check_https_support();
 		update_option(
 			self::HTTPS_SUPPORT_OPTION_NAME,
@@ -199,7 +195,7 @@ class WP_HTTPS_Detection {
 		$dom->loadHTML( $body );
 		$insecure_urls = array();
 
-		foreach ( $this->insecure_content_types as $tag ) {
+		foreach ( $this->insecure_content_tags as $tag ) {
 			$nodes     = $dom->getElementsByTagName( $tag );
 			$attribute = 'link' === $tag ? 'href' : 'src';
 			foreach ( $nodes as $node ) {

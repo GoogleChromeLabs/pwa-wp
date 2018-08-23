@@ -11,11 +11,11 @@
 class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 
 	/**
-	 * The response code for an unsuccessful request to an HTTPS URL.
+	 * A response code for an unsuccessful request to an HTTPS URL.
 	 *
 	 * @var int
 	 */
-	const INCORRECT_RESPONSE_CODE = 301;
+	const MOCK_INCORRECT_RESPONSE_CODE = 301;
 
 	/**
 	 * A mock HTTPS URL.
@@ -65,7 +65,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	public function test_init() {
 		$this->assertEquals( 10, has_action( 'wp', array( $this->instance, 'schedule_cron' ) ) );
 		$this->assertEquals( 10, has_action( WP_HTTPS_Detection::CRON_HOOK, array( $this->instance, 'update_https_support_options' ) ) );
-		$this->assertEquals( PHP_INT_MAX, has_filter( 'cron_request', array( $this->instance, 'ensure_http_if_sslverify' ) ) );
+		$this->assertEquals( PHP_INT_MAX, has_filter( 'cron_request', array( $this->instance, 'conditionally_prevent_sslverify' ) ) );
 	}
 
 	/**
@@ -207,7 +207,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		// The response should have a code of 301.
 		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
 		$https_support = $this->instance->check_https_support();
-		$this->assertEquals( array( 'code' => self::INCORRECT_RESPONSE_CODE ), $https_support['response'] );
+		$this->assertEquals( array( 'code' => self::MOCK_INCORRECT_RESPONSE_CODE ), $https_support['response'] );
 		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
 	}
 
@@ -229,11 +229,11 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test ensure_http_if_sslverify.
+	 * Test conditionally_prevent_sslverify.
 	 *
-	 * @covers WP_HTTPS_Detection::ensure_http_if_sslverify()
+	 * @covers WP_HTTPS_Detection::conditionally_prevent_sslverify()
 	 */
-	public function test_ensure_http_if_sslverify() {
+	public function test_conditionally_prevent_sslverify() {
 
 		// The arguments don't have an HTTPS URL and 'sslverify' isn't true, so they shouldn't change.
 		$http_url               = 'http://example.com';
@@ -243,7 +243,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 				'sslverify' => false,
 			),
 		);
-		$this->assertEquals( $allowed_cron_arguments, $this->instance->ensure_http_if_sslverify( $allowed_cron_arguments ) );
+		$this->assertEquals( $allowed_cron_arguments, $this->instance->conditionally_prevent_sslverify( $allowed_cron_arguments ) );
 
 		// With an HTTPS URL and 'sslverify' => true, this should change 'sslverify' to false.
 		$https_url                 = 'https://example.com';
@@ -254,14 +254,14 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 			),
 		);
 		$cron_arguments_sslverify_true['args']['sslverify'] = true;
-		$filtered_cron_arguments                            = $this->instance->ensure_http_if_sslverify( $disallowed_cron_arguments );
+		$filtered_cron_arguments                            = $this->instance->conditionally_prevent_sslverify( $disallowed_cron_arguments );
 		$this->assertFalse( $filtered_cron_arguments['args']['sslverify'] );
 		$this->assertEquals( $https_url, $filtered_cron_arguments['url'] );
 
 		// The URL is HTTP, so 'sslverify' => true is allowed, and the arguments shouldn't change.
 		$allowed_cron_arguments_http        = $disallowed_cron_arguments;
 		$allowed_cron_arguments_http['url'] = $http_url;
-		$this->assertEquals( $allowed_cron_arguments_http, $this->instance->ensure_http_if_sslverify( $allowed_cron_arguments_http ) );
+		$this->assertEquals( $allowed_cron_arguments_http, $this->instance->conditionally_prevent_sslverify( $allowed_cron_arguments_http ) );
 	}
 
 	/**
@@ -271,7 +271,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @return WP_HTTP_Requests_Response $response The filtered response object.
 	 */
 	public function mock_incorrect_response( $response ) {
-		$response['response']['code'] = self::INCORRECT_RESPONSE_CODE;
+		$response['response']['code'] = self::MOCK_INCORRECT_RESPONSE_CODE;
 		return $response;
 	}
 
