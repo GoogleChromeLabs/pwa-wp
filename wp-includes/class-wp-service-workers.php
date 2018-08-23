@@ -159,10 +159,12 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @return string Script.
 	 */
 	public function get_error_response_handling_script() {
+		$template   = get_template();
+		$stylesheet = get_stylesheet();
 
-		$revision = sprintf( '%s-v%s', get_template(), wp_get_theme( get_template() )->Version );
-		if ( get_template() !== get_stylesheet() ) {
-			$revision .= sprintf( ';%s-v%s', get_stylesheet(), wp_get_theme( get_stylesheet() )->Version );
+		$revision = sprintf( '%s-v%s', $template, wp_get_theme( $template )->Version );
+		if ( $template !== $stylesheet ) {
+			$revision .= sprintf( ';%s-v%s', $stylesheet, wp_get_theme( $stylesheet )->Version );
 		}
 
 		$scope = $this->get_current_scope();
