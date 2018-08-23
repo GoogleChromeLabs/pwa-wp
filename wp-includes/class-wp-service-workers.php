@@ -468,6 +468,34 @@ class WP_Service_Workers extends WP_Scripts {
 		wp_styles()->to_do = $original_to_do; // Restore original styles to do.
 	}
 
+
+	/**
+	 * Register precached routes for site icon images.
+	 *
+	 * @return int Count of pre-cached URLs.
+	 */
+	public function register_precached_site_icon() {
+		if ( ! has_site_icon() || ! get_option( 'site_icon' ) ) {
+			return 0;
+		}
+
+		$attachment = get_post( get_option( 'site_icon' ) );
+		if ( ! $attachment ) {
+			return 0;
+		}
+
+		$image_urls = array_unique( array(
+			get_site_icon_url( 32 ),
+			get_site_icon_url( 192 ),
+			get_site_icon_url( 180 ),
+			get_site_icon_url( 270 ),
+		) );
+		foreach ( $image_urls as $image_url ) {
+			$this->register_precached_route( $image_url, $attachment->post_modified );
+		}
+		return count( $image_urls );
+	}
+
 	/**
 	 * Register precached routes for custom logo image.
 	 *
