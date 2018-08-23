@@ -374,7 +374,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 * }
 	 */
 	public function register_precached_routes( $routes ) {
-		if ( ! is_array( $routes ) || empty( $routes ) ) {
+		if ( ! is_array( $routes ) ) {
 			_doing_it_wrong( __METHOD__, esc_html__( 'Routes must be an array.', 'pwa' ), '0.2' );
 			return;
 		}
@@ -406,18 +406,15 @@ class WP_Service_Workers extends WP_Scripts {
 				continue;
 			}
 
-			$src = $dependency->src;
+			$url = $dependency->src;
 
-			$ver = false === $dependency->ver ? get_bloginfo( 'version' ) : $dependency->ver;
+			$revision = false === $dependency->ver ? get_bloginfo( 'version' ) : $dependency->ver;
 
 			/** This filter is documented in wp-includes/class.wp-scripts.php */
-			$src = apply_filters( 'script_loader_src', $src, $handle );
+			$url = apply_filters( 'script_loader_src', $url, $handle );
 
-			if ( $src ) {
-				$precache_entries[] = array(
-					'url'      => $src,
-					'revision' => (string) $ver,
-				);
+			if ( $url ) {
+				$precache_entries[] = compact( 'url', 'revision' );
 			}
 		}
 		$this->register_precached_routes( $precache_entries );
@@ -446,18 +443,15 @@ class WP_Service_Workers extends WP_Scripts {
 				continue;
 			}
 
-			$src = $dependency->src;
+			$url = $dependency->src;
 
-			$ver = false === $dependency->ver ? get_bloginfo( 'version' ) : $dependency->ver;
+			$revision = false === $dependency->ver ? get_bloginfo( 'version' ) : $dependency->ver;
 
 			/** This filter is documented in wp-includes/class.wp-styles.php */
-			$src = apply_filters( 'style_loader_src', $src, $handle );
+			$url = apply_filters( 'style_loader_src', $url, $handle );
 
-			if ( $src ) {
-				$precache_entries[] = array(
-					'url'      => $src,
-					'revision' => (string) $ver,
-				);
+			if ( $url ) {
+				$precache_entries[] = compact( 'url', 'revision' );
 			}
 		}
 		$this->register_precached_routes( $precache_entries );
