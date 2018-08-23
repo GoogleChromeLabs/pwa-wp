@@ -176,7 +176,7 @@ class WP_HTTPS_Detection {
 		$has_manifest = false;
 
 		foreach ( $dom->getElementsByTagName( 'link' ) as $link ) {
-			if ( $link->getAttribute( 'href' ) === rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ) ) {
+			if ( $link->getAttribute( 'href' ) === set_url_scheme( rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ), 'https' ) ) {
 				$has_manifest = true;
 				break;
 			}

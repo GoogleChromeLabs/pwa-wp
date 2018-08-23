@@ -226,7 +226,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		$document_with_incorrect_manifest_url = sprintf( $html_boilerplate, '<link rel="manifest" href="https://example.com/incorrect-manifest-location"><link rel="test-link-no-href">' );
 		$this->assertFalse( $this->instance->has_proper_manifest( $document_with_incorrect_manifest_url ) );
 
-		$document_with_proper_manifest = sprintf( $html_boilerplate, '<link rel="manifest" href="' . rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ) . '">' );
+		$document_with_proper_manifest = sprintf( $html_boilerplate, '<link rel="manifest" href="' . set_url_scheme( rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ), 'https' ) . '">' );
 		$this->assertTrue( $this->instance->has_proper_manifest( $document_with_proper_manifest ) );
 	}
 
@@ -296,7 +296,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 */
 	public function mock_successful_response() {
 		return array(
-			'body'     => sprintf( '<html><head><link rel="manifest" href="%s"></head><body></body></html>', rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ) ),
+			'body'     => sprintf( '<html><head><link rel="manifest" href="%s"></head><body></body></html>', set_url_scheme( rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ), 'https' ) ),
 			'response' => array(
 				'code' => 200,
 			),
