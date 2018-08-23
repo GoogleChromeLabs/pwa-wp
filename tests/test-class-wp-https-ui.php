@@ -249,16 +249,6 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Converts a URL to HTTP.
-	 *
-	 * @param string $url The URL to filter.
-	 * @return string $url The filtered URL.
-	 */
-	public function convert_to_http( $url ) {
-		return str_replace( 'https', 'http', $url );
-	}
-
-	/**
 	 * Test filter_header.
 	 *
 	 * @covers WP_HTTPS_UI::filter_header()
@@ -301,5 +291,15 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 			),
 			$this->instance->upgrade_insecure_requests( $initial_header )
 		);
+	}
+
+	/**
+	 * Converts a URL to HTTP.
+	 *
+	 * @param string $url The URL to filter.
+	 * @return string $url The filtered URL.
+	 */
+	public function convert_to_http( $url ) {
+		return str_replace( 'https', 'http', $url );
 	}
 }

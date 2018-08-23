@@ -231,7 +231,7 @@ class WP_HTTPS_Detection {
 	 * @param array $request The cron request arguments.
 	 * @return array $request The filtered cron request arguments.
 	 */
-	public function ensure_http_if_sslverify( $request ) {
+	public function conditionally_prevent_sslverify( $request ) {
 		if ( 'https' === wp_parse_url( $request['url'], PHP_URL_SCHEME ) ) {
 			$request['args']['sslverify'] = false;
 		}
