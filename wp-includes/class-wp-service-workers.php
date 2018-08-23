@@ -364,6 +364,16 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
+	 * Register precached route.
+	 *
+	 * @param string $url      URL.
+	 * @param string $revision Revision.
+	 */
+	public function register_precached_route( $url, $revision = '' ) {
+		$this->registered_precaching_routes[] = compact( 'url', 'revision' );
+	}
+
+	/**
 	 * Register routes / files for precaching.
 	 *
 	 * @param array $routes {
