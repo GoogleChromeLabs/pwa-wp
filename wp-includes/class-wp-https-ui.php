@@ -171,12 +171,12 @@ class WP_HTTPS_UI {
 		</script>
 		<?php
 
-		$insecure_urls_option  = get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME );
-		$all_insecure_urls     = $insecure_urls_option;
-		$total_urls_count      = count( $all_insecure_urls );
-		$insecure_content_id   = 'insecure-content';
-		$show_more_button_id   = 'view-urls';
-		$insecure_urls_class   = 'insecure-urls';
+		$insecure_urls_option = get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME );
+		$all_insecure_urls    = $insecure_urls_option;
+		$total_urls_count     = count( $all_insecure_urls );
+		$insecure_content_id  = 'insecure-content';
+		$show_more_button_id  = 'view-urls';
+		$insecure_urls_class  = 'insecure-urls';
 
 		// Exit if there is no insecure URL to display.
 		if ( ! $total_urls_count ) {

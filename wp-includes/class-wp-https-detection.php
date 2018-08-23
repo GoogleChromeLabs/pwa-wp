@@ -208,7 +208,7 @@ class WP_HTTPS_Detection {
 					||
 					! $node->hasAttribute( $attribute )
 					||
-					// Other <link
+					// Other <link> elements are allowed to have non-HTTPS URLs, like <link rel="profile" href="http://gmpg.org/xfn/11">.
 					( 'link' === $tag && 'stylesheet' !== $node->getAttribute( 'rel' ) )
 				) {
 					continue;
