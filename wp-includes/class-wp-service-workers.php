@@ -465,6 +465,129 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
+	 * Register precached routes for custom logo image.
+	 *
+	 * @return int Count of pre-cached URLs.
+	 */
+	public function register_precached_custom_logo() {
+		if ( ! current_theme_supports( 'custom-logo' ) || ! get_theme_mod( 'custom_logo' ) ) {
+			return 0;
+		}
+		$attachment = get_post( get_theme_mod( 'custom_logo' ) );
+		if ( ! $attachment ) {
+			return 0;
+		}
+		$image_urls = $this->get_attachment_image_urls( $attachment->ID, 'full' );
+		$image_src  = wp_get_attachment_image_src( $attachment->ID, 'full' );
+		if ( $image_src ) {
+			$image_urls[] = $image_src[0];
+		}
+		$precache_entries = array();
+		foreach ( array_unique( $image_urls ) as $image_url ) {
+			$precache_entries[] = array(
+				'url'      => $image_url,
+				'revision' => $attachment->post_modified,
+			);
+		}
+		$this->register_precached_routes( $precache_entries );
+		return count( $precache_entries );
+	}
+
+	/**
+	 * Register precached routes for custom header image(s).
+	 *
+	 * @since 0.2
+	 *
+	 * @see _get_random_header_data()
+	 * @see get_header_image()
+	 * @return int Count of pre-cached URLs.
+	 */
+	public function register_precached_custom_header() {
+		if ( ! current_theme_supports( 'custom-header' ) || ! get_custom_header() ) {
+			return 0;
+		}
+
+		$precache_entries = array();
+		if ( is_random_header_image() ) {
+			// What follows comes fom _get_random_header_data().
+			global $_wp_default_headers;
+			$header_image_mod = get_theme_mod( 'header_image', '' );
+
+			$headers = array();
+			if ( 'random-uploaded-image' === $header_image_mod ) {
+				$headers = get_uploaded_header_images();
+			} elseif ( ! empty( $_wp_default_headers ) ) {
+				if ( 'random-default-image' === $header_image_mod ) {
+					$headers = $_wp_default_headers;
+				} else {
+					if ( current_theme_supports( 'custom-header', 'random-default' ) ) {
+						$headers = $_wp_default_headers;
+					}
+				}
+			}
+
+			foreach ( $headers as $header ) {
+				$precache_entries[] = array(
+					'url' => sprintf( $header['url'], get_template_directory_uri(), get_stylesheet_directory_uri() ),
+				);
+			}
+		} else {
+			$header     = get_custom_header();
+			$attachment = ! empty( $header->attachment_id ) ? get_post( get_custom_header()->attachment_id ) : null;
+
+			if ( $attachment ) {
+				foreach ( $this->get_attachment_image_urls( $attachment->ID, array( $header->width, $header->height ) ) as $image_url ) {
+					$precache_entries[] = array(
+						'url'      => $image_url,
+						'revision' => $attachment->post_modified,
+					);
+				}
+			} elseif ( get_header_image() ) {
+				$precache_entries[] = array(
+					'url' => get_header_image(),
+				);
+			}
+		}
+
+		$this->register_precached_routes( $precache_entries );
+		return count( $precache_entries );
+	}
+
+	/**
+	 * Register precached routes for custom background image(s).
+	 *
+	 * @return int Count of pre-cached URLs.
+	 */
+	public function register_precached_custom_background() {
+		if ( ! current_theme_supports( 'custom-background' ) || ! get_background_image() ) {
+			return 0;
+		}
+		$precache_entries = array(
+			array(
+				// There is no attachment available, so we cannot obtain the modified date as the revision.
+				'url' => get_background_image(),
+			),
+		);
+		$this->register_precached_routes( $precache_entries );
+		return count( $precache_entries );
+	}
+
+	/**
+	 * Get the URLs for a given attachment image and size.
+	 *
+	 * @param int          $attachment_id Attachment ID.
+	 * @param string|array $image_size    Image size.
+	 * @return array URLs.
+	 */
+	protected function get_attachment_image_urls( $attachment_id, $image_size ) {
+		if ( preg_match_all( '#(?:^|\s)(https://\S+)#', (string) wp_get_attachment_image_srcset( $attachment_id, $image_size ), $matches ) ) {
+			return $matches[1];
+		} else {
+			return array();
+		}
+	}
+
+	/**
 	 * Gets the script for precaching routes.
 	 *
 	 * @param array $routes Array of routes.
