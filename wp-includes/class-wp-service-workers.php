@@ -765,9 +765,6 @@ class WP_Service_Workers extends WP_Scripts {
 			 */
 			do_action( 'wp_front_service_worker', $this );
 		} elseif ( self::SCOPE_ADMIN === $scope ) {
-			/** This hook is documented in wp-admin/admin-header.php */
-			do_action( 'admin_enqueue_scripts', 'index.php' ); // @todo Is 'index.php' the best here?
-
 			/**
 			 * Fires before serving the wp-admin service worker, when its scripts should be registered, caching routes established, and assets precached.
 			 *
