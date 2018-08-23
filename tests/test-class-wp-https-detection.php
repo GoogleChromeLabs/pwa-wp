@@ -74,9 +74,6 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_Detection::get_insecure_content()
 	 */
 	public function test_get_insecure_content() {
-		// Mock a response code of 301, so is_upgraded_url_valid() is false for every URL and they are all reported.
-		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
-
 		$html_boilerplate = '<!DOCTYPE html><html><head><meta http-equiv="content-type"></head><body>%s</body></html>';
 		$insecure_img_src = 'http://example.com/baz';
 		$body             = sprintf(
@@ -128,30 +125,6 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test is_upgraded_url_valid.
-	 *
-	 * @covers WP_HTTPS_Detection::is_upgraded_url_valid()
-	 */
-	public function test_is_upgraded_url_valid() {
-		$initial_url = 'http://example.com/foo-bar';
-
-		// Mock a response code of 301, so this should be false.
-		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
-		$this->assertFalse( $this->instance->is_upgraded_url_valid( $initial_url ) );
-		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
-
-		// Mock a response that is a WP_Error, where this method should also return false.
-		add_filter( 'http_response', array( $this, 'mock_error_response' ) );
-		$this->assertFalse( $this->instance->is_upgraded_url_valid( $initial_url ) );
-		remove_filter( 'http_response', array( $this, 'mock_error_response' ) );
-
-		// Mock a successful response, where this method should return true.
-		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
-		$this->assertTrue( $this->instance->is_upgraded_url_valid( $initial_url ) );
-		remove_filter( 'http_response', array( $this, 'mock_successful_response' ) );
-	}
-
-	/**
 	 * Test schedule_cron.
 	 *
 	 * @covers WP_HTTPS_Detection::schedule_cron()
@@ -180,11 +153,12 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_Detection::update_https_support_options()
 	 */
 	public function test_update_https_support_options() {
+		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
 		$this->instance->update_https_support_options();
 		$this->assertTrue( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
+		remove_filter( 'http_response', array( $this, 'mock_successful_response' ) );
 
 		// The HTTPS support option should be false, as the request for the HTTPS page failed.
-		add_filter( 'http_response', array( $this, 'mock_error_response' ) );
 		$this->instance->update_https_support_options();
 		$this->assertFalse( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
 		remove_filter( 'http_response', array( $this, 'mock_error_response' ) );

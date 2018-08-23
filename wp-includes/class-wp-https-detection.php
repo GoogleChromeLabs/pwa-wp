@@ -15,7 +15,7 @@ class WP_HTTPS_Detection {
 	 *
 	 * @var string
 	 */
-	const CRON_HOOK = 'check_https_support';
+	const CRON_HOOK = 'wp_https_support_check';
 
 	/**
 	 * The interval at which to run the cron hook.
@@ -76,9 +76,6 @@ class WP_HTTPS_Detection {
 		add_filter( 'cron_request', array( $this, 'ensure_http_if_sslverify' ), PHP_INT_MAX );
 		$wp_https_ui = new WP_HTTPS_UI( $this );
 		$wp_https_ui->init();
-
-		// @todo: remove this, as it's only for development.
-		add_action( 'init', array( $this, 'set_mock_insecure_content' ) );
 	}
 
 	/**
@@ -111,7 +108,7 @@ class WP_HTTPS_Detection {
 		if ( ! is_wp_error( $https_support_response ) ) {
 			$insecure_content = $this->get_insecure_content( $https_support_response );
 			if ( ! is_wp_error( $insecure_content ) ) {
-				update_option( self::INSECURE_CONTENT_OPTION_NAME, false );
+				update_option( self::INSECURE_CONTENT_OPTION_NAME, $insecure_content );
 			}
 		}
 	}
@@ -142,11 +139,7 @@ class WP_HTTPS_Detection {
 	public function check_https_support() {
 		// Add an arbitrary query arg to prevent a cached response.
 		$response = wp_remote_request(
-			add_query_arg(
-				'a',
-				'',
-				home_url( '/', 'https' )
-			),
+			home_url( '/', 'https' ),
 			array(
 				'headers' => array(
 					'Cache-Control' => 'no-cache',
@@ -177,7 +170,8 @@ class WP_HTTPS_Detection {
 	 * @return boolean Whether the body has a proper manifest.
 	 */
 	public function has_proper_manifest( $body ) {
-		$dom = new DOMDocument();
+		$libxml_previous_state = libxml_use_internal_errors( true );
+		$dom = new DOMDocument( '1.0' );
 		$dom->loadHTML( $body );
 
 		foreach ( $dom->getElementsByTagName( 'link' ) as $link ) {
@@ -185,6 +179,10 @@ class WP_HTTPS_Detection {
 				return true;
 			}
 		}
+
+		libxml_clear_errors();
+		libxml_use_internal_errors( $libxml_previous_state );
+
 		return false;
 	}
 
@@ -213,7 +211,7 @@ class WP_HTTPS_Detection {
 			);
 		}
 
-		$dom = new DOMDocument();
+		$dom = new DOMDocument( '1.0' );
 		$dom->loadHTML( $body );
 		$insecure_urls = array();
 
@@ -221,11 +219,17 @@ class WP_HTTPS_Detection {
 			foreach ( $tags_to_check as $tag => $attribute ) {
 				$nodes = $dom->getElementsByTagName( $tag );
 				foreach ( $nodes as $node ) {
-					if ( ! $node instanceof DOMElement || ! $node->hasAttribute( $attribute ) ) {
+					if (
+						! $node instanceof DOMElement
+						||
+						! $node->hasAttribute( $attribute )
+						||
+						( 'link' === $tag && 'stylesheet' !== $node->getAttribute( 'rel' ) )
+					) {
 						continue;
 					}
 					$url = $node->getAttribute( $attribute );
-					if ( 'http' === wp_parse_url( $url, PHP_URL_SCHEME ) && ! $this->is_upgraded_url_valid( $url ) ) {
+					if ( 'http' === wp_parse_url( $url, PHP_URL_SCHEME ) ) {
 						$insecure_urls[ $content_type ][] = $url;
 					}
 				}
@@ -235,60 +239,6 @@ class WP_HTTPS_Detection {
 		libxml_use_internal_errors( $libxml_previous_state );
 
 		return $insecure_urls;
-	}
-
-	/**
-	 * Whether a request to the HTTPS version of a URL succeeds.
-	 *
-	 * When using the Upgrade-Insecure-Requests header,
-	 * HTTP URLs will be upgraded to HTTPS.
-	 * But if they fail, there is no fallback.
-	 * So this finds whether the upgraded HTTPS URL succeeds.
-	 *
-	 * @param string $url The HTTP URL to convert to HTTPS and make a request for.
-	 * @return bool Whether the upgraded URL succeeds.
-	 */
-	public function is_upgraded_url_valid( $url ) {
-		$upgraded_url = preg_replace( '#^http(?=://)#', 'https', $url );
-		$response     = wp_remote_get( $upgraded_url );
-		return 200 === wp_remote_retrieve_response_code( $response );
-	}
-
-	/**
-	 * Sets mock insecure content, only for testing.
-	 *
-	 * @todo: Remove this later, as this is only for development.
-	 */
-	public function set_mock_insecure_content() {
-		update_option(
-			self::INSECURE_CONTENT_OPTION_NAME,
-			array(
-				'passive' => array(
-					'http://example.com/foo-passive',
-					'http://example.com/bar-passive',
-					'http://example.com/baz-passive',
-					'http://example.com/var-passive',
-					'http://example.com/something-passive',
-					'http://example.com/example-passive',
-					'http://example.com/this-passive',
-					'http://example.com/mab-passive',
-				),
-				'active'  => array(
-					'http://example.com/foo-active',
-					'http://example.com/bar-active',
-					'http://example.com/baz-active',
-					'http://example.com/var-active',
-					'http://example.com/ex-active',
-					'http://example.com/something-active',
-					'http://example.com/example-active',
-					'http://example.com/this-active',
-					'http://example.com/mab-active',
-					'http://example.com/zoom-active',
-					'http://example.com/this-active',
-					'http://example.com/won-active',
-				),
-			)
-		);
 	}
 
 	/**

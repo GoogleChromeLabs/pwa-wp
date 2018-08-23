@@ -80,8 +80,8 @@ class WP_HTTPS_UI {
 	 */
 	public function init() {
 		add_action( 'admin_init', array( $this, 'init_admin' ) );
-		add_action( 'admin_init', array( $this, 'filter_site_url_and_home' ) );
-		add_action( 'admin_init', array( $this, 'filter_header' ) );
+		add_action( 'init', array( $this, 'filter_site_url_and_home' ) );
+		add_action( 'init', array( $this, 'filter_header' ) );
 	}
 
 	/**
@@ -163,18 +163,15 @@ class WP_HTTPS_UI {
 		<p>
 			<label><input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_https_value ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>"><?php esc_html_e( 'Upgrade to secure connection', 'pwa' ); ?></label>
 		</p>
+		<script>
+			(function ( $ ) {
+				// Move this UI under the Site Address (URL) <tr> on the General Settings page.
+				$( 'input[name=<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>]' ).parents( 'tr' ).insertAfter( $( 'label[for=home]' ).parents( 'tr') );
+			})( jQuery );
+		</script>
 		<?php
 
-		$insecure_urls_option = get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME );
-
-		/*
-		 * Only display the insecure URLs if there's active insecure content.
-		 * These are more of a security risk than passive insecure content, like <img>, <video>, and <audio> elements.
-		 */
-		if ( empty( $insecure_urls_option['active'] ) ) {
-			return;
-		}
-
+		$insecure_urls_option  = get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME );
 		$insecure_content_id   = 'insecure-content';
 		$show_more_button_id   = 'view-urls';
 		$insecure_urls_class   = 'insecure-urls';
@@ -183,14 +180,14 @@ class WP_HTTPS_UI {
 		$all_insecure_urls     = array_merge( $passive_insecure_urls, $active_insecure_urls );
 		$total_urls_count      = count( $all_insecure_urls );
 
-		// If there are no insecure URLs, do not display URLs.
-		if ( ! count( $all_insecure_urls ) ) {
+		// If there are no insecure URLs, there's no need for the UI below.
+		if ( ! $total_urls_count ) {
 			return;
 		}
 
 		$description = sprintf(
 			/* translators: %s is a link for more details */
-			__( 'We found non-HTTPS content on your site that could not be upgraded. %s', 'pwa' ),
+			__( 'We found content on your site that wasn&#39;t loading correctly over HTTPS. While we will try to fix these links automatically, you might check to be sure your pages work as expected. %s', 'pwa' ),
 			sprintf(
 				'<a href="%s">%s</a>',
 				__( 'https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content/How_to_fix_website_with_mixed_content', 'pwa' ),
@@ -243,7 +240,6 @@ class WP_HTTPS_UI {
 			<?php endif; ?>
 		</div>
 		<script>
-
 			(function ( $ ) {
 				// On checking 'Upgrade to secure connection,' toggle the display of the insecure URLs, as they don't apply unless it's checked.
 				$( 'input[type=checkbox][name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>"]' ).on( 'change', function() {
@@ -259,9 +255,6 @@ class WP_HTTPS_UI {
 						$( this ).addClass( 'hidden' );
 					}
 				} );
-
-				// Move this UI under the Site Address (URL) <tr> on the General Settings page.
-				$( '#<?php echo esc_attr( $insecure_content_id ); ?>' ).parents( 'tr' ).insertAfter( $( 'label[for=home]' ).parents( 'tr') );
 			})( jQuery );
 		</script>
 		<style>
@@ -329,7 +322,7 @@ class WP_HTTPS_UI {
 	 * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade-Insecure-Requests
 	 */
 	public function filter_header() {
-		if ( get_option( self::UPGRADE_HTTPS_OPTION ) && ! $this->wp_https_detection->is_currently_https() ) {
+		if ( get_option( self::UPGRADE_HTTPS_OPTION ) ) {
 			add_filter( 'wp_headers', array( $this, 'upgrade_insecure_requests' ) );
 		}
 	}

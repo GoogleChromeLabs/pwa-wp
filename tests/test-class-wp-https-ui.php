@@ -73,8 +73,8 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	public function test_init() {
 		$this->instance->init();
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'init_admin' ) ) );
-		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'filter_site_url_and_home' ) ) );
-		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'filter_header' ) ) );
+		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'filter_site_url_and_home' ) ) );
+		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'filter_header' ) ) );
 	}
 
 	/**
@@ -174,7 +174,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->assertContains( WP_HTTPS_UI::OPTION_CHECKED_VALUE, $output );
 		$this->assertContains( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, $output );
 		$this->assertContains( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to it.', $output );
-		$this->assertContains( 'We found non-HTTPS content on your site that could not be upgraded.', $output );
+		$this->assertContains( 'While we will try to fix these links automatically, you might check to be sure your pages work as expected.', $output );
 		$this->assertContains( self::HTTP_URL, $output );
 		$this->assertNotContains( 'class="hidden"', $output );
 	}
