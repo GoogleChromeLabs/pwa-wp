@@ -216,6 +216,11 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		$https_support = $this->instance->check_https_support();
 		$this->assertEquals( array( 'code' => self::MOCK_INCORRECT_RESPONSE_CODE ), $https_support['response'] );
 		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
+
+		add_filter( 'http_response', array( $this, 'mock_response_incorrect_manifest' ) );
+		$this->assertTrue( is_wp_error( $this->instance->check_https_support() ) );
+		remove_filter( 'http_response', array( $this, 'mock_response_incorrect_manifest' ) );
+
 	}
 
 	/**
@@ -309,6 +314,20 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 					self::HTTP_URL
 				)
 			),
+			'response' => array(
+				'code' => 200,
+			),
+		);
+	}
+
+	/**
+	 * Gets a mock response that is successful, but has an incorrect manifest.
+	 *
+	 * @return array Response with an incorrect manifest.
+	 */
+	public function mock_response_incorrect_manifest() {
+		return array(
+			'body' => '<html><head><link rel="manifest" href="https://example.com/incorrect-manifest-location"></head><body>%s</body></html>',
 			'response' => array(
 				'code' => 200,
 			),
