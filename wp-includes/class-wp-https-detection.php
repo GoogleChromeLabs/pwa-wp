@@ -81,6 +81,10 @@ class WP_HTTPS_Detection {
 	 * But if the request is a WP_Error, this does not update the option for insecure content.
 	 */
 	public function update_https_support_options() {
+		if ( $this->is_currently_https() ) {
+			return;
+		}
+
 		$https_support_response = $this->check_https_support();
 		update_option(
 			self::HTTPS_SUPPORT_OPTION_NAME,

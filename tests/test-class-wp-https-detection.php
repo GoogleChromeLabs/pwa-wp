@@ -151,6 +151,16 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_Detection::update_https_support_options()
 	 */
 	public function test_update_https_support_options() {
+		// If is_currently_https() is true, this method should exit and not update either option.
+		update_option( 'siteurl', self::HTTPS_URL );
+		update_option( 'home', self::HTTPS_URL );
+		add_filter( 'set_url_scheme', array( $this, 'convert_to_https' ) );
+		$this->assertEmpty( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
+		$this->assertEmpty( get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME ) );
+		remove_filter( 'set_url_scheme', array( $this, 'convert_to_https' ) );
+		update_option( 'siteurl', self::HTTP_URL );
+		update_option( 'home', self::HTTP_URL );
+
 		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
 		$this->instance->update_https_support_options();
 		$this->assertTrue( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
