@@ -300,6 +300,6 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 * @return string $url The filtered URL.
 	 */
 	public function convert_to_http( $url ) {
-		return str_replace( 'https', 'http', $url );
+		return preg_replace( '#^https(?=://)#', 'http', $url );
 	}
 }

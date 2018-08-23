@@ -119,7 +119,6 @@ class WP_HTTPS_Detection {
 	 * @return array|WP_Error A response from a loopback request to the homepage, or a WP_Error.
 	 */
 	public function check_https_support() {
-		// Add an arbitrary query arg to prevent a cached response.
 		$response = wp_remote_request(
 			home_url( '/', 'https' ),
 			array(
