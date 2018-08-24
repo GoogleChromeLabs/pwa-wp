@@ -169,13 +169,15 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$scope = $this->get_current_scope();
 		if ( self::SCOPE_FRONT === $scope ) {
+			$offline_error_template_file  = pwa_locate_template( array( 'offline.php', 'error.php' ) );
 			$offline_error_precache_entry = array(
 				'url'      => add_query_arg( 'wp_error_template', 'offline', home_url( '/' ) ),
-				'revision' => $revision,
+				'revision' => $revision . '-' . md5( $offline_error_template_file . file_get_contents( $offline_error_template_file ) ), // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			);
+			$server_error_template_file   = pwa_locate_template( array( '500.php', 'error.php' ) );
 			$server_error_precache_entry  = array(
 				'url'      => add_query_arg( 'wp_error_template', '500', home_url( '/' ) ),
-				'revision' => $revision,
+				'revision' => $revision . '-' . md5( $server_error_template_file . file_get_contents( $server_error_template_file ) ), // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			);
 
 			/**
