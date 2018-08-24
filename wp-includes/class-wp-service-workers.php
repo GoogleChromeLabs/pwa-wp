@@ -486,6 +486,28 @@ class WP_Service_Workers extends WP_Scripts {
 		wp_styles()->to_do = $original_to_do; // Restore original styles to do.
 	}
 
+	/**
+	 * Register runtime caching strategies for Fonts.
+	 *
+	 * @link https://developers.google.com/web/tools/workbox/guides/common-recipes#google_fonts
+	 */
+	public function register_cached_font_routes() {
+		$this->register_cached_route(
+			'^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/(.*)',
+			self::STRATEGY_CACHE_FIRST,
+			array(
+				'cacheName' => 'googleapis',
+				'plugins'   => array(
+					'cacheableResponse' => array(
+						'statuses' => array( 0, 200 ),
+					),
+					'expiration'        => array(
+						'maxEntries' => 30,
+					),
+				),
+			)
+		);
+	}
 
 	/**
 	 * Register precached routes for site icon images.
@@ -774,6 +796,7 @@ class WP_Service_Workers extends WP_Scripts {
 			$this->register_precached_custom_background();
 			$this->register_precached_scripts();
 			$this->register_precached_styles();
+			$this->register_cached_font_routes();
 
 			/**
 			 * Fires before serving the frontend service worker, when its scripts should be registered, caching routes established, and assets precached.
