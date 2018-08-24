@@ -620,14 +620,14 @@ class WP_Service_Workers extends WP_Scripts {
 		if ( ! current_theme_supports( 'custom-background' ) || ! get_background_image() ) {
 			return 0;
 		}
-		$precache_entries = array(
-			array(
-				// There is no attachment available, so we cannot obtain the modified date as the revision.
-				'url' => get_background_image(),
-			),
-		);
-		$this->register_precached_routes( $precache_entries );
-		return count( $precache_entries );
+		$url      = get_background_image();
+		$file     = $this->get_validated_file_path( get_header_image() );
+		$revision = null;
+		if ( is_string( $file ) ) {
+			$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		}
+		$this->register_precached_route( $url, $revision );
+		return 1;
 	}
 
 	/**
@@ -771,6 +771,7 @@ class WP_Service_Workers extends WP_Scripts {
 			$this->register_precached_site_icon();
 			$this->register_precached_custom_logo();
 			$this->register_precached_custom_header();
+			$this->register_precached_custom_background();
 			$this->register_precached_scripts();
 			$this->register_precached_styles();
 
@@ -897,7 +898,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 * Get validated path to file.
 	 *
 	 * @param string $url Relative path.
-	 * @return null|string|WP_Error
+	 * @return string|WP_Error
 	 */
 	protected function get_validated_file_path( $url ) {
 		$needs_base_url = (
