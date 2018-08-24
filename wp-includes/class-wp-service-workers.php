@@ -125,6 +125,15 @@ class WP_Service_Workers extends WP_Scripts {
 			array( 'workbox-sw' )
 		);
 
+		// Add default actions which can be removed if undesired.
+		add_action( 'wp_front_service_worker', array( $this, 'register_precached_site_icon' ) );
+		add_action( 'wp_front_service_worker', array( $this, 'register_precached_custom_logo' ) );
+		add_action( 'wp_front_service_worker', array( $this, 'register_precached_custom_header' ) );
+		add_action( 'wp_front_service_worker', array( $this, 'register_precached_custom_background' ) );
+		add_action( 'wp_front_service_worker', array( $this, 'register_precached_scripts' ) );
+		add_action( 'wp_front_service_worker', array( $this, 'register_precached_styles' ) );
+		add_action( 'wp_front_service_worker', array( $this, 'register_cached_font_routes' ) );
+
 		/**
 		 * Fires when the WP_Service_Workers instance is initialized.
 		 *
@@ -402,10 +411,11 @@ class WP_Service_Workers extends WP_Scripts {
 	 * Register scripts which are pre-cached.
 	 *
 	 * @since 0.2
-	 * @param array $handles Script handles. If empty, then registered scripts with precache enabled will be used.
+	 * @param array|mixed $handles Script handles. If empty or not an array, then registered scripts with precache enabled will be used.
 	 */
 	public function register_precached_scripts( $handles = array() ) {
-		if ( empty( $handles ) ) {
+		if ( ! is_array( $handles ) || empty( $handles ) ) {
+			$handles = array();
 			foreach ( wp_scripts()->registered as $handle => $dependency ) {
 				if ( ! empty( $dependency->extra['precache'] ) ) {
 					$handles[] = $handle;
@@ -446,10 +456,11 @@ class WP_Service_Workers extends WP_Scripts {
 	 * Register styles which are pre-cached.
 	 *
 	 * @since 0.2
-	 * @param array $handles style handles. If empty, then registered scripts with precache enabled will be used.
+	 * @param array $handles style handles. If empty or not an array, then registered scripts with precache enabled will be used.
 	 */
 	public function register_precached_styles( $handles = array() ) {
-		if ( empty( $handles ) ) {
+		if ( ! is_array( $handles ) || empty( $handles ) ) {
+			$handles = array();
 			foreach ( wp_styles()->registered as $handle => $dependency ) {
 				if ( ! empty( $dependency->extra['precache'] ) ) {
 					$handles[] = $handle;
@@ -788,15 +799,6 @@ class WP_Service_Workers extends WP_Scripts {
 
 		if ( self::SCOPE_FRONT === $scope ) {
 			wp_enqueue_scripts();
-
-			// @todo Should these all be done unconditionally?
-			$this->register_precached_site_icon();
-			$this->register_precached_custom_logo();
-			$this->register_precached_custom_header();
-			$this->register_precached_custom_background();
-			$this->register_precached_scripts();
-			$this->register_precached_styles();
-			$this->register_cached_font_routes();
 
 			/**
 			 * Fires before serving the frontend service worker, when its scripts should be registered, caching routes established, and assets precached.
