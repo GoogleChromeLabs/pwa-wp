@@ -162,7 +162,7 @@ class WP_HTTPS_UI {
 		<script>
 			( function ( $ ) {
 				// Move this UI under the Site Address (URL) <tr> on the General Settings page.
-				$( 'input[name=<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>]' ).parents( 'tr' ).insertAfter( $( 'label[for=home]' ).parents( 'tr') );
+				$( 'input[name=<?php echo self::UPGRADE_HTTPS_OPTION; ?>]' ).parents( 'tr' ).insertAfter( $( 'label[for=home]' ).parents( 'tr') );
 			} )( jQuery );
 		</script>
 		<?php
@@ -236,39 +236,39 @@ class WP_HTTPS_UI {
 			( function ( $ ) {
 				// On checking 'Upgrade to secure connection,' toggle the display of the insecure URLs, as they don't apply unless it's checked.
 				$( 'input[type=checkbox][name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>"]' ).on( 'change', function() {
-					$( '#<?php echo esc_attr( $insecure_content_id ); ?>' ).toggleClass( 'hidden' );
+					$( <?php echo wp_json_encode( "#$insecure_content_id" ); ?> ).toggleClass( 'hidden' );
 				} );
 
 				$( '#<?php echo esc_attr( $show_more_button_id ); ?>' ).on( 'click', function( event ) {
 					event.preventDefault();
-					$( '.<?php echo esc_attr( $insecure_urls_class ); ?>.hidden' ).first().removeClass( 'hidden' );
+					$( <?php echo wp_json_encode( ".$insecure_urls_class.hidden" ); ?> ).first().removeClass( 'hidden' );
 
 					// If there are no more insecure URLs that are hidden, hide the 'Show more' button.
-					if ( ! $( '.<?php echo esc_attr( $insecure_urls_class ); ?>.hidden' ).length ) {
+					if ( ! $( <?php echo wp_json_encode( ".$insecure_urls_class.hidden" ); ?> ).length ) {
 						$( this ).addClass( 'hidden' );
 					}
 				} );
 			} )( jQuery );
 		</script>
 		<style>
-			.<?php echo esc_attr( $insecure_urls_class ); ?> {
+			.<?php echo $insecure_urls_class; ?> {
 				margin: 0 0 0 5px;
 			}
 
-			.<?php echo esc_attr( $insecure_urls_class ); ?> li {
+			.<?php echo $insecure_urls_class; ?> li {
 				padding: 4px 0;
 				margin-bottom: 0;
 			}
 
-			.<?php echo esc_attr( $insecure_urls_class ); ?> li:nth-child(odd) {
+			.<?php echo $insecure_urls_class; ?> li:nth-child(odd) {
 				background: rgba(255,255,255,0.6);
 			}
 
-			#<?php echo esc_attr( $show_more_button_id ); ?> {
+			#<?php echo $show_more_button_id; ?> {
 				margin-top: 10px;
 			}
 
-			#<?php echo esc_attr( $insecure_content_id ); ?> .description {
+			#<?php echo $insecure_content_id; ?> .description {
 				margin: 20px 0;
 			}
 		</style>
