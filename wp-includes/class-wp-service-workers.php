@@ -399,11 +399,18 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Register scripts which are pre-cached.
 	 *
-	 * @todo Consider storing the script $handles to refer to later by the offline page for what to dequeue.
 	 * @since 0.2
-	 * @param array $handles Script handles.
+	 * @param array $handles Script handles. If empty, then registered scripts with precache enabled will be used.
 	 */
-	public function register_precached_scripts( $handles ) {
+	public function register_precached_scripts( $handles = array() ) {
+		if ( empty( $handles ) ) {
+			foreach ( wp_scripts()->registered as $handle => $dependency ) {
+				if ( ! empty( $dependency->extra['precache'] ) ) {
+					$handles[] = $handle;
+				}
+			}
+		}
+
 		$precache_entries = array();
 		$original_to_do   = wp_scripts()->to_do;
 		wp_scripts()->all_deps( $handles );
@@ -436,11 +443,18 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Register styles which are pre-cached.
 	 *
-	 * @todo Consider storing the style $handles to refer to later by the offline page for what to dequeue.
 	 * @since 0.2
-	 * @param array $handles style handles.
+	 * @param array $handles style handles. If empty, then registered scripts with precache enabled will be used.
 	 */
-	public function register_precached_styles( $handles ) {
+	public function register_precached_styles( $handles = array() ) {
+		if ( empty( $handles ) ) {
+			foreach ( wp_styles()->registered as $handle => $dependency ) {
+				if ( ! empty( $dependency->extra['precache'] ) ) {
+					$handles[] = $handle;
+				}
+			}
+		}
+
 		$precache_entries = array();
 		$original_to_do   = wp_styles()->to_do;
 		wp_styles()->all_deps( $handles );
