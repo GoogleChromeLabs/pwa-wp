@@ -767,9 +767,15 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function serve_request( $scope ) {
 
-		// @todo Opt to move this outside of serving request so that we can use the existence of the registered scripts for whether to install the service worker to begin with?
 		if ( self::SCOPE_FRONT === $scope ) {
 			wp_enqueue_scripts();
+
+			// @todo Should these all be done unconditionally?
+			$this->register_precached_site_icon();
+			$this->register_precached_custom_logo();
+			$this->register_precached_custom_header();
+			$this->register_precached_scripts();
+			$this->register_precached_styles();
 
 			/**
 			 * Fires before serving the frontend service worker, when its scripts should be registered, caching routes established, and assets precached.
