@@ -76,7 +76,7 @@ class WP_HTTPS_UI {
 	}
 
 	/**
-	 * Inits the class.
+	 * Initializes the object.
 	 */
 	public function init() {
 		add_action( 'admin_init', array( $this, 'init_admin' ) );
@@ -164,10 +164,10 @@ class WP_HTTPS_UI {
 			<label><input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_https_value ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>"><?php esc_html_e( 'Upgrade to secure connection', 'pwa' ); ?></label>
 		</p>
 		<script>
-			(function ( $ ) {
+			( function ( $ ) {
 				// Move this UI under the Site Address (URL) <tr> on the General Settings page.
 				$( 'input[name=<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>]' ).parents( 'tr' ).insertAfter( $( 'label[for=home]' ).parents( 'tr') );
-			})( jQuery );
+			} )( jQuery );
 		</script>
 		<?php
 
@@ -237,7 +237,7 @@ class WP_HTTPS_UI {
 			<?php endif; ?>
 		</div>
 		<script>
-			(function ( $ ) {
+			( function ( $ ) {
 				// On checking 'Upgrade to secure connection,' toggle the display of the insecure URLs, as they don't apply unless it's checked.
 				$( 'input[type=checkbox][name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>"]' ).on( 'change', function() {
 					$( '#<?php echo esc_attr( $insecure_content_id ); ?>' ).toggleClass( 'hidden' );
@@ -252,7 +252,7 @@ class WP_HTTPS_UI {
 						$( this ).addClass( 'hidden' );
 					}
 				} );
-			})( jQuery );
+			} )( jQuery );
 		</script>
 		<style>
 			.<?php echo esc_attr( $insecure_urls_class ); ?> {
@@ -288,9 +288,8 @@ class WP_HTTPS_UI {
 	public function get_truncated_url( $url ) {
 		if ( strlen( $url ) <= self::MAX_URL_LENGTH ) {
 			return $url;
-		} else {
-			return substr( $url, 0, self::MAX_URL_LENGTH ) . '&hellip;';
 		}
+		return substr( $url, 0, self::MAX_URL_LENGTH ) . '&hellip;';
 	}
 
 	/**

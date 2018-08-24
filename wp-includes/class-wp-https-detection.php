@@ -39,7 +39,7 @@ class WP_HTTPS_Detection {
 	const INSECURE_CONTENT_OPTION_NAME = 'insecure_content';
 
 	/**
-	 * The tag names for insecure content
+	 * The tag names for insecure content.
 	 *
 	 * @see https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content
 	 * @var array
@@ -54,7 +54,7 @@ class WP_HTTPS_Detection {
 	);
 
 	/**
-	 * Inits the class.
+	 * Initializes the object.
 	 */
 	public function init() {
 		add_action( 'wp', array( $this, 'schedule_cron' ) );
@@ -228,8 +228,7 @@ class WP_HTTPS_Detection {
 	/**
 	 * If the 'cron_request' arguments include an HTTPS URL, this ensures sslverify is false.
 	 *
-	 * Prevents an issue if HTTPS breaks,
-	 * where there would be a failed attempt to verify HTTPS.
+	 * Prevents an issue if HTTPS breaks, where there would be a failed attempt to verify HTTPS.
 	 *
 	 * @param array $request The cron request arguments.
 	 * @return array $request The filtered cron request arguments.
