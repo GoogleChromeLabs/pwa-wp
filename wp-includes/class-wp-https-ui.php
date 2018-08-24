@@ -142,8 +142,8 @@ class WP_HTTPS_UI {
 		$upgrade_https_value = (bool) get_option( self::UPGRADE_HTTPS_OPTION );
 		$https_more_details  = sprintf(
 			'<a href="%s">%s</a>',
-			__( 'https://make.wordpress.org/support/user-manual/web-publishing/https-for-wordpress/', 'pwa' ),
-			__( 'More details', 'pwa' )
+			esc_url( __( 'https://make.wordpress.org/support/user-manual/web-publishing/https-for-wordpress/', 'pwa' ) ),
+			esc_html__( 'More details', 'pwa' )
 		);
 
 		?>
@@ -162,7 +162,7 @@ class WP_HTTPS_UI {
 		<script>
 			( function ( $ ) {
 				// Move this UI under the Site Address (URL) <tr> on the General Settings page.
-				$( 'input[name=<?php echo self::UPGRADE_HTTPS_OPTION; ?>]' ).parents( 'tr' ).insertAfter( $( 'label[for=home]' ).parents( 'tr') );
+				$( 'input[name=<?php echo self::UPGRADE_HTTPS_OPTION; // WPCS: XSS OK. ?>]' ).parents( 'tr' ).insertAfter( $( 'label[for=home]' ).parents( 'tr') );
 			} )( jQuery );
 		</script>
 		<?php
@@ -183,8 +183,8 @@ class WP_HTTPS_UI {
 			__( 'We found content on your site that wasn&#39;t loading correctly over HTTPS. While we will try to fix these links automatically, you might check to be sure your pages work as expected. %s', 'pwa' ),
 			sprintf(
 				'<a href="%s">%s</a>',
-				__( 'https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content/How_to_fix_website_with_mixed_content', 'pwa' ),
-				__( 'More details', 'pwa' )
+				esc_url( __( 'https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content/How_to_fix_website_with_mixed_content', 'pwa' ) ),
+				esc_html__( 'More details', 'pwa' )
 			)
 		);
 
@@ -251,24 +251,24 @@ class WP_HTTPS_UI {
 			} )( jQuery );
 		</script>
 		<style>
-			.<?php echo $insecure_urls_class; ?> {
+			.<?php echo $insecure_urls_class; // WPCS: XSS OK. ?> {
 				margin: 0 0 0 5px;
 			}
 
-			.<?php echo $insecure_urls_class; ?> li {
+			.<?php echo $insecure_urls_class; // WPCS: XSS OK. ?> li {
 				padding: 4px 0;
 				margin-bottom: 0;
 			}
 
-			.<?php echo $insecure_urls_class; ?> li:nth-child(odd) {
+			.<?php echo $insecure_urls_class; // WPCS: XSS OK. ?> li:nth-child(odd) {
 				background: rgba(255,255,255,0.6);
 			}
 
-			#<?php echo $show_more_button_id; ?> {
+			#<?php echo $show_more_button_id; // WPCS: XSS OK. ?> {
 				margin-top: 10px;
 			}
 
-			#<?php echo $insecure_content_id; ?> .description {
+			#<?php echo $insecure_content_id; // WPCS: XSS OK. ?> .description {
 				margin: 20px 0;
 			}
 		</style>
