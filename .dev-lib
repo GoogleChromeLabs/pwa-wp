@@ -1,1 +1,2 @@
 ASSETS_DIR=wp-assets
+DEV_LIB_SKIP=$DEV_LIB_SKIP,jshint

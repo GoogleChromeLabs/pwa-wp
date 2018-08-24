@@ -24,6 +24,7 @@
 define( 'PWA_VERSION', '0.1.0' );
 define( 'PWA_PLUGIN_FILE', __FILE__ );
 define( 'PWA_PLUGIN_DIR', dirname( __FILE__ ) );
+define( 'PWA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 /** WP_Web_App_Manifest Class */
 require PWA_PLUGIN_DIR . '/wp-includes/class-wp-web-app-manifest.php';
@@ -35,13 +36,21 @@ require PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-ui.php';
 /** WP_Service_Workers Class */
 require PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-workers.php';
 
+/** WP_Offline_Page Class */
+require PWA_PLUGIN_DIR . '/wp-includes/class-wp-offline-page.php';
+
 /** WordPress Service Worker Functions */
 require PWA_PLUGIN_DIR . '/wp-includes/service-workers.php';
 
 /** Amend default filters */
 require PWA_PLUGIN_DIR . '/wp-includes/default-filters.php';
 
+/** Functions to add to query.php file. */
+require PWA_PLUGIN_DIR . '/wp-includes/query.php';
+
 $wp_web_app_manifest = new WP_Web_App_Manifest();
 $wp_web_app_manifest->init();
 $wp_https_detection = new WP_HTTPS_Detection();
 $wp_https_detection->init();
+$wp_offline_page = new WP_Offline_Page();
+$wp_offline_page->init();
