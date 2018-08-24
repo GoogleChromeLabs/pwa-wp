@@ -128,10 +128,19 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_Detection::schedule_cron()
 	 */
 	public function test_schedule_cron() {
-		$this->assertFalse( wp_next_scheduled( WP_HTTPS_Detection::CRON_HOOK ) );
-
+		// If is_currently_https() is true, this should not schedule the cron event, as there is no need to check for HTTPS.
+		update_option( 'siteurl', self::HTTPS_URL );
+		update_option( 'home', self::HTTPS_URL );
+		add_filter( 'set_url_scheme', array( $this, 'convert_to_https' ) );
 		$this->instance->schedule_cron();
-		$this->assertNotFalse( wp_next_scheduled( WP_HTTPS_Detection::CRON_HOOK ) );
+		$this->assertFalse( wp_get_schedule( WP_HTTPS_Detection::CRON_HOOK ) );
+
+		// If is_currently_https() is false, this should schedule the cron event.
+		remove_filter( 'set_url_scheme', array( $this, 'convert_to_https' ) );
+		update_option( 'siteurl', self::HTTP_URL );
+		update_option( 'home', self::HTTP_URL );
+		$this->instance->schedule_cron();
+		$this->assertEquals( WP_HTTPS_Detection::CRON_INTERVAL, wp_get_schedule( WP_HTTPS_Detection::CRON_HOOK ) );
 
 		$cron_array       = _get_cron_array();
 		$https_check_cron = end( $cron_array );
@@ -139,7 +148,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 			array(
 				'args'     => array(),
 				'interval' => DAY_IN_SECONDS / 2,
-				'schedule' => 'twicedaily',
+				'schedule' => WP_HTTPS_Detection::CRON_INTERVAL,
 			),
 			reset( $https_check_cron[ WP_HTTPS_Detection::CRON_HOOK ] )
 		);
@@ -152,15 +161,15 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 */
 	public function test_update_https_support_options() {
 		// If is_currently_https() is true, this method should exit and not update either option.
+		add_filter( 'set_url_scheme', array( $this, 'convert_to_https' ) );
 		update_option( 'siteurl', self::HTTPS_URL );
 		update_option( 'home', self::HTTPS_URL );
-		add_filter( 'set_url_scheme', array( $this, 'convert_to_https' ) );
 		$this->assertEmpty( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
 		$this->assertEmpty( get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME ) );
 		remove_filter( 'set_url_scheme', array( $this, 'convert_to_https' ) );
+
 		update_option( 'siteurl', self::HTTP_URL );
 		update_option( 'home', self::HTTP_URL );
-
 		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
 		$this->instance->update_https_support_options();
 		$this->assertTrue( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
