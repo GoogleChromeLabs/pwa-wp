@@ -644,21 +644,8 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @return string Precaching logic.
 	 */
 	protected function get_precaching_for_routes_script( $routes ) {
-
-		$routes_list = array();
-		foreach ( $routes as $route ) {
-			if ( is_string( $route ) ) {
-				$route = array( 'url' => $route );
-			}
-			if ( ! isset( $route['revision'] ) ) {
-				$route['revision'] = get_bloginfo( 'version' );
-			}
-
-			$routes_list[] = $route;
-		}
-
 		$replacements = array(
-			'PRECACHE_ENTRIES' => wp_json_encode( $routes_list, 128 | 64 /* JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES */ ),
+			'PRECACHE_ENTRIES' => wp_json_encode( $routes, 128 | 64 /* JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES */ ),
 		);
 
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-precaching.js' ); // phpcs:ignore
