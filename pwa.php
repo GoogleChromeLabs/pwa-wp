@@ -32,6 +32,9 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-web-app-manifest.php';
 /** WP_HTTPS_Detection Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-detection.php';
 
+/** WP_HTTPS_UI Class */
+require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-ui.php';
+
 /** WP_Service_Workers Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-workers.php';
 
