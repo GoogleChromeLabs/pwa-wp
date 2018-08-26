@@ -34,7 +34,7 @@ function wp_service_workers() {
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
 function wp_register_service_worker( $handle, $src, $deps = array(), $scope = WP_Service_Workers::SCOPE_ALL ) {
-	return wp_service_workers()->register( $handle, $src, $deps, $scope );
+	return wp_service_workers()->register_script( $handle, $src, $deps, $scope );
 }
 
 /**

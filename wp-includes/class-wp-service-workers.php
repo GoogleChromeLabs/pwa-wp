@@ -320,7 +320,7 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Register service worker.
+	 * Register service worker script.
 	 *
 	 * Registers service worker if no item of that name already exists.
 	 *
@@ -330,13 +330,29 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @param int             $scope  Scope for which service worker the script will be part of. Can be WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, or WP_Service_Workers::SCOPE_ALL. Default to WP_Service_Workers::SCOPE_ALL.
 	 * @return bool Whether the item has been registered. True on success, false on failure.
 	 */
-	public function register( $handle, $src, $deps = array(), $scope = self::SCOPE_ALL ) {
+	public function register_script( $handle, $src, $deps = array(), $scope = self::SCOPE_ALL ) {
 		if ( ! in_array( $scope, array( self::SCOPE_FRONT, self::SCOPE_ADMIN, self::SCOPE_ALL ), true ) ) {
 			_doing_it_wrong( __METHOD__, esc_html__( 'Scope must be either WP_Service_Workers::SCOPE_ALL, WP_Service_Workers::SCOPE_FRONT, or WP_Service_Workers::SCOPE_ADMIN.', 'pwa' ), '0.1' );
 			$scope = self::SCOPE_ALL;
 		}
 
 		return parent::add( $handle, $src, $deps, false, compact( 'scope' ) );
+	}
+
+	/**
+	 * Register service worker script (deprecated).
+	 *
+	 * @deprecated Use the register_script() method instead.
+	 *
+	 * @param string          $handle Name of the item. Should be unique.
+	 * @param string|callable $src    URL to the source in the WordPress install, or a callback that returns the JS to include in the service worker.
+	 * @param array           $deps   Optional. An array of registered item handles this item depends on. Default empty array.
+	 * @param int             $scope  Scope for which service worker the script will be part of. Can be WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, or WP_Service_Workers::SCOPE_ALL. Default to WP_Service_Workers::SCOPE_ALL.
+	 * @return bool Whether the item has been registered. True on success, false on failure.
+	 */
+	public function register( $handle, $src, $deps = array(), $scope = self::SCOPE_ALL ) {
+		_deprecated_function( __METHOD__, '0.2', __CLASS__ . '::register_script' );
+		return $this->register_script( $handle, $src, $deps, $scope );
 	}
 
 	/**
