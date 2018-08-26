@@ -271,7 +271,8 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function get_workbox_script() {
 
-		$workbox_dir = 'wp-includes/js/workbox-v3.4.1/';
+		$current_scope = $this->get_current_scope();
+		$workbox_dir   = 'wp-includes/js/workbox-v3.4.1/';
 
 		$script = sprintf(
 			"importScripts( %s );\n",
@@ -296,11 +297,27 @@ class WP_Service_Workers extends WP_Scripts {
 		 *
 		 * The filtered value will be sent as the Service-Worker-Navigation-Preload header value if a truthy string.
 		 * This filter should be set to return false to disable navigation preload such as when a site is using
-		 * the app shell model.
+		 * the app shell model. Take care of the current scope when setting this, as it is unlikely that the admin
+		 * should have navigation preload disabled until core has an admin single-page app. To disable navigation preload on
+		 * the frontend only, you may do:
 		 *
-		 * @param bool|string $navigation_preload Whether to use navigation preload.
+		 *     add_filter( 'wp_front_service_worker', function() {
+		 *         add_filter( 'wp_service_worker_navigation_preload', '__return_false' );
+		 *     } );
+		 *
+		 * Alternatively, you should check the `$current_scope` for example:
+		 *
+		 *     add_filter( 'wp_service_worker_navigation_preload', function( $preload, $current_scope ) {
+		 *         if ( WP_Service_Workers::SCOPE_FRONT === $current_scope ) {
+		 *             $preload = false;
+		 *         }
+		 *         return $preload;
+		 *     }, 10, 2 );
+		 *
+		 * @param bool|string $navigation_preload Whether to use navigation preload. Returning a string will cause it it to populate the Service-Worker-Navigation-Preload header.
+		 * @param int         $current_scope      The current scope. Either 1 (WP_Service_Workers::SCOPE_FRONT) or 2 (WP_Service_Workers::SCOPE_ADMIN).
 		 */
-		$navigation_preload = apply_filters( 'service_worker_navigation_preload', true ); // @todo This needs to vary between admin and backend.
+		$navigation_preload = apply_filters( 'wp_service_worker_navigation_preload', true, $current_scope );
 		if ( false !== $navigation_preload ) {
 			if ( is_string( $navigation_preload ) ) {
 				$script .= sprintf( "workbox.navigationPreload.enable( %s );\n", wp_json_encode( $navigation_preload ) );
