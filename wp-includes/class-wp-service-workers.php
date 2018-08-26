@@ -228,9 +228,9 @@ class WP_Service_Workers extends WP_Scripts {
 		}
 
 		$replacements = array(
-			'ERROR_OFFLINE_URL'  => isset( $offline_error_precache_entry['url'] ) ? wp_json_encode( $offline_error_precache_entry['url'] ) : null,
-			'ERROR_500_URL'      => isset( $server_error_precache_entry['url'] ) ? wp_json_encode( $server_error_precache_entry['url'] ) : null,
-			'BLACKLIST_PATTERNS' => wp_json_encode( $blacklist_patterns ),
+			'ERROR_OFFLINE_URL'  => isset( $offline_error_precache_entry['url'] ) ? $this->json_encode( $offline_error_precache_entry['url'] ) : null,
+			'ERROR_500_URL'      => isset( $server_error_precache_entry['url'] ) ? $this->json_encode( $server_error_precache_entry['url'] ) : null,
+			'BLACKLIST_PATTERNS' => $this->json_encode( $blacklist_patterns ),
 		);
 
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-error-response-handling.js' ); // phpcs:ignore
@@ -261,21 +261,21 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$script = sprintf(
 			"importScripts( %s );\n",
-			wp_json_encode( PWA_PLUGIN_URL . $workbox_dir . 'workbox-sw.js', 64 /* JSON_UNESCAPED_SLASHES */ )
+			$this->json_encode( PWA_PLUGIN_URL . $workbox_dir . 'workbox-sw.js' )
 		);
 
 		$options = array(
 			'debug'            => WP_DEBUG,
 			'modulePathPrefix' => PWA_PLUGIN_URL . $workbox_dir,
 		);
-		$script .= sprintf( "workbox.setConfig( %s );\n", wp_json_encode( $options, 64 /* JSON_UNESCAPED_SLASHES */ ) );
+		$script .= sprintf( "workbox.setConfig( %s );\n", $this->json_encode( $options ) );
 
 		$cache_name_details = array(
 			'prefix' => 'wordpress',
 			'suffix' => 'v1',
 		);
 
-		$script .= sprintf( 'workbox.core.setCacheNameDetails(%s);', wp_json_encode( $cache_name_details ) );
+		$script .= sprintf( "workbox.core.setCacheNameDetails( %s );\n", $this->json_encode( $cache_name_details ) );
 
 		/**
 		 * Filters whether navigation preload is enabled.
@@ -305,7 +305,7 @@ class WP_Service_Workers extends WP_Scripts {
 		$navigation_preload = apply_filters( 'wp_service_worker_navigation_preload', true, $current_scope );
 		if ( false !== $navigation_preload ) {
 			if ( is_string( $navigation_preload ) ) {
-				$script .= sprintf( "workbox.navigationPreload.enable( %s );\n", wp_json_encode( $navigation_preload ) );
+				$script .= sprintf( "workbox.navigationPreload.enable( %s );\n", $this->json_encode( $navigation_preload ) );
 			} else {
 				$script .= "workbox.navigationPreload.enable();\n";
 			}
@@ -708,7 +708,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	protected function get_precaching_for_routes_script( $routes ) {
 		$replacements = array(
-			'PRECACHE_ENTRIES' => wp_json_encode( $routes, 128 | 64 /* JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES */ ),
+			'PRECACHE_ENTRIES' => $this->json_encode( $routes ),
 		);
 
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-precaching.js' ); // phpcs:ignore
@@ -755,7 +755,7 @@ class WP_Service_Workers extends WP_Scripts {
 			$exported_strategy_args[ $strategy_arg_name ] = $strategy_arg_value;
 		}
 
-		$script .= sprintf( 'const strategyArgs = %s;', wp_json_encode( $exported_strategy_args ) );
+		$script .= sprintf( 'const strategyArgs = %s;', $this->json_encode( $exported_strategy_args ) );
 
 		if ( is_array( $plugins ) ) {
 
@@ -778,8 +778,8 @@ class WP_Service_Workers extends WP_Scripts {
 				} else {
 					$plugins_js[] = sprintf(
 						'new wp.serviceWorker[ %s ].Plugin( %s )',
-						wp_json_encode( $plugin_name ),
-						empty( $plugin_args ) ? '{}' : wp_json_encode( $plugin_args )
+						$this->json_encode( $plugin_name ),
+						empty( $plugin_args ) ? '{}' : $this->json_encode( $plugin_args )
 					);
 				}
 			}
@@ -789,8 +789,8 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$script .= sprintf(
 			'wp.serviceWorker.routing.registerRoute( new RegExp( %s ), wp.serviceWorker.strategies[ %s ]( strategyArgs ) );',
-			wp_json_encode( $route ),
-			wp_json_encode( $strategy )
+			$this->json_encode( $route ),
+			$this->json_encode( $strategy )
 		);
 
 		$script .= '}'; // End lexical scope.
@@ -938,7 +938,7 @@ class WP_Service_Workers extends WP_Scripts {
 			/* translators: %s is script handle */
 			$error = sprintf( __( 'Service worker src is invalid for handle "%s".', 'pwa' ), $handle );
 			@_doing_it_wrong( 'WP_Service_Workers::register', esc_html( $error ), '0.1' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged -- We want the error in the PHP log, but not in the JS output.
-			$this->output .= sprintf( "console.warn( %s );\n", wp_json_encode( $error ) );
+			$this->output .= sprintf( "console.warn( %s );\n", $this->json_encode( $error ) );
 		}
 	}
 
@@ -1005,5 +1005,15 @@ class WP_Service_Workers extends WP_Scripts {
 		}
 
 		return $base_path . $file_path;
+	}
+
+	/**
+	 * JSON encode with pretty printing.
+	 *
+	 * @param mixed $data Data.
+	 * @return string JSON.
+	 */
+	protected function json_encode( $data ) {
+		return wp_json_encode( $data, 128 | 64 /* JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES */ );
 	}
 }
