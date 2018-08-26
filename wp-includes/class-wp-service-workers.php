@@ -104,27 +104,6 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function init() {
 
-		// @todo This shouldn't be done here. It should not be a registered script but done unconditionallly in \WP_Service_Workers::serve_request() before do_items().
-		$this->register(
-			'workbox-sw',
-			array( $this, 'get_workbox_script' ),
-			array()
-		);
-
-		// @todo This shouldn't be done here. It should not be a registered script but done unconditionallly in \WP_Service_Workers::serve_request() before do_items().
-		$this->register(
-			'caching-utils-sw',
-			PWA_PLUGIN_URL . '/wp-includes/js/service-worker.js',
-			array( 'workbox-sw' )
-		);
-
-		// @todo This needs to be added at the very end of the service worker so the navigation routing will apply after all others.
-		$this->register(
-			'error-response-handling',
-			array( $this, 'get_error_response_handling_script' ),
-			array( 'workbox-sw' )
-		);
-
 		// Add default actions which can be removed if undesired.
 		add_action( 'wp_front_service_worker', array( $this, 'register_precached_site_icon' ) );
 		add_action( 'wp_front_service_worker', array( $this, 'register_precached_custom_logo' ) );
@@ -167,7 +146,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 *
 	 * @return string Script.
 	 */
-	public function get_error_response_handling_script() {
+	protected function get_error_response_handling_script() {
 		$template   = get_template();
 		$stylesheet = get_stylesheet();
 
@@ -265,11 +244,17 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Get workbox script.
+	 * Get base script for service worker.
+	 *
+	 * This involves the loading and configuring Workbox. However, the `workbox` global should not be directly
+	 * interacted with. Instead, developers should interface with `wp.serviceWorker` which is a wrapper around
+	 * the Workbox library.
+	 *
+	 * @link https://github.com/GoogleChrome/workbox
 	 *
 	 * @return string Script.
 	 */
-	public function get_workbox_script() {
+	protected function get_base_script() {
 
 		$current_scope = $this->get_current_scope();
 		$workbox_dir   = 'wp-includes/js/workbox-v3.4.1/';
@@ -327,6 +312,10 @@ class WP_Service_Workers extends WP_Scripts {
 		} else {
 			$script .= "/* Navigation preload disabled. */\n";
 		}
+
+		// Note: This includes the aliasing of `workbox` to `wp.serviceWorker`.
+		$script .= file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+
 		return $script;
 	}
 
@@ -813,6 +802,16 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @param int $scope Scope of the Service Worker.
 	 */
 	public function serve_request( $scope ) {
+		/*
+		 * Per Workbox <https://developers.google.com/web/tools/workbox/guides/service-worker-checklist#cache-control_of_your_service_worker_file>:
+		 * "Generally, most developers will want to set the Cache-Control header to no-cache,
+		 * forcing browsers to always check the server for a new service worker file."
+		 * Nevertheless, an ETag header is also sent with support for Conditional Requests
+		 * to save on needlessly re-downloading the same service worker with each page load.
+		 */
+		@header( 'Cache-Control: no-cache' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+
+		@header( 'Content-Type: text/javascript; charset=utf-8' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 
 		if ( self::SCOPE_FRONT === $scope ) {
 			wp_enqueue_scripts();
@@ -842,33 +841,24 @@ class WP_Service_Workers extends WP_Scripts {
 		 */
 		do_action( 'wp_service_worker', $this );
 
-		/*
-		 * Per Workbox <https://developers.google.com/web/tools/workbox/guides/service-worker-checklist#cache-control_of_your_service_worker_file>:
-		 * "Generally, most developers will want to set the Cache-Control header to no-cache,
-		 * forcing browsers to always check the server for a new service worker file."
-		 * Nevertheless, an ETag header is also sent with support for Conditional Requests
-		 * to save on needlessly re-downloading the same service worker with each page load.
-		 */
-		@header( 'Cache-Control: no-cache' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
-
-		@header( 'Content-Type: text/javascript; charset=utf-8' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
-
 		if ( self::SCOPE_FRONT !== $scope && self::SCOPE_ADMIN !== $scope ) {
 			status_header( 400 );
 			echo '/* invalid_scope_requested */';
 			return;
 		}
 
-		$scope_items = array();
+		$this->output  = '';
+		$this->output .= $this->get_base_script();
+		$this->output .= $this->get_error_response_handling_script();
 
 		// Get handles from the relevant scope only.
+		$scope_items = array();
 		foreach ( $this->registered as $handle => $item ) {
 			if ( $item->args['scope'] & $scope ) { // Yes, Bitwise AND intended. SCOPE_ALL & SCOPE_FRONT == true. SCOPE_ADMIN & SCOPE_FRONT == false.
 				$scope_items[] = $handle;
 			}
 		}
 
-		$this->output = '';
 		$this->do_items( $scope_items );
 		$this->do_precaching_routes();
 		$this->do_caching_routes();
