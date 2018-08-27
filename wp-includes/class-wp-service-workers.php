@@ -599,6 +599,7 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Register precached routes for site icon images.
 	 *
+	 * @see wp_site_icon()
 	 * @return int Count of pre-cached URLs.
 	 */
 	public function register_precached_site_icon() {
@@ -611,6 +612,8 @@ class WP_Service_Workers extends WP_Scripts {
 			return 0;
 		}
 
+		// The URLs here are those which are used in wp_site_icon().
+		// @todo There could be different icons actually used on the site due to the site_icon_meta_tags filter.
 		$image_urls = array_unique( array(
 			get_site_icon_url( 32 ),
 			get_site_icon_url( 192 ),
