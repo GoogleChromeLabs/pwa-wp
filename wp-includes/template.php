@@ -57,3 +57,74 @@ function pwa_locate_template( $template_names, $load = false, $require_once = tr
 
 	return $located;
 }
+
+/**
+ * Retrieve path to a template
+ *
+ * Used to quickly retrieve the path of a template without including the file
+ * extension. It will also check the parent theme, if the file exists, with
+ * the use of locate_template(). Allows for more generic template location
+ * without the use of the other get_*_template() functions.
+ *
+ * @since 0.2.0
+ * @see get_query_template() This is a clone of the core function but uses `pwa_locate_template()` instead of `locate_template()`.
+ *
+ * @param string $type      Filename without extension.
+ * @param array  $templates An optional list of template candidates.
+ * @return string Full path to template file.
+ */
+function pwa_get_query_template( $type, $templates = array() ) {
+	$type = preg_replace( '|[^a-z0-9-]+|', '', $type );
+
+	if ( empty( $templates ) ) {
+		$templates = array( "{$type}.php" );
+	}
+
+	/** This filter is documented in wp-includes/template.php */
+	$templates = apply_filters( "{$type}_template_hierarchy", $templates );
+
+	$template = pwa_locate_template( $templates );
+
+	/** This filter is documented in wp-includes/template.php */
+	return apply_filters( "{$type}_template", $template, $type, $templates );
+}
+
+/**
+ * Retrieve path of offline error template in current or parent template.
+ *
+ * The template hierarchy and template path are filterable via the {@see '$type_template_hierarchy'}
+ * and {@see '$type_template'} dynamic hooks, where `$type` is 'archive'.
+ *
+ * @since 0.2
+ * @see get_query_template()
+ *
+ * @return string Full path to archive template file.
+ */
+function get_offline_template() {
+	$templates = array(
+		'offline.php',
+		'error.php',
+	);
+
+	return pwa_get_query_template( 'offline', $templates );
+}
+
+/**
+ * Retrieve path of 500 server error template in current or parent template.
+ *
+ * The template hierarchy and template path are filterable via the {@see '$type_template_hierarchy'}
+ * and {@see '$type_template'} dynamic hooks, where `$type` is 'archive'.
+ *
+ * @since 0.2
+ * @see get_query_template()
+ *
+ * @return string Full path to archive template file.
+ */
+function get_500_template() {
+	$templates = array(
+		'offline.php',
+		'error.php',
+	);
+
+	return pwa_get_query_template( 'offline', $templates );
+}
