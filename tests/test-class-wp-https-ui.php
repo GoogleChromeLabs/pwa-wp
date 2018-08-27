@@ -304,7 +304,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$_SERVER['REQUEST_SCHEME'] = 'https';
 		$this->assertFalse( $this->did_redirect() );
 
-		// The request is for HTTPS, but the options to upgrade to HTTPS and whether HTTPS is supported aren't correct.
+		// The request is for HTTP, but the options to upgrade to HTTPS and whether HTTPS is supported aren't correct.
 		$home_url_http             = home_url( '/', 'http' );
 		$_SERVER['REQUEST_URI']    = $home_url_http;
 		$_SERVER['REQUEST_SCHEME'] = 'http';
