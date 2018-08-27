@@ -217,10 +217,12 @@ class WP_Service_Workers extends WP_Scripts {
 			);
 		}
 
-		$this->register_precached_routes( array_filter( array(
-			$offline_error_precache_entry,
-			$server_error_precache_entry,
-		) ) );
+		if ( $offline_error_precache_entry ) {
+			$this->register_precached_route( $offline_error_precache_entry['url'], isset( $offline_error_precache_entry['revision'] ) ? $offline_error_precache_entry['revision'] : null );
+		}
+		if ( $server_error_precache_entry ) {
+			$this->register_precached_route( $server_error_precache_entry['url'], isset( $server_error_precache_entry['revision'] ) ? $server_error_precache_entry['revision'] : null );
+		}
 
 		$blacklist_patterns = array();
 		if ( self::SCOPE_FRONT === $scope ) {
@@ -411,14 +413,12 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Register routes / files for precaching.
 	 *
-	 * @param array $routes {
-	 *      Array of routes.
+	 * @deprecated Use register_precached_route method instead.
 	 *
-	 *      @type string $url      URL of the route.
-	 *      @type string $revision Revision (optional).
-	 * }
+	 * @param array $routes Routes.
 	 */
 	public function register_precached_routes( $routes ) {
+		_deprecated_function( __METHOD__, '0.2', __CLASS__ . '::register_precached_route' );
 		if ( ! is_array( $routes ) ) {
 			_doing_it_wrong( __METHOD__, esc_html__( 'Routes must be an array.', 'pwa' ), '0.2' );
 			return;
@@ -434,6 +434,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 *
 	 * @since 0.2
 	 * @param array|mixed $handles Script handles. If empty or not an array, then registered scripts with precache enabled will be used.
+	 * @return int Count of precached entries.
 	 */
 	public function register_precached_scripts( $handles = array() ) {
 		if ( ! is_array( $handles ) || empty( $handles ) ) {
@@ -445,8 +446,8 @@ class WP_Service_Workers extends WP_Scripts {
 			}
 		}
 
-		$precache_entries = array();
-		$original_to_do   = wp_scripts()->to_do;
+		$precache_count = 0;
+		$original_to_do = wp_scripts()->to_do;
 		wp_scripts()->all_deps( $handles );
 		foreach ( wp_scripts()->to_do as $handle ) {
 			if ( ! isset( wp_scripts()->registered[ $handle ] ) ) {
@@ -467,11 +468,12 @@ class WP_Service_Workers extends WP_Scripts {
 			$url = apply_filters( 'script_loader_src', $url, $handle );
 
 			if ( $url ) {
-				$precache_entries[] = compact( 'url', 'revision' );
+				$this->register_precached_route( $url, $revision );
+				$precache_count++;
 			}
 		}
-		$this->register_precached_routes( $precache_entries );
 		wp_scripts()->to_do = $original_to_do; // Restore original scripts to do.
+		return $precache_count;
 	}
 
 	/**
@@ -479,6 +481,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 *
 	 * @since 0.2
 	 * @param array $handles style handles. If empty or not an array, then registered scripts with precache enabled will be used.
+	 * @return int Count of precached entries.
 	 */
 	public function register_precached_styles( $handles = array() ) {
 		if ( ! is_array( $handles ) || empty( $handles ) ) {
@@ -490,8 +493,8 @@ class WP_Service_Workers extends WP_Scripts {
 			}
 		}
 
-		$precache_entries = array();
-		$original_to_do   = wp_styles()->to_do;
+		$precache_count = 0;
+		$original_to_do = wp_styles()->to_do;
 		wp_styles()->all_deps( $handles );
 		foreach ( wp_styles()->to_do as $handle ) {
 			if ( ! isset( wp_styles()->registered[ $handle ] ) ) {
@@ -512,11 +515,12 @@ class WP_Service_Workers extends WP_Scripts {
 			$url = apply_filters( 'style_loader_src', $url, $handle );
 
 			if ( $url ) {
-				$precache_entries[] = compact( 'url', 'revision' );
+				$this->register_precached_route( $url, $revision );
+				$precache_count++;
 			}
 		}
-		$this->register_precached_routes( $precache_entries );
 		wp_styles()->to_do = $original_to_do; // Restore original styles to do.
+		return $precache_count;
 	}
 
 	/**
@@ -587,15 +591,12 @@ class WP_Service_Workers extends WP_Scripts {
 		if ( $image_src ) {
 			$image_urls[] = $image_src[0];
 		}
-		$precache_entries = array();
+		$precache_count = 0;
 		foreach ( array_unique( $image_urls ) as $image_url ) {
-			$precache_entries[] = array(
-				'url'      => $image_url,
-				'revision' => $attachment->post_modified,
-			);
+			$this->register_precached_route( $image_url, $attachment->post_modified );
+			$precache_count++;
 		}
-		$this->register_precached_routes( $precache_entries );
-		return count( $precache_entries );
+		return $precache_count;
 	}
 
 	/**
@@ -611,8 +612,7 @@ class WP_Service_Workers extends WP_Scripts {
 		if ( ! current_theme_supports( 'custom-header' ) || ! get_custom_header() ) {
 			return 0;
 		}
-
-		$precache_entries = array();
+		$precache_count = 0;
 		if ( is_random_header_image() ) {
 			// What follows comes fom _get_random_header_data().
 			global $_wp_default_headers;
@@ -638,7 +638,8 @@ class WP_Service_Workers extends WP_Scripts {
 				if ( is_string( $file ) ) {
 					$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 				}
-				$precache_entries[] = compact( 'url', 'revision' );
+				$this->register_precached_route( $url, $revision );
+				$precache_count++;
 			}
 		} else {
 			$header     = get_custom_header();
@@ -646,10 +647,8 @@ class WP_Service_Workers extends WP_Scripts {
 
 			if ( $attachment ) {
 				foreach ( $this->get_attachment_image_urls( $attachment->ID, array( $header->width, $header->height ) ) as $image_url ) {
-					$precache_entries[] = array(
-						'url'      => $image_url,
-						'revision' => $attachment->post_modified,
-					);
+					$this->register_precached_route( $image_url, $attachment->post_modified );
+					$precache_count++;
 				}
 			} elseif ( get_header_image() ) {
 				$url      = get_header_image();
@@ -658,12 +657,12 @@ class WP_Service_Workers extends WP_Scripts {
 				if ( is_string( $file ) ) {
 					$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 				}
-				$precache_entries[] = compact( 'url', 'revision' );
+				$this->register_precached_route( $url, $revision );
+				$precache_count++;
 			}
 		}
 
-		$this->register_precached_routes( $precache_entries );
-		return count( $precache_entries );
+		return $precache_count;
 	}
 
 	/**
