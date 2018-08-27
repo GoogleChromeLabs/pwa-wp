@@ -82,6 +82,7 @@ class WP_HTTPS_UI {
 		add_action( 'admin_init', array( $this, 'init_admin' ) );
 		add_action( 'init', array( $this, 'filter_site_url_and_home' ) );
 		add_action( 'init', array( $this, 'filter_header' ) );
+		add_action( 'wp_loaded', array( $this, 'conditionally_redirect_to_https' ) );
 	}
 
 	/**
@@ -332,5 +333,28 @@ class WP_HTTPS_UI {
 	public function upgrade_insecure_requests( $headers ) {
 		$headers['Content-Security-Policy'] = 'upgrade-insecure-requests';
 		return $headers;
+	}
+
+	/**
+	 * Conditionally redirects HTTP requests to HTTPS.
+	 *
+	 * Does not apply if is_admin().
+	 * So if the SSL certificate expires somehow, the admin won't be locked out of wp-admin.
+	 */
+	public function conditionally_redirect_to_https() {
+		$do_redirect = (
+			isset( $_SERVER['REQUEST_SCHEME'], $_SERVER['REQUEST_URI'] ) && 'https' !== $_SERVER['REQUEST_SCHEME']
+			&&
+			! is_admin()
+			&&
+			get_option( self::UPGRADE_HTTPS_OPTION ) // The checkbox to upgrade to HTTPS is checked.
+			&&
+			get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) // The last loopback request to check for HTTPS succeeded.
+		);
+
+		if ( $do_redirect ) {
+			wp_safe_redirect( home_url( $_SERVER['REQUEST_URI'], 'https' ), 302 ); // Temporary redirect.
+			exit;
+		}
 	}
 }
