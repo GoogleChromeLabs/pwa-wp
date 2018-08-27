@@ -75,6 +75,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'init_admin' ) ) );
 		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'filter_site_url_and_home' ) ) );
 		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'filter_header' ) ) );
+		$this->assertEquals( 10, has_action( 'wp_loaded', array( $this->instance, 'conditionally_redirect_to_https' ) ) );
 	}
 
 	/**
@@ -291,6 +292,50 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 			),
 			$this->instance->upgrade_insecure_requests( $initial_header )
 		);
+	}
+
+	/**
+	 * Test conditionally_redirect_to_https.
+	 *
+	 * @covers WP_HTTPS_UI::conditionally_redirect_to_https()
+	 */
+	public function test_conditionally_redirect_to_https() {
+		// If the request is for HTTPS, this should not redirect.
+		$_SERVER['REQUEST_SCHEME'] = 'https';
+		$this->assertFalse( $this->did_redirect() );
+
+		// The request is for HTTPS, but the options to upgrade to HTTPS and whether HTTPS is supported aren't correct.
+		$home_url_http             = home_url( '/', 'http' );
+		$_SERVER['REQUEST_URI']    = $home_url_http;
+		$_SERVER['REQUEST_SCHEME'] = 'http';
+		$this->assertFalse( $this->did_redirect() );
+
+		// The checkbox to upgrade to HTTPS is checked, but the option for whether HTTPS is supported isn't correct.
+		update_option( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, WP_HTTPS_UI::OPTION_CHECKED_VALUE );
+		$this->assertFalse( $this->did_redirect() );
+
+		// The option for whether HTTPS is supported is now correct, so this should redirect.
+		update_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME, true );
+		$this->assertTrue( $this->did_redirect() );
+
+		// If is_admin() is true, this should not redirect.
+		set_current_screen( 'edit.php' );
+		$this->assertFalse( $this->did_redirect() );
+	}
+
+	/**
+	 * Gets whether there was a redirect on calling conditionally_redirect_to_https().
+	 * Redirecting causes an Exception in PHPUnit: Cannot modify header information - headers already sent...
+	 *
+	 * @return bool Whether there was a redirect.
+	 */
+	public function did_redirect() {
+		try {
+			$this->instance->conditionally_redirect_to_https();
+		} catch ( Exception $e ) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
