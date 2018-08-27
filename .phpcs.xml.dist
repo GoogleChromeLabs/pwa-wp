@@ -50,5 +50,8 @@
 	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
 		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
+	<rule ref="WordPress.Files.FileName.InvalidTemplateTagFileName">
+		<exclude-pattern>wp-includes/template.php</exclude-pattern>
+	</rule>
 
 </ruleset>

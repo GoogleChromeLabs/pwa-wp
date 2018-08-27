@@ -34,7 +34,7 @@ function wp_service_workers() {
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
 function wp_register_service_worker( $handle, $src, $deps = array(), $scope = WP_Service_Workers::SCOPE_ALL ) {
-	return wp_service_workers()->register( $handle, $src, $deps, $scope );
+	return wp_service_workers()->register_script( $handle, $src, $deps, $scope );
 }
 
 /**
@@ -56,22 +56,6 @@ function wp_register_service_worker( $handle, $src, $deps = array(), $scope = WP
  */
 function wp_register_route_caching_strategy( $route, $strategy = WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, $strategy_args = array() ) {
 	wp_service_workers()->register_cached_route( $route, $strategy, $strategy_args );
-}
-
-/**
- * Register routes / files for precaching.
- *
- * @since 0.2
- *
- * @param array $routes {
- *      Array of routes.
- *
- *      @type string $url      URL of the route.
- *      @type string $revision Revision (optional).
- * }
- */
-function wp_register_routes_precaching( $routes ) {
-	return wp_service_workers()->register_precached_routes( $routes );
 }
 
 /**
@@ -137,15 +121,33 @@ function wp_print_service_workers() {
 }
 
 /**
- * Register query var.
+ * Print the script that is responsible for populating the details iframe with the error info from the service worker.
  *
- * @since 0.1
- * @param array $query_vars Query vars.
- * @return array Query vars.
+ * Broadcast a request to obtain the original response text from the internal server error response and display it inside
+ * a details iframe if the 500 response included any body (such as an error message). This is used in a the 500.php template.
+ *
+ * @since 0.2
+ *
+ * @param string $callback Function in JS to invoke with the data. This may be either a global function name or method of another object, e.g. "mySite.handleServerError".
  */
-function wp_add_service_worker_query_var( $query_vars ) {
-	$query_vars[] = WP_Service_Workers::QUERY_VAR;
-	return $query_vars;
+function wp_print_service_worker_error_details_script( $callback ) {
+	?>
+	<script>
+		{
+			const clientUrl = location.href;
+			const channel = new BroadcastChannel( 'wordpress-server-errors' );
+			channel.onmessage = ( event ) => {
+				if ( event.data && event.data.requestUrl && clientUrl === event.data.requestUrl ) {
+					channel.onmessage = null;
+					channel.close();
+
+					<?php echo 'window[' . implode( '][', array_map( 'json_encode', explode( '.', $callback ) ) ) . ']( event.data );'; ?>
+				}
+			};
+			channel.postMessage( { clientUrl } )
+		}
+	</script>
+	<?php
 }
 
 /**

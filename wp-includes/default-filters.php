@@ -2,6 +2,8 @@
 /**
  * Sets up the default filters and actions for PWA hooks.
  *
+ * Hooks in here would be added to wp-includes/default-filters.php in core.
+ *
  * @package PWA
  */
 
@@ -10,6 +12,7 @@ foreach ( array( 'wp_print_scripts', 'admin_print_scripts', 'customize_controls_
 	add_filter( $filter, 'wp_print_service_workers', 9 );
 }
 
-add_action( 'parse_request', 'wp_service_worker_loaded' );
+add_action( 'parse_query', 'wp_service_worker_loaded' );
 
-add_filter( 'query_vars', 'wp_add_service_worker_query_var' );
+add_action( 'wp_head', 'wp_add_error_template_no_robots' );
+add_action( 'error_head', 'wp_add_error_template_no_robots' );
