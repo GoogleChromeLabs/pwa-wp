@@ -421,6 +421,14 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Register precached route.
 	 *
+	 * If a registered route is stored in the precache cache, then it will be served with the cache-first strategy.
+	 * For other routes registered with non-precached routes (e.g. runtime), you must currently also call
+	 * `wp_service_workers()->register_cached_route(...)` to specify the strategy for interacting with that
+	 * precached resource.
+	 *
+	 * @see WP_Service_Workers::register_cached_route()
+	 * @link https://github.com/GoogleChrome/workbox/issues/1612
+	 *
 	 * @param string       $url URL to cache.
 	 * @param array|string $options {
 	 *     Options. Or else if not an array, then treated as revision.
@@ -874,6 +882,13 @@ class WP_Service_Workers extends WP_Scripts {
 
 			/**
 			 * Fires before serving the frontend service worker, when its scripts should be registered, caching routes established, and assets precached.
+			 *
+			 * Done by default at this action: precache custom header, logo, background, site icon, and precache-flagged scripts/styles.
+			 * This default behavior can be disabled with code such as the following, for disabling the precached header:
+			 *
+			 *     add_action( 'wp_default_service_workers', function( $sw ) {
+			 *         remove_action( 'wp_front_service_worker', array( $sw, 'register_precached_custom_header' ) );
+			 *     } );
 			 *
 			 * @since 0.2
 			 * @param WP_Service_Workers $this
