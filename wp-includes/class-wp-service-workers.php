@@ -79,6 +79,24 @@ class WP_Service_Workers extends WP_Scripts {
 	const STRATEGY_NETWORK_ONLY = 'networkOnly';
 
 	/**
+	 * Name of 'precache' cache.
+	 *
+	 * This will be replaced with `wp.serviceWorker.core.cacheNames.precache` in the service worker JavaScript.
+	 *
+	 * @ver string
+	 */
+	const PRECACHE_CACHE_NAME = 'precache';
+
+	/**
+	 * Name of 'runtime' cache.
+	 *
+	 * This will be replaced with `wp.serviceWorker.core.cacheNames.runtime` in the service worker JavaScript.
+	 *
+	 * @ver string
+	 */
+	const RUNTIME_CACHE_NAME = 'runtime';
+
+	/**
 	 * Output for service worker scope script.
 	 *
 	 * @var string
@@ -403,11 +421,35 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Register precached route.
 	 *
-	 * @param string $url      URL.
-	 * @param string $revision Revision.
+	 * @param string       $url URL to cache.
+	 * @param array|string $options {
+	 *     Options. Or else if not an array, then treated as revision.
+	 *
+	 *     @type string $revision Revision. Currently only applicable for precache. Optional.
+	 *     @type string $cache    Cache. Defaults to the precache (WP_Service_Workers::PRECACHE_CACHE_NAME); the values 'precache' and 'runtime' will be replaced with the appropriately-namespaced cache names.
+	 * }
 	 */
-	public function register_precached_route( $url, $revision = '' ) {
-		$this->registered_precaching_routes[] = compact( 'url', 'revision' );
+	public function register_precached_route( $url, $options = array() ) {
+		if ( ! is_array( $options ) ) {
+			$options = array(
+				'revision' => $options,
+			);
+		}
+
+		$options = array_merge(
+			array(
+				'revision' => null,
+				'cache'    => self::PRECACHE_CACHE_NAME,
+			),
+			$options
+		);
+
+		if ( isset( $options['revision'] ) && self::PRECACHE_CACHE_NAME !== $options['cache'] ) {
+			unset( $options['revision'] );
+			_doing_it_wrong( __METHOD__, esc_html__( 'Specifying a revision for a URL to store in a non-precache cache is not currently supported.', 'pwa' ), '0.2' );
+		}
+
+		$this->registered_precaching_routes[] = array_merge( $options, compact( 'url' ) );
 	}
 
 	/**
@@ -702,12 +744,11 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Gets the script for precaching routes.
 	 *
-	 * @param array $routes Array of routes.
 	 * @return string Precaching logic.
 	 */
-	protected function get_precaching_for_routes_script( $routes ) {
+	protected function get_precaching_for_routes_script() {
 		$replacements = array(
-			'PRECACHE_ENTRIES' => $this->json_encode( $routes ),
+			'PRECACHE_ENTRIES' => $this->json_encode( $this->registered_precaching_routes ),
 		);
 
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-precaching.js' ); // phpcs:ignore
@@ -875,8 +916,10 @@ class WP_Service_Workers extends WP_Scripts {
 		}
 
 		$this->do_items( $scope_items );
-		$this->do_precaching_routes();
-		$this->do_caching_routes();
+		$this->output .= $this->get_precaching_for_routes_script();
+		foreach ( $this->registered_caching_routes as $caching_route ) {
+			$this->output .= $this->get_caching_for_routes_script( $caching_route['route'], $caching_route['strategy'], $caching_route['strategy_args'] );
+		}
 
 		$file_hash = md5( $this->output );
 		@header( "ETag: $file_hash" ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
@@ -888,22 +931,6 @@ class WP_Service_Workers extends WP_Scripts {
 		}
 
 		echo $this->output; // phpcs:ignore WordPress.XSS.EscapeOutput, WordPress.Security.EscapeOutput
-	}
-
-	/**
-	 * Add logic for precaching to the request output.
-	 */
-	protected function do_precaching_routes() {
-		$this->output .= $this->get_precaching_for_routes_script( $this->registered_precaching_routes ); // Once PHP 5.3 is minimum version, add array_unique() with SORT_REGULAR.
-	}
-
-	/**
-	 * Add logic for routes caching to the request output.
-	 */
-	protected function do_caching_routes() {
-		foreach ( $this->registered_caching_routes as $caching_route ) {
-			$this->output .= $this->get_caching_for_routes_script( $caching_route['route'], $caching_route['strategy'], $caching_route['strategy_args'] );
-		}
 	}
 
 	/**
