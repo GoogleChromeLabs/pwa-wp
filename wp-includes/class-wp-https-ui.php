@@ -343,13 +343,15 @@ class WP_HTTPS_UI {
 	 */
 	public function conditionally_redirect_to_https() {
 		$do_redirect = (
-			isset( $_SERVER['REQUEST_SCHEME'], $_SERVER['REQUEST_URI'] ) && 'https' !== $_SERVER['REQUEST_SCHEME']
+			! is_ssl()
 			&&
 			! is_admin()
 			&&
 			get_option( self::UPGRADE_HTTPS_OPTION ) // The checkbox to upgrade to HTTPS is checked.
 			&&
 			get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) // The last loopback request to check for HTTPS succeeded.
+			&&
+			isset( $_SERVER['REQUEST_URI'] )
 		);
 
 		if ( $do_redirect ) {

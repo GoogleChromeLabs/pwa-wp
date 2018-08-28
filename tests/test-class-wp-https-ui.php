@@ -301,13 +301,13 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 */
 	public function test_conditionally_redirect_to_https() {
 		// If the request is for HTTPS, this should not redirect.
-		$_SERVER['REQUEST_SCHEME'] = 'https';
+		$_SERVER['HTTPS'] = 'on';
 		$this->assertFalse( $this->did_redirect() );
 
 		// The request is for HTTP, but the options to upgrade to HTTPS and whether HTTPS is supported aren't correct.
-		$home_url_http             = home_url( '/', 'http' );
-		$_SERVER['REQUEST_URI']    = $home_url_http;
-		$_SERVER['REQUEST_SCHEME'] = 'http';
+		$home_url_http          = home_url( '/', 'http' );
+		$_SERVER['HTTPS']       = '';
+		$_SERVER['REQUEST_URI'] = $home_url_http;
 		$this->assertFalse( $this->did_redirect() );
 
 		// The checkbox to upgrade to HTTPS is checked, but the option for whether HTTPS is supported isn't correct.
@@ -317,6 +317,11 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		// The option for whether HTTPS is supported is now correct, so this should redirect.
 		update_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME, true );
 		$this->assertTrue( $this->did_redirect() );
+
+		// If is_ssl() is true, this should not redirect.
+		$_SERVER['HTTPS'] = 'on';
+		$this->assertFalse( $this->did_redirect() );
+		$_SERVER['HTTPS'] = '';
 
 		// If is_admin() is true, this should not redirect.
 		set_current_screen( 'edit.php' );
