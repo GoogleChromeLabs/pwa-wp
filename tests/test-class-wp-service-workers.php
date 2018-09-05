@@ -6,7 +6,7 @@
  */
 
 /**
- * Tests for class WP_Web_App_Manifest.
+ * Tests for class WP_Service_Workers.
  */
 class Test_WP_Service_Workers extends WP_UnitTestCase {
 

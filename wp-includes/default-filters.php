@@ -16,3 +16,4 @@ add_action( 'parse_query', 'wp_service_worker_loaded' );
 
 add_action( 'wp_head', 'wp_add_error_template_no_robots' );
 add_action( 'error_head', 'wp_add_error_template_no_robots' );
+add_action( 'wp_default_service_workers', 'wp_default_service_workers' );
