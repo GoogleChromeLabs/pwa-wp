@@ -104,6 +104,27 @@ function wp_print_service_workers() {
 		return;
 	}
 
+	/**
+	 * Filters whether service workers should be installed.
+	 *
+	 * This filter can be used to install service workers through another means than the default
+	 * JavaScript implementation using `navigator.serviceWorker`. This can be useful for environments
+	 * such as AMP sites.
+	 *
+	 * Returning a truthy value will effectively short-circuit the default implementation.
+	 *
+	 * @since 0.2
+	 *
+	 * @param bool  $short_circuit Whether to short-circuit the default implementation. Default false.
+	 * @param array $scopes        Associative array of $name => $relative_scope_url, for which the
+	 *                             service workers should be installed. Use `wp_get_service_worker_url( $name )`
+	 *                             to get the URL of a service worker.
+	 */
+	$short_circuit = apply_filters( 'wp_install_service_workers', false, $scopes );
+	if ( $short_circuit ) {
+		return;
+	}
+
 	?>
 	<script>
 		if ( navigator.serviceWorker ) {
