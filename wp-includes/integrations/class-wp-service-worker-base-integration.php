@@ -31,15 +31,6 @@ abstract class WP_Service_Worker_Base_Integration implements WP_Service_Worker_I
 	}
 
 	/**
-	 * Registers the integration functionality.
-	 *
-	 * @since 0.2
-	 *
-	 * @param WP_Service_Worker_Registry $registry Instance to register service worker behavior with.
-	 */
-	abstract public function register( WP_Service_Worker_Registry $registry );
-
-	/**
 	 * Gets the URLs for a given attachment image and size.
 	 *
 	 * @since 0.2
