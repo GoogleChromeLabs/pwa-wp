@@ -36,9 +36,9 @@ class WP_Service_Worker_Styles_Integration extends WP_Service_Worker_Base_Integr
 	 *
 	 * @since 0.2
 	 *
-	 * @param WP_Service_Worker_Registry $registry Instance to register service worker behavior with.
+	 * @param WP_Service_Worker_Cache_Registry $cache_registry Instance to register service worker behavior with.
 	 */
-	public function register( WP_Service_Worker_Registry $registry ) {
+	public function register( WP_Service_Worker_Cache_Registry $cache_registry ) {
 		$handles = $this->handles;
 
 		if ( empty( $handles ) ) {
@@ -72,7 +72,7 @@ class WP_Service_Worker_Styles_Integration extends WP_Service_Worker_Base_Integr
 			$url = apply_filters( 'style_loader_src', $url, $handle );
 
 			if ( $url ) {
-				$registry->register_precached_route( $url, $revision );
+				$cache_registry->register_precached_route( $url, $revision );
 			}
 		}
 		wp_styles()->to_do = $original_to_do; // Restore original styles to do.
