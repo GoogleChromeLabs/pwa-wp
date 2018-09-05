@@ -59,9 +59,6 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker
 /** WordPress Service Worker Functions */
 require_once PWA_PLUGIN_DIR . '/wp-includes/service-workers.php';
 
-/** Service Worker default loader */
-require_once PWA_PLUGIN_DIR . '/wp-includes/service-worker-loader.php';
-
 /** Amend default filters */
 require_once PWA_PLUGIN_DIR . '/wp-includes/default-filters.php';
 
