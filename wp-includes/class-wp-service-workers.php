@@ -51,6 +51,13 @@ class WP_Service_Workers extends WP_Scripts {
 	public $output = '';
 
 	/**
+	 * Registry.
+	 *
+	 * @var WP_Service_Worker_Registry
+	 */
+	public $registry;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 0.2
