@@ -807,26 +807,26 @@ class WP_Service_Workers extends WP_Scripts {
 			 *     } );
 			 *
 			 * @since 0.2
-			 * @param WP_Service_Workers $this
+			 * @param WP_Service_Worker_Registry $registry Instance to register service worker behavior with.
 			 */
-			do_action( 'wp_front_service_worker', $this );
+			do_action( 'wp_front_service_worker', $this->registry );
 		} elseif ( self::SCOPE_ADMIN === $scope ) {
 			/**
 			 * Fires before serving the wp-admin service worker, when its scripts should be registered, caching routes established, and assets precached.
 			 *
 			 * @since 0.2
-			 * @param WP_Service_Workers $this
+			 * @param WP_Service_Worker_Registry $registry Instance to register service worker behavior with.
 			 */
-			do_action( 'wp_admin_service_worker', $this );
+			do_action( 'wp_admin_service_worker', $this->registry );
 		}
 
 		/**
 		 * Fires before serving the service worker (both front and admin), when its scripts should be registered, caching routes established, and assets precached.
 		 *
 		 * @since 0.2
-		 * @param WP_Service_Workers $this
+		 * @param WP_Service_Worker_Registry $registry Instance to register service worker behavior with.
 		 */
-		do_action( 'wp_service_worker', $this );
+		do_action( 'wp_service_worker', $this->registry );
 
 		if ( self::SCOPE_FRONT !== $scope && self::SCOPE_ADMIN !== $scope ) {
 			status_header( 400 );
