@@ -540,7 +540,7 @@ class WP_Service_Workers extends WP_Scripts {
 			 * 'wp-scripts', 'wp-styles', and 'wp-fonts'. This default behavior can be disabled with code such as the following, for disabling the
 			 * 'wp-custom-header' integration:
 			 *
-			 *     add_filter( wp_service_worker_integrations, function( $integrations ) {
+			 *     add_filter( 'wp_service_worker_integrations', function( $integrations ) {
 			 *         unset( $integrations['wp-custom-header'] );
 			 *         return $integrations;
 			 *     } );
