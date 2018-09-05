@@ -44,59 +44,6 @@ class WP_Service_Workers extends WP_Scripts {
 	const SCOPE_ALL = 3;
 
 	/**
-	 * Stale while revalidate caching strategy.
-	 *
-	 * @var string
-	 */
-	const STRATEGY_STALE_WHILE_REVALIDATE = 'staleWhileRevalidate';
-
-	/**
-	 * Cache first caching strategy.
-	 *
-	 * @var string
-	 */
-	const STRATEGY_CACHE_FIRST = 'cacheFirst';
-
-	/**
-	 * Network first caching strategy.
-	 *
-	 * @var string
-	 */
-	const STRATEGY_NETWORK_FIRST = 'networkFirst';
-
-	/**
-	 * Cache only caching strategy.
-	 *
-	 * @var string
-	 */
-	const STRATEGY_CACHE_ONLY = 'cacheOnly';
-
-	/**
-	 * Network only caching strategy.
-	 *
-	 * @var string
-	 */
-	const STRATEGY_NETWORK_ONLY = 'networkOnly';
-
-	/**
-	 * Name of 'precache' cache.
-	 *
-	 * This will be replaced with `wp.serviceWorker.core.cacheNames.precache` in the service worker JavaScript.
-	 *
-	 * @ver string
-	 */
-	const PRECACHE_CACHE_NAME = 'precache';
-
-	/**
-	 * Name of 'runtime' cache.
-	 *
-	 * This will be replaced with `wp.serviceWorker.core.cacheNames.runtime` in the service worker JavaScript.
-	 *
-	 * @ver string
-	 */
-	const RUNTIME_CACHE_NAME = 'runtime';
-
-	/**
 	 * Output for service worker scope script.
 	 *
 	 * @var string
@@ -104,18 +51,15 @@ class WP_Service_Workers extends WP_Scripts {
 	public $output = '';
 
 	/**
-	 * Registered caching routes and scripts.
+	 * Constructor.
 	 *
-	 * @var array
+	 * @since 0.2
 	 */
-	public $registered_caching_routes = array();
+	public function __construct() {
+		$this->registry = new WP_Service_Worker_Registry();
 
-	/**
-	 * Registered routes and files for precaching.
-	 *
-	 * @var array
-	 */
-	public $registered_precaching_routes = array();
+		parent::__construct();
+	}
 
 	/**
 	 * Initialize the class.
@@ -236,10 +180,10 @@ class WP_Service_Workers extends WP_Scripts {
 		}
 
 		if ( $offline_error_precache_entry ) {
-			$this->register_precached_route( $offline_error_precache_entry['url'], isset( $offline_error_precache_entry['revision'] ) ? $offline_error_precache_entry['revision'] : null );
+			$this->registry->register_precached_route( $offline_error_precache_entry['url'], isset( $offline_error_precache_entry['revision'] ) ? $offline_error_precache_entry['revision'] : null );
 		}
 		if ( $server_error_precache_entry ) {
-			$this->register_precached_route( $server_error_precache_entry['url'], isset( $server_error_precache_entry['revision'] ) ? $server_error_precache_entry['revision'] : null );
+			$this->registry->register_precached_route( $server_error_precache_entry['url'], isset( $server_error_precache_entry['revision'] ) ? $server_error_precache_entry['revision'] : null );
 		}
 
 		$blacklist_patterns = array();
@@ -376,7 +320,9 @@ class WP_Service_Workers extends WP_Scripts {
 	}
 
 	/**
-	 * Register route and caching strategy.
+	 * Register route and caching strategy (deprecated).
+	 *
+	 * @deprecated Use the WP_Service_Worker_Registry::register_cached_route() method instead.
 	 *
 	 * @param string $route    Route regular expression, without delimiters.
 	 * @param string $strategy Strategy, can be WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
@@ -391,35 +337,14 @@ class WP_Service_Workers extends WP_Scripts {
 	 * }
 	 */
 	public function register_cached_route( $route, $strategy, $strategy_args = array() ) {
-
-		if ( ! in_array( $strategy, array(
-			self::STRATEGY_STALE_WHILE_REVALIDATE,
-			self::STRATEGY_CACHE_FIRST,
-			self::STRATEGY_CACHE_ONLY,
-			self::STRATEGY_NETWORK_FIRST,
-			self::STRATEGY_NETWORK_ONLY,
-		), true ) ) {
-			_doing_it_wrong( __METHOD__, esc_html__( 'Strategy must be either WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
-	            WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY, or WP_Service_Workers::STRATEGY_NETWORK_ONLY.', 'pwa' ), '0.2' );
-			return;
-		}
-
-		if ( ! is_string( $route ) ) {
-			/* translators: %s is caching strategy */
-			$error = sprintf( __( 'Route for the caching strategy %s must be a string.', 'pwa' ), $strategy );
-			_doing_it_wrong( __METHOD__, esc_html( $error ), '0.2' );
-		} else {
-
-			$this->registered_caching_routes[] = array(
-				'route'         => $route,
-				'strategy'      => $strategy,
-				'strategy_args' => $strategy_args,
-			);
-		}
+		_deprecated_function( __METHOD__, '0.2', 'WP_Service_Worker_Registry::register_cached_route' );
+		$this->registry->register_cached_route( $route, $strategy, $strategy_args );
 	}
 
 	/**
-	 * Register precached route.
+	 * Register precached route (deprecated).
+	 *
+	 * @deprecated Use the WP_Service_Worker_Registry::register_precached_route() method instead.
 	 *
 	 * If a registered route is stored in the precache cache, then it will be served with the cache-first strategy.
 	 * For other routes registered with non-precached routes (e.g. runtime), you must currently also call
@@ -438,26 +363,8 @@ class WP_Service_Workers extends WP_Scripts {
 	 * }
 	 */
 	public function register_precached_route( $url, $options = array() ) {
-		if ( ! is_array( $options ) ) {
-			$options = array(
-				'revision' => $options,
-			);
-		}
-
-		$options = array_merge(
-			array(
-				'revision' => null,
-				'cache'    => self::PRECACHE_CACHE_NAME,
-			),
-			$options
-		);
-
-		if ( isset( $options['revision'] ) && self::PRECACHE_CACHE_NAME !== $options['cache'] ) {
-			unset( $options['revision'] );
-			_doing_it_wrong( __METHOD__, esc_html__( 'Specifying a revision for a URL to store in a non-precache cache is not currently supported.', 'pwa' ), '0.2' );
-		}
-
-		$this->registered_precaching_routes[] = array_merge( $options, compact( 'url' ) );
+		_deprecated_function( __METHOD__, '0.2', 'WP_Service_Worker_Registry::register_precached_route' );
+		$this->registry->register_precached_route( $url, $options );
 	}
 
 	/**
@@ -473,10 +380,16 @@ class WP_Service_Workers extends WP_Scripts {
 			_doing_it_wrong( __METHOD__, esc_html__( 'Routes must be an array.', 'pwa' ), '0.2' );
 			return;
 		}
-		$this->registered_precaching_routes = array_merge(
-			$routes,
-			$this->registered_precaching_routes
-		);
+
+		foreach ( $routes as $options ) {
+			$url = '';
+			if ( isset( $options['url'] ) ) {
+				$url = $options['url'];
+				unset( $options['url'] );
+			}
+
+			$this->registry->register_precached_route( $url, $options );
+		}
 	}
 
 	/**
@@ -518,7 +431,7 @@ class WP_Service_Workers extends WP_Scripts {
 			$url = apply_filters( 'script_loader_src', $url, $handle );
 
 			if ( $url ) {
-				$this->register_precached_route( $url, $revision );
+				$this->registry->register_precached_route( $url, $revision );
 				$precache_count++;
 			}
 		}
@@ -565,7 +478,7 @@ class WP_Service_Workers extends WP_Scripts {
 			$url = apply_filters( 'style_loader_src', $url, $handle );
 
 			if ( $url ) {
-				$this->register_precached_route( $url, $revision );
+				$this->registry->register_precached_route( $url, $revision );
 				$precache_count++;
 			}
 		}
@@ -579,9 +492,9 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @link https://developers.google.com/web/tools/workbox/guides/common-recipes#google_fonts
 	 */
 	public function register_cached_font_routes() {
-		$this->register_cached_route(
+		$this->registry->register_cached_route(
 			'^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/(.*)',
-			self::STRATEGY_CACHE_FIRST,
+			WP_Service_Worker_Registry::STRATEGY_CACHE_FIRST,
 			array(
 				'cacheName' => 'googleapis',
 				'plugins'   => array(
@@ -621,7 +534,7 @@ class WP_Service_Workers extends WP_Scripts {
 			get_site_icon_url( 270 ),
 		) );
 		foreach ( $image_urls as $image_url ) {
-			$this->register_precached_route( $image_url, $attachment->post_modified );
+			$this->registry->register_precached_route( $image_url, $attachment->post_modified );
 		}
 		return count( $image_urls );
 	}
@@ -646,7 +559,7 @@ class WP_Service_Workers extends WP_Scripts {
 		}
 		$precache_count = 0;
 		foreach ( array_unique( $image_urls ) as $image_url ) {
-			$this->register_precached_route( $image_url, $attachment->post_modified );
+			$this->registry->register_precached_route( $image_url, $attachment->post_modified );
 			$precache_count++;
 		}
 		return $precache_count;
@@ -691,7 +604,7 @@ class WP_Service_Workers extends WP_Scripts {
 				if ( is_string( $file ) ) {
 					$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 				}
-				$this->register_precached_route( $url, $revision );
+				$this->registry->register_precached_route( $url, $revision );
 				$precache_count++;
 			}
 		} else {
@@ -700,7 +613,7 @@ class WP_Service_Workers extends WP_Scripts {
 
 			if ( $attachment ) {
 				foreach ( $this->get_attachment_image_urls( $attachment->ID, array( $header->width, $header->height ) ) as $image_url ) {
-					$this->register_precached_route( $image_url, $attachment->post_modified );
+					$this->registry->register_precached_route( $image_url, $attachment->post_modified );
 					$precache_count++;
 				}
 			} elseif ( get_header_image() ) {
@@ -710,7 +623,7 @@ class WP_Service_Workers extends WP_Scripts {
 				if ( is_string( $file ) ) {
 					$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 				}
-				$this->register_precached_route( $url, $revision );
+				$this->registry->register_precached_route( $url, $revision );
 				$precache_count++;
 			}
 		}
@@ -733,7 +646,7 @@ class WP_Service_Workers extends WP_Scripts {
 		if ( is_string( $file ) ) {
 			$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		}
-		$this->register_precached_route( $url, $revision );
+		$this->registry->register_precached_route( $url, $revision );
 		return 1;
 	}
 
@@ -759,7 +672,7 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	protected function get_precaching_for_routes_script() {
 		$replacements = array(
-			'PRECACHE_ENTRIES' => $this->json_encode( $this->registered_precaching_routes ),
+			'PRECACHE_ENTRIES' => $this->json_encode( $this->registry->get_precached_routes() ),
 		);
 
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-precaching.js' ); // phpcs:ignore
@@ -935,7 +848,9 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$this->do_items( $scope_items );
 		$this->output .= $this->get_precaching_for_routes_script();
-		foreach ( $this->registered_caching_routes as $caching_route ) {
+
+		$caching_routes = $this->registry->get_cached_routes();
+		foreach ( $caching_routes as $caching_route ) {
 			$this->output .= $this->get_caching_for_routes_script( $caching_route['route'], $caching_route['strategy'], $caching_route['strategy_args'] );
 		}
 

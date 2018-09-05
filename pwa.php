@@ -38,6 +38,9 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-ui.php';
 /** WP_Service_Workers Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-workers.php';
 
+/** WP_Service_Worker_Registry Class */
+require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-worker-registry.php';
+
 /** WordPress Service Worker Functions */
 require_once PWA_PLUGIN_DIR . '/wp-includes/service-workers.php';
 
