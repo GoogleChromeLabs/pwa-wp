@@ -1,19 +1,19 @@
 <?php
 /**
- * Tests for class WP_Service_Worker_Registry.
+ * Tests for class WP_Service_Worker_Cache_Registry.
  *
  * @package PWA
  */
 
 /**
- * Tests for class WP_Service_Worker_Registry.
+ * Tests for class WP_Service_Worker_Cache_Registry.
  */
-class Test_WP_Service_Worker_Registry extends WP_UnitTestCase {
+class Test_WP_Service_Worker_Cache_Registry extends WP_UnitTestCase {
 
 	/**
 	 * Tested instance.
 	 *
-	 * @var WP_Service_Worker_Registry
+	 * @var WP_Service_Worker_Cache_Registry
 	 */
 	public $instance;
 
@@ -25,7 +25,7 @@ class Test_WP_Service_Worker_Registry extends WP_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 
-		$this->instance = new WP_Service_Worker_Registry();
+		$this->instance = new WP_Service_Worker_Cache_Registry();
 	}
 
 	/**
@@ -36,7 +36,7 @@ class Test_WP_Service_Worker_Registry extends WP_UnitTestCase {
 	 * @param array  $strategy_args Optional. Strategy arguments. Default empty array.
 	 *
 	 * @dataProvider data_register_cached_route
-	 * @covers WP_Service_Worker_Registry::register_cached_route()
+	 * @covers WP_Service_Worker_Cache_Registry::register_cached_route()
 	 */
 	public function test_register_cached_route( $route, $strategy, $strategy_args = array() ) {
 		$this->instance->register_cached_route( $route, $strategy, $strategy_args );
@@ -63,21 +63,21 @@ class Test_WP_Service_Worker_Registry extends WP_UnitTestCase {
 		return array(
 			array(
 				'/\.(?:js|css)$/',
-				WP_Service_Worker_Registry::STRATEGY_STALE_WHILE_REVALIDATE,
+				WP_Service_Worker_Cache_Registry::STRATEGY_STALE_WHILE_REVALIDATE,
 				array(
 					'cacheName' => 'static-resources',
 				),
 			),
 			array(
 				'/\.(?:png|gif|jpg|jpeg|svg)$/',
-				WP_Service_Worker_Registry::STRATEGY_CACHE_FIRST,
+				WP_Service_Worker_Cache_Registry::STRATEGY_CACHE_FIRST,
 				array(
 					'cacheName' => 'images',
 				),
 			),
 			array(
 				'https://hacker-news.firebaseio.com/v0/*',
-				WP_Service_Worker_Registry::STRATEGY_NETWORK_FIRST,
+				WP_Service_Worker_Cache_Registry::STRATEGY_NETWORK_FIRST,
 				array(
 					'networkTimeoutSeconds' => 3,
 					'cacheName'             => 'stories',
@@ -85,12 +85,12 @@ class Test_WP_Service_Worker_Registry extends WP_UnitTestCase {
 			),
 			array(
 				'/.*(?:googleapis)\.com.*$/',
-				WP_Service_Worker_Registry::STRATEGY_NETWORK_ONLY,
+				WP_Service_Worker_Cache_Registry::STRATEGY_NETWORK_ONLY,
 				array(),
 			),
 			array(
 				'/.*(?:gstatic)\.com.*$/',
-				WP_Service_Worker_Registry::STRATEGY_CACHE_ONLY,
+				WP_Service_Worker_Cache_Registry::STRATEGY_CACHE_ONLY,
 				array(),
 			),
 		);
@@ -99,18 +99,18 @@ class Test_WP_Service_Worker_Registry extends WP_UnitTestCase {
 	/**
 	 * Test registering a cached route with an invalid route.
 	 *
-	 * @covers WP_Service_Worker_Registry::register_cached_route()
-	 * @expectedIncorrectUsage WP_Service_Worker_Registry::register_cached_route
+	 * @covers WP_Service_Worker_Cache_Registry::register_cached_route()
+	 * @expectedIncorrectUsage WP_Service_Worker_Cache_Registry::register_cached_route
 	 */
 	public function test_register_cached_route_invalid_route() {
-		$this->instance->register_cached_route( 3, WP_Service_Worker_Registry::STRATEGY_STALE_WHILE_REVALIDATE );
+		$this->instance->register_cached_route( 3, WP_Service_Worker_Cache_Registry::STRATEGY_STALE_WHILE_REVALIDATE );
 	}
 
 	/**
 	 * Test registering a cached route with an invalid strategy.
 	 *
-	 * @covers WP_Service_Worker_Registry::register_cached_route()
-	 * @expectedIncorrectUsage WP_Service_Worker_Registry::register_cached_route
+	 * @covers WP_Service_Worker_Cache_Registry::register_cached_route()
+	 * @expectedIncorrectUsage WP_Service_Worker_Cache_Registry::register_cached_route
 	 */
 	public function test_register_cached_route_invalid_strategy() {
 		$this->instance->register_cached_route( '/\.(?:js|css)$/', 'invalid' );
@@ -123,7 +123,7 @@ class Test_WP_Service_Worker_Registry extends WP_UnitTestCase {
 	 * @param array  $options Optional. Options. Default empty array.
 	 *
 	 * @dataProvider data_register_precached_route
-	 * @covers WP_Service_Worker_Registry::register_precached_route()
+	 * @covers WP_Service_Worker_Cache_Registry::register_precached_route()
 	 */
 	public function test_register_precached_route( $url, $options = array() ) {
 		$this->instance->register_precached_route( $url, $options );
@@ -133,7 +133,7 @@ class Test_WP_Service_Worker_Registry extends WP_UnitTestCase {
 
 		$expected = array(
 			'revision' => null,
-			'cache'    => WP_Service_Worker_Registry::PRECACHE_CACHE_NAME,
+			'cache'    => WP_Service_Worker_Cache_Registry::PRECACHE_CACHE_NAME,
 		);
 		if ( ! is_array( $options ) ) {
 			$expected['revision'] = $options;
@@ -169,7 +169,7 @@ class Test_WP_Service_Worker_Registry extends WP_UnitTestCase {
 			array(
 				'/assets/image.png',
 				array(
-					'cache' => WP_Service_Worker_Registry::RUNTIME_CACHE_NAME,
+					'cache' => WP_Service_Worker_Cache_Registry::RUNTIME_CACHE_NAME,
 				),
 			),
 			array(
@@ -182,13 +182,13 @@ class Test_WP_Service_Worker_Registry extends WP_UnitTestCase {
 	/**
 	 * Test registering a precached route with a revision outside of the precache.
 	 *
-	 * @covers WP_Service_Worker_Registry::register_precached_route()
-	 * @expectedIncorrectUsage WP_Service_Worker_Registry::register_precached_route
+	 * @covers WP_Service_Worker_Cache_Registry::register_precached_route()
+	 * @expectedIncorrectUsage WP_Service_Worker_Cache_Registry::register_precached_route
 	 */
 	public function test_register_precached_route_invalid_revision() {
 		$this->instance->register_precached_route( '/assets/style.css', array(
 			'revision' => '1.0.0',
-			'cache'    => WP_Service_Worker_Registry::RUNTIME_CACHE_NAME,
+			'cache'    => WP_Service_Worker_Cache_Registry::RUNTIME_CACHE_NAME,
 		) );
 	}
 }

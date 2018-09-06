@@ -38,8 +38,8 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-ui.php';
 /** WP_Service_Workers Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-workers.php';
 
-/** WP_Service_Worker_Registry Class */
-require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-worker-registry.php';
+/** WP_Service_Worker_Cache_Registry Class */
+require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-worker-cache-registry.php';
 
 /** WP_Service_Worker_Integration Interface */
 require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/interface-wp-service-worker-integration.php';

@@ -17,9 +17,9 @@ class WP_Service_Worker_Site_Icon_Integration extends WP_Service_Worker_Base_Int
 	 *
 	 * @since 0.2
 	 *
-	 * @param WP_Service_Worker_Registry $registry Instance to register service worker behavior with.
+	 * @param WP_Service_Worker_Cache_Registry $cache_registry Instance to register service worker behavior with.
 	 */
-	public function register( WP_Service_Worker_Registry $registry ) {
+	public function register( WP_Service_Worker_Cache_Registry $cache_registry ) {
 		if ( ! has_site_icon() || ! get_option( 'site_icon' ) ) {
 			return;
 		}
@@ -39,7 +39,7 @@ class WP_Service_Worker_Site_Icon_Integration extends WP_Service_Worker_Base_Int
 		) );
 
 		foreach ( $image_urls as $image_url ) {
-			$registry->register_precached_route( $image_url, $attachment->post_modified );
+			$cache_registry->register_precached_route( $image_url, $attachment->post_modified );
 		}
 	}
 }

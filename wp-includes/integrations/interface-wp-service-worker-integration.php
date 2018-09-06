@@ -25,7 +25,7 @@ interface WP_Service_Worker_Integration {
 	 *
 	 * @since 0.2
 	 *
-	 * @param WP_Service_Worker_Registry $registry Instance to register service worker behavior with.
+	 * @param WP_Service_Worker_Cache_Registry $cache_registry Instance to register service worker behavior with.
 	 */
-	public function register( WP_Service_Worker_Registry $registry );
+	public function register( WP_Service_Worker_Cache_Registry $cache_registry );
 }

@@ -17,9 +17,9 @@ class WP_Service_Worker_Custom_Logo_Integration extends WP_Service_Worker_Base_I
 	 *
 	 * @since 0.2
 	 *
-	 * @param WP_Service_Worker_Registry $registry Instance to register service worker behavior with.
+	 * @param WP_Service_Worker_Cache_Registry $cache_registry Instance to register service worker behavior with.
 	 */
-	public function register( WP_Service_Worker_Registry $registry ) {
+	public function register( WP_Service_Worker_Cache_Registry $cache_registry ) {
 		if ( ! current_theme_supports( 'custom-logo' ) || ! get_theme_mod( 'custom_logo' ) ) {
 			return;
 		}
@@ -36,7 +36,7 @@ class WP_Service_Worker_Custom_Logo_Integration extends WP_Service_Worker_Base_I
 		}
 
 		foreach ( array_unique( $image_urls ) as $image_url ) {
-			$registry->register_precached_route( $image_url, $attachment->post_modified );
+			$cache_registry->register_precached_route( $image_url, $attachment->post_modified );
 		}
 	}
 }

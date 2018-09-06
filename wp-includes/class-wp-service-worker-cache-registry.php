@@ -1,6 +1,6 @@
 <?php
 /**
- * WP_Service_Worker_Registry class.
+ * WP_Service_Worker_Cache_Registry class.
  *
  * @package PWA
  */
@@ -10,7 +10,7 @@
  *
  * @since 0.2
  */
-class WP_Service_Worker_Registry {
+class WP_Service_Worker_Cache_Registry {
 
 	/**
 	 * Stale while revalidate caching strategy.
@@ -94,9 +94,9 @@ class WP_Service_Worker_Registry {
 	 * @since 0.2
 	 *
 	 * @param string $route    Route regular expression, without delimiters.
-	 * @param string $strategy Strategy, can be WP_Service_Worker_Registry::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Worker_Registry::STRATEGY_CACHE_FIRST,
-	 *                         WP_Service_Worker_Registry::STRATEGY_NETWORK_FIRST, WP_Service_Worker_Registry::STRATEGY_CACHE_ONLY,
-	 *                         WP_Service_Worker_Registry::STRATEGY_NETWORK_ONLY.
+	 * @param string $strategy Strategy, can be WP_Service_Worker_Cache_Registry::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Worker_Cache_Registry::STRATEGY_CACHE_FIRST,
+	 *                         WP_Service_Worker_Cache_Registry::STRATEGY_NETWORK_FIRST, WP_Service_Worker_Cache_Registry::STRATEGY_CACHE_ONLY,
+	 *                         WP_Service_Worker_Cache_Registry::STRATEGY_NETWORK_ONLY.
 	 * @param array  $strategy_args {
 	 *     An array of strategy arguments.
 	 *
@@ -158,7 +158,7 @@ class WP_Service_Worker_Registry {
 	 *
 	 * @since 0.2
 	 *
-	 * @see WP_Service_Worker_Registry::register_cached_route()
+	 * @see WP_Service_Worker_Cache_Registry::register_cached_route()
 	 * @link https://github.com/GoogleChrome/workbox/issues/1612
 	 *
 	 * @param string       $url URL to cache.
@@ -166,7 +166,7 @@ class WP_Service_Worker_Registry {
 	 *     Options. Or else if not an array, then treated as revision.
 	 *
 	 *     @type string $revision Revision. Currently only applicable for precache. Optional.
-	 *     @type string $cache    Cache. Defaults to the precache (WP_Service_Worker_Registry::PRECACHE_CACHE_NAME); the values 'precache' and 'runtime' will be replaced with the appropriately-namespaced cache names.
+	 *     @type string $cache    Cache. Defaults to the precache (WP_Service_Worker_Cache_Registry::PRECACHE_CACHE_NAME); the values 'precache' and 'runtime' will be replaced with the appropriately-namespaced cache names.
 	 * }
 	 */
 	public function register_precached_route( $url, $options = array() ) {
