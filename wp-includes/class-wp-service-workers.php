@@ -195,7 +195,7 @@ class WP_Service_Workers extends WP_Scripts {
 			'BLACKLIST_PATTERNS' => $this->json_encode( $blacklist_patterns ),
 		);
 
-		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-error-response-handling.js' ); // phpcs:ignore
+		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-error-response-handling.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
 
 		return str_replace(
@@ -410,11 +410,16 @@ class WP_Service_Workers extends WP_Scripts {
 	 * @return string Precaching logic.
 	 */
 	protected function get_precaching_for_routes_script() {
+		$precache_entries = $this->cache_registry->get_precached_routes();
+		if ( empty( $precache_entries ) ) {
+			return '';
+		}
+
 		$replacements = array(
-			'PRECACHE_ENTRIES' => $this->json_encode( $this->cache_registry->get_precached_routes() ),
+			'PRECACHE_ENTRIES' => $this->json_encode( $precache_entries ),
 		);
 
-		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-precaching.js' ); // phpcs:ignore
+		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-precaching.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
 
 		return str_replace(

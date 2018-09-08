@@ -151,22 +151,16 @@ class WP_Service_Worker_Cache_Registry {
 	/**
 	 * Register precached route.
 	 *
-	 * If a registered route is stored in the precache cache, then it will be served with the cache-first strategy.
-	 * For other routes registered with non-precached routes (e.g. runtime), you must currently also call
-	 * `wp_service_workers()->register_cached_route(...)` to specify the strategy for interacting with that
-	 * precached resource.
+	 * The routes registered here are served with the cache-first strategy.
 	 *
 	 * @since 0.2
-	 *
 	 * @see WP_Service_Worker_Cache_Registry::register_cached_route()
-	 * @link https://github.com/GoogleChrome/workbox/issues/1612
 	 *
 	 * @param string       $url URL to cache.
 	 * @param array|string $options {
-	 *     Options. Or else if not an array, then treated as revision.
+	 *     Options. If a string, then this is the revision.
 	 *
-	 *     @type string $revision Revision. Currently only applicable for precache. Optional.
-	 *     @type string $cache    Cache. Defaults to the precache (WP_Service_Worker_Cache_Registry::PRECACHE_CACHE_NAME); the values 'precache' and 'runtime' will be replaced with the appropriately-namespaced cache names.
+	 *     @type string $revision Revision. Optional.
 	 * }
 	 */
 	public function register_precached_route( $url, $options = array() ) {
@@ -176,17 +170,14 @@ class WP_Service_Worker_Cache_Registry {
 			);
 		}
 
-		$options = array_merge(
-			array(
-				'revision' => null,
-				'cache'    => self::PRECACHE_CACHE_NAME,
-			),
-			$options
+		$defaults = array(
+			'revision' => null,
 		);
 
-		if ( isset( $options['revision'] ) && self::PRECACHE_CACHE_NAME !== $options['cache'] ) {
-			unset( $options['revision'] );
-			_doing_it_wrong( __METHOD__, esc_html__( 'Specifying a revision for a URL to store in a non-precache cache is not currently supported.', 'pwa' ), '0.2' );
+		$options = array_merge( $defaults, $options );
+		foreach ( array_diff( array_keys( $options ), array_keys( $defaults ) ) as $unrecognized_key ) {
+			/* translators: %1$s is the unrecognized option key, %2$s is the precached route */
+			_doing_it_wrong( __METHOD__, esc_html( sprintf( __( 'An unrecognized option "%1$s" was provided for a precached route %2$s.', 'pwa' ), $unrecognized_key, $url ) ), '0.2' );
 		}
 
 		$this->registered_precaching_routes[] = array_merge( $options, compact( 'url' ) );
