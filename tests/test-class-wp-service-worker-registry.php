@@ -133,7 +133,6 @@ class Test_WP_Service_Worker_Cache_Registry extends WP_UnitTestCase {
 
 		$expected = array(
 			'revision' => null,
-			'cache'    => WP_Service_Worker_Cache_Registry::PRECACHE_CACHE_NAME,
 		);
 		if ( ! is_array( $options ) ) {
 			$expected['revision'] = $options;
@@ -167,12 +166,6 @@ class Test_WP_Service_Worker_Cache_Registry extends WP_UnitTestCase {
 				'1.0.0',
 			),
 			array(
-				'/assets/image.png',
-				array(
-					'cache' => WP_Service_Worker_Cache_Registry::RUNTIME_CACHE_NAME,
-				),
-			),
-			array(
 				'/assets/font.ttf',
 				array(),
 			),
@@ -180,7 +173,7 @@ class Test_WP_Service_Worker_Cache_Registry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test registering a precached route with a revision outside of the precache.
+	 * Test registering a precached route with an unrecognized option.
 	 *
 	 * @covers WP_Service_Worker_Cache_Registry::register_precached_route()
 	 * @expectedIncorrectUsage WP_Service_Worker_Cache_Registry::register_precached_route
@@ -188,7 +181,7 @@ class Test_WP_Service_Worker_Cache_Registry extends WP_UnitTestCase {
 	public function test_register_precached_route_invalid_revision() {
 		$this->instance->register_precached_route( '/assets/style.css', array(
 			'revision' => '1.0.0',
-			'cache'    => WP_Service_Worker_Cache_Registry::RUNTIME_CACHE_NAME,
+			'bogus'    => 'yes',
 		) );
 	}
 }
