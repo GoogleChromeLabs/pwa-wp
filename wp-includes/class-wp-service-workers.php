@@ -239,6 +239,8 @@ class WP_Service_Workers extends WP_Scripts {
 
 		$script .= sprintf( "workbox.core.setCacheNameDetails( %s );\n", $this->json_encode( $cache_name_details ) );
 
+		// @todo Add filter controlling workbox.skipWaiting().
+		// @todo Add filter controlling workbox.clientsClaim().
 		/**
 		 * Filters whether navigation preload is enabled.
 		 *
