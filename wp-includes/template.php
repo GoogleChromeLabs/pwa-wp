@@ -122,7 +122,7 @@ function get_offline_template() {
  */
 function get_500_template() {
 	$templates = array(
-		'offline.php',
+		'500.php',
 		'error.php',
 	);
 
