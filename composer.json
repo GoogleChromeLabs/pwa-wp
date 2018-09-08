@@ -1,13 +1,15 @@
 {
-	"name": "xwp/pwa-wp",
-	"description": "WordPress plugin for adding PWA support.",
-	"homepage": "https://github.com/xwp/pwa-wp",
-	"type": "wordpress-plugin",
-	"license": "GPL-2.0",
-	"version": "0.1.0",
-	"require-dev": {
-		"dealerdirect/phpcodesniffer-composer-installer": "^0.4.4",
-		"phpcompatibility/phpcompatibility-wp": "^1",
-		"wp-coding-standards/wpcs": "^1"
-	}
+  "name": "xwp/pwa-wp",
+  "description": "WordPress plugin for adding PWA support.",
+  "homepage": "https://github.com/xwp/pwa-wp",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0",
+  "require": {
+    "php": "^5.2.0 || ^7.0"
+  },
+  "require-dev": {
+    "dealerdirect/phpcodesniffer-composer-installer": "^0.4.4",
+    "phpcompatibility/phpcompatibility-wp": "^1",
+    "wp-coding-standards/wpcs": "^1"
+  }
 }
