@@ -583,6 +583,8 @@ class WP_Service_Workers extends WP_Scripts {
 			return;
 		}
 
+		printf( "/* PWA v%s */\n\n", esc_html( PWA_VERSION ) );
+
 		$this->output  = '';
 		$this->output .= $this->get_base_script();
 		$this->output .= $this->get_error_response_handling_script();
