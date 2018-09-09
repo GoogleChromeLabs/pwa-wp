@@ -13,6 +13,7 @@ foreach ( array( 'wp_print_scripts', 'admin_print_scripts', 'customize_controls_
 }
 
 add_action( 'parse_query', 'wp_service_worker_loaded' );
+add_action( 'parse_query', 'wp_hide_admin_bar_offline' );
 
 add_action( 'wp_head', 'wp_add_error_template_no_robots' );
 add_action( 'error_head', 'wp_add_error_template_no_robots' );
