@@ -101,6 +101,17 @@ function wp_add_error_template_no_robots() {
 }
 
 /**
+ * Hide the admin bar if serving the offline template.
+ *
+ * @since 0.2
+ */
+function wp_hide_admin_bar_offline() {
+	if ( is_offline() ) {
+		show_admin_bar( false );
+	}
+}
+
+/**
  * Filter the document title for the offline/500 error template.
  *
  * In core merge, this would amend `wp_get_document_title()`.

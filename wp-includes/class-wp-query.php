@@ -36,4 +36,4 @@ function pwa_parse_query_for_error_template( WP_Query $query ) {
 			break;
 	}
 }
-add_action( 'parse_query', 'pwa_parse_query_for_error_template' );
+add_action( 'parse_query', 'pwa_parse_query_for_error_template', 1 );
