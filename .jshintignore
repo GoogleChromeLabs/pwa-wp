@@ -1,0 +1,3 @@
+wp-includes/js/service-worker.js
+wp-includes/js/service-worker-error-response-handling.js
+wp-includes/js/service-worker-precaching.js

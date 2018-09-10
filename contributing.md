@@ -55,7 +55,7 @@ When you push a commit to your PR, Travis CI will run the PHPUnit tests and snif
 Contributors who want to make a new release, follow these steps:
 
 1. Do `npm run build` and install the `pwa.zip` onto a normal WordPress install running a stable release build; do smoke test to ensure it works.
-2. Bump plugin versions in `package.json` (×1), `package-lock.json` (×1, just do `npm install` first), `composer.json` (×1), and in `pwa.php` (×2: the metadata block in the header and also the `PWA_VERSION` constant).
+2. Bump plugin versions in `pwa.php` (×2: the metadata block in the header and also the `PWA_VERSION` constant), and the `Stable tag` in `readme.txt`.
 3. Add changelog entry to readme.
 4. Draft blog post about the new release, presumably on Make/Core.
 5. [Draft new release](https://github.com/xwp/pwa-wp/releases/new) on GitHub targeting the release branch, with the new plugin version as the tag and release title. Attaching the `pwa.zip` build to the release. Include link to changelog in release tag.

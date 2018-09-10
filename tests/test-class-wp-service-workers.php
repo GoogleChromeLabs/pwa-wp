@@ -6,7 +6,7 @@
  */
 
 /**
- * Tests for class WP_Web_App_Manifest.
+ * Tests for class WP_Service_Workers.
  */
 class Test_WP_Service_Workers extends WP_UnitTestCase {
 
@@ -23,10 +23,11 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	 * @inheritdoc
 	 */
 	public function setUp() {
-		global $wp_actions, $wp_default_service_workers;
+		global $wp_actions, $wp_service_workers;
 		parent::setUp();
-		unset( $wp_default_service_workers );
 		unset( $wp_actions['wp_default_service_workers'] );
+		$wp_service_workers = null;
+
 		$this->instance = wp_service_workers();
 	}
 
@@ -103,9 +104,9 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	 */
 	public function test_register( $handle, $src, $deps, $scope = null ) {
 		if ( $scope ) {
-			$this->instance->register( $handle, $src, $deps, $scope );
+			$this->instance->register_script( $handle, $src, $deps, $scope );
 		} else {
-			$this->instance->register( $handle, $src, $deps );
+			$this->instance->register_script( $handle, $src, $deps );
 		}
 		if ( ! $scope ) {
 			$scope = WP_Service_Workers::SCOPE_ALL;
@@ -120,10 +121,10 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	/**
 	 * Test using invalid scope.
 	 *
-	 * @expectedIncorrectUsage WP_Service_Workers::register
+	 * @expectedIncorrectUsage WP_Service_Workers::register_script
 	 */
 	public function test_register_invalid_scope() {
-		$this->instance->register( 'foo', '/test-sw.js', array( 'bar' ), 'bad' );
+		$this->instance->register_script( 'foo', '/test-sw.js', array( 'bar' ), 'bad' );
 		$this->assertEquals( WP_Service_Workers::SCOPE_ALL, $this->instance->registered['foo']->args['scope'] );
 	}
 
@@ -134,9 +135,9 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	 * @covers WP_Service_Workers::do_items()
 	 */
 	public function test_serve_request() {
-		wp_service_workers()->register( 'bar', array( $this, 'return_bar_sw' ), array( 'foo' ), WP_Service_Workers::SCOPE_FRONT );
-		wp_service_workers()->register( 'baz', array( $this, 'return_baz_sw' ), array( 'foo' ), WP_Service_Workers::SCOPE_ADMIN );
-		wp_service_workers()->register( 'foo', array( $this, 'return_foo_sw' ), array(), WP_Service_Workers::SCOPE_ALL );
+		wp_service_workers()->register_script( 'bar', array( $this, 'return_bar_sw' ), array( 'foo' ), WP_Service_Workers::SCOPE_FRONT );
+		wp_service_workers()->register_script( 'baz', array( $this, 'return_baz_sw' ), array( 'foo' ), WP_Service_Workers::SCOPE_ADMIN );
+		wp_service_workers()->register_script( 'foo', array( $this, 'return_foo_sw' ), array(), WP_Service_Workers::SCOPE_ALL );
 
 		ob_start();
 		wp_service_workers()->serve_request( 'bad' );
@@ -172,7 +173,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	 * @covers WP_Service_Workers::do_items()
 	 */
 	public function test_serve_request_bad_src_callback() {
-		wp_service_workers()->register( 'bar', array( 'Does_Not_Exist', 'return_bar_sw' ) );
+		wp_service_workers()->register_script( 'bar', array( 'Does_Not_Exist', 'return_bar_sw' ) );
 		ob_start();
 		wp_service_workers()->serve_request( WP_Service_Workers::SCOPE_ADMIN );
 		$output = ob_get_clean();
@@ -187,30 +188,11 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 	 * @covers WP_Service_Workers::do_items()
 	 */
 	public function test_serve_request_bad_src_url() {
-		wp_service_workers()->register( 'bar', '/food.png' );
+		wp_service_workers()->register_script( 'bar', '/food.png' );
 		ob_start();
 		wp_service_workers()->serve_request( WP_Service_Workers::SCOPE_FRONT );
 		$output = ob_get_clean();
 		$this->assertContains( 'Service worker src is invalid', $output );
-	}
-
-	/**
-	 * Test registering precached routes.
-	 *
-	 * @covers WP_Service_Workers::register_precached_routes()
-	 */
-	public function test_register_precached_routes() {
-		$routes = array(
-			array(
-				'url' => '/wp-admin/test-route',
-			),
-		);
-		wp_service_workers()->register_precached_routes( $routes );
-
-		$this->assertEquals( 1, count( wp_service_workers()->registered_precaching_routes ) );
-		$this->assertEquals( array(
-			'url' => '/wp-admin/test-route',
-		), wp_service_workers()->registered_precaching_routes[0] );
 	}
 
 	/**

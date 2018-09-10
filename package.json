@@ -6,7 +6,6 @@
   "type": "git",
   "url": "https://github.com/xwp/pwa-wp.git"
  },
- "version": "0.1.0",
  "license": "GPL-2.0+",
  "private": true,
  "devDependencies": {

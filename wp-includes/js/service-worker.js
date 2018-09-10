@@ -65,8 +65,8 @@ wp.serviceWorker = workbox;
 		 * strategy to the Router. This method will generate a Route for you if needed and
 		 * call [Router.registerRoute()]{@link workbox.routing.Router#registerRoute}.
 		 *
-		 * @param {RegExp|string|workbox.routing.Route~matchCallback|workbox.routing.Route} capture If the capture param is a `Route`, all other arguments will be ignored.
-		 * @param {workbox.routing.Route~handlerCallback} handler A callback function that returns a Promise resulting in a Response.
+		 * @param {RegExp|string|workbox.routing.Route~matchCallback|workbox.routing.Route|Function} capture - If the capture param is a `Route`, all other arguments will be ignored.
+		 * @param {workbox.routing.Route~handlerCallback|Function} handler - A callback function that returns a Promise resulting in a Response.
 		 * @param {string} [method='GET'] The HTTP method to match the Route against.
 		 * @return {workbox.routing.Route} The generated `Route`(Useful for unregistering).
 		 *
@@ -129,13 +129,21 @@ wp.serviceWorker = workbox;
 		}
 	}
 
-	// Init custom router.
-	wp.serviceWorker.WPRouter = new WPRouter();
+	wp.serviceWorker.WPRouter = WPRouter;
 
+	const publicAPI = Object.freeze({
+		RegExpRoute: wp.serviceWorker.routing.RegExpRoute,
+		Route: wp.serviceWorker.routing.Route,
+		Router: wp.serviceWorker.routing.Router,
+		NavigationRoute: wp.serviceWorker.routing.NavigationRoute
+	});
+
+	wp.serviceWorker.routing = Object.assign( new WPRouter(), publicAPI );
 }
 
+// @todo There is another 'fetch' handler being for DefaultRouter added in the workbox-routing module which will be unused since.
 self.addEventListener( 'fetch', event => {
-	const responsePromise = wp.serviceWorker.WPRouter.handleRequest( event );
+	const responsePromise = wp.serviceWorker.routing.handleRequest( event );
 	if ( responsePromise ) {
 		event.respondWith( responsePromise );
 	}

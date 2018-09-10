@@ -34,7 +34,7 @@ function wp_service_workers() {
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
 function wp_register_service_worker( $handle, $src, $deps = array(), $scope = WP_Service_Workers::SCOPE_ALL ) {
-	return wp_service_workers()->register( $handle, $src, $deps, $scope );
+	return wp_service_workers()->register_script( $handle, $src, $deps, $scope );
 }
 
 /**
@@ -59,22 +59,6 @@ function wp_register_route_caching_strategy( $route, $strategy = WP_Service_Work
 }
 
 /**
- * Register routes / files for precaching.
- *
- * @since 0.2
- *
- * @param array $routes {
- *      Array of routes.
- *
- *      @type string $url      URL of the route.
- *      @type string $revision Revision (optional).
- * }
- */
-function wp_register_routes_precaching( $routes ) {
-	return wp_service_workers()->register_precached_routes( $routes );
-}
-
-/**
  * Get service worker URL by scope.
  *
  * @since 0.1
@@ -89,7 +73,7 @@ function wp_get_service_worker_url( $scope = WP_Service_Workers::SCOPE_FRONT ) {
 	}
 
 	return add_query_arg(
-		array( 'wp_service_worker' => $scope ),
+		array( WP_Service_Workers::QUERY_VAR => $scope ),
 		home_url( '/', 'https' )
 	);
 }
@@ -137,15 +121,33 @@ function wp_print_service_workers() {
 }
 
 /**
- * Register query var.
+ * Print the script that is responsible for populating the details iframe with the error info from the service worker.
  *
- * @since 0.1
- * @param array $query_vars Query vars.
- * @return array Query vars.
+ * Broadcast a request to obtain the original response text from the internal server error response and display it inside
+ * a details iframe if the 500 response included any body (such as an error message). This is used in a the 500.php template.
+ *
+ * @since 0.2
+ *
+ * @param string $callback Function in JS to invoke with the data. This may be either a global function name or method of another object, e.g. "mySite.handleServerError".
  */
-function wp_add_service_worker_query_var( $query_vars ) {
-	$query_vars[] = 'wp_service_worker';
-	return $query_vars;
+function wp_print_service_worker_error_details_script( $callback ) {
+	?>
+	<script>
+		{
+			const clientUrl = location.href;
+			const channel = new BroadcastChannel( 'wordpress-server-errors' );
+			channel.onmessage = ( event ) => {
+				if ( event.data && event.data.requestUrl && clientUrl === event.data.requestUrl ) {
+					channel.onmessage = null;
+					channel.close();
+
+					<?php echo 'window[' . implode( '][', array_map( 'json_encode', explode( '.', $callback ) ) ) . ']( event.data );'; ?>
+				}
+			};
+			channel.postMessage( { clientUrl } )
+		}
+	</script>
+	<?php
 }
 
 /**
@@ -155,9 +157,84 @@ function wp_add_service_worker_query_var( $query_vars ) {
  * @see rest_api_loaded()
  */
 function wp_service_worker_loaded() {
-	if ( isset( $GLOBALS['wp']->query_vars['wp_service_worker'] ) ) {
-		wp_service_workers()->serve_request( intval( $GLOBALS['wp']->query_vars['wp_service_worker'] ) );
+	$scope = wp_service_workers()->get_current_scope();
+	if ( 0 !== $scope ) {
+		wp_service_workers()->serve_request( $scope );
 		exit;
+	}
+}
+
+/**
+ * Registers all default service workers.
+ *
+ * @since 0.2
+ *
+ * @param WP_Service_Workers $service_workers WP_Service_Workers instance.
+ */
+function wp_default_service_workers( $service_workers ) {
+	$service_workers->base_url        = site_url();
+	$service_workers->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
+	$service_workers->default_version = get_bloginfo( 'version' );
+
+	$integrations = array(
+		'wp-site-icon'         => new WP_Service_Worker_Site_Icon_Integration(),
+		'wp-custom-logo'       => new WP_Service_Worker_Custom_Logo_Integration(),
+		'wp-custom-header'     => new WP_Service_Worker_Custom_Header_Integration(),
+		'wp-custom-background' => new WP_Service_Worker_Custom_Background_Integration(),
+		'wp-scripts'           => new WP_Service_Worker_Scripts_Integration(),
+		'wp-styles'            => new WP_Service_Worker_Styles_Integration(),
+		'wp-fonts'             => new WP_Service_Worker_Fonts_Integration(),
+	);
+
+	/**
+	 * Filters the service worker integrations to initialize.
+	 *
+	 * @since 0.2
+	 *
+	 * @param array $integrations Array of $slug => $integration pairs, where $integration is an instance
+	 *                            of a class that implements the WP_Service_Worker_Integration interface.
+	 */
+	$integrations = apply_filters( 'wp_service_worker_integrations', $integrations );
+
+	foreach ( $integrations as $slug => $integration ) {
+		if ( ! $integration instanceof WP_Service_Worker_Integration ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: 1: integration slug, 2: interface name */
+					esc_html__( 'The integration with slug %1$s does not implement the %2$s interface.', 'pwa' ),
+					esc_html( $slug ),
+					'WP_Service_Worker_Integration'
+				),
+				'0.2'
+			);
+			continue;
+		}
+
+		$scope = $integration->get_scope();
+		switch ( $scope ) {
+			case WP_Service_Workers::SCOPE_FRONT:
+				add_action( 'wp_front_service_worker', array( $integration, 'register' ), 10, 1 );
+				break;
+			case WP_Service_Workers::SCOPE_ADMIN:
+				add_action( 'wp_admin_service_worker', array( $integration, 'register' ), 10, 1 );
+				break;
+			case WP_Service_Workers::SCOPE_ALL:
+				add_action( 'wp_service_worker', array( $integration, 'register' ), 10, 1 );
+				break;
+			default:
+				$valid_scopes = array( WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, WP_Service_Workers::SCOPE_ALL );
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: integration slug, 2: a comma-separated list of valid scopes */
+						esc_html__( 'Scope for integration %1$s must be one out of %2$s.', 'pwa' ),
+						esc_html( $slug ),
+						esc_html( implode( ', ', $valid_scopes ) )
+					),
+					'0.1'
+				);
+		}
 	}
 }
 
