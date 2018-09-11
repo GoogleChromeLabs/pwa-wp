@@ -75,7 +75,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'init_admin' ) ) );
 		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'filter_site_url_and_home' ) ) );
 		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'filter_header' ) ) );
-		$this->assertEquals( 10, has_action( 'template_redirect', array( $this->instance, 'conditionally_redirect_to_https' ) ) );
+		$this->assertEquals( 11, has_action( 'template_redirect', array( $this->instance, 'conditionally_redirect_to_https' ) ) );
 	}
 
 	/**

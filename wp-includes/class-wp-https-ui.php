@@ -82,7 +82,7 @@ class WP_HTTPS_UI {
 		add_action( 'admin_init', array( $this, 'init_admin' ) );
 		add_action( 'init', array( $this, 'filter_site_url_and_home' ) );
 		add_action( 'init', array( $this, 'filter_header' ) );
-		add_action( 'template_redirect', array( $this, 'conditionally_redirect_to_https' ) );
+		add_action( 'template_redirect', array( $this, 'conditionally_redirect_to_https' ), 11 ); // At 11 to run after redirect_canonical().
 	}
 
 	/**
@@ -345,7 +345,7 @@ class WP_HTTPS_UI {
 	 *
 	 * @todo This does not appear to be necessary because redirect_canonical() will do everything.
 	 *
-	 * So if the SSL certificate expires somehow, the admin won't be locked out of wp-admin.
+	 * @see redirect_canonical() This runs when accessing a post permalink over HTTP.
 	 */
 	public function conditionally_redirect_to_https() {
 		$do_redirect = (
