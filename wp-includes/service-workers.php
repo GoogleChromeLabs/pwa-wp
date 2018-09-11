@@ -236,6 +236,8 @@ function wp_default_service_workers( $service_workers ) {
 				);
 		}
 	}
+
+	add_action( 'wp_admin_service_worker', array( $service_workers, 'precache_admin_assets' ), 9 );
 }
 
 /**

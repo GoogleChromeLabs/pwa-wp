@@ -73,17 +73,6 @@ class WP_Service_Workers extends WP_Scripts {
 	 */
 	public function init() {
 
-		// Only run if it's for the service worker.
-		if ( isset( $_REQUEST['wp_service_worker'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.NoNonceVerification
-			if ( ! function_exists( 'list_files' ) ) {
-				require_once ABSPATH . 'wp-admin/includes/file.php';
-			}
-
-			if ( ! SCRIPT_DEBUG ) {
-				$this->precache_admin_assets();
-			}
-		}
-
 		/**
 		 * Fires when the WP_Service_Workers instance is initialized.
 		 *
@@ -300,34 +289,49 @@ class WP_Service_Workers extends WP_Scripts {
 	/**
 	 * Add precaching for wp-admin and wp-includes .js and .css files.
 	 */
-	protected function precache_admin_assets() {
+	public function precache_admin_assets() {
+
+		// Don't continue if debug mode.
+		if ( SCRIPT_DEBUG ) {
+			return;
+		}
+
+		if ( ! function_exists( 'list_files' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
 
 		$admin_dir    = ABSPATH . 'wp-admin/';
 		$admin_images = list_files( $admin_dir . 'images/' );
 		$inc_images   = list_files( ABSPATH . WPINC . '/images/' );
 
+		$this->flag_admin_assets_with_precache( wp_scripts()->registered, 'script' );
+		$this->flag_admin_assets_with_precache( wp_styles()->registered, 'style' );
+
 		$routes = array_merge(
 			$this->get_routes_from_file_list( $admin_images, 'wp-admin' ),
 			$this->get_routes_from_file_list( $inc_images, 'wp-includes' ),
-			$this->get_admin_routes_from_dependency_list( wp_scripts()->registered ),
-			$this->get_admin_routes_from_dependency_list( wp_styles()->registered ),
 			$this->get_woff_file_list()
 		);
 
-		if ( empty( $routes ) ) {
-			return;
-		}
+		foreach ( $routes as $options ) {
+			$url = '';
+			if ( isset( $options['url'] ) ) {
+				$url = $options['url'];
+				unset( $options['url'] );
+			}
 
-		$this->register_precached_routes( $routes );
+			$this->cache_registry->register_precached_route( $url, $options );
+		}
 	}
 
 	/**
-	 * Get routes from dependency list.
+	 * Flags admin assets with precache.
 	 *
-	 * @param array $dependencies Array of _WP_Dependency objects.
+	 * @param array  $dependencies Array of _WP_Dependency objects.
+	 * @param string $type Type: 'script' or 'style'.
 	 * @return array Array of routes.
 	 */
-	protected function get_admin_routes_from_dependency_list( $dependencies ) {
+	protected function flag_admin_assets_with_precache( $dependencies, $type ) {
 		$routes = array();
 		foreach ( $dependencies as $handle => $params ) {
 
@@ -335,11 +339,11 @@ class WP_Service_Workers extends WP_Scripts {
 			if ( false === strpos( $params->src, 'wp-admin' ) && false === strpos( $params->src, 'wp-includes' ) ) {
 				continue;
 			}
-			$revision = false === $params->ver ? get_bloginfo( 'version' ) : $params->ver;
-			$routes[] = array(
-				'url'      => $params->src,
-				'revision' => $revision,
-			);
+			if ( 'script' === $type ) {
+				wp_script_add_data( $handle, 'precache', true );
+			} else {
+				wp_style_add_data( $handle, 'precache', true );
+			}
 		}
 		return $routes;
 	}
@@ -352,13 +356,16 @@ class WP_Service_Workers extends WP_Scripts {
 	protected function get_woff_file_list() {
 		return array(
 			array(
-				'url' => '/wp-includes/fonts/dashicons.woff',
+				'revision' => get_bloginfo( 'version' ),
+				'url'      => '/wp-includes/fonts/dashicons.woff',
 			),
 			array(
-				'url' => '/wp-includes/js/tinymce/skins/lightgray/fonts/tinymce-small.woff',
+				'revision' => get_bloginfo( 'version' ),
+				'url'      => '/wp-includes/js/tinymce/skins/lightgray/fonts/tinymce-small.woff',
 			),
 			array(
-				'url' => '/wp-includes/js/tinymce/skins/lightgray/fonts/tinymce.woff',
+				'revision' => get_bloginfo( 'version' ),
+				'url'      => '/wp-includes/js/tinymce/skins/lightgray/fonts/tinymce.woff',
 			),
 		);
 	}

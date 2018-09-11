@@ -13,6 +13,14 @@
 class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base_Integration {
 
 	/**
+	 * Scope this integration applies to.
+	 *
+	 * @since 0.2
+	 * @var int
+	 */
+	protected $scope = WP_Service_Workers::SCOPE_ALL;
+
+	/**
 	 * Script handles to manage.
 	 *
 	 * @since 0.2

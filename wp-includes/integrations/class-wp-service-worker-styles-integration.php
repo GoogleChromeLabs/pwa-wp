@@ -13,6 +13,14 @@
 class WP_Service_Worker_Styles_Integration extends WP_Service_Worker_Base_Integration {
 
 	/**
+	 * Scope this integration applies to.
+	 *
+	 * @since 0.2
+	 * @var int
+	 */
+	protected $scope = WP_Service_Workers::SCOPE_ALL;
+
+	/**
 	 * Stylesheet handles to manage.
 	 *
 	 * @since 0.2
@@ -68,8 +76,12 @@ class WP_Service_Worker_Styles_Integration extends WP_Service_Worker_Base_Integr
 
 			$revision = false === $dependency->ver ? get_bloginfo( 'version' ) : $dependency->ver;
 
-			/** This filter is documented in wp-includes/class.wp-styles.php */
-			$url = apply_filters( 'style_loader_src', $url, $handle );
+			// @todo Look into why this fails with 'colors' handle due to $_wp_admin_css_colors not being set.
+			if ( 'colors' !== $handle ) {
+
+				/** This filter is documented in wp-includes/class.wp-styles.php */
+				$url = apply_filters( 'style_loader_src', $url, $handle );
+			}
 
 			if ( $url ) {
 				$cache_registry->register_precached_route( $url, $revision );
