@@ -75,7 +75,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'init_admin' ) ) );
 		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'filter_site_url_and_home' ) ) );
 		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'filter_header' ) ) );
-		$this->assertEquals( 10, has_action( 'wp_loaded', array( $this->instance, 'conditionally_redirect_to_https' ) ) );
+		$this->assertEquals( 10, has_action( 'template_redirect', array( $this->instance, 'conditionally_redirect_to_https' ) ) );
 	}
 
 	/**
@@ -300,10 +300,6 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$_SERVER['HTTPS'] = 'on';
 		$this->assertFalse( $this->did_redirect() );
 		$_SERVER['HTTPS'] = '';
-
-		// If is_admin() is true, this should not redirect.
-		set_current_screen( 'edit.php' );
-		$this->assertFalse( $this->did_redirect() );
 	}
 
 	/**

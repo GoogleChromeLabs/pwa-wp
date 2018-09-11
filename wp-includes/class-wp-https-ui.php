@@ -82,7 +82,7 @@ class WP_HTTPS_UI {
 		add_action( 'admin_init', array( $this, 'init_admin' ) );
 		add_action( 'init', array( $this, 'filter_site_url_and_home' ) );
 		add_action( 'init', array( $this, 'filter_header' ) );
-		add_action( 'wp_loaded', array( $this, 'conditionally_redirect_to_https' ) );
+		add_action( 'template_redirect', array( $this, 'conditionally_redirect_to_https' ) );
 	}
 
 	/**
@@ -329,14 +329,11 @@ class WP_HTTPS_UI {
 	 *
 	 * @todo This does not appear to be necessary because redirect_canonical() will do everything.
 	 *
-	 * Does not apply if is_admin().
 	 * So if the SSL certificate expires somehow, the admin won't be locked out of wp-admin.
 	 */
 	public function conditionally_redirect_to_https() {
 		$do_redirect = (
 			! is_ssl()
-			&&
-			! is_admin()
 			&&
 			get_option( self::UPGRADE_HTTPS_OPTION ) // The checkbox to upgrade to HTTPS is checked.
 			&&
