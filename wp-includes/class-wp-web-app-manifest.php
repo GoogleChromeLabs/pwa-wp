@@ -96,7 +96,7 @@ class WP_Web_App_Manifest {
 	 */
 	public function get_manifest() {
 		$manifest = array(
-			'name'      => get_bloginfo( 'name' ),
+			'name'      => wp_kses_decode_entities( get_bloginfo( 'name' ) ),
 			'start_url' => get_home_url(),
 			'display'   => 'minimal-ui',
 			'dir'       => is_rtl() ? 'rtl' : 'ltr',
@@ -114,7 +114,7 @@ class WP_Web_App_Manifest {
 		 *
 		 * @link https://stackoverflow.com/questions/12646197/cut-the-string-to-be-80-characters-and-must-keep-the-words-without-cutting-th#answer-12646400
 		 */
-		preg_match( '/^.{0,12}(?= |$)/', get_bloginfo( 'name' ), $short_name_matches );
+		preg_match( '/^.{0,12}(?= |$)/', $manifest['name'], $short_name_matches );
 		if ( $short_name_matches ) {
 			$manifest['short_name'] = $short_name_matches[0];
 		}
@@ -125,7 +125,7 @@ class WP_Web_App_Manifest {
 			$manifest['theme_color']      = $theme_color;
 		}
 
-		$description = get_bloginfo( 'description' );
+		$description = wp_kses_decode_entities( get_bloginfo( 'description' ) );
 		if ( $description ) {
 			$manifest['description'] = $description;
 		}

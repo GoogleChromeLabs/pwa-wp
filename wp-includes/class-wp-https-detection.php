@@ -57,7 +57,7 @@ class WP_HTTPS_Detection {
 	 * Initializes the object.
 	 */
 	public function init() {
-		add_action( 'wp', array( $this, 'schedule_cron' ) );
+		$this->schedule_cron();
 		add_action( self::CRON_HOOK, array( $this, 'update_https_support_options' ) );
 		add_filter( 'cron_request', array( $this, 'conditionally_prevent_sslverify' ), PHP_INT_MAX );
 
@@ -69,7 +69,7 @@ class WP_HTTPS_Detection {
 	 * Schedules a cron event to check for HTTPS support.
 	 */
 	public function schedule_cron() {
-		if ( ! wp_next_scheduled( self::CRON_HOOK ) && ! $this->is_currently_https() ) {
+		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
 			wp_schedule_event( time(), self::CRON_INTERVAL, self::CRON_HOOK );
 		}
 	}
@@ -81,21 +81,62 @@ class WP_HTTPS_Detection {
 	 * But if the request is a WP_Error, this does not update the option for insecure content.
 	 */
 	public function update_https_support_options() {
-		if ( $this->is_currently_https() ) {
-			return;
-		}
+		$support_errors = new WP_Error();
 
-		$https_support_response = $this->check_https_support();
-		update_option(
-			self::HTTPS_SUPPORT_OPTION_NAME,
-			! is_wp_error( $https_support_response ) && 200 === wp_remote_retrieve_response_code( $https_support_response )
+		$response = wp_remote_request(
+			home_url( '/', 'https' ),
+			array(
+				'headers'   => array(
+					'Cache-Control' => 'no-cache',
+				),
+				'sslverify' => true,
+			)
 		);
 
-		if ( ! is_wp_error( $https_support_response ) ) {
-			$insecure_content = $this->get_insecure_content( $https_support_response );
-			if ( ! is_wp_error( $insecure_content ) ) {
-				update_option( self::INSECURE_CONTENT_OPTION_NAME, $insecure_content );
+		if ( is_wp_error( $response ) ) {
+			$unverified_response = wp_remote_request(
+				home_url( '/', 'https' ),
+				array(
+					'headers'   => array(
+						'Cache-Control' => 'no-cache',
+					),
+					'sslverify' => false,
+				)
+			);
+
+			if ( is_wp_error( $unverified_response ) ) {
+				$support_errors->errors = array_merge( $unverified_response->errors );
+			} else {
+				$support_errors->add(
+					'ssl_verification_failed',
+					$response->get_error_message()
+				);
 			}
+			$response = $unverified_response;
+		}
+
+		$body = null;
+		if ( ! is_wp_error( $response ) ) {
+			if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
+				$support_errors->add( 'response_error', wp_remote_retrieve_response_message( $response ) );
+			} else {
+				$body = wp_remote_retrieve_body( $response );
+				if ( ! $this->has_proper_manifest( $body ) ) {
+					$support_errors->add(
+						'invalid_https_validation_source',
+						__( 'There was an issue in the request for HTTPS verification.', 'pwa' )
+					);
+				}
+			}
+		}
+
+		update_option(
+			self::HTTPS_SUPPORT_OPTION_NAME,
+			empty( $support_errors->errors ) ? true : $support_errors
+		);
+
+		if ( $body ) {
+			update_option( self::INSECURE_CONTENT_OPTION_NAME, $this->get_insecure_content( $body ) );
 		}
 	}
 
@@ -115,37 +156,6 @@ class WP_HTTPS_Detection {
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * Makes a loopback request to the homepage to determine whether HTTPS is supported.
-	 *
-	 * @return array|WP_Error A response from a loopback request to the homepage, or a WP_Error.
-	 */
-	public function check_https_support() {
-		$response = wp_remote_request(
-			home_url( '/', 'https' ),
-			array(
-				'headers' => array(
-					'Cache-Control' => 'no-cache',
-				),
-			)
-		);
-
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
-		$body = wp_remote_retrieve_body( $response );
-
-		if ( ! $this->has_proper_manifest( $body ) ) {
-			return new WP_Error(
-				'invalid_https_validation_source',
-				__( 'There was an issue in the request for HTTPS verification.', 'pwa' )
-			);
-		}
-
-		return $response;
 	}
 
 	/**
@@ -181,18 +191,11 @@ class WP_HTTPS_Detection {
 	 * But it only looks at the HTML document in the $response body.
 	 * If a script requests an insecure script, this will not detect that.
 	 *
-	 * @param array $response The response from a wp_remote_request().
-	 * @return array|WP_Error The URLs for insecure content, or a WP_Error.
+	 * @param string $body The response body from a wp_remote_request().
+	 * @return array The URLs for insecure content.
 	 */
-	public function get_insecure_content( $response ) {
+	public function get_insecure_content( $body ) {
 		$libxml_previous_state = libxml_use_internal_errors( true );
-		$body                  = wp_remote_retrieve_body( $response );
-		if ( empty( $body ) ) {
-			return new WP_Error(
-				'insecure_content_request_empty_body',
-				__( 'The request for insecure content returned an empty body.', 'pwa' )
-			);
-		}
 
 		$dom = new DOMDocument( '1.0' );
 		$dom->loadHTML( $body );

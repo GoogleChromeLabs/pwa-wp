@@ -82,7 +82,7 @@ class WP_HTTPS_UI {
 		add_action( 'admin_init', array( $this, 'init_admin' ) );
 		add_action( 'init', array( $this, 'filter_site_url_and_home' ) );
 		add_action( 'init', array( $this, 'filter_header' ) );
-		add_action( 'wp_loaded', array( $this, 'conditionally_redirect_to_https' ) );
+		add_action( 'template_redirect', array( $this, 'conditionally_redirect_to_https' ), 11 ); // At 11 to run after redirect_canonical().
 	}
 
 	/**
@@ -101,21 +101,10 @@ class WP_HTTPS_UI {
 			self::OPTION_GROUP,
 			self::UPGRADE_HTTPS_OPTION,
 			array(
-				'type'              => 'string',
-				'sanitize_callback' => array( $this, 'upgrade_https_sanitize_callback' ),
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
 			)
 		);
-	}
-
-	/**
-	 * Sanitization callback for the upgrade HTTPS option.
-	 *
-	 * @param string $raw_value The value to sanitize.
-	 * @return bool Whether the option is true or false.
-	 */
-	public function upgrade_https_sanitize_callback( $raw_value ) {
-		unset( $raw_value );
-		return isset( $_POST[ self::UPGRADE_HTTPS_OPTION ] ); // WPCS: CSRF OK.
 	}
 
 	/**
@@ -126,20 +115,23 @@ class WP_HTTPS_UI {
 	 * This UI would not apply if those URLs are already HTTPS.
 	 */
 	public function add_settings_field() {
-		if ( ! $this->wp_https_detection->is_currently_https() ) {
-			add_settings_field(
-				self::HTTPS_SETTING_ID,
-				__( 'HTTPS', 'pwa' ),
-				array( $this, 'render_https_settings' ),
-				self::OPTION_GROUP
-			);
-		}
+		add_settings_field(
+			self::HTTPS_SETTING_ID,
+			__( 'HTTPS', 'pwa' ),
+			array( $this, 'render_https_settings' ),
+			self::OPTION_GROUP
+		);
 	}
 
 	/**
 	 * Renders the HTTPS settings in /wp-admin on the General Settings page.
 	 */
 	public function render_https_settings() {
+		$https_support = get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME );
+		if ( empty( $https_support ) ) {
+			return;
+		}
+
 		$upgrade_https_value = (bool) get_option( self::UPGRADE_HTTPS_OPTION );
 		$https_more_details  = sprintf(
 			'<a href="%s">%s</a>',
@@ -157,8 +149,22 @@ class WP_HTTPS_UI {
 			) );
 			?>
 		</p>
+
+		<?php if ( is_wp_error( $https_support ) ) : ?>
+			<?php foreach ( $https_support->get_error_messages() as $error_message ) : ?>
+				<div class="notice notice-error inline">
+					<p>
+						<?php echo esc_html( $error_message ); ?>
+					</p>
+				</div>
+			<?php endforeach; ?>
+		<?php endif; ?>
+
 		<p>
-			<label><input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_https_value ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>"><?php esc_html_e( 'Upgrade to secure connection', 'pwa' ); ?></label>
+			<label>
+				<input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_https_value ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>">
+				<?php esc_html_e( 'Force secure connections', 'pwa' ); ?>
+			</label>
 		</p>
 		<script>
 			( function ( $ ) {
@@ -189,7 +195,7 @@ class WP_HTTPS_UI {
 			)
 		);
 
-		/**
+		/*
 		 * Add class="hidden" to this <div> if the 'HTTPS Upgrade' checkbox isn't checked.
 		 * This insecure content UI does not apply if the user isn't upgrading to HTTPS,
 		 * as there will be no need to upgrade insecure requests.
@@ -291,6 +297,8 @@ class WP_HTTPS_UI {
 
 	/**
 	 * Conditionally filters the 'siteurl' and 'home' values from the wp-config and options.
+	 *
+	 * Note that these run at priority 11 so that they apply after _config_wp_home().
 	 */
 	public function filter_site_url_and_home() {
 		if ( get_option( self::UPGRADE_HTTPS_OPTION ) && ! $this->wp_https_detection->is_currently_https() ) {
@@ -338,24 +346,31 @@ class WP_HTTPS_UI {
 	/**
 	 * Conditionally redirects HTTP requests to HTTPS.
 	 *
-	 * Does not apply if is_admin().
-	 * So if the SSL certificate expires somehow, the admin won't be locked out of wp-admin.
+	 * @see redirect_canonical() This runs when accessing a post permalink over HTTP.
 	 */
 	public function conditionally_redirect_to_https() {
 		$do_redirect = (
 			! is_ssl()
-			&&
-			! is_admin()
 			&&
 			get_option( self::UPGRADE_HTTPS_OPTION ) // The checkbox to upgrade to HTTPS is checked.
 			&&
 			get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) // The last loopback request to check for HTTPS succeeded.
 			&&
 			isset( $_SERVER['REQUEST_URI'] )
+			&&
+			( 'cli' !== php_sapi_name() || class_exists( 'WP_UnitTestCase' ) )
 		);
 
 		if ( $do_redirect ) {
-			wp_safe_redirect( home_url( $_SERVER['REQUEST_URI'], 'https' ), 302 ); // Temporary redirect.
+			$parsed_url = wp_parse_url( home_url( '/', 'https' ) );
+
+			$url = $parsed_url['scheme'] . '://' . $parsed_url['host'];
+			if ( isset( $parsed_url['port'] ) ) {
+				$url .= ':' . $parsed_url['port'];
+			}
+			$url .= wp_unslash( $_SERVER['REQUEST_URI'] );
+
+			wp_safe_redirect( $url, 302 ); // Temporary redirect. @todo Make permanent.
 			exit;
 		}
 	}

@@ -75,7 +75,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'init_admin' ) ) );
 		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'filter_site_url_and_home' ) ) );
 		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'filter_header' ) ) );
-		$this->assertEquals( 10, has_action( 'wp_loaded', array( $this->instance, 'conditionally_redirect_to_https' ) ) );
+		$this->assertEquals( 11, has_action( 'template_redirect', array( $this->instance, 'conditionally_redirect_to_https' ) ) );
 	}
 
 	/**
@@ -87,7 +87,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		global $new_whitelist_options, $wp_registered_settings;
 
 		$base_expected_settings = array(
-			'type'         => 'string',
+			'type'         => 'boolean',
 			'group'        => WP_HTTPS_UI::OPTION_GROUP,
 			'description'  => '',
 			'show_in_rest' => false,
@@ -96,7 +96,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$expected_https_settings = array_merge(
 			$base_expected_settings,
 			array(
-				'sanitize_callback' => array( $this->instance, 'upgrade_https_sanitize_callback' ),
+				'sanitize_callback' => 'rest_sanitize_boolean',
 			)
 		);
 		$this->instance->register_settings();
@@ -105,28 +105,6 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 			$expected_https_settings,
 			$wp_registered_settings[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ]
 		);
-	}
-
-	/**
-	 * Test upgrade_https_sanitize_callback.
-	 *
-	 * @covers WP_HTTPS_UI::upgrade_https_sanitize_callback()
-	 */
-	public function test_upgrade_https_sanitize_callback() {
-		/**
-		 * Test the <input type="checkbox"> being checked.
-		 * This callback does not evaluate the argument, so it could be anything.
-		 */
-		$_POST[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ] = WP_HTTPS_UI::OPTION_CHECKED_VALUE;
-		$this->assertTrue( $this->instance->upgrade_https_sanitize_callback( 'foo' ) );
-
-		// The checkbox value could be anything, as long as the $_POST value isset().
-		$_POST[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ] = 'baz';
-		$this->assertTrue( $this->instance->upgrade_https_sanitize_callback( 'bar' ) );
-
-		// If the $_POST value is not set, the callback should return false.
-		unset( $_POST[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ] );
-		$this->assertFalse( $this->instance->upgrade_https_sanitize_callback( 'baz' ) );
 	}
 
 	/**
@@ -157,6 +135,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 */
 	public function test_render_https_settings() {
 		// Set the option value, which should appear in the <input type="checkbox"> elements.
+		update_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME, true );
 		update_option( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, WP_HTTPS_UI::OPTION_CHECKED_VALUE );
 		update_option( 'siteurl', self::HTTPS_URL );
 		update_option( 'home', self::HTTPS_URL );
@@ -322,10 +301,6 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$_SERVER['HTTPS'] = 'on';
 		$this->assertFalse( $this->did_redirect() );
 		$_SERVER['HTTPS'] = '';
-
-		// If is_admin() is true, this should not redirect.
-		set_current_screen( 'edit.php' );
-		$this->assertFalse( $this->did_redirect() );
 	}
 
 	/**
