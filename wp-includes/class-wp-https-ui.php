@@ -356,10 +356,12 @@ class WP_HTTPS_UI {
 			get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) // The last loopback request to check for HTTPS succeeded.
 			&&
 			isset( $_SERVER['REQUEST_URI'] )
+			&&
+			'cli' !== php_sapi_name()
 		);
 
 		if ( $do_redirect ) {
-			wp_safe_redirect( home_url( $_SERVER['REQUEST_URI'], 'https' ), 302 ); // Temporary redirect.
+			wp_safe_redirect( home_url( wp_unslash( $_SERVER['REQUEST_URI'] ), 'https' ), 302 ); // Temporary redirect. @todo Make permanent.
 			exit;
 		}
 	}
