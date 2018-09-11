@@ -63,7 +63,6 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_Detection::init()
 	 */
 	public function test_init() {
-		$this->assertEquals( 10, has_action( 'wp', array( $this->instance, 'schedule_cron' ) ) );
 		$this->assertEquals( 10, has_action( WP_HTTPS_Detection::CRON_HOOK, array( $this->instance, 'update_https_support_options' ) ) );
 		$this->assertEquals( PHP_INT_MAX, has_filter( 'cron_request', array( $this->instance, 'conditionally_prevent_sslverify' ) ) );
 	}
@@ -128,17 +127,6 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_Detection::schedule_cron()
 	 */
 	public function test_schedule_cron() {
-		// If is_currently_https() is true, this should not schedule the cron event, as there is no need to check for HTTPS.
-		update_option( 'siteurl', self::HTTPS_URL );
-		update_option( 'home', self::HTTPS_URL );
-		add_filter( 'set_url_scheme', array( $this, 'convert_to_https' ) );
-		$this->instance->schedule_cron();
-		$this->assertFalse( wp_get_schedule( WP_HTTPS_Detection::CRON_HOOK ) );
-
-		// If is_currently_https() is false, this should schedule the cron event.
-		remove_filter( 'set_url_scheme', array( $this, 'convert_to_https' ) );
-		update_option( 'siteurl', self::HTTP_URL );
-		update_option( 'home', self::HTTP_URL );
 		$this->instance->schedule_cron();
 		$this->assertEquals( WP_HTTPS_Detection::CRON_INTERVAL, wp_get_schedule( WP_HTTPS_Detection::CRON_HOOK ) );
 

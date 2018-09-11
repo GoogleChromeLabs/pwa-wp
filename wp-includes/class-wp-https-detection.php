@@ -57,7 +57,7 @@ class WP_HTTPS_Detection {
 	 * Initializes the object.
 	 */
 	public function init() {
-		add_action( 'wp', array( $this, 'schedule_cron' ) );
+		self::schedule_cron();
 		add_action( self::CRON_HOOK, array( $this, 'update_https_support_options' ) );
 		add_filter( 'cron_request', array( $this, 'conditionally_prevent_sslverify' ), PHP_INT_MAX );
 
@@ -69,7 +69,7 @@ class WP_HTTPS_Detection {
 	 * Schedules a cron event to check for HTTPS support.
 	 */
 	public function schedule_cron() {
-		if ( ! wp_next_scheduled( self::CRON_HOOK ) && ! $this->is_currently_https() ) {
+		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
 			wp_schedule_event( time(), self::CRON_INTERVAL, self::CRON_HOOK );
 		}
 	}
