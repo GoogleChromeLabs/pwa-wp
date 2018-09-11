@@ -357,7 +357,7 @@ class WP_HTTPS_UI {
 			&&
 			isset( $_SERVER['REQUEST_URI'] )
 			&&
-			'cli' !== php_sapi_name()
+			( 'cli' !== php_sapi_name() || class_exists( 'WP_UnitTestCase' ) )
 		);
 
 		if ( $do_redirect ) {
