@@ -76,15 +76,11 @@ class WP_Service_Worker_Styles_Integration extends WP_Service_Worker_Base_Integr
 
 			$revision = false === $dependency->ver ? get_bloginfo( 'version' ) : $dependency->ver;
 
-			// @todo Look into why this fails with 'colors', note that $_wp_admin_css_colors is null at this moment.
-			if ( 'colors' !== $handle ) {
+			/** This filter is documented in wp-includes/class.wp-styles.php */
+			$url = apply_filters( 'style_loader_src', $url, $handle );
 
-				/** This filter is documented in wp-includes/class.wp-styles.php */
-				$url = apply_filters( 'style_loader_src', $url, $handle );
-
-				if ( $url ) {
-					$cache_registry->register_precached_route( $url, $revision );
-				}
+			if ( $url ) {
+				$cache_registry->register_precached_route( $url, $revision );
 			}
 		}
 		wp_styles()->to_do = $original_to_do; // Restore original styles to do.

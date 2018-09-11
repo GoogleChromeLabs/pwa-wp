@@ -296,6 +296,8 @@ class WP_Service_Workers extends WP_Scripts {
 			return;
 		}
 
+		do_action( 'admin_init' );
+
 		if ( ! function_exists( 'list_files' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
