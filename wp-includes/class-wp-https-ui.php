@@ -161,7 +161,10 @@ class WP_HTTPS_UI {
 		<?php endif; ?>
 
 		<p>
-			<label><input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_https_value ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>"><?php esc_html_e( 'Upgrade to secure connection', 'pwa' ); ?></label>
+			<label>
+				<input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_https_value ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>">
+				<?php esc_html_e( 'Force secure connections', 'pwa' ); ?>
+			</label>
 		</p>
 		<script>
 			( function ( $ ) {
@@ -342,8 +345,6 @@ class WP_HTTPS_UI {
 
 	/**
 	 * Conditionally redirects HTTP requests to HTTPS.
-	 *
-	 * @todo This does not appear to be necessary because redirect_canonical() will do everything.
 	 *
 	 * @see redirect_canonical() This runs when accessing a post permalink over HTTP.
 	 */
