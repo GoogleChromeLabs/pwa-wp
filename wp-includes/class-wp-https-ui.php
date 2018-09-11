@@ -126,14 +126,12 @@ class WP_HTTPS_UI {
 	 * This UI would not apply if those URLs are already HTTPS.
 	 */
 	public function add_settings_field() {
-		if ( ! $this->wp_https_detection->is_currently_https() ) {
-			add_settings_field(
-				self::HTTPS_SETTING_ID,
-				__( 'HTTPS', 'pwa' ),
-				array( $this, 'render_https_settings' ),
-				self::OPTION_GROUP
-			);
-		}
+		add_settings_field(
+			self::HTTPS_SETTING_ID,
+			__( 'HTTPS', 'pwa' ),
+			array( $this, 'render_https_settings' ),
+			self::OPTION_GROUP
+		);
 	}
 
 	/**
@@ -291,6 +289,8 @@ class WP_HTTPS_UI {
 
 	/**
 	 * Conditionally filters the 'siteurl' and 'home' values from the wp-config and options.
+	 *
+	 * Note that these run at priority 11 so that they apply after _config_wp_home().
 	 */
 	public function filter_site_url_and_home() {
 		if ( get_option( self::UPGRADE_HTTPS_OPTION ) && ! $this->wp_https_detection->is_currently_https() ) {
@@ -337,6 +337,8 @@ class WP_HTTPS_UI {
 
 	/**
 	 * Conditionally redirects HTTP requests to HTTPS.
+	 *
+	 * @todo This does not appear to be necessary because redirect_canonical() will do everything.
 	 *
 	 * Does not apply if is_admin().
 	 * So if the SSL certificate expires somehow, the admin won't be locked out of wp-admin.
