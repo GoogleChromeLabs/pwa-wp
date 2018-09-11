@@ -101,21 +101,10 @@ class WP_HTTPS_UI {
 			self::OPTION_GROUP,
 			self::UPGRADE_HTTPS_OPTION,
 			array(
-				'type'              => 'string',
-				'sanitize_callback' => array( $this, 'upgrade_https_sanitize_callback' ),
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
 			)
 		);
-	}
-
-	/**
-	 * Sanitization callback for the upgrade HTTPS option.
-	 *
-	 * @param string $raw_value The value to sanitize.
-	 * @return bool Whether the option is true or false.
-	 */
-	public function upgrade_https_sanitize_callback( $raw_value ) {
-		unset( $raw_value );
-		return isset( $_POST[ self::UPGRADE_HTTPS_OPTION ] ); // WPCS: CSRF OK.
 	}
 
 	/**

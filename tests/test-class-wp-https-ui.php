@@ -87,7 +87,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		global $new_whitelist_options, $wp_registered_settings;
 
 		$base_expected_settings = array(
-			'type'         => 'string',
+			'type'         => 'boolean',
 			'group'        => WP_HTTPS_UI::OPTION_GROUP,
 			'description'  => '',
 			'show_in_rest' => false,
@@ -96,7 +96,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$expected_https_settings = array_merge(
 			$base_expected_settings,
 			array(
-				'sanitize_callback' => array( $this->instance, 'upgrade_https_sanitize_callback' ),
+				'sanitize_callback' => 'rest_sanitize_boolean',
 			)
 		);
 		$this->instance->register_settings();
@@ -105,28 +105,6 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 			$expected_https_settings,
 			$wp_registered_settings[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ]
 		);
-	}
-
-	/**
-	 * Test upgrade_https_sanitize_callback.
-	 *
-	 * @covers WP_HTTPS_UI::upgrade_https_sanitize_callback()
-	 */
-	public function test_upgrade_https_sanitize_callback() {
-		/**
-		 * Test the <input type="checkbox"> being checked.
-		 * This callback does not evaluate the argument, so it could be anything.
-		 */
-		$_POST[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ] = WP_HTTPS_UI::OPTION_CHECKED_VALUE;
-		$this->assertTrue( $this->instance->upgrade_https_sanitize_callback( 'foo' ) );
-
-		// The checkbox value could be anything, as long as the $_POST value isset().
-		$_POST[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ] = 'baz';
-		$this->assertTrue( $this->instance->upgrade_https_sanitize_callback( 'bar' ) );
-
-		// If the $_POST value is not set, the callback should return false.
-		unset( $_POST[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ] );
-		$this->assertFalse( $this->instance->upgrade_https_sanitize_callback( 'baz' ) );
 	}
 
 	/**
