@@ -17,6 +17,7 @@
   "grunt-shell": "^2.1.0",
   "grunt-wp-deploy": "^1.3.0",
   "husky": "^0.14.3",
+  "workbox-cli": "^3.5.0",
   "wp-dev-lib": "github:xwp/wp-dev-lib"
  },
  "scripts": {
@@ -24,6 +25,7 @@
   "precommit": "./node_modules/wp-dev-lib/pre-commit",
   "generate-readme": "./node_modules/wp-dev-lib/generate-markdown-readme",
   "build": "grunt build; grunt create-build-zip",
-  "deploy": "grunt deploy"
+  "deploy": "grunt deploy",
+  "workbox-upgrade": "bin/workbox-upgrade.sh"
  }
 }
