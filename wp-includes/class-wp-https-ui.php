@@ -361,7 +361,15 @@ class WP_HTTPS_UI {
 		);
 
 		if ( $do_redirect ) {
-			wp_safe_redirect( home_url( wp_unslash( $_SERVER['REQUEST_URI'] ), 'https' ), 302 ); // Temporary redirect. @todo Make permanent.
+			$parsed_url = wp_parse_url( home_url( '/', 'https' ) );
+
+			$url = $parsed_url['scheme'] . '://' . $parsed_url['host'];
+			if ( isset( $parsed_url['port'] ) ) {
+				$url .= ':' . $parsed_url['port'];
+			}
+			$url .= wp_unslash( $_SERVER['REQUEST_URI'] );
+
+			wp_safe_redirect( $url, 302 ); // Temporary redirect. @todo Make permanent.
 			exit;
 		}
 	}
