@@ -127,6 +127,11 @@ class WP_HTTPS_UI {
 	 * Renders the HTTPS settings in /wp-admin on the General Settings page.
 	 */
 	public function render_https_settings() {
+		$https_support = get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME );
+		if ( empty( $https_support ) ) {
+			return;
+		}
+
 		$upgrade_https_value = (bool) get_option( self::UPGRADE_HTTPS_OPTION );
 		$https_more_details  = sprintf(
 			'<a href="%s">%s</a>',
@@ -144,6 +149,17 @@ class WP_HTTPS_UI {
 			) );
 			?>
 		</p>
+
+		<?php if ( is_wp_error( $https_support ) ) : ?>
+			<?php foreach ( $https_support->get_error_messages() as $error_message ) : ?>
+				<div class="notice notice-error inline">
+					<p>
+						<?php echo esc_html( $error_message ); ?>
+					</p>
+				</div>
+			<?php endforeach; ?>
+		<?php endif; ?>
+
 		<p>
 			<label><input name="<?php echo esc_attr( self::UPGRADE_HTTPS_OPTION ); ?>" type="checkbox" <?php checked( $upgrade_https_value ); ?> value="<?php echo esc_attr( self::OPTION_CHECKED_VALUE ); ?>"><?php esc_html_e( 'Upgrade to secure connection', 'pwa' ); ?></label>
 		</p>
@@ -176,7 +192,7 @@ class WP_HTTPS_UI {
 			)
 		);
 
-		/**
+		/*
 		 * Add class="hidden" to this <div> if the 'HTTPS Upgrade' checkbox isn't checked.
 		 * This insecure content UI does not apply if the user isn't upgrading to HTTPS,
 		 * as there will be no need to upgrade insecure requests.

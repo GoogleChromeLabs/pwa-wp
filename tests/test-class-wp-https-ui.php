@@ -135,6 +135,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 */
 	public function test_render_https_settings() {
 		// Set the option value, which should appear in the <input type="checkbox"> elements.
+		update_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME, true );
 		update_option( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, WP_HTTPS_UI::OPTION_CHECKED_VALUE );
 		update_option( 'siteurl', self::HTTPS_URL );
 		update_option( 'home', self::HTTPS_URL );
