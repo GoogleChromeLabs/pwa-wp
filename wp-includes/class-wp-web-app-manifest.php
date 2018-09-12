@@ -24,14 +24,14 @@ class WP_Web_App_Manifest {
 	 *
 	 * @var string
 	 */
-	const REST_NAMESPACE = 'app/v1';
+	const REST_NAMESPACE = 'wp/v2';
 
 	/**
 	 * The REST API route for the manifest request.
 	 *
 	 * @var string
 	 */
-	const REST_ROUTE = '/web-manifest';
+	const REST_ROUTE = '/web-app-manifest';
 
 	/**
 	 * The default manifest icon sizes.
