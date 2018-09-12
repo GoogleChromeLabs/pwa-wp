@@ -24,7 +24,7 @@ class WP_Web_App_Manifest {
 	 *
 	 * @var string
 	 */
-	const REST_NAMESPACE = 'app/v1';
+	const REST_NAMESPACE = 'pwa/v1';
 
 	/**
 	 * The REST API route for the manifest request.
