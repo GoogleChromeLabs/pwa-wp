@@ -1,0 +1,11 @@
+#pwa-sw-update-notice {
+    position: absolute;
+    top: 30px;
+    right: 0;
+    background: #fff;
+    padding: 10px;
+}
+
+#pwa-sw-update-notice.hidden {
+    display: none;
+}

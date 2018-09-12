@@ -18,3 +18,12 @@ add_action( 'parse_query', 'wp_hide_admin_bar_offline' );
 add_action( 'wp_head', 'wp_add_error_template_no_robots' );
 add_action( 'error_head', 'wp_add_error_template_no_robots' );
 add_action( 'wp_default_service_workers', 'wp_default_service_workers' );
+
+// Maybe these actions have a better place to be?
+add_action( 'admin_notices', 'wp_add_service_worker_admin_notice' );
+add_action( 'admin_print_footer_scripts', 'wp_print_admin_service_worker_update_script' );
+add_action( 'wp_print_footer_scripts', 'wp_print_service_worker_update_script' );
+add_action( 'wp_print_footer_scripts', 'wp_print_admin_service_worker_update_script', 11 );
+
+// This should go to script-loader.php instead.
+add_action( 'wp_enqueue_scripts', 'wp_service_worker_default_styles' );
