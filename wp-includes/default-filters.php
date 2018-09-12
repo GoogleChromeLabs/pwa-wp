@@ -19,7 +19,4 @@ add_action( 'wp_head', 'wp_add_error_template_no_robots' );
 add_action( 'error_head', 'wp_add_error_template_no_robots' );
 add_action( 'wp_default_service_workers', 'wp_default_service_workers' );
 
-// Disable contactenation of scripts and styles on admin pages.
-foreach ( array( 'wp_default_styles', 'wp_print_scripts' ) as $filter ) {
-	add_action( $filter, 'wp_disable_script_concatenation' );
-}
+add_action( 'admin_init', 'wp_disable_script_concatenation' );

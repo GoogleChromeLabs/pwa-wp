@@ -296,8 +296,6 @@ class WP_Service_Workers extends WP_Scripts {
 			return;
 		}
 
-		do_action( 'admin_init' );
-
 		if ( ! function_exists( 'list_files' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
@@ -305,6 +303,9 @@ class WP_Service_Workers extends WP_Scripts {
 		$admin_dir    = ABSPATH . 'wp-admin/';
 		$admin_images = list_files( $admin_dir . 'images/' );
 		$inc_images   = list_files( ABSPATH . WPINC . '/images/' );
+
+		// This needs to be done for $_wp_admin_css_colors to be set.
+		register_admin_color_schemes();
 
 		$this->flag_admin_assets_with_precache( wp_scripts()->registered, 'script' );
 		$this->flag_admin_assets_with_precache( wp_styles()->registered, 'style' );

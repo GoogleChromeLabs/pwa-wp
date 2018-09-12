@@ -112,7 +112,9 @@ function wp_print_service_workers() {
 					navigator.serviceWorker.register(
 						<?php echo wp_json_encode( wp_get_service_worker_url( $name ) ); ?>,
 						<?php echo wp_json_encode( compact( 'scope' ) ); ?>
-					);
+					).then( function() {
+						document.cookie = 'wordpress_sw_installed=1; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; secure; samesite=strict';
+					} );
 				<?php } ?>
 			} );
 		}
@@ -245,5 +247,13 @@ function wp_default_service_workers( $service_workers ) {
  */
 function wp_disable_script_concatenation() {
 	global $concatenate_scripts;
-	$concatenate_scripts = false; // WPCS: Override OK.
+
+	/*
+	 * This cookie is set when the service worker registers successfully, avoiding unnecessary result
+	 * for browsers that don't support service workers. Note that concatenation only applies in the admin,
+	 * for authenticated users without full-page caching.
+	*/
+	if ( isset( $_COOKIE['wordpress_sw_installed'] ) ) {
+		$concatenate_scripts = false; // WPCS: Override OK.
+	}
 }
