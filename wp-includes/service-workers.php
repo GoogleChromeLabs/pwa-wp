@@ -276,7 +276,7 @@ function wp_default_service_workers( $service_workers ) {
  */
 function wp_add_service_worker_admin_notice() {
 	?>
-		<div id="pwa-sw-update-notice" class="hidden notice notice-info is-dismissible"><p>A new version of this app is available. Click <a id="pwa-reload-sw">here</a> to update.</p></div>
+		<div id="pwa-sw-update-notice" class="hidden notice notice-info is-dismissible"><p><?php echo esc_html( 'A new version of this app is available.', 'pwa' ); ?> <a id="pwa-reload-sw"><?php echo esc_html( 'Refresh', 'pwa' ); ?></a></p></div>
 	<?php
 }
 
@@ -316,7 +316,7 @@ function wp_print_service_worker_update_script() {
 				noticeBox;
 
 			if ( adminBar.length ) {
-				noticeBox = jQuery( '<div id="pwa-sw-update-notice" class="hidden"><p>A new version of this app is available. Click <a id="pwa-reload-sw">here</a> to update.</p></div>' );
+				noticeBox = jQuery( '<div id="pwa-sw-update-notice" class="hidden"><p><?php echo esc_html( 'A new version of this app is available.', 'pwa' ); ?> <a id="pwa-reload-sw"><?php echo esc_html( 'Refresh', 'pwa' ); ?></a></p></div>' );
 				jQuery( adminBar ).append( noticeBox );
 			}
 		} );
