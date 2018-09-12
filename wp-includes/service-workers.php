@@ -109,43 +109,34 @@ function wp_print_service_workers() {
 		if ( navigator.serviceWorker ) {
 			var updatedSw;
 
-			window.addEventListener('load', function() {
+			window.addEventListener( 'load', function() {
 				<?php foreach ( $scopes as $name => $scope ) { ?>
 					navigator.serviceWorker.register(
 						<?php echo wp_json_encode( wp_get_service_worker_url( $name ) ); ?>,
 						<?php echo wp_json_encode( compact( 'scope' ) ); ?>
 					).then( reg => {
 						reg.addEventListener( 'updatefound', () => {
-
-							// An updated service worker has appeared in reg.installing!
 							updatedSw = reg.installing;
-
 							updatedSw.addEventListener( 'statechange', () => {
 
-								// Has service worker state changed?
-								switch ( updatedSw.state ) {
-									case 'installed':
-
-										// There is a new service worker available, show the notification
-										if ( navigator.serviceWorker.controller ) {
-											var notification = document.getElementById( 'pwa-sw-update-notice' );
-											jQuery( notification ).removeClass( 'hidden' );
-										}
-
-										break;
+								// If new service worker is available, show notification.
+								if ( 'installed' === updatedSw.state ) {
+									if ( navigator.serviceWorker.controller ) {
+										var notification = document.getElementById( 'pwa-sw-update-notice' );
+										jQuery( notification ).removeClass( 'hidden' );
+									}
 								}
-							});
-						});
-					});
+							} );
+						} );
+					} );
 				<?php } ?>
 
-				var refreshing;
-				// The event listener that is fired when the service worker updates
-				// Here we reload the page
+				// Refresh the page.
+				var refreshedPage;
 				navigator.serviceWorker.addEventListener( 'controllerchange', function () {
-					if ( refreshing ) return;
+					if ( refreshedPage ) return;
 					window.location.reload();
-					refreshing = true;
+					refreshedPage = true;
 				} );
 			} );
 		}
