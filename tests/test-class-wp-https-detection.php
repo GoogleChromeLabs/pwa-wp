@@ -63,7 +63,6 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_Detection::init()
 	 */
 	public function test_init() {
-		$this->assertEquals( 10, has_action( 'wp', array( $this->instance, 'schedule_cron' ) ) );
 		$this->assertEquals( 10, has_action( WP_HTTPS_Detection::CRON_HOOK, array( $this->instance, 'update_https_support_options' ) ) );
 		$this->assertEquals( PHP_INT_MAX, has_filter( 'cron_request', array( $this->instance, 'conditionally_prevent_sslverify' ) ) );
 	}
@@ -83,7 +82,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 				$insecure_img_src
 			)
 		);
-		$this->assertEquals( array( $insecure_img_src ), $this->instance->get_insecure_content( compact( 'body' ) ) );
+		$this->assertEquals( array( $insecure_img_src ), $this->instance->get_insecure_content( $body ) );
 
 		$insecure_audio_src = 'http://example.com/foo';
 		$insecure_video_src = 'http://example.com/bar';
@@ -97,7 +96,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		);
 		$this->assertEmpty( array_diff(
 			array( $insecure_audio_src, $insecure_video_src ),
-			$this->instance->get_insecure_content( compact( 'body' ) )
+			$this->instance->get_insecure_content( $body )
 		) );
 
 		// Allow interpolating tags into the <head>.
@@ -118,7 +117,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		);
 		$this->assertEmpty( array_diff(
 			array( $insecure_audio_src, $insecure_script_src, $insecure_link_href ),
-			$this->instance->get_insecure_content( compact( 'body' ) )
+			$this->instance->get_insecure_content( $body )
 		) );
 	}
 
@@ -128,17 +127,6 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_Detection::schedule_cron()
 	 */
 	public function test_schedule_cron() {
-		// If is_currently_https() is true, this should not schedule the cron event, as there is no need to check for HTTPS.
-		update_option( 'siteurl', self::HTTPS_URL );
-		update_option( 'home', self::HTTPS_URL );
-		add_filter( 'set_url_scheme', array( $this, 'convert_to_https' ) );
-		$this->instance->schedule_cron();
-		$this->assertFalse( wp_get_schedule( WP_HTTPS_Detection::CRON_HOOK ) );
-
-		// If is_currently_https() is false, this should schedule the cron event.
-		remove_filter( 'set_url_scheme', array( $this, 'convert_to_https' ) );
-		update_option( 'siteurl', self::HTTP_URL );
-		update_option( 'home', self::HTTP_URL );
 		$this->instance->schedule_cron();
 		$this->assertEquals( WP_HTTPS_Detection::CRON_INTERVAL, wp_get_schedule( WP_HTTPS_Detection::CRON_HOOK ) );
 
@@ -182,16 +170,39 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		 * And because the request failed, it should not update the insecure content option.
 		 */
 		$this->instance->update_https_support_options();
-		$this->assertFalse( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
+		$support = get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME );
+		$this->assertInstanceOf( 'WP_Error', $support );
+		$this->assertArrayHasKey( 'response_error', $support->errors );
 		$this->assertEmpty( get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME ) );
 		remove_filter( 'http_response', array( $this, 'mock_error_response' ) );
 
 		// The response is a 301, so the option value should be false.
 		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
 		$this->instance->update_https_support_options();
-		$this->assertFalse( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
+		$support = get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME );
+		$this->assertInstanceOf( 'WP_Error', $support );
+		$this->assertArrayHasKey( 'response_error', $support->errors );
 		$this->assertEmpty( get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME ) );
 		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
+
+		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
+		$this->instance->update_https_support_options();
+		$this->assertTrue( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
+		remove_filter( 'http_response', array( $this, 'mock_successful_response' ) );
+
+		// The response should have a code of 301.
+		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
+		$this->instance->update_https_support_options();
+		$support = get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME );
+		$this->assertInstanceOf( 'WP_Error', $support );
+		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
+
+		add_filter( 'http_response', array( $this, 'mock_response_incorrect_manifest' ) );
+		$this->instance->update_https_support_options();
+		$support = get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME );
+		$this->assertInstanceOf( 'WP_Error', $support );
+		$this->assertEquals( 'invalid_https_validation_source', $support->get_error_code() );
+		remove_filter( 'http_response', array( $this, 'mock_response_incorrect_manifest' ) );
 	}
 
 	/**
@@ -214,32 +225,6 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		update_option( 'home', self::HTTPS_URL );
 		add_filter( 'set_url_scheme', array( $this, 'convert_to_https' ) );
 		$this->assertTrue( $this->instance->is_currently_https() );
-	}
-
-	/**
-	 * Test check_https_support.
-	 *
-	 * @covers WP_HTTPS_Detection::check_https_support()
-	 */
-	public function test_check_https_support() {
-		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
-		$https_support = $this->instance->check_https_support();
-		$this->assertEquals(
-			array( 'code' => 200 ),
-			$https_support['response']
-		);
-		$this->assertContains( '<link rel="manifest"', $https_support['body'] );
-
-		// The response should have a code of 301.
-		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
-		$https_support = $this->instance->check_https_support();
-		$this->assertEquals( array( 'code' => self::MOCK_INCORRECT_RESPONSE_CODE ), $https_support['response'] );
-		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
-
-		add_filter( 'http_response', array( $this, 'mock_response_incorrect_manifest' ) );
-		$this->assertTrue( is_wp_error( $this->instance->check_https_support() ) );
-		remove_filter( 'http_response', array( $this, 'mock_response_incorrect_manifest' ) );
-
 	}
 
 	/**
