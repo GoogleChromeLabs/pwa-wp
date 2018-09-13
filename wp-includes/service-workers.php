@@ -307,8 +307,11 @@ function wp_print_service_worker_update_script() {
 				noticeBox;
 
 			if ( adminBar.length ) {
-				noticeBox = jQuery( '<div id="pwa-sw-update-notice" class="hidden"><p><?php echo esc_html( 'A new version of this app is available.', 'pwa' ); ?> <a id="pwa-reload-sw"><?php echo esc_html( 'Refresh', 'pwa' ); ?></a></p></div>' );
+				noticeBox = jQuery( '<div id="pwa-sw-update-notice" class="hidden"><p><?php echo esc_html( 'A new version of this app is available.', 'pwa' ); ?> <a id="pwa-reload-sw"><?php echo esc_html( 'Refresh', 'pwa' ); ?></a></p><button type="button" class="notice-dismiss"><span class="screen-reader-text"><?php echo esc_html( 'Dismiss this notice.', 'pwa' ); ?></span></button></div>' );
 				jQuery( adminBar ).append( noticeBox );
+				jQuery( '#pwa-sw-update-notice .notice-dismiss' ).click( function() {
+					jQuery( noticeBox ).addClass( 'hidden' );
+				} );
 			}
 		} );
 	</script>
@@ -316,7 +319,7 @@ function wp_print_service_worker_update_script() {
 }
 
 /**
- * Enqueue service worker styles.
+ * Enqueue service worker styles. This could be in load-scripts.php.
  */
 function wp_service_worker_default_styles() {
 
