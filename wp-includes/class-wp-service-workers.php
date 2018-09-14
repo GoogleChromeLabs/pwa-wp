@@ -445,15 +445,6 @@ class WP_Service_Workers {
 			do_action( 'wp_admin_service_worker', $this->scripts );
 		}
 
-		/**
-		 * Fires before serving the service worker (both front and admin), when its scripts should be registered, caching routes established, and assets precached.
-		 *
-		 * @since 0.2
-		 *
-		 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
-		 */
-		do_action( 'wp_service_worker', $this->scripts );
-
 		if ( self::SCOPE_FRONT !== $scope && self::SCOPE_ADMIN !== $scope ) {
 			status_header( 400 );
 			echo '/* invalid_scope_requested */';

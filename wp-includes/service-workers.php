@@ -219,7 +219,8 @@ function wp_default_service_workers( $service_workers ) {
 				add_action( 'wp_admin_service_worker', array( $integration, 'register' ), 10, 1 );
 				break;
 			case WP_Service_Workers::SCOPE_ALL:
-				add_action( 'wp_service_worker', array( $integration, 'register' ), 10, 1 );
+				add_action( 'wp_front_service_worker', array( $integration, 'register' ), 10, 1 );
+				add_action( 'wp_admin_service_worker', array( $integration, 'register' ), 10, 1 );
 				break;
 			default:
 				$valid_scopes = array( WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, WP_Service_Workers::SCOPE_ALL );
