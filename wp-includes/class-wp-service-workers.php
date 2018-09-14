@@ -188,9 +188,9 @@ class WP_Service_Workers {
 		}
 
 		$replacements = array(
-			'ERROR_OFFLINE_URL'  => isset( $offline_error_precache_entry['url'] ) ? $this->scripts->json_encode( $offline_error_precache_entry['url'] ) : null,
-			'ERROR_500_URL'      => isset( $server_error_precache_entry['url'] ) ? $this->scripts->json_encode( $server_error_precache_entry['url'] ) : null,
-			'BLACKLIST_PATTERNS' => $this->scripts->json_encode( $blacklist_patterns ),
+			'ERROR_OFFLINE_URL'  => isset( $offline_error_precache_entry['url'] ) ? wp_service_worker_json_encode( $offline_error_precache_entry['url'] ) : null,
+			'ERROR_500_URL'      => isset( $server_error_precache_entry['url'] ) ? wp_service_worker_json_encode( $server_error_precache_entry['url'] ) : null,
+			'BLACKLIST_PATTERNS' => wp_service_worker_json_encode( $blacklist_patterns ),
 		);
 
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-error-response-handling.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
@@ -221,21 +221,21 @@ class WP_Service_Workers {
 
 		$script = sprintf(
 			"importScripts( %s );\n",
-			$this->scripts->json_encode( PWA_PLUGIN_URL . $workbox_dir . 'workbox-sw.js' )
+			wp_service_worker_json_encode( PWA_PLUGIN_URL . $workbox_dir . 'workbox-sw.js' )
 		);
 
 		$options = array(
 			'debug'            => WP_DEBUG,
 			'modulePathPrefix' => PWA_PLUGIN_URL . $workbox_dir,
 		);
-		$script .= sprintf( "workbox.setConfig( %s );\n", $this->scripts->json_encode( $options ) );
+		$script .= sprintf( "workbox.setConfig( %s );\n", wp_service_worker_json_encode( $options ) );
 
 		$cache_name_details = array(
 			'prefix' => 'wordpress',
 			'suffix' => 'v1',
 		);
 
-		$script .= sprintf( "workbox.core.setCacheNameDetails( %s );\n", $this->scripts->json_encode( $cache_name_details ) );
+		$script .= sprintf( "workbox.core.setCacheNameDetails( %s );\n", wp_service_worker_json_encode( $cache_name_details ) );
 
 		// @todo Add filter controlling workbox.skipWaiting().
 		// @todo Add filter controlling workbox.clientsClaim().
@@ -267,7 +267,7 @@ class WP_Service_Workers {
 		$navigation_preload = apply_filters( 'wp_service_worker_navigation_preload', true, $current_scope );
 		if ( false !== $navigation_preload ) {
 			if ( is_string( $navigation_preload ) ) {
-				$script .= sprintf( "workbox.navigationPreload.enable( %s );\n", $this->scripts->json_encode( $navigation_preload ) );
+				$script .= sprintf( "workbox.navigationPreload.enable( %s );\n", wp_service_worker_json_encode( $navigation_preload ) );
 			} else {
 				$script .= "workbox.navigationPreload.enable();\n";
 			}
@@ -293,7 +293,7 @@ class WP_Service_Workers {
 		}
 
 		$replacements = array(
-			'PRECACHE_ENTRIES' => $this->scripts->json_encode( $precache_entries ),
+			'PRECACHE_ENTRIES' => wp_service_worker_json_encode( $precache_entries ),
 		);
 
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-precaching.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
@@ -340,7 +340,7 @@ class WP_Service_Workers {
 			$exported_strategy_args[ $strategy_arg_name ] = $strategy_arg_value;
 		}
 
-		$script .= sprintf( 'const strategyArgs = %s;', empty( $exported_strategy_args ) ? '{}' : $this->scripts->json_encode( $exported_strategy_args ) );
+		$script .= sprintf( 'const strategyArgs = %s;', empty( $exported_strategy_args ) ? '{}' : wp_service_worker_json_encode( $exported_strategy_args ) );
 
 		if ( is_array( $plugins ) ) {
 
@@ -363,8 +363,8 @@ class WP_Service_Workers {
 				} else {
 					$plugins_js[] = sprintf(
 						'new wp.serviceWorker[ %s ].Plugin( %s )',
-						$this->scripts->json_encode( $plugin_name ),
-						empty( $plugin_args ) ? '{}' : $this->scripts->json_encode( $plugin_args )
+						wp_service_worker_json_encode( $plugin_name ),
+						empty( $plugin_args ) ? '{}' : wp_service_worker_json_encode( $plugin_args )
 					);
 				}
 			}
@@ -374,8 +374,8 @@ class WP_Service_Workers {
 
 		$script .= sprintf(
 			'wp.serviceWorker.routing.registerRoute( new RegExp( %s ), wp.serviceWorker.strategies[ %s ]( strategyArgs ) );',
-			$this->scripts->json_encode( $route ),
-			$this->scripts->json_encode( $strategy )
+			wp_service_worker_json_encode( $route ),
+			wp_service_worker_json_encode( $strategy )
 		);
 
 		$script .= '}'; // End lexical scope.

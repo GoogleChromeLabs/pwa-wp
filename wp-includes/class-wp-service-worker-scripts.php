@@ -180,7 +180,7 @@ class WP_Service_Worker_Scripts extends WP_Scripts {
 			/* translators: %s is script handle */
 			$error = sprintf( __( 'Service worker src is invalid for handle "%s".', 'pwa' ), $handle );
 			@_doing_it_wrong( 'WP_Service_Workers::register', esc_html( $error ), '0.1' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged -- We want the error in the PHP log, but not in the JS output.
-			printf( "console.warn( %s );\n", $this->json_encode( $error ) ); // phpcs:ignore WordPress.XSS.EscapeOutput, WordPress.Security.EscapeOutput
+			printf( "console.warn( %s );\n", wp_service_worker_json_encode( $error ) ); // phpcs:ignore WordPress.XSS.EscapeOutput, WordPress.Security.EscapeOutput
 		}
 	}
 
@@ -247,15 +247,5 @@ class WP_Service_Worker_Scripts extends WP_Scripts {
 		}
 
 		return $base_path . $file_path;
-	}
-
-	/**
-	 * JSON encode with pretty printing.
-	 *
-	 * @param mixed $data Data.
-	 * @return string JSON.
-	 */
-	public function json_encode( $data ) {
-		return wp_json_encode( $data, 128 | 64 /* JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES */ );
 	}
 }
