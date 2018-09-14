@@ -27,13 +27,17 @@ function wp_service_workers() {
  *
  * @since 0.1
  *
- * @param string          $handle Name of the service worker. Should be unique.
- * @param string|callable $src    Callback method or relative path of the service worker.
- * @param array           $deps   Optional. An array of registered script handles this depends on. Default empty array.
- * @return bool Whether the script has been registered. True on success, false on failure.
+ * @param string $handle Handle of the script.
+ * @param array  $args   {
+ *     Additional script arguments.
+ *
+ *     @type string|callable $src  Required. URL to the source in the WordPress install, or a callback that
+ *                                 returns the JS to include in the service worker.
+ *     @type array           $deps An array of registered item handles this item depends on. Default empty array.
+ * }
  */
-function wp_register_service_worker( $handle, $src, $deps = array() ) {
-	return wp_service_workers()->get_registry()->register_script( $handle, $src, $deps );
+function wp_register_service_worker( $handle, $args = array() ) {
+	wp_service_workers()->get_registry()->register( $handle, $args );
 }
 
 /**
@@ -54,7 +58,7 @@ function wp_register_service_worker( $handle, $src, $deps = array() ) {
  * }
  */
 function wp_register_route_caching_strategy( $route, $strategy = WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, $strategy_args = array() ) {
-	wp_service_workers()->get_registry()->register_cached_route( $route, $strategy, $strategy_args );
+	wp_service_workers()->get_registry()->cache_registry->register_cached_route( $route, $strategy, $strategy_args );
 }
 
 /**

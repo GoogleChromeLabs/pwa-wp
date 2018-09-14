@@ -13,7 +13,7 @@
  *
  * @see WP_Dependencies
  */
-class WP_Service_Worker_Scripts extends WP_Scripts {
+class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_Registry {
 
 	/**
 	 * Cache Registry.
@@ -47,106 +47,53 @@ class WP_Service_Worker_Scripts extends WP_Scripts {
 	}
 
 	/**
-	 * Register service worker script.
+	 * Registers a service worker script.
 	 *
-	 * Registers service worker if no item of that name already exists.
+	 * @since 0.2
 	 *
-	 * @param string          $handle Name of the item. Should be unique.
-	 * @param string|callable $src    URL to the source in the WordPress install, or a callback that returns the JS to include in the service worker.
-	 * @param array           $deps   Optional. An array of registered item handles this item depends on. Default empty array.
-	 * @return bool Whether the item has been registered. True on success, false on failure.
-	 */
-	public function register_script( $handle, $src, $deps = array() ) {
-		return parent::add( $handle, $src, $deps, false );
-	}
-
-	/**
-	 * Register service worker script (deprecated).
+	 * @param string $handle Handle of the script.
+	 * @param array  $args   {
+	 *     Additional script arguments.
 	 *
-	 * @deprecated Use the register_script() method instead.
-	 *
-	 * @param string          $handle Name of the item. Should be unique.
-	 * @param string|callable $src    URL to the source in the WordPress install, or a callback that returns the JS to include in the service worker.
-	 * @param array           $deps   Optional. An array of registered item handles this item depends on. Default empty array.
-	 * @return bool Whether the item has been registered. True on success, false on failure.
-	 */
-	public function register( $handle, $src, $deps = array() ) {
-		_deprecated_function( __METHOD__, '0.2', __CLASS__ . '::register_script' );
-		return $this->register_script( $handle, $src, $deps );
-	}
-
-	/**
-	 * Register route and caching strategy (deprecated).
-	 *
-	 * @deprecated Use the WP_Service_Worker_Cache_Registry::register_cached_route() method instead.
-	 *
-	 * @param string $route    Route regular expression, without delimiters.
-	 * @param string $strategy Strategy, can be WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
-	 *                         WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY,
-	 *                         WP_Service_Workers::STRATEGY_NETWORK_ONLY.
-	 * @param array  $strategy_args {
-	 *     An array of strategy arguments.
-	 *
-	 *     @type string $cache_name Cache name. Optional.
-	 *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
-	 *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
+	 *     @type string|callable $src  Required. URL to the source in the WordPress install, or a callback that
+	 *                                 returns the JS to include in the service worker.
+	 *     @type array           $deps An array of registered item handles this item depends on. Default empty array.
 	 * }
 	 */
-	public function register_cached_route( $route, $strategy, $strategy_args = array() ) {
-		_deprecated_function( __METHOD__, '0.2', 'WP_Service_Worker_Cache_Registry::register_cached_route' );
-		$this->cache_registry->register_cached_route( $route, $strategy, $strategy_args );
-	}
+	public function register( $handle, $args = array() ) {
+		if ( ! is_array( $args ) || is_callable( $args ) ) {
+			$args = array( 'src' => $args );
+		}
 
-	/**
-	 * Register precached route (deprecated).
-	 *
-	 * @deprecated Use the WP_Service_Worker_Cache_Registry::register_precached_route() method instead.
-	 *
-	 * If a registered route is stored in the precache cache, then it will be served with the cache-first strategy.
-	 * For other routes registered with non-precached routes (e.g. runtime), you must currently also call
-	 * `wp_service_workers()->register_cached_route(...)` to specify the strategy for interacting with that
-	 * precached resource.
-	 *
-	 * @see WP_Service_Workers::register_cached_route()
-	 * @link https://github.com/GoogleChrome/workbox/issues/1612
-	 *
-	 * @param string       $url URL to cache.
-	 * @param array|string $options {
-	 *     Options. Or else if not an array, then treated as revision.
-	 *
-	 *     @type string $revision Revision. Currently only applicable for precache. Optional.
-	 *     @type string $cache    Cache. Defaults to the precache (WP_Service_Workers::PRECACHE_CACHE_NAME); the values 'precache' and 'runtime' will be replaced with the appropriately-namespaced cache names.
-	 * }
-	 */
-	public function register_precached_route( $url, $options = array() ) {
-		_deprecated_function( __METHOD__, '0.2', 'WP_Service_Worker_Cache_Registry::register_precached_route' );
-		$this->cache_registry->register_precached_route( $url, $options );
-	}
+		$args = wp_parse_args(
+			$args,
+			array(
+				'src'  => '',
+				'deps' => array(),
+			)
+		);
 
-	/**
-	 * Register routes / files for precaching.
-	 *
-	 * @deprecated Use WP_Service_Worker_Cache_Registry::register_precached_route() method instead.
-	 *
-	 * @param array $routes Routes.
-	 */
-	public function register_precached_routes( $routes ) {
-		_deprecated_function( __METHOD__, '0.2', 'WP_Service_Worker_Cache_Registry::register_precached_route' );
-
-		if ( ! is_array( $routes ) ) {
-			_doing_it_wrong( __METHOD__, esc_html__( 'Routes must be an array.', 'pwa' ), '0.2' );
+		if ( empty( $args['src'] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				esc_html__( 'The src argument must be provided.', 'pwa' ),
+				'0.2'
+			);
 			return;
 		}
 
-		foreach ( $routes as $options ) {
-			$url = '';
-			if ( isset( $options['url'] ) ) {
-				$url = $options['url'];
-				unset( $options['url'] );
-			}
+		parent::add( $handle, $args['src'], $args['deps'], false );
+	}
 
-			$this->cache_registry->register_precached_route( $url, $options );
-		}
+	/**
+	 * Gets all registered service worker scripts.
+	 *
+	 * @since 0.2
+	 *
+	 * @return array List of registered scripts.
+	 */
+	public function get_all() {
+		return array_values( $this->registered );
 	}
 
 	/**
