@@ -25,7 +25,7 @@ class WP_Service_Worker_Custom_Background_Integration extends WP_Service_Worker_
 		}
 
 		$url      = get_background_image();
-		$file     = wp_service_workers()->get_validated_file_path( get_background_image() );
+		$file     = $scripts->get_validated_file_path( get_background_image() );
 		$revision = null;
 		if ( is_string( $file ) ) {
 			$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
