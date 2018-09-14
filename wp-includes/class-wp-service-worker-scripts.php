@@ -16,6 +16,14 @@
 class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_Registry {
 
 	/**
+	 * Service worker components.
+	 *
+	 * @since 0.2
+	 * @var array
+	 */
+	public $components = array();
+
+	/**
 	 * Cache Registry.
 	 *
 	 * @var WP_Service_Worker_Cache_Registry
@@ -26,8 +34,13 @@ class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_
 	 * Constructor.
 	 *
 	 * @since 0.2
+	 *
+	 * @param array $components Optional. Service worker components as $slug => $instance pairs.
+	 *                          Each component must implement `WP_Service_Worker_Component`.
+	 *                          Default empty array.
 	 */
-	public function __construct() {
+	public function __construct( $components = array() ) {
+		$this->components     = $components;
 		$this->cache_registry = new WP_Service_Worker_Cache_Registry();
 
 		parent::__construct();
@@ -37,11 +50,20 @@ class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_
 	 * Initialize the class.
 	 */
 	public function init() {
+		foreach ( $this->components as $component ) {
+			$callback = array( $component, 'serve' );
+			$priority = $component->get_priority();
+
+			add_action( 'wp_front_service_worker', $callback, $priority, 1 );
+			add_action( 'wp_admin_service_worker', $callback, $priority, 1 );
+		}
 
 		/**
-		 * Fires when the WP_Service_Workers instance is initialized.
+		 * Fires when the WP_Service_Worker_Scripts instance is initialized.
 		 *
-		 * @param WP_Service_Workers $this WP_Service_Workers instance (passed by reference).
+		 * @since 0.1
+		 *
+		 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
 		 */
 		do_action_ref_array( 'wp_default_service_workers', array( &$this ) );
 	}

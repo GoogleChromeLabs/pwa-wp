@@ -184,12 +184,12 @@ function wp_service_worker_json_encode( $data ) {
  *
  * @since 0.2
  *
- * @param WP_Service_Workers $service_workers WP_Service_Workers instance.
+ * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
  */
-function wp_default_service_workers( $service_workers ) {
-	$service_workers->base_url        = site_url();
-	$service_workers->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
-	$service_workers->default_version = get_bloginfo( 'version' );
+function wp_default_service_workers( $scripts ) {
+	$scripts->base_url        = site_url();
+	$scripts->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
+	$scripts->default_version = get_bloginfo( 'version' );
 
 	$integrations = array(
 		'wp-site-icon'         => new WP_Service_Worker_Site_Icon_Integration(),

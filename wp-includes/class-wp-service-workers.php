@@ -63,7 +63,12 @@ class WP_Service_Workers {
 	 * Instantiates the service worker scripts registry.
 	 */
 	public function __construct() {
-		$this->scripts = new WP_Service_Worker_Scripts();
+		$components = array(
+			'configuration'  => new WP_Service_Worker_Configuration_Component(),
+			'error_response' => new WP_Service_Worker_Error_Response_Component(),
+		);
+
+		$this->scripts = new WP_Service_Worker_Scripts( $components );
 	}
 
 	/**
@@ -94,191 +99,6 @@ class WP_Service_Workers {
 			return self::SCOPE_ADMIN;
 		}
 		return 0;
-	}
-
-	/**
-	 * Get script for handling of error responses when the user is offline or when there is an internal server error.
-	 *
-	 * @return string Script.
-	 */
-	protected function get_error_response_handling_script() {
-		$template   = get_template();
-		$stylesheet = get_stylesheet();
-
-		$revision = sprintf( '%s-v%s', $template, wp_get_theme( $template )->Version );
-		if ( $template !== $stylesheet ) {
-			$revision .= sprintf( ';%s-v%s', $stylesheet, wp_get_theme( $stylesheet )->Version );
-		}
-
-		// Ensure the user-specific offline/500 pages are precached, and thet they update when user logs out or switches to another user.
-		$revision .= sprintf( ';user-%d', get_current_user_id() );
-
-		$scope = $this->get_current_scope();
-		if ( self::SCOPE_FRONT === $scope ) {
-			$offline_error_template_file  = pwa_locate_template( array( 'offline.php', 'error.php' ) );
-			$offline_error_precache_entry = array(
-				'url'      => add_query_arg( 'wp_error_template', 'offline', home_url( '/' ) ),
-				'revision' => $revision . ';' . md5( $offline_error_template_file . file_get_contents( $offline_error_template_file ) ), // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-			);
-			$server_error_template_file   = pwa_locate_template( array( '500.php', 'error.php' ) );
-			$server_error_precache_entry  = array(
-				'url'      => add_query_arg( 'wp_error_template', '500', home_url( '/' ) ),
-				'revision' => $revision . ';' . md5( $server_error_template_file . file_get_contents( $server_error_template_file ) ), // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-			);
-
-			/**
-			 * Filters what is precached to serve as the offline error response on the frontend.
-			 *
-			 * The URL returned in this array will be precached by the service worker and served as the response when
-			 * the client is offline or their connection fails. To prevent this behavior, this value can be filtered
-			 * to return false. When a theme or plugin makes a change to the response, the revision value in the array
-			 * must be incremented to ensure the URL is re-fetched to store in the precache.
-			 *
-			 * @since 0.2
-			 *
-			 * @param array|false $entry {
-			 *     Offline error precache entry.
-			 *
-			 *     @type string $url      URL to page that shows the offline error template.
-			 *     @type string $revision Revision for the template. This defaults to the template and stylesheet names, with their respective theme versions.
-			 * }
-			 */
-			$offline_error_precache_entry = apply_filters( 'wp_offline_error_precache_entry', $offline_error_precache_entry );
-
-			/**
-			 * Filters what is precached to serve as the internal server error response on the frontend.
-			 *
-			 * The URL returned in this array will be precached by the service worker and served as the response when
-			 * the server returns a 500 internal server error . To prevent this behavior, this value can be filtered
-			 * to return false. When a theme or plugin makes a change to the response, the revision value in the array
-			 * must be incremented to ensure the URL is re-fetched to store in the precache.
-			 *
-			 * @since 0.2
-			 *
-			 * @param array $entry {
-			 *     Server error precache entry.
-			 *
-			 *     @type string $url      URL to page that shows the server error template.
-			 *     @type string $revision Revision for the template. This defaults to the template and stylesheet names, with their respective theme versions.
-			 * }
-			 */
-			$server_error_precache_entry = apply_filters( 'wp_server_error_precache_entry', $server_error_precache_entry );
-
-		} else {
-			$offline_error_precache_entry = array(
-				'url'      => add_query_arg( 'code', 'offline', admin_url( 'admin-ajax.php?action=wp_error_template' ) ), // Upon core merge, this would use admin_url( 'error.php' ).
-				'revision' => PWA_VERSION, // Upon core merge, this should be the core version.
-			);
-			$server_error_precache_entry  = array(
-				'url'      => add_query_arg( 'code', '500', admin_url( 'admin-ajax.php?action=wp_error_template' ) ), // Upon core merge, this would use admin_url( 'error.php' ).
-				'revision' => PWA_VERSION, // Upon core merge, this should be the core version.
-			);
-		}
-
-		if ( $offline_error_precache_entry ) {
-			$this->scripts->cache_registry->register_precached_route( $offline_error_precache_entry['url'], isset( $offline_error_precache_entry['revision'] ) ? $offline_error_precache_entry['revision'] : null );
-		}
-		if ( $server_error_precache_entry ) {
-			$this->scripts->cache_registry->register_precached_route( $server_error_precache_entry['url'], isset( $server_error_precache_entry['revision'] ) ? $server_error_precache_entry['revision'] : null );
-		}
-
-		$blacklist_patterns = array();
-		if ( self::SCOPE_FRONT === $scope ) {
-			$blacklist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)';
-		}
-
-		$replacements = array(
-			'ERROR_OFFLINE_URL'  => isset( $offline_error_precache_entry['url'] ) ? wp_service_worker_json_encode( $offline_error_precache_entry['url'] ) : null,
-			'ERROR_500_URL'      => isset( $server_error_precache_entry['url'] ) ? wp_service_worker_json_encode( $server_error_precache_entry['url'] ) : null,
-			'BLACKLIST_PATTERNS' => wp_service_worker_json_encode( $blacklist_patterns ),
-		);
-
-		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-error-response-handling.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
-
-		return str_replace(
-			array_keys( $replacements ),
-			array_values( $replacements ),
-			$script
-		);
-	}
-
-	/**
-	 * Get base script for service worker.
-	 *
-	 * This involves the loading and configuring Workbox. However, the `workbox` global should not be directly
-	 * interacted with. Instead, developers should interface with `wp.serviceWorker` which is a wrapper around
-	 * the Workbox library.
-	 *
-	 * @link https://github.com/GoogleChrome/workbox
-	 *
-	 * @return string Script.
-	 */
-	protected function get_base_script() {
-
-		$current_scope = $this->get_current_scope();
-		$workbox_dir   = 'wp-includes/js/workbox-v3.5.0/';
-
-		$script = sprintf(
-			"importScripts( %s );\n",
-			wp_service_worker_json_encode( PWA_PLUGIN_URL . $workbox_dir . 'workbox-sw.js' )
-		);
-
-		$options = array(
-			'debug'            => WP_DEBUG,
-			'modulePathPrefix' => PWA_PLUGIN_URL . $workbox_dir,
-		);
-		$script .= sprintf( "workbox.setConfig( %s );\n", wp_service_worker_json_encode( $options ) );
-
-		$cache_name_details = array(
-			'prefix' => 'wordpress',
-			'suffix' => 'v1',
-		);
-
-		$script .= sprintf( "workbox.core.setCacheNameDetails( %s );\n", wp_service_worker_json_encode( $cache_name_details ) );
-
-		// @todo Add filter controlling workbox.skipWaiting().
-		// @todo Add filter controlling workbox.clientsClaim().
-		/**
-		 * Filters whether navigation preload is enabled.
-		 *
-		 * The filtered value will be sent as the Service-Worker-Navigation-Preload header value if a truthy string.
-		 * This filter should be set to return false to disable navigation preload such as when a site is using
-		 * the app shell model. Take care of the current scope when setting this, as it is unlikely that the admin
-		 * should have navigation preload disabled until core has an admin single-page app. To disable navigation preload on
-		 * the frontend only, you may do:
-		 *
-		 *     add_filter( 'wp_front_service_worker', function() {
-		 *         add_filter( 'wp_service_worker_navigation_preload', '__return_false' );
-		 *     } );
-		 *
-		 * Alternatively, you should check the `$current_scope` for example:
-		 *
-		 *     add_filter( 'wp_service_worker_navigation_preload', function( $preload, $current_scope ) {
-		 *         if ( WP_Service_Workers::SCOPE_FRONT === $current_scope ) {
-		 *             $preload = false;
-		 *         }
-		 *         return $preload;
-		 *     }, 10, 2 );
-		 *
-		 * @param bool|string $navigation_preload Whether to use navigation preload. Returning a string will cause it it to populate the Service-Worker-Navigation-Preload header.
-		 * @param int         $current_scope      The current scope. Either 1 (WP_Service_Workers::SCOPE_FRONT) or 2 (WP_Service_Workers::SCOPE_ADMIN).
-		 */
-		$navigation_preload = apply_filters( 'wp_service_worker_navigation_preload', true, $current_scope );
-		if ( false !== $navigation_preload ) {
-			if ( is_string( $navigation_preload ) ) {
-				$script .= sprintf( "workbox.navigationPreload.enable( %s );\n", wp_service_worker_json_encode( $navigation_preload ) );
-			} else {
-				$script .= "workbox.navigationPreload.enable();\n";
-			}
-		} else {
-			$script .= "/* Navigation preload disabled. */\n";
-		}
-
-		// Note: This includes the aliasing of `workbox` to `wp.serviceWorker`.
-		$script .= file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-
-		return $script;
 	}
 
 	/**
@@ -453,13 +273,9 @@ class WP_Service_Workers {
 
 		printf( "/* PWA v%s */\n\n", esc_html( PWA_VERSION ) );
 
-		$this->output  = '';
-		$this->output .= $this->get_base_script();
-		$this->output .= $this->get_error_response_handling_script();
-
 		ob_start();
 		$this->scripts->do_items( array_keys( $this->scripts->registered ) );
-		$this->output .= ob_get_clean();
+		$this->output = ob_get_clean();
 
 		$this->output .= $this->get_precaching_for_routes_script();
 

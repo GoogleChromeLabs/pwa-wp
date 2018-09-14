@@ -47,6 +47,13 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-worker-scripts.php'
 /** WP_Service_Worker_Cache_Registry Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-worker-cache-registry.php';
 
+/** WP_Service_Worker_Component Interface */
+require_once PWA_PLUGIN_DIR . '/wp-includes/components/interface-wp-service-worker-component.php';
+
+/** WP_Service_Worker_Component Implementation Classes */
+require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-configuration-component.php';
+require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-error-response-component.php';
+
 /** WP_Service_Worker_Integration Interface */
 require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/interface-wp-service-worker-integration.php';
 
