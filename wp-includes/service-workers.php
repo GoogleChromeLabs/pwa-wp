@@ -30,11 +30,10 @@ function wp_service_workers() {
  * @param string          $handle Name of the service worker. Should be unique.
  * @param string|callable $src    Callback method or relative path of the service worker.
  * @param array           $deps   Optional. An array of registered script handles this depends on. Default empty array.
- * @param int             $scope  Scope for which service worker the script will be part of. Can be WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, or WP_Service_Workers::SCOPE_ALL. Default to WP_Service_Workers::SCOPE_ALL.
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
-function wp_register_service_worker( $handle, $src, $deps = array(), $scope = WP_Service_Workers::SCOPE_ALL ) {
-	return wp_service_workers()->get_registry()->register_script( $handle, $src, $deps, $scope );
+function wp_register_service_worker( $handle, $src, $deps = array() ) {
+	return wp_service_workers()->get_registry()->register_script( $handle, $src, $deps );
 }
 
 /**

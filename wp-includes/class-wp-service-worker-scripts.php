@@ -54,27 +54,10 @@ class WP_Service_Worker_Scripts extends WP_Scripts {
 	 * @param string          $handle Name of the item. Should be unique.
 	 * @param string|callable $src    URL to the source in the WordPress install, or a callback that returns the JS to include in the service worker.
 	 * @param array           $deps   Optional. An array of registered item handles this item depends on. Default empty array.
-	 * @param int             $scope  Scope for which service worker the script will be part of. Can be WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, or WP_Service_Workers::SCOPE_ALL. Default to WP_Service_Workers::SCOPE_ALL.
 	 * @return bool Whether the item has been registered. True on success, false on failure.
 	 */
-	public function register_script( $handle, $src, $deps = array(), $scope = WP_Service_Workers::SCOPE_ALL ) {
-		$valid_scopes = array( WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, WP_Service_Workers::SCOPE_ALL );
-
-		if ( ! in_array( $scope, $valid_scopes, true ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				sprintf(
-					/* translators: %s is a comma-separated list of valid scopes */
-					esc_html__( 'Scope must be one out of %s.', 'pwa' ),
-					esc_html( implode( ', ', $valid_scopes ) )
-				),
-				'0.1'
-			);
-
-			$scope = WP_Service_Workers::SCOPE_ALL;
-		}
-
-		return parent::add( $handle, $src, $deps, false, compact( 'scope' ) );
+	public function register_script( $handle, $src, $deps = array() ) {
+		return parent::add( $handle, $src, $deps, false );
 	}
 
 	/**
@@ -85,12 +68,11 @@ class WP_Service_Worker_Scripts extends WP_Scripts {
 	 * @param string          $handle Name of the item. Should be unique.
 	 * @param string|callable $src    URL to the source in the WordPress install, or a callback that returns the JS to include in the service worker.
 	 * @param array           $deps   Optional. An array of registered item handles this item depends on. Default empty array.
-	 * @param int             $scope  Scope for which service worker the script will be part of. Can be WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, or WP_Service_Workers::SCOPE_ALL. Default to WP_Service_Workers::SCOPE_ALL.
 	 * @return bool Whether the item has been registered. True on success, false on failure.
 	 */
-	public function register( $handle, $src, $deps = array(), $scope = WP_Service_Workers::SCOPE_ALL ) {
+	public function register( $handle, $src, $deps = array() ) {
 		_deprecated_function( __METHOD__, '0.2', __CLASS__ . '::register_script' );
-		return $this->register_script( $handle, $src, $deps, $scope );
+		return $this->register_script( $handle, $src, $deps );
 	}
 
 	/**

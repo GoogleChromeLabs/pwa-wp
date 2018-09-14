@@ -466,16 +466,8 @@ class WP_Service_Workers {
 		$this->output .= $this->get_base_script();
 		$this->output .= $this->get_error_response_handling_script();
 
-		// Get handles from the relevant scope only.
-		$scope_items = array();
-		foreach ( $this->scripts->registered as $handle => $item ) {
-			if ( $item->args['scope'] & $scope ) { // Yes, Bitwise AND intended. SCOPE_ALL & SCOPE_FRONT == true. SCOPE_ADMIN & SCOPE_FRONT == false.
-				$scope_items[] = $handle;
-			}
-		}
-
 		ob_start();
-		$this->scripts->do_items( $scope_items );
+		$this->scripts->do_items( array_keys( $this->scripts->registered ) );
 		$this->output .= ob_get_clean();
 
 		$this->output .= $this->get_precaching_for_routes_script();
