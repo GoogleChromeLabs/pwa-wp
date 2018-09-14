@@ -15,6 +15,8 @@ interface WP_Service_Worker_Integration {
 	/**
 	 * Gets the scope this integration applies to.
 	 *
+	 * @since 0.2
+	 *
 	 * @return int Either WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, or
 	 *             WP_Service_Workers::SCOPE_ALL.
 	 */

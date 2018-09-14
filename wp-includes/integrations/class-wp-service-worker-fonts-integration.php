@@ -36,4 +36,13 @@ class WP_Service_Worker_Fonts_Integration extends WP_Service_Worker_Base_Integra
 			)
 		);
 	}
+
+	/**
+	 * Defines the scope of this integration by setting `$this->scope`.
+	 *
+	 * @since 0.2
+	 */
+	protected function define_scope() {
+		$this->scope = WP_Service_Workers::SCOPE_ALL;
+	}
 }

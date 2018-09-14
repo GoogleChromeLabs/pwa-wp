@@ -29,6 +29,8 @@ class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base_Integ
 	 */
 	public function __construct( array $handles = array() ) {
 		$this->handles = $handles;
+
+		parent::__construct();
 	}
 
 	/**
@@ -76,5 +78,14 @@ class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base_Integ
 			}
 		}
 		wp_scripts()->to_do = $original_to_do; // Restore original scripts to do.
+	}
+
+	/**
+	 * Defines the scope of this integration by setting `$this->scope`.
+	 *
+	 * @since 0.2
+	 */
+	protected function define_scope() {
+		$this->scope = WP_Service_Workers::SCOPE_ALL;
 	}
 }

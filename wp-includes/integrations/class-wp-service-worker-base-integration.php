@@ -18,10 +18,23 @@ abstract class WP_Service_Worker_Base_Integration implements WP_Service_Worker_I
 	 * @since 0.2
 	 * @var int
 	 */
-	protected $scope = WP_Service_Workers::SCOPE_FRONT;
+	protected $scope;
+
+	/**
+	 * Constructor.
+	 *
+	 * Sets the scope of the integration.
+	 *
+	 * @since 0.2
+	 */
+	public function __construct() {
+		$this->define_scope();
+	}
 
 	/**
 	 * Gets the scope this integration applies to.
+	 *
+	 * @since 0.2
 	 *
 	 * @return int Either WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, or
 	 *             WP_Service_Workers::SCOPE_ALL.
@@ -29,6 +42,13 @@ abstract class WP_Service_Worker_Base_Integration implements WP_Service_Worker_I
 	public function get_scope() {
 		return $this->scope;
 	}
+
+	/**
+	 * Defines the scope of this integration by setting `$this->scope`.
+	 *
+	 * @since 0.2
+	 */
+	abstract protected function define_scope();
 
 	/**
 	 * Gets the URLs for a given attachment image and size.

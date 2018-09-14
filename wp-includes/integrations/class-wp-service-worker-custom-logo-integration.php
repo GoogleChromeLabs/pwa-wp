@@ -39,4 +39,13 @@ class WP_Service_Worker_Custom_Logo_Integration extends WP_Service_Worker_Base_I
 			$scripts->cache_registry->register_precached_route( $image_url, $attachment->post_modified );
 		}
 	}
+
+	/**
+	 * Defines the scope of this integration by setting `$this->scope`.
+	 *
+	 * @since 0.2
+	 */
+	protected function define_scope() {
+		$this->scope = WP_Service_Workers::SCOPE_FRONT;
+	}
 }
