@@ -44,6 +44,17 @@ abstract class WP_Service_Worker_Base_Integration implements WP_Service_Worker_I
 	}
 
 	/**
+	 * Gets the priority this integration should be hooked into the service worker action with.
+	 *
+	 * @since 0.2
+	 *
+	 * @return int Hook priority. A higher number means a lower priority.
+	 */
+	public function get_priority() {
+		return 10;
+	}
+
+	/**
 	 * Defines the scope of this integration by setting `$this->scope`.
 	 *
 	 * @since 0.2

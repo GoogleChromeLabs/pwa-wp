@@ -23,6 +23,15 @@ interface WP_Service_Worker_Integration {
 	public function get_scope();
 
 	/**
+	 * Gets the priority this integration should be hooked into the service worker action with.
+	 *
+	 * @since 0.2
+	 *
+	 * @return int Hook priority. A higher number means a lower priority.
+	 */
+	public function get_priority();
+
+	/**
 	 * Registers the integration functionality.
 	 *
 	 * @since 0.2

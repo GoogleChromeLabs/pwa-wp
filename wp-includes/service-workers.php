@@ -210,17 +210,18 @@ function wp_default_service_workers( $service_workers ) {
 			continue;
 		}
 
-		$scope = $integration->get_scope();
+		$scope    = $integration->get_scope();
+		$priority = $integration->get_priority();
 		switch ( $scope ) {
 			case WP_Service_Workers::SCOPE_FRONT:
-				add_action( 'wp_front_service_worker', array( $integration, 'register' ), 10, 1 );
+				add_action( 'wp_front_service_worker', array( $integration, 'register' ), $priority, 1 );
 				break;
 			case WP_Service_Workers::SCOPE_ADMIN:
-				add_action( 'wp_admin_service_worker', array( $integration, 'register' ), 10, 1 );
+				add_action( 'wp_admin_service_worker', array( $integration, 'register' ), $priority, 1 );
 				break;
 			case WP_Service_Workers::SCOPE_ALL:
-				add_action( 'wp_front_service_worker', array( $integration, 'register' ), 10, 1 );
-				add_action( 'wp_admin_service_worker', array( $integration, 'register' ), 10, 1 );
+				add_action( 'wp_front_service_worker', array( $integration, 'register' ), $priority, 1 );
+				add_action( 'wp_admin_service_worker', array( $integration, 'register' ), $priority, 1 );
 				break;
 			default:
 				$valid_scopes = array( WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, WP_Service_Workers::SCOPE_ALL );
