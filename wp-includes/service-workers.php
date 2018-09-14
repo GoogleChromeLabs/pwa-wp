@@ -34,7 +34,7 @@ function wp_service_workers() {
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
 function wp_register_service_worker( $handle, $src, $deps = array(), $scope = WP_Service_Workers::SCOPE_ALL ) {
-	return wp_service_workers()->register_script( $handle, $src, $deps, $scope );
+	return wp_service_workers()->get_registry()->register_script( $handle, $src, $deps, $scope );
 }
 
 /**
@@ -55,7 +55,7 @@ function wp_register_service_worker( $handle, $src, $deps = array(), $scope = WP
  * }
  */
 function wp_register_route_caching_strategy( $route, $strategy = WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, $strategy_args = array() ) {
-	wp_service_workers()->register_cached_route( $route, $strategy, $strategy_args );
+	wp_service_workers()->get_registry()->register_cached_route( $route, $strategy, $strategy_args );
 }
 
 /**

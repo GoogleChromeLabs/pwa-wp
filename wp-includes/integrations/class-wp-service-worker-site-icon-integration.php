@@ -17,9 +17,9 @@ class WP_Service_Worker_Site_Icon_Integration extends WP_Service_Worker_Base_Int
 	 *
 	 * @since 0.2
 	 *
-	 * @param WP_Service_Worker_Cache_Registry $cache_registry Instance to register service worker behavior with.
+	 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
 	 */
-	public function register( WP_Service_Worker_Cache_Registry $cache_registry ) {
+	public function register( WP_Service_Worker_Scripts $scripts ) {
 		if ( ! has_site_icon() || ! get_option( 'site_icon' ) ) {
 			return;
 		}
@@ -31,15 +31,17 @@ class WP_Service_Worker_Site_Icon_Integration extends WP_Service_Worker_Base_Int
 
 		// The URLs here are those which are used in wp_site_icon().
 		// @todo There could be different icons actually used on the site due to the site_icon_meta_tags filter.
-		$image_urls = array_unique( array(
-			get_site_icon_url( 32 ),
-			get_site_icon_url( 192 ),
-			get_site_icon_url( 180 ),
-			get_site_icon_url( 270 ),
-		) );
+		$image_urls = array_unique(
+			array(
+				get_site_icon_url( 32 ),
+				get_site_icon_url( 192 ),
+				get_site_icon_url( 180 ),
+				get_site_icon_url( 270 ),
+			)
+		);
 
 		foreach ( $image_urls as $image_url ) {
-			$cache_registry->register_precached_route( $image_url, $attachment->post_modified );
+			$scripts->cache_registry->register_precached_route( $image_url, $attachment->post_modified );
 		}
 	}
 }

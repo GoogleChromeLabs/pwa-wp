@@ -17,9 +17,9 @@ class WP_Service_Worker_Custom_Background_Integration extends WP_Service_Worker_
 	 *
 	 * @since 0.2
 	 *
-	 * @param WP_Service_Worker_Cache_Registry $cache_registry Instance to register service worker behavior with.
+	 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
 	 */
-	public function register( WP_Service_Worker_Cache_Registry $cache_registry ) {
+	public function register( WP_Service_Worker_Scripts $scripts ) {
 		if ( ! current_theme_supports( 'custom-background' ) || ! get_background_image() ) {
 			return;
 		}
@@ -30,6 +30,6 @@ class WP_Service_Worker_Custom_Background_Integration extends WP_Service_Worker_
 		if ( is_string( $file ) ) {
 			$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		}
-		$cache_registry->register_precached_route( $url, $revision );
+		$scripts->cache_registry->register_precached_route( $url, $revision );
 	}
 }

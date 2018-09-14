@@ -36,9 +36,9 @@ class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base_Integ
 	 *
 	 * @since 0.2
 	 *
-	 * @param WP_Service_Worker_Cache_Registry $cache_registry Instance to register service worker behavior with.
+	 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
 	 */
-	public function register( WP_Service_Worker_Cache_Registry $cache_registry ) {
+	public function register( WP_Service_Worker_Scripts $scripts ) {
 		$handles = $this->handles;
 
 		if ( empty( $handles ) ) {
@@ -72,7 +72,7 @@ class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base_Integ
 			$url = apply_filters( 'script_loader_src', $url, $handle );
 
 			if ( $url ) {
-				$cache_registry->register_precached_route( $url, $revision );
+				$scripts->cache_registry->register_precached_route( $url, $revision );
 			}
 		}
 		wp_scripts()->to_do = $original_to_do; // Restore original scripts to do.

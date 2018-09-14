@@ -17,9 +17,9 @@ class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worker_Base
 	 *
 	 * @since 0.2
 	 *
-	 * @param WP_Service_Worker_Cache_Registry $cache_registry Instance to register service worker behavior with.
+	 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
 	 */
-	public function register( WP_Service_Worker_Cache_Registry $cache_registry ) {
+	public function register( WP_Service_Worker_Scripts $scripts ) {
 		if ( ! current_theme_supports( 'custom-header' ) || ! get_custom_header() ) {
 			return;
 		}
@@ -49,7 +49,7 @@ class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worker_Base
 				if ( is_string( $file ) ) {
 					$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 				}
-				$cache_registry->register_precached_route( $url, $revision );
+				$scripts->cache_registry->register_precached_route( $url, $revision );
 			}
 			return;
 		}
@@ -59,7 +59,7 @@ class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worker_Base
 
 		if ( $attachment ) {
 			foreach ( $this->get_attachment_image_urls( $attachment->ID, array( $header->width, $header->height ) ) as $image_url ) {
-				$cache_registry->register_precached_route( $image_url, $attachment->post_modified );
+				$scripts->cache_registry->register_precached_route( $image_url, $attachment->post_modified );
 			}
 		} elseif ( get_header_image() ) {
 			$url      = get_header_image();
@@ -68,7 +68,7 @@ class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worker_Base
 			if ( is_string( $file ) ) {
 				$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			}
-			$cache_registry->register_precached_route( $url, $revision );
+			$scripts->cache_registry->register_precached_route( $url, $revision );
 		}
 	}
 }
