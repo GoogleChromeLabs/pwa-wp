@@ -23,9 +23,9 @@ function wp_service_workers() {
 }
 
 /**
- * Register a new service worker.
+ * Register a service worker script.
  *
- * @since 0.1
+ * @since 0.2
  *
  * @param string $handle Handle of the script.
  * @param array  $args   {
@@ -36,29 +36,45 @@ function wp_service_workers() {
  *     @type array           $deps An array of registered item handles this item depends on. Default empty array.
  * }
  */
-function wp_register_service_worker( $handle, $args = array() ) {
+function wp_register_service_worker_script( $handle, $args = array() ) {
 	wp_service_workers()->get_registry()->register( $handle, $args );
 }
 
 /**
- * Register route and caching strategy using regex pattern for route.
+ * Registers a precaching route.
  *
  * @since 0.2
  *
- * @param string $route Route, has to be valid regex.
- * @param string $strategy Strategy, can be WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
- *                         WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY,
- *                         WP_Service_Workers::STRATEGY_NETWORK_ONLY.
- * @param array  $strategy_args {
- *     An array of strategy arguments.
+ * @param string $url  URL to cache.
+ * @param array  $args {
+ *     Additional route arguments.
  *
- *     @type string $cache_name Cache name.
+ *     @type string $revision Revision.
+ * }
+ */
+function wp_register_service_worker_precaching_route( $url, $args = array() ) {
+	wp_service_workers()->get_registry()->precaching_routes()->register( $url, $args );
+}
+
+/**
+ * Registers a caching route.
+ *
+ * @since 0.2
+ *
+ * @param string $route Route regular expression, without delimiters.
+ * @param array  $args  {
+ *     Additional route arguments.
+ *
+ *     @type string $strategy   Required. Strategy, can be WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
+ *                              WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
+ *                              WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY.
+ *     @type string $cache_name Name to use for the cache.
  *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
  *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
  * }
  */
-function wp_register_route_caching_strategy( $route, $strategy = WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, $strategy_args = array() ) {
-	wp_service_workers()->get_registry()->cache_registry->register_cached_route( $route, $strategy, $strategy_args );
+function wp_register_service_worker_caching_route( $route, $args = array() ) {
+	wp_service_workers()->get_registry()->caching_routes()->register( $route, $args );
 }
 
 /**

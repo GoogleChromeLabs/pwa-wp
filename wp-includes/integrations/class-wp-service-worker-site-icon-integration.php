@@ -41,7 +41,7 @@ class WP_Service_Worker_Site_Icon_Integration extends WP_Service_Worker_Base_Int
 		);
 
 		foreach ( $image_urls as $image_url ) {
-			$scripts->cache_registry->register_precached_route( $image_url, $attachment->post_modified );
+			$scripts->precaching_routes()->register( $image_url, $attachment->post_modified );
 		}
 	}
 

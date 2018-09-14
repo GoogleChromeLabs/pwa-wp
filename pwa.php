@@ -38,14 +38,14 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-ui.php';
 /** WP_Service_Worker_Registry Interface */
 require_once PWA_PLUGIN_DIR . '/wp-includes/interface-wp-service-worker-registry.php';
 
+/** WP_Service_Worker_Registry_Aware Interface */
+require_once PWA_PLUGIN_DIR . '/wp-includes/interface-wp-service-worker-registry-aware.php';
+
 /** WP_Service_Workers Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-workers.php';
 
 /** WP_Service_Worker_Scripts Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-worker-scripts.php';
-
-/** WP_Service_Worker_Cache_Registry Class */
-require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-worker-cache-registry.php';
 
 /** WP_Service_Worker_Component Interface */
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/interface-wp-service-worker-component.php';
@@ -53,6 +53,10 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/components/interface-wp-service-work
 /** WP_Service_Worker_Component Implementation Classes */
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-configuration-component.php';
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-error-response-component.php';
+require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-precaching-routes-component.php';
+require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-precaching-routes.php';
+require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-caching-routes-component.php';
+require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-caching-routes.php';
 
 /** WP_Service_Worker_Integration Interface */
 require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/interface-wp-service-worker-integration.php';

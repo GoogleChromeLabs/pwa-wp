@@ -20,10 +20,10 @@ class WP_Service_Worker_Fonts_Integration extends WP_Service_Worker_Base_Integra
 	 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
 	 */
 	public function register( WP_Service_Worker_Scripts $scripts ) {
-		$scripts->cache_registry->register_cached_route(
+		$scripts->caching_routes()->register(
 			'^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/(.*)',
-			WP_Service_Worker_Cache_Registry::STRATEGY_CACHE_FIRST,
 			array(
+				'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
 				'cacheName' => 'googleapis',
 				'plugins'   => array(
 					'cacheableResponse' => array(

@@ -49,7 +49,7 @@ class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worker_Base
 				if ( is_string( $file ) ) {
 					$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 				}
-				$scripts->cache_registry->register_precached_route( $url, $revision );
+				$scripts->precaching_routes()->register( $url, $revision );
 			}
 			return;
 		}
@@ -59,7 +59,7 @@ class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worker_Base
 
 		if ( $attachment ) {
 			foreach ( $this->get_attachment_image_urls( $attachment->ID, array( $header->width, $header->height ) ) as $image_url ) {
-				$scripts->cache_registry->register_precached_route( $image_url, $attachment->post_modified );
+				$scripts->precaching_routes()->register( $image_url, $attachment->post_modified );
 			}
 		} elseif ( get_header_image() ) {
 			$url      = get_header_image();
@@ -68,7 +68,7 @@ class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worker_Base
 			if ( is_string( $file ) ) {
 				$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			}
-			$scripts->cache_registry->register_precached_route( $url, $revision );
+			$scripts->precaching_routes()->register( $url, $revision );
 		}
 	}
 

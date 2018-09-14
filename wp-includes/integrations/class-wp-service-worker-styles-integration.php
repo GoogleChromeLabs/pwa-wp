@@ -74,7 +74,7 @@ class WP_Service_Worker_Styles_Integration extends WP_Service_Worker_Base_Integr
 			$url = apply_filters( 'style_loader_src', $url, $handle );
 
 			if ( $url ) {
-				$scripts->cache_registry->register_precached_route( $url, $revision );
+				$scripts->precaching_routes()->register( $url, $revision );
 			}
 		}
 		wp_styles()->to_do = $original_to_do; // Restore original styles to do.

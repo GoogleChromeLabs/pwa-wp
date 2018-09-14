@@ -74,7 +74,7 @@ class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base_Integ
 			$url = apply_filters( 'script_loader_src', $url, $handle );
 
 			if ( $url ) {
-				$scripts->cache_registry->register_precached_route( $url, $revision );
+				$scripts->precaching_routes()->register( $url, $revision );
 			}
 		}
 		wp_scripts()->to_do = $original_to_do; // Restore original scripts to do.

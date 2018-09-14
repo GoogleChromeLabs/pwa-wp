@@ -110,10 +110,10 @@ class WP_Service_Worker_Error_Response_Component implements WP_Service_Worker_Co
 		);
 
 		if ( $offline_error_precache_entry ) {
-			$scripts->cache_registry->register_precached_route( $offline_error_precache_entry['url'], isset( $offline_error_precache_entry['revision'] ) ? $offline_error_precache_entry['revision'] : null );
+			$scripts->precaching_routes()->register( $offline_error_precache_entry['url'], isset( $offline_error_precache_entry['revision'] ) ? $offline_error_precache_entry['revision'] : null );
 		}
 		if ( $server_error_precache_entry ) {
-			$scripts->cache_registry->register_precached_route( $server_error_precache_entry['url'], isset( $server_error_precache_entry['revision'] ) ? $server_error_precache_entry['revision'] : null );
+			$scripts->precaching_routes()->register( $server_error_precache_entry['url'], isset( $server_error_precache_entry['revision'] ) ? $server_error_precache_entry['revision'] : null );
 		}
 
 		$blacklist_patterns = array();

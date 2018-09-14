@@ -36,7 +36,7 @@ class WP_Service_Worker_Custom_Logo_Integration extends WP_Service_Worker_Base_I
 		}
 
 		foreach ( array_unique( $image_urls ) as $image_url ) {
-			$scripts->cache_registry->register_precached_route( $image_url, $attachment->post_modified );
+			$scripts->precaching_routes()->register( $image_url, $attachment->post_modified );
 		}
 	}
 

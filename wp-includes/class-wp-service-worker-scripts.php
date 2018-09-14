@@ -12,6 +12,9 @@
  * @since 0.1
  *
  * @see WP_Dependencies
+ *
+ * @method WP_Service_Worker_Precaching_Routes_Component precaching_routes()
+ * @method WP_Service_Worker_Caching_Routes_Component    caching_routes()
  */
 class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_Registry {
 
@@ -21,14 +24,15 @@ class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_
 	 * @since 0.2
 	 * @var array
 	 */
-	public $components = array();
+	protected $components = array();
 
 	/**
-	 * Cache Registry.
+	 * Service worker component registries.
 	 *
-	 * @var WP_Service_Worker_Cache_Registry
+	 * @since 0.2
+	 * @var array
 	 */
-	public $cache_registry;
+	protected $registries = array();
 
 	/**
 	 * Constructor.
@@ -40,8 +44,12 @@ class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_
 	 *                          Default empty array.
 	 */
 	public function __construct( $components = array() ) {
-		$this->components     = $components;
-		$this->cache_registry = new WP_Service_Worker_Cache_Registry();
+		$this->components = $components;
+		foreach ( $this->components as $slug => $instance ) {
+			if ( $instance instanceof WP_Service_Worker_Registry_Aware ) {
+				$this->registries[ $slug ] = $instance->get_registry();
+			}
+		}
 
 		parent::__construct();
 	}
@@ -66,6 +74,23 @@ class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_
 		 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
 		 */
 		do_action_ref_array( 'wp_default_service_workers', array( &$this ) );
+	}
+
+	/**
+	 * Magic call method. Allows accessing component registries.
+	 *
+	 * @since 0.2
+	 *
+	 * @param string $method Method name. Should be the identifier for a component registry.
+	 * @param array  $args   Method arguments.
+	 * @return WP_Service_Worker_Registry|null Registry instance if valid method name, otherwise null.
+	 */
+	public function __call( $method, $args ) {
+		if ( isset( $this->registries[ $method ] ) ) {
+			return $this->registries[ $method ];
+		}
+
+		return null;
 	}
 
 	/**
