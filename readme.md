@@ -12,7 +12,7 @@ WordPress feature plugin to bring Progressive Web App (PWA) capabilities to Core
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 **Requires PHP:** 5.2  
 
-[![Build Status](https://travis-ci.org/xwp/pwa-wp.svg?branch=master)](https://travis-ci.org/xwp/pwa-wp) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) 
+[![Build Status](https://travis-ci.org/adrianocalvitto/pwa-wp.svg?branch=master)](https://travis-ci.org/adrianocalvitto/pwa-wp) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) 
 
 ## Description ##
 
@@ -44,7 +44,7 @@ As noted in a [Google guide](https://developers.google.com/web/fundamentals/web-
 
 > The [web app manifest](https://developer.mozilla.org/en-US/docs/Web/Manifest) is a simple JSON file that tells the browser about your web application and how it should behave when 'installed' on the users mobile device or desktop.
 
-The plugin exposes the web app manifest via the REST API at `/wp-json/app/v1/web-manifest`. A response looks like:
+The plugin exposes the web app manifest via the REST API at `/wp-json/wp/v2/web-app-manifest`. A response looks like:
 
 <pre lang=json>
 {
