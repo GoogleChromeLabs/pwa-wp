@@ -42,7 +42,7 @@ As noted in a [Google guide](https://developers.google.com/web/fundamentals/web-
 
 > The [web app manifest](https://developer.mozilla.org/en-US/docs/Web/Manifest) is a simple JSON file that tells the browser about your web application and how it should behave when 'installed' on the users mobile device or desktop.
 
-The plugin exposes the web app manifest via the REST API at `/wp-json/app/v1/web-manifest`. A response looks like:
+The plugin exposes the web app manifest via the REST API at `/wp-json/wp/v2/web-app-manifest`. A response looks like:
 
 <pre lang=json>
 {
