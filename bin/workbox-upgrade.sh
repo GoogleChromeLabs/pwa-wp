@@ -9,6 +9,7 @@ fi
 cd $( dirname "$0" )/..
 rm -r wp-includes/js/workbox-v*
 git add -u wp-includes/js
+npm install # Get the latest.
 npx workbox copyLibraries wp-includes/js/
 git add wp-includes/js/workbox-v*
 workbox_dir=$(ls -d wp-includes/js/workbox-v*)
