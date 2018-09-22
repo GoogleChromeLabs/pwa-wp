@@ -236,18 +236,14 @@ class WP_Service_Workers extends WP_Scripts {
 		$script .= sprintf( "workbox.setConfig( %s );\n", $this->json_encode( $options ) );
 
 		$cache_name_details = array(
-
-			/*
-			 * Vary the prefix by the root directory of the site to ensure multisite subdirectory installs don't collide.
-			 * Also vary cache by front vs admin so that different assets can be precached in each application.
-			 * @todo There should be a common cache between front and admin for REST API?
-			 */
-			'prefix' => sprintf(
-				'wp-%s-%s',
-				wp_parse_url( self::SCOPE_FRONT === $current_scope ? home_url( '/' ) : site_url( '/' ), PHP_URL_PATH ),
-				self::SCOPE_FRONT === $current_scope ? 'front' : 'admin'
+			// Vary the prefix by the root directory of the site to ensure multisite subdirectory installs don't pollute each other's caches.
+			'prefix'   => sprintf(
+				'wp-%s',
+				wp_parse_url( self::SCOPE_FRONT === $current_scope ? home_url( '/' ) : site_url( '/' ), PHP_URL_PATH )
 			),
-			'suffix' => 'v1',
+			// Also precache name by scope (front vs admin) so that different assets can be precached in each respective application.
+			'precache' => sprintf( 'precache-%s', self::SCOPE_FRONT === $current_scope ? 'front' : 'admin' ),
+			'suffix'   => 'v1',
 		);
 
 		$script .= sprintf( "workbox.core.setCacheNameDetails( %s );\n", $this->json_encode( $cache_name_details ) );
