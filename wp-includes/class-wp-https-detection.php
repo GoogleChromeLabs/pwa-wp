@@ -57,7 +57,7 @@ class WP_HTTPS_Detection {
 	 * Initializes the object.
 	 */
 	public function init() {
-		$this->schedule_cron();
+		add_action( 'init', array( $this, 'schedule_cron' ) );
 		add_action( self::CRON_HOOK, array( $this, 'update_https_support_options' ) );
 		add_filter( 'cron_request', array( $this, 'conditionally_prevent_sslverify' ), PHP_INT_MAX );
 
