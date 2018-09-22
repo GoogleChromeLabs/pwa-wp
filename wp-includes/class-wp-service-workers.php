@@ -222,7 +222,7 @@ class WP_Service_Workers extends WP_Scripts {
 	protected function get_base_script() {
 
 		$current_scope = $this->get_current_scope();
-		$workbox_dir   = 'wp-includes/js/workbox-v3.5.0/';
+		$workbox_dir   = 'wp-includes/js/workbox-v3.6.1/';
 
 		$script = sprintf(
 			"importScripts( %s );\n",
@@ -277,7 +277,7 @@ class WP_Service_Workers extends WP_Scripts {
 				$script .= "workbox.navigationPreload.enable();\n";
 			}
 		} else {
-			$script .= "/* Navigation preload disabled. */\n";
+			$script .= "workbox.navigationPreload.disable();\n";
 		}
 
 		// Note: This includes the aliasing of `workbox` to `wp.serviceWorker`.
