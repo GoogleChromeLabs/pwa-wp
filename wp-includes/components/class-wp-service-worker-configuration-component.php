@@ -52,7 +52,7 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 	 */
 	public function get_script() {
 		$current_scope = wp_service_workers()->get_current_scope();
-		$workbox_dir   = 'wp-includes/js/workbox-v3.5.0/';
+		$workbox_dir   = 'wp-includes/js/workbox-v3.6.1/';
 
 		$script = sprintf(
 			"importScripts( %s );\n",
@@ -66,8 +66,14 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 		$script .= sprintf( "workbox.setConfig( %s );\n", wp_service_worker_json_encode( $options ) );
 
 		$cache_name_details = array(
-			'prefix' => 'wordpress',
-			'suffix' => 'v1',
+			// Vary the prefix by the root directory of the site to ensure multisite subdirectory installs don't pollute each other's caches.
+			'prefix'   => sprintf(
+				'wp-%s',
+				wp_parse_url( WP_Service_Workers::SCOPE_FRONT === $current_scope ? home_url( '/' ) : site_url( '/' ), PHP_URL_PATH )
+			),
+			// Also precache name by scope (front vs admin) so that different assets can be precached in each respective application.
+			'precache' => sprintf( 'precache-%s', WP_Service_Workers::SCOPE_FRONT === $current_scope ? 'front' : 'admin' ),
+			'suffix'   => 'v1',
 		);
 
 		$script .= sprintf( "workbox.core.setCacheNameDetails( %s );\n", wp_service_worker_json_encode( $cache_name_details ) );
@@ -107,7 +113,7 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 				$script .= "workbox.navigationPreload.enable();\n";
 			}
 		} else {
-			$script .= "/* Navigation preload disabled. */\n";
+			$script .= "workbox.navigationPreload.disable();\n";
 		}
 
 		// Note: This includes the aliasing of `workbox` to `wp.serviceWorker`.
