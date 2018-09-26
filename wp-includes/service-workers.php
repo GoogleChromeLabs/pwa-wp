@@ -210,6 +210,7 @@ function wp_default_service_workers( $scripts ) {
 	$scripts->default_version = get_bloginfo( 'version' );
 
 	$integrations = array(
+		'wp-admin-assets'      => new WP_Service_Worker_Admin_Assets_Integration(),
 		'wp-site-icon'         => new WP_Service_Worker_Site_Icon_Integration(),
 		'wp-custom-logo'       => new WP_Service_Worker_Custom_Logo_Integration(),
 		'wp-custom-header'     => new WP_Service_Worker_Custom_Header_Integration(),
@@ -271,8 +272,6 @@ function wp_default_service_workers( $scripts ) {
 				);
 		}
 	}
-
-	add_action( 'wp_admin_service_worker', array( $service_workers, 'precache_admin_assets' ), 9 );
 }
 
 /**

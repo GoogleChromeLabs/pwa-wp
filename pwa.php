@@ -72,6 +72,7 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker
 require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-scripts-integration.php';
 require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-styles-integration.php';
 require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-fonts-integration.php';
+require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-admin-assets-integration.php';
 
 /** WordPress Service Worker Functions */
 require_once PWA_PLUGIN_DIR . '/wp-includes/service-workers.php';
