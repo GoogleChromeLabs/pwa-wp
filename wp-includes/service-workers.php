@@ -288,4 +288,9 @@ function wp_disable_script_concatenation() {
 	if ( isset( $_COOKIE['wordpress_sw_installed'] ) ) {
 		$concatenate_scripts = false; // WPCS: Override OK.
 	}
+
+	// @todo This is just here for debugging purposes.
+	if ( isset( $_GET['wp_concatenate_scripts'] ) ) { // WPCS: csrf ok.
+		$concatenate_scripts = rest_sanitize_boolean( $_GET['wp_concatenate_scripts'] ); // WPCS: csrf ok, override ok.
+	}
 }
