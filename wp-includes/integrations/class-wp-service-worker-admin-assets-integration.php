@@ -47,13 +47,11 @@ class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker_Base_
 		);
 
 		foreach ( $routes as $options ) {
-			$url = '';
 			if ( isset( $options['url'] ) ) {
 				$url = $options['url'];
 				unset( $options['url'] );
+				$scripts->precaching_routes()->register( $url, $options );
 			}
-
-			$scripts->precaching_routes()->register( $url, $options );
 		}
 	}
 
