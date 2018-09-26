@@ -46,8 +46,8 @@ class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker_Base_
 		// This needs to be done for $_wp_admin_css_colors to be set.
 		register_admin_color_schemes();
 
-		$this->flag_admin_assets_with_precache( wp_scripts()->registered, 'script' );
-		$this->flag_admin_assets_with_precache( wp_styles()->registered, 'style' );
+		$this->flag_admin_assets_with_precache( wp_scripts()->registered );
+		$this->flag_admin_assets_with_precache( wp_styles()->registered );
 
 		$routes = array_merge(
 			$this->get_routes_from_file_list( $admin_images, 'wp-admin' ),
@@ -76,22 +76,16 @@ class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker_Base_
 	/**
 	 * Flags admin assets with precache.
 	 *
-	 * @param array  $dependencies Array of _WP_Dependency objects.
-	 * @param string $type Type: 'script' or 'style'.
+	 * @param _WP_Dependency[] $dependencies Array of _WP_Dependency objects.
 	 * @return array Array of routes.
 	 */
-	protected function flag_admin_assets_with_precache( $dependencies, $type ) {
+	protected function flag_admin_assets_with_precache( $dependencies ) {
 		$routes = array();
 		foreach ( $dependencies as $handle => $params ) {
 
 			// Only precache scripts from wp-admin and wp-includes.
-			if ( false === strpos( $params->src, 'wp-admin' ) && false === strpos( $params->src, 'wp-includes' ) ) {
-				continue;
-			}
-			if ( 'script' === $type ) {
-				wp_script_add_data( $handle, 'precache', true );
-			} else {
-				wp_style_add_data( $handle, 'precache', true );
+			if ( false !== strpos( $params->src, 'wp-admin' ) || false !== strpos( $params->src, 'wp-includes' ) ) {
+				$params->add_data( 'precache', true );
 			}
 		}
 		return $routes;
