@@ -141,8 +141,14 @@ function wp_print_service_workers() {
 								// If new service worker is available, show notification.
 								if ( 'installed' === updatedSw.state ) {
 									if ( navigator.serviceWorker.controller ) {
-										var notification = document.getElementById( 'pwa-sw-update-notice' );
-										jQuery( notification ).removeClass( 'hidden' );
+
+										// Allows opting out from updating the service worker automatically.
+										if ( wp.hooks.applyFilters( 'pwa.serviceWorker.skipWaiting', true ) ) {
+											updatedSw.postMessage( { action: 'skipWaiting' } );
+										} else {
+											var notification = document.getElementById( 'wp-admin-bar-pwa-sw-update-notice' );
+											jQuery( notification ).removeClass( 'hidden' );
+										}
 									}
 								}
 							} );
@@ -296,15 +302,6 @@ function wp_default_service_workers( $scripts ) {
 }
 
 /**
- * Add admin notice for updating service worker.
- */
-function wp_add_service_worker_admin_notice() {
-	?>
-		<div id="pwa-sw-update-notice" class="hidden notice notice-info is-dismissible"><p><?php echo esc_html( 'A new version of this app is available.', 'pwa' ); ?> <a id="pwa-reload-sw"><?php echo esc_html( 'Refresh', 'pwa' ); ?></a></p></div>
-	<?php
-}
-
-/**
  * Script for sending postMessage to Service Worker for skipping the waiting phase.
  */
 function wp_print_admin_service_worker_update_script() {
@@ -314,10 +311,11 @@ function wp_print_admin_service_worker_update_script() {
 	?>
 	<script>
 		window.addEventListener( 'load', function() {
-			var reloadBtn = document.getElementById( 'pwa-reload-sw' );
+			var reloadBtn = document.getElementById( 'wp-admin-bar-pwa-sw-update-notice' );
 
 			if ( reloadBtn ) {
-				reloadBtn.addEventListener( 'click', function() {
+				reloadBtn.addEventListener( 'click', function( e ) {
+					e.preventDefault();
 					updatedSw.postMessage( { action: 'skipWaiting' } );
 				} );
 			}
@@ -327,34 +325,9 @@ function wp_print_admin_service_worker_update_script() {
 }
 
 /**
- * Adds service worker update notification to admin bar.
+ * Enqueue service worker assets.
  */
-function wp_print_service_worker_update_script() {
-	if ( ! is_user_logged_in() ) {
-		return;
-	}
-	?>
-	<script>
-		window.addEventListener( 'load', function() {
-			var adminBar = jQuery( '#wpadminbar' ),
-				noticeBox;
-
-			if ( adminBar.length ) {
-				noticeBox = jQuery( '<div id="pwa-sw-update-notice" class="hidden"><p><?php echo esc_html( 'A new version of this app is available.', 'pwa' ); ?> <a id="pwa-reload-sw"><?php echo esc_html( 'Refresh', 'pwa' ); ?></a></p><button type="button" class="notice-dismiss"><span class="screen-reader-text"><?php echo esc_html( 'Dismiss this notice.', 'pwa' ); ?></span></button></div>' );
-				jQuery( adminBar ).append( noticeBox );
-				jQuery( '#pwa-sw-update-notice .notice-dismiss' ).click( function() {
-					jQuery( noticeBox ).addClass( 'hidden' );
-				} );
-			}
-		} );
-	</script>
-	<?php
-}
-
-/**
- * Enqueue service worker styles. This could be in load-scripts.php.
- */
-function wp_service_worker_default_styles() {
+function wp_service_worker_default_assets() {
 
 	// Styles.
 	wp_enqueue_style(
@@ -362,5 +335,25 @@ function wp_service_worker_default_styles() {
 		PWA_PLUGIN_URL . '/wp-includes/css/service-worker.css',
 		true,
 		PWA_VERSION
+	);
+
+	wp_enqueue_script( 'wp-hooks' );
+}
+
+/**
+ * Add Service Worker update notification to admin bar.
+ *
+ * @param object $wp_admin_bar WP Admin Bar.
+ */
+function wp_service_worker_update_node( $wp_admin_bar ) {
+	$wp_admin_bar->add_node(
+		array(
+			'id'    => 'pwa-sw-update-notice',
+			'meta'  => array(
+				'class' => 'hidden',
+			),
+			'title' => __( 'Update to a new version of this app!', 'pwa' ),
+			'href'  => '#',
+		)
 	);
 }
