@@ -42,7 +42,7 @@ As noted in a [Google guide](https://developers.google.com/web/fundamentals/web-
 
 > The [web app manifest](https://developer.mozilla.org/en-US/docs/Web/Manifest) is a simple JSON file that tells the browser about your web application and how it should behave when 'installed' on the users mobile device or desktop.
 
-The plugin exposes the web app manifest via the REST API at `/wp-json/app/v1/web-manifest`. A response looks like:
+The plugin exposes the web app manifest via the REST API at `/wp-json/wp/v2/web-app-manifest`. A response looks like:
 
 <pre lang=json>
 {
@@ -97,41 +97,54 @@ As noted in a [Google primer](https://developers.google.com/web/fundamentals/pri
 
 Only one service worker can be controlling a page at a time. This has prevented themes and plugins from each introducing their own service workers because only one wins. So the first step at adding support for service workers in core is to provide an API for themes and plugins to register scripts and then have them concatenated into a script that is installed as the service worker. There are two such concatenated service worker scripts that are made available: one for the frontend and one for the admin. The frontend service worker is installed under the `home('/')` scope and the admin service worker is installed under the `admin_url('/')` scope.
 
-The API is implemented using the same interface as WordPress uses for registering scripts; in fact `WP_Service_Workers` is a subclass of `WP_Scripts`. The instance of this class is accessible via `wp_service_workers()` in the same way as `wp_scripts()`. Instead of using `wp_register_script()` the service worker scripts are registered using `wp_register_service_worker()`. This function takes four arguments:
+The API is implemented using the same interface as WordPress uses for registering scripts; in fact `WP_Service_Worker_Scripts` is a subclass of `WP_Scripts`. The instance of this class is accessible via `wp_service_workers()->get_registry()`. Instead of using `wp_register_script()` the service worker scripts are registered using `wp_register_service_worker_script()`. This function accepts two parameters:
 
 * `$handle`: The service worker script handle which can be used to mark the script as a dependency for other scripts.
-* `$src`: The URL to the service worker _on the local filesystem_ or a callback function which returns the script to include in the service worker.
-* `$deps`: An array of service worker script handles that a script depends on.
-* `$scope`: Whether a script is included in the frontend service worker (`WP_Service_Workers::SCOPE_FRONT`), the wp-admin service worker (`WP_Service_Workers::SCOPE_ADMIN`), or both (`WP_Service_Workers::SCOPE_ALL`).
+* `$args`: An array of additional service worker script arguments as `$key => $value` pairs:
+	* `$src`: Required. The URL to the service worker _on the local filesystem_ or a callback function which returns the script to include in the service worker.
+	* `$deps`: An array of service worker script handles that a script depends on.
 
 Note that there is no `$ver` (version) parameter because browsers do not cache service workers so there is no need to cache bust them.
+
+Service worker scripts should be registered on the `wp_front_service_worker` and/or `wp_admin_service_worker` action hooks, depending on whether they should be active for the frontend service worker, the admin service worker, or both of them. The hooks are passed the `WP_Service_Worker_Scripts` instance, so you can optionally access its `register()` method directly, which `wp_register_service_worker_script()` is a simple wrapper of.
 
 Here are some examples:
 
 <pre lang=php>
-// Register script to only run on the frontend, with dependency on some other app-shell SW script.
-wp_register_service_worker(
-    'foo', // Handle.
-    plugin_dir_url( __FILE__ ) . 'foo.js', // Source.
-    array( 'app-shell' ), // Dependency.
-    WP_Service_Workers::SCOPE_FRONT // Scope.
-);
+function register_foo_service_worker_script( $scripts ) {
+	// $scripts->register() is the same as wp_register_service_worker_script().
+	$scripts->register(
+		'foo', // Handle.
+		array(
+			'src'  => plugin_dir_url( __FILE__ ) . 'foo.js', // Source.
+			'deps' => array( 'app-shell' ), // Dependency.
+		)
+	);
+}
+// Register for the frontend service worker.
+add_action( 'wp_front_service_worker', 'register_foo_service_worker_script' );
 
-// Register script (here via render callback instead of URL) to only run only in the admin.
-wp_register_service_worker(
-    'bar',
-    function() {
-        return 'console.info( "Hello admin!" );';
-    },
-    array(), // No deps.
-    WP_Service_Workers::SCOPE_ADMIN
-);
+function register_bar_service_worker_script( $scripts ) {
+	$scripts->register(
+		'bar',
+		array(
+			// Use a script render callback instead of a source file.
+			'src'  => function() {
+				return 'console.info( "Hello admin!" );';
+			},
+			'deps' => array(), // No dependencies (can also be omitted).
+		)
+	);
+}
+// Register for the admin service worker.
+add_action( 'wp_admin_service_worker', 'register_bar_service_worker_script' );
 
-// Register script with to run in both the frontend and wp-admin.
-wp_register_service_worker( 'baz', plugin_dir_url( __FILE__ ) . 'baz.js', array(), WP_Service_Workers::SCOPE_ALL );
-
-// The default values for $deps and $scope are array() and WP_Service_Workers::SCOPE_ALL respectively, so this is same as previous.
-wp_register_service_worker( 'baz', plugin_dir_url( __FILE__ ) . 'baz.js' );
+function register_baz_service_worker_script( $scripts ) {
+	$scripts->register( 'baz', array( 'src' => plugin_dir_url( __FILE__ ) . 'baz.js' ) );
+}
+// Register for both the frontend and admin service worker.
+add_action( 'wp_front_service_worker', 'register_baz_service_worker_script' );
+add_action( 'wp_admin_service_worker', 'register_baz_service_worker_script' );
 </pre>
 
 The next step for service workers in the feature plugin is to explore the use of [Workbox](https://developers.google.com/web/tools/workbox/) to power a higher-level PHP abstraction for themes and plugins to indicate the routes and the caching strategies in a declarative way (with detection for conflicts).

@@ -23,39 +23,58 @@ function wp_service_workers() {
 }
 
 /**
- * Register a new service worker.
- *
- * @since 0.1
- *
- * @param string          $handle Name of the service worker. Should be unique.
- * @param string|callable $src    Callback method or relative path of the service worker.
- * @param array           $deps   Optional. An array of registered script handles this depends on. Default empty array.
- * @param int             $scope  Scope for which service worker the script will be part of. Can be WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, or WP_Service_Workers::SCOPE_ALL. Default to WP_Service_Workers::SCOPE_ALL.
- * @return bool Whether the script has been registered. True on success, false on failure.
- */
-function wp_register_service_worker( $handle, $src, $deps = array(), $scope = WP_Service_Workers::SCOPE_ALL ) {
-	return wp_service_workers()->register_script( $handle, $src, $deps, $scope );
-}
-
-/**
- * Register route and caching strategy using regex pattern for route.
+ * Register a service worker script.
  *
  * @since 0.2
  *
- * @param string $route Route, has to be valid regex.
- * @param string $strategy Strategy, can be WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Workers::STRATEGY_CACHE_FIRST,
- *                         WP_Service_Workers::STRATEGY_NETWORK_FIRST, WP_Service_Workers::STRATEGY_CACHE_ONLY,
- *                         WP_Service_Workers::STRATEGY_NETWORK_ONLY.
- * @param array  $strategy_args {
- *     An array of strategy arguments.
+ * @param string $handle Handle of the script.
+ * @param array  $args   {
+ *     Additional script arguments.
  *
- *     @type string $cache_name Cache name.
+ *     @type string|callable $src  Required. URL to the source in the WordPress install, or a callback that
+ *                                 returns the JS to include in the service worker.
+ *     @type array           $deps An array of registered item handles this item depends on. Default empty array.
+ * }
+ */
+function wp_register_service_worker_script( $handle, $args = array() ) {
+	wp_service_workers()->get_registry()->register( $handle, $args );
+}
+
+/**
+ * Registers a precaching route.
+ *
+ * @since 0.2
+ *
+ * @param string $url  URL to cache.
+ * @param array  $args {
+ *     Additional route arguments.
+ *
+ *     @type string $revision Revision.
+ * }
+ */
+function wp_register_service_worker_precaching_route( $url, $args = array() ) {
+	wp_service_workers()->get_registry()->precaching_routes()->register( $url, $args );
+}
+
+/**
+ * Registers a caching route.
+ *
+ * @since 0.2
+ *
+ * @param string $route Route regular expression, without delimiters.
+ * @param array  $args  {
+ *     Additional route arguments.
+ *
+ *     @type string $strategy   Required. Strategy, can be WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
+ *                              WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
+ *                              WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY.
+ *     @type string $cache_name Name to use for the cache.
  *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
  *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
  * }
  */
-function wp_register_route_caching_strategy( $route, $strategy = WP_Service_Workers::STRATEGY_STALE_WHILE_REVALIDATE, $strategy_args = array() ) {
-	wp_service_workers()->register_cached_route( $route, $strategy, $strategy_args );
+function wp_register_service_worker_caching_route( $route, $args = array() ) {
+	wp_service_workers()->get_registry()->caching_routes()->register( $route, $args );
 }
 
 /**
@@ -167,16 +186,28 @@ function wp_service_worker_loaded() {
 }
 
 /**
+ * JSON-encodes with pretty printing.
+ *
+ * @since 0.2
+ *
+ * @param mixed $data Data.
+ * @return string JSON.
+ */
+function wp_service_worker_json_encode( $data ) {
+	return wp_json_encode( $data, 128 | 64 /* JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES */ );
+}
+
+/**
  * Registers all default service workers.
  *
  * @since 0.2
  *
- * @param WP_Service_Workers $service_workers WP_Service_Workers instance.
+ * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
  */
-function wp_default_service_workers( $service_workers ) {
-	$service_workers->base_url        = site_url();
-	$service_workers->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
-	$service_workers->default_version = get_bloginfo( 'version' );
+function wp_default_service_workers( $scripts ) {
+	$scripts->base_url        = site_url();
+	$scripts->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
+	$scripts->default_version = get_bloginfo( 'version' );
 
 	$integrations = array(
 		'wp-site-icon'         => new WP_Service_Worker_Site_Icon_Integration(),
@@ -213,16 +244,18 @@ function wp_default_service_workers( $service_workers ) {
 			continue;
 		}
 
-		$scope = $integration->get_scope();
+		$scope    = $integration->get_scope();
+		$priority = $integration->get_priority();
 		switch ( $scope ) {
 			case WP_Service_Workers::SCOPE_FRONT:
-				add_action( 'wp_front_service_worker', array( $integration, 'register' ), 10, 1 );
+				add_action( 'wp_front_service_worker', array( $integration, 'register' ), $priority, 1 );
 				break;
 			case WP_Service_Workers::SCOPE_ADMIN:
-				add_action( 'wp_admin_service_worker', array( $integration, 'register' ), 10, 1 );
+				add_action( 'wp_admin_service_worker', array( $integration, 'register' ), $priority, 1 );
 				break;
 			case WP_Service_Workers::SCOPE_ALL:
-				add_action( 'wp_service_worker', array( $integration, 'register' ), 10, 1 );
+				add_action( 'wp_front_service_worker', array( $integration, 'register' ), $priority, 1 );
+				add_action( 'wp_admin_service_worker', array( $integration, 'register' ), $priority, 1 );
 				break;
 			default:
 				$valid_scopes = array( WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, WP_Service_Workers::SCOPE_ALL );

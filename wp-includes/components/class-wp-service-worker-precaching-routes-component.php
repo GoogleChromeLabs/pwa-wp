@@ -1,0 +1,97 @@
+<?php
+/**
+ * WP_Service_Worker_Precaching_Routes_Component class.
+ *
+ * @package PWA
+ */
+
+/**
+ * Class representing the service worker core component for precaching routes.
+ *
+ * @since 0.2
+ */
+class WP_Service_Worker_Precaching_Routes_Component implements WP_Service_Worker_Component, WP_Service_Worker_Registry_Aware {
+
+	/**
+	 * Precaching routes registry.
+	 *
+	 * @since 0.2
+	 * @var WP_Service_Worker_Precaching_Routes
+	 */
+	protected $registry;
+
+	/**
+	 * Constructor.
+	 *
+	 * Instantiates the registry.
+	 *
+	 * @since 0.2
+	 */
+	public function __construct() {
+		$this->registry = new WP_Service_Worker_Precaching_Routes();
+	}
+
+	/**
+	 * Adds the component functionality to the service worker.
+	 *
+	 * @since 0.2
+	 *
+	 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
+	 */
+	public function serve( WP_Service_Worker_Scripts $scripts ) {
+		$scripts->register(
+			'wp-precaching-routes',
+			array(
+				'src'  => array( $this, 'get_script' ),
+				'deps' => array( 'wp-base-config' ),
+			)
+		);
+	}
+
+	/**
+	 * Gets the priority this component should be hooked into the service worker action with.
+	 *
+	 * @since 0.2
+	 *
+	 * @return int Hook priority. A higher number means a lower priority.
+	 */
+	public function get_priority() {
+		return 99999;
+	}
+
+	/**
+	 * Gets the registry.
+	 *
+	 * @return WP_Service_Worker_Precaching_Routes Precaching routes registry instance.
+	 */
+	public function get_registry() {
+		return $this->registry;
+	}
+
+	/**
+	 * Gets the script that registers the precaching routes.
+	 *
+	 * @since 0.2
+	 *
+	 * @return string Script.
+	 */
+	public function get_script() {
+		$routes = $this->registry->get_all();
+		if ( empty( $routes ) ) {
+			return '';
+		}
+
+		$replacements = array(
+			'PRECACHE_ENTRIES' => wp_service_worker_json_encode( $routes ),
+		);
+
+		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-precaching.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
+
+		return str_replace(
+			array_keys( $replacements ),
+			array_values( $replacements ),
+			$script
+		);
+	}
+}
