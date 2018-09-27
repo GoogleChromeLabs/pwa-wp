@@ -72,8 +72,8 @@ class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker_Base_
 		$routes = array();
 		foreach ( $dependencies as $handle => $params ) {
 
-			// Only precache scripts from wp-admin and wp-includes.
-			if ( false !== strpos( $params->src, 'wp-admin' ) || false !== strpos( $params->src, 'wp-includes' ) ) {
+			// Only precache scripts from wp-admin and wp-includes (and Gutenberg).
+			if ( preg_match( '#/(wp-admin|wp-includes|wp-content/plugins/gutenberg)/#', $params->src ) ) {
 				$params->add_data( 'precache', true );
 			}
 		}
