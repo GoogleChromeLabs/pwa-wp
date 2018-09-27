@@ -231,7 +231,6 @@ function wp_default_service_workers( $scripts ) {
 	$scripts->default_version = get_bloginfo( 'version' );
 
 	$integrations = array(
-		'wp-admin-assets'      => new WP_Service_Worker_Admin_Assets_Integration(),
 		'wp-site-icon'         => new WP_Service_Worker_Site_Icon_Integration(),
 		'wp-custom-logo'       => new WP_Service_Worker_Custom_Logo_Integration(),
 		'wp-custom-header'     => new WP_Service_Worker_Custom_Header_Integration(),
@@ -240,6 +239,10 @@ function wp_default_service_workers( $scripts ) {
 		'wp-styles'            => new WP_Service_Worker_Styles_Integration(),
 		'wp-fonts'             => new WP_Service_Worker_Fonts_Integration(),
 	);
+
+	if ( ! SCRIPT_DEBUG ) {
+		$integrations['wp-admin-assets'] = new WP_Service_Worker_Admin_Assets_Integration();
+	}
 
 	/**
 	 * Filters the service worker integrations to initialize.

@@ -20,12 +20,6 @@ class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker_Base_
 	 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
 	 */
 	public function register( WP_Service_Worker_Scripts $scripts ) {
-
-		// Don't continue if debug mode.
-		if ( SCRIPT_DEBUG ) {
-			return;
-		}
-
 		if ( ! function_exists( 'list_files' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
