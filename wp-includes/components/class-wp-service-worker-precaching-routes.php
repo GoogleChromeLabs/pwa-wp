@@ -46,6 +46,20 @@ class WP_Service_Worker_Precaching_Routes implements WP_Service_Worker_Registry 
 	}
 
 	/**
+	 * Register Emoji script.
+	 *
+	 * @since 0.2
+	 */
+	public function register_emoji_script() {
+		$this->register(
+			includes_url( 'js/wp-emoji-release.min.js' ),
+			array(
+				'revision' => get_bloginfo( 'version' ),
+			)
+		);
+	}
+
+	/**
 	 * Gets all registered routes.
 	 *
 	 * @since 0.2

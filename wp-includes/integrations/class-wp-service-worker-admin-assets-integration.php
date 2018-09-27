@@ -49,6 +49,7 @@ class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker_Base_
 		$this->flag_admin_assets_with_precache( wp_scripts()->registered );
 		$this->flag_admin_assets_with_precache( wp_styles()->registered );
 
+		// @todo Need to register_tinymce_scripts.
 		$routes = array_merge(
 			$this->get_routes_from_file_list( $admin_images, 'wp-admin' ),
 			$this->get_routes_from_file_list( $inc_images, 'wp-includes' ),
@@ -94,6 +95,7 @@ class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker_Base_
 	/**
 	 * Get static list of .woff files to precache.
 	 *
+	 * @todo These should be also available to the frontend. So this should go into WP_Service_Worker_Precaching_Routes.
 	 * @return array
 	 */
 	protected function get_woff_file_list() {

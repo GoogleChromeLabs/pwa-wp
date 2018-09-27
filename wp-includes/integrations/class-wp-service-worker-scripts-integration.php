@@ -77,6 +77,9 @@ class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base_Integ
 				$scripts->precaching_routes()->register( $url, $revision );
 			}
 		}
+
+		$scripts->precaching_routes()->register_emoji_script();
+
 		wp_scripts()->to_do = $original_to_do; // Restore original scripts to do.
 	}
 
