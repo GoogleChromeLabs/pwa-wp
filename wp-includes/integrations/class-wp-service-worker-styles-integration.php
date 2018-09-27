@@ -73,7 +73,7 @@ class WP_Service_Worker_Styles_Integration extends WP_Service_Worker_Base_Integr
 			/** This filter is documented in wp-includes/class.wp-styles.php */
 			$url = apply_filters( 'style_loader_src', $url, $handle );
 
-			if ( $url ) {
+			if ( $url && $this->is_local_file_url( $url ) ) {
 				$scripts->precaching_routes()->register( $url, $revision );
 			}
 		}
