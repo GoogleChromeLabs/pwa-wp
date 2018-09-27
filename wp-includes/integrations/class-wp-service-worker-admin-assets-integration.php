@@ -28,14 +28,15 @@ class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker_Base_
 		$admin_images = list_files( $admin_dir . 'images/' );
 		$inc_images   = list_files( ABSPATH . WPINC . '/images/' );
 
+		// @todo This should not enqueue TinyMCE if rich editing is disabled?
 		$this->flag_admin_assets_with_precache( wp_scripts()->registered );
 		$this->flag_admin_assets_with_precache( wp_styles()->registered );
 
-		// @todo Need to register_tinymce_scripts. See \_WP_Editors::print_tinymce_scripts().
 		$routes = array_merge(
 			$this->get_routes_from_file_list( $admin_images, 'wp-admin' ),
 			$this->get_routes_from_file_list( $inc_images, 'wp-includes' ),
-			$this->get_woff_file_list()
+			$this->get_woff_file_list(),
+			$this->get_tinymce_file_list()
 		);
 
 		foreach ( $routes as $options ) {
@@ -95,6 +96,30 @@ class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker_Base_
 				'url'      => '/wp-includes/js/tinymce/skins/lightgray/fonts/tinymce.woff',
 			),
 		);
+	}
+
+	/**
+	 * Get list of TinyMCE files for precaching.
+	 *
+	 * @return array Routes.
+	 */
+	protected function get_tinymce_file_list() {
+		global $tinymce_version;
+		$tinymce_routes = array();
+		$tinymce_files  = list_files( ABSPATH . WPINC . '/js/tinymce/' );
+
+		foreach ( $tinymce_files as $tinymce_file ) {
+			$basename = basename( $tinymce_file );
+			if ( preg_match( '#\.min\.(css|js)$#', $tinymce_file ) ) {
+				$url = includes_url( preg_replace( '/.*' . WPINC . '/', '', $tinymce_file ) );
+
+				$tinymce_routes[] = array(
+					'url'      => $url,
+					'revision' => $tinymce_version,
+				);
+			}
+		}
+		return $tinymce_routes;
 	}
 
 	/**
