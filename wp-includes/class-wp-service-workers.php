@@ -123,8 +123,11 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 			 */
 			do_action( 'wp_front_service_worker', $this->scripts );
 		} else {
+			$hook_name = 'service-worker';
+			set_current_screen( $hook_name );
+
 			/** This action is documented in wp-admin/admin-header.php */
-			do_action( 'admin_enqueue_scripts', 'service-worker' );
+			do_action( 'admin_enqueue_scripts', $hook_name );
 
 			/**
 			 * Fires before serving the wp-admin service worker, when its scripts should be registered, caching routes established, and assets precached.
