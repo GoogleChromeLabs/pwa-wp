@@ -34,22 +34,10 @@ class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker_Base_
 		$admin_images = list_files( $admin_dir . 'images/' );
 		$inc_images   = list_files( ABSPATH . WPINC . '/images/' );
 
-		// @todo The following is bad. It is currently needed to make sure that scripts conditionally registered for the admin get registered. Use admin-ajax for endpoint?
-		require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
-		require_once ABSPATH . 'wp-admin/includes/screen.php';
-		set_current_screen( 'index' );
-		global $wp_scripts, $wp_styles;
-		$wp_scripts = null; // WPCS: override ok.
-		$wp_styles  = null; // WPCS: override ok.
-
-		// @todo The following can be avoided if we use the admin-ajax.php endpoint.
-		// This needs to be done for $_wp_admin_css_colors to be set.
-		register_admin_color_schemes();
-
 		$this->flag_admin_assets_with_precache( wp_scripts()->registered );
 		$this->flag_admin_assets_with_precache( wp_styles()->registered );
 
-		// @todo Need to register_tinymce_scripts.
+		// @todo Need to register_tinymce_scripts. See \_WP_Editors::print_tinymce_scripts().
 		$routes = array_merge(
 			$this->get_routes_from_file_list( $admin_images, 'wp-admin' ),
 			$this->get_routes_from_file_list( $inc_images, 'wp-includes' ),

@@ -91,10 +91,17 @@ function wp_get_service_worker_url( $scope = WP_Service_Workers::SCOPE_FRONT ) {
 		$scope = WP_Service_Workers::SCOPE_FRONT;
 	}
 
-	return add_query_arg(
-		array( WP_Service_Workers::QUERY_VAR => $scope ),
-		home_url( '/', 'https' )
-	);
+	if ( WP_Service_Workers::SCOPE_FRONT === $scope ) {
+		return add_query_arg(
+			array( WP_Service_Workers::QUERY_VAR => $scope ),
+			home_url( '/', 'https' )
+		);
+	} else {
+		return add_query_arg(
+			array( 'action' => WP_Service_Workers::QUERY_VAR ),
+			admin_url( 'admin-ajax.php' )
+		);
+	}
 }
 
 /**
@@ -172,17 +179,31 @@ function wp_print_service_worker_error_details_script( $callback ) {
 }
 
 /**
- * If it's a service worker script page, display that.
+ * Serve the service worker for the frontend if requested.
  *
  * @since 0.1
  * @see rest_api_loaded()
+ * @see wp_ajax_wp_service_worker()
  */
 function wp_service_worker_loaded() {
-	$scope = wp_service_workers()->get_current_scope();
-	if ( 0 !== $scope ) {
-		wp_service_workers()->serve_request( $scope );
+	global $wp;
+	if ( isset( $wp->query_vars[ WP_Service_Workers::QUERY_VAR ] ) ) {
+		wp_service_workers()->serve_request();
 		exit;
 	}
+}
+
+/**
+ * Serve admin service worker.
+ *
+ * This will be moved to wp-admin/includes/admin-actions.php
+ *
+ * @since 0.2
+ * @see wp_service_worker_loaded()
+ */
+function wp_ajax_wp_service_worker() {
+	wp_service_workers()->serve_request();
+	exit;
 }
 
 /**

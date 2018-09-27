@@ -48,6 +48,7 @@ class WP_Service_Worker_Precaching_Routes implements WP_Service_Worker_Registry 
 	/**
 	 * Register Emoji script.
 	 *
+	 * @todo This should only be done if not admin and has_action( 'wp_head', 'print_emoji_detection_script' ), or if admin and has_action( 'admin_print_scripts', 'print_emoji_detection_script' )
 	 * @since 0.2
 	 */
 	public function register_emoji_script() {

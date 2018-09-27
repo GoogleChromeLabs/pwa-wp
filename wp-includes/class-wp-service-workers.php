@@ -78,31 +78,19 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 	/**
 	 * Get the current scope for the service worker request.
 	 *
-	 * @global WP $wp
-	 *
-	 * @return int Scope. Either SCOPE_FRONT, SCOPE_ADMIN, or if neither then 0.
+	 * @todo We don't really need this. A simple call to is_admin() is all that is required.
+	 * @return int Scope. Either SCOPE_FRONT or SCOPE_ADMIN.
 	 */
 	public function get_current_scope() {
-		global $wp;
-		if ( ! isset( $wp->query_vars[ self::QUERY_VAR ] ) || ! is_numeric( $wp->query_vars[ self::QUERY_VAR ] ) ) {
-			return 0;
-		}
-		$scope = (int) $wp->query_vars[ self::QUERY_VAR ];
-		if ( self::SCOPE_FRONT === $scope ) {
-			return self::SCOPE_FRONT;
-		} elseif ( self::SCOPE_ADMIN === $scope ) {
-			return self::SCOPE_ADMIN;
-		}
-		return 0;
+		return is_admin() ? self::SCOPE_ADMIN : self::SCOPE_FRONT;
 	}
 
 	/**
 	 * Get service worker logic for scope.
 	 *
 	 * @see wp_service_worker_loaded()
-	 * @param int $scope Scope of the Service Worker.
 	 */
-	public function serve_request( $scope ) {
+	public function serve_request() {
 		/*
 		 * Per Workbox <https://developers.google.com/web/tools/workbox/guides/service-worker-checklist#cache-control_of_your_service_worker_file>:
 		 * "Generally, most developers will want to set the Cache-Control header to no-cache,
@@ -114,7 +102,7 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 
 		@header( 'Content-Type: text/javascript; charset=utf-8' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged
 
-		if ( self::SCOPE_FRONT === $scope ) {
+		if ( ! is_admin() ) {
 			wp_enqueue_scripts();
 
 			/**
@@ -134,7 +122,7 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 			 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
 			 */
 			do_action( 'wp_front_service_worker', $this->scripts );
-		} elseif ( self::SCOPE_ADMIN === $scope ) {
+		} else {
 			/**
 			 * Fires before serving the wp-admin service worker, when its scripts should be registered, caching routes established, and assets precached.
 			 *
@@ -145,13 +133,7 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 			do_action( 'wp_admin_service_worker', $this->scripts );
 		}
 
-		if ( self::SCOPE_FRONT !== $scope && self::SCOPE_ADMIN !== $scope ) {
-			status_header( 400 );
-			echo '/* invalid_scope_requested */';
-			return;
-		}
-
-		printf( "/* PWA v%s */\n\n", esc_html( PWA_VERSION ) );
+		printf( "/* PWA v%s-%s */\n\n", esc_html( PWA_VERSION ), is_admin() ? 'admin' : 'front' );
 
 		ob_start();
 		$this->scripts->do_items( array_keys( $this->scripts->registered ) );
