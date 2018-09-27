@@ -48,16 +48,24 @@ class WP_Service_Worker_Precaching_Routes implements WP_Service_Worker_Registry 
 	/**
 	 * Register Emoji script.
 	 *
-	 * @todo This should only be done if not admin and has_action( 'wp_head', 'print_emoji_detection_script' ), or if admin and has_action( 'admin_print_scripts', 'print_emoji_detection_script' )
+	 * Short-circuit if SCRIPT_DEBUG (hence file not built) or print_emoji_detection_script has been removed.
+	 *
 	 * @since 0.2
+	 *
+	 * @return bool Whether emoji script was registered.
 	 */
 	public function register_emoji_script() {
+		if ( SCRIPT_DEBUG || false === has_action( is_admin() ? 'admin_print_scripts' : 'wp_head', 'print_emoji_detection_script' ) ) {
+			return false;
+		}
+
 		$this->register(
 			includes_url( 'js/wp-emoji-release.min.js' ),
 			array(
 				'revision' => get_bloginfo( 'version' ),
 			)
 		);
+		return true;
 	}
 
 	/**
