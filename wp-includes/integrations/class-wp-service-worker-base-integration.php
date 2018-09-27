@@ -77,4 +77,27 @@ abstract class WP_Service_Worker_Base_Integration implements WP_Service_Worker_I
 
 		return array();
 	}
+
+	/**
+	 * Determines whether a URL is for a local file.
+	 *
+	 * @since 0.2
+	 *
+	 * @param string $url URL.
+	 * @return bool Whether local.
+	 */
+	protected function is_local_file_url( $url ) {
+		$re_proto = '#^\w+(?://)#';
+		$url      = preg_replace( $re_proto, '', $url );
+		$home_url = preg_replace( $re_proto, '', home_url( '/' ) );
+		$site_url = preg_replace( $re_proto, '', site_url( '/' ) );
+
+		return (
+			'/' === substr( $url, 0, 1 )
+			||
+			substr( $url, 0, strlen( $home_url ) ) === $home_url
+			||
+			substr( $url, 0, strlen( $site_url ) ) === $site_url
+		);
+	}
 }

@@ -39,8 +39,7 @@ class WP_Service_Worker_Error_Response_Component implements WP_Service_Worker_Co
 		// Ensure the user-specific offline/500 pages are precached, and thet they update when user logs out or switches to another user.
 		$revision .= sprintf( ';user-%d', get_current_user_id() );
 
-		$current_scope = wp_service_workers()->get_current_scope();
-		if ( WP_Service_Workers::SCOPE_FRONT === $current_scope ) {
+		if ( ! is_admin() ) {
 			$offline_error_template_file  = pwa_locate_template( array( 'offline.php', 'error.php' ) );
 			$offline_error_precache_entry = array(
 				'url'      => add_query_arg( 'wp_error_template', 'offline', home_url( '/' ) ),
@@ -117,7 +116,7 @@ class WP_Service_Worker_Error_Response_Component implements WP_Service_Worker_Co
 		}
 
 		$blacklist_patterns = array();
-		if ( WP_Service_Workers::SCOPE_FRONT === $current_scope ) {
+		if ( ! is_admin() ) {
 			$blacklist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)';
 		}
 

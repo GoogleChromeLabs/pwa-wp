@@ -13,8 +13,8 @@
  *
  * @see WP_Dependencies
  *
- * @method WP_Service_Worker_Precaching_Routes_Component precaching_routes()
- * @method WP_Service_Worker_Caching_Routes_Component    caching_routes()
+ * @method WP_Service_Worker_Precaching_Routes precaching_routes()
+ * @method WP_Service_Worker_Caching_Routes caching_routes()
  */
 class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_Registry {
 

@@ -64,7 +64,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		add_action( 'wp_admin_service_worker', array( $this, 'register_foo_sw' ) );
 
 		ob_start();
-		wp_service_workers()->serve_request( WP_Service_Workers::SCOPE_FRONT );
+		wp_service_workers()->serve_request();
 		$output = ob_get_clean();
 		$this->assertContains( $this->return_foo_sw(), $output );
 		$this->assertContains( $this->return_bar_sw(), $output );
@@ -87,7 +87,8 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		add_action( 'wp_admin_service_worker', array( $this, 'register_foo_sw' ) );
 
 		ob_start();
-		wp_service_workers()->serve_request( WP_Service_Workers::SCOPE_ADMIN );
+		set_current_screen( 'admin-ajax' );
+		wp_service_workers()->serve_request();
 		$output = ob_get_clean();
 
 		$this->assertContains( $this->return_foo_sw(), $output );
@@ -96,17 +97,6 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		$this->assertTrue(
 			strpos( $output, $this->return_foo_sw() ) < strpos( $output, $this->return_baz_sw() )
 		);
-	}
-
-	/**
-	 * Test serve_request for invalid scope.
-	 *
-	 * @covers WP_Service_Workers::serve_request()
-	 */
-	public function test_serve_request_invalid_scope() {
-		ob_start();
-		wp_service_workers()->serve_request( 'bad' );
-		$this->assertContains( 'invalid_scope_requested', ob_get_clean() );
 	}
 
 	/**
@@ -125,7 +115,8 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		);
 
 		ob_start();
-		wp_service_workers()->serve_request( WP_Service_Workers::SCOPE_ADMIN );
+		set_current_screen( 'admin-ajax' );
+		wp_service_workers()->serve_request();
 		$output = ob_get_clean();
 
 		$this->assertContains( 'Service worker src is invalid', $output );
@@ -147,7 +138,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		);
 
 		ob_start();
-		wp_service_workers()->serve_request( WP_Service_Workers::SCOPE_FRONT );
+		wp_service_workers()->serve_request();
 		$output = ob_get_clean();
 
 		$this->assertContains( 'Service worker src is invalid', $output );

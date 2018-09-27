@@ -91,10 +91,17 @@ function wp_get_service_worker_url( $scope = WP_Service_Workers::SCOPE_FRONT ) {
 		$scope = WP_Service_Workers::SCOPE_FRONT;
 	}
 
-	return add_query_arg(
-		array( WP_Service_Workers::QUERY_VAR => $scope ),
-		home_url( '/', 'https' )
-	);
+	if ( WP_Service_Workers::SCOPE_FRONT === $scope ) {
+		return add_query_arg(
+			array( WP_Service_Workers::QUERY_VAR => $scope ),
+			home_url( '/', 'https' )
+		);
+	} else {
+		return add_query_arg(
+			array( 'action' => WP_Service_Workers::QUERY_VAR ),
+			admin_url( 'admin-ajax.php' )
+		);
+	}
 }
 
 /**
@@ -131,7 +138,9 @@ function wp_print_service_workers() {
 					navigator.serviceWorker.register(
 						<?php echo wp_json_encode( wp_get_service_worker_url( $name ) ); ?>,
 						<?php echo wp_json_encode( compact( 'scope' ) ); ?>
-					);
+					).then( function() {
+						document.cookie = 'wordpress_sw_installed=1; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; secure; samesite=strict';
+					} );
 				<?php } ?>
 			} );
 		}
@@ -170,17 +179,31 @@ function wp_print_service_worker_error_details_script( $callback ) {
 }
 
 /**
- * If it's a service worker script page, display that.
+ * Serve the service worker for the frontend if requested.
  *
  * @since 0.1
  * @see rest_api_loaded()
+ * @see wp_ajax_wp_service_worker()
  */
 function wp_service_worker_loaded() {
-	$scope = wp_service_workers()->get_current_scope();
-	if ( 0 !== $scope ) {
-		wp_service_workers()->serve_request( $scope );
+	global $wp;
+	if ( isset( $wp->query_vars[ WP_Service_Workers::QUERY_VAR ] ) ) {
+		wp_service_workers()->serve_request();
 		exit;
 	}
+}
+
+/**
+ * Serve admin service worker.
+ *
+ * This will be moved to wp-admin/includes/admin-actions.php
+ *
+ * @since 0.2
+ * @see wp_service_worker_loaded()
+ */
+function wp_ajax_wp_service_worker() {
+	wp_service_workers()->serve_request();
+	exit;
 }
 
 /**
@@ -216,6 +239,10 @@ function wp_default_service_workers( $scripts ) {
 		'wp-styles'            => new WP_Service_Worker_Styles_Integration(),
 		'wp-fonts'             => new WP_Service_Worker_Fonts_Integration(),
 	);
+
+	if ( ! SCRIPT_DEBUG ) {
+		$integrations['wp-admin-assets'] = new WP_Service_Worker_Admin_Assets_Integration();
+	}
 
 	/**
 	 * Filters the service worker integrations to initialize.
@@ -268,5 +295,26 @@ function wp_default_service_workers( $scripts ) {
 					'0.1'
 				);
 		}
+	}
+}
+
+/**
+ * Disables concatenating scripts to leverage caching the assets via Service Worker instead.
+ */
+function wp_disable_script_concatenation() {
+	global $concatenate_scripts;
+
+	/*
+	 * This cookie is set when the service worker registers successfully, avoiding unnecessary result
+	 * for browsers that don't support service workers. Note that concatenation only applies in the admin,
+	 * for authenticated users without full-page caching.
+	*/
+	if ( isset( $_COOKIE['wordpress_sw_installed'] ) ) {
+		$concatenate_scripts = false; // WPCS: Override OK.
+	}
+
+	// @todo This is just here for debugging purposes.
+	if ( isset( $_GET['wp_concatenate_scripts'] ) ) { // WPCS: csrf ok.
+		$concatenate_scripts = rest_sanitize_boolean( $_GET['wp_concatenate_scripts'] ); // WPCS: csrf ok, override ok.
 	}
 }
