@@ -46,6 +46,16 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	public $instance;
 
 	/**
+	 * An initial test header.
+	 *
+	 * @var array
+	 */
+	public $initial_header = array(
+		'Cache-Control' => 'max-age=0',
+		'Host'          => 'example.com',
+	);
+
+	/**
 	 * Setup.
 	 *
 	 * @inheritdoc
@@ -75,6 +85,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'init_admin' ) ) );
 		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'filter_site_url_and_home' ) ) );
 		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'filter_header' ) ) );
+		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'conditionally_add_hsts_header' ) ) );
 		$this->assertEquals( 11, has_action( 'template_redirect', array( $this->instance, 'conditionally_redirect_to_https' ) ) );
 	}
 
@@ -257,20 +268,71 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_UI::upgrade_insecure_requests()
 	 */
 	public function test_upgrade_insecure_requests() {
-		$initial_header = array(
-			'Cache-Control' => 'max-age=0',
-			'Host'          => 'example.com',
-		);
-
 		$this->assertEquals(
 			array_merge(
-				$initial_header,
+				$this->initial_header,
 				array(
 					'Content-Security-Policy' => 'upgrade-insecure-requests',
 				)
 			),
-			$this->instance->upgrade_insecure_requests( $initial_header )
+			$this->instance->upgrade_insecure_requests( $this->initial_header )
 		);
+	}
+
+	/**
+	 * Test conditionally_add_hsts_header.
+	 *
+	 * @covers WP_HTTPS_UI::conditionally_add_hsts_header()
+	 */
+	public function test_conditionally_add_hsts_header() {
+		// If there is no value for WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, this should return the same header.
+		$this->assertEquals( $this->initial_header, $this->instance->conditionally_add_hsts_header( $this->initial_header ) );
+
+		$time            = time();
+		$hour_in_seconds = 3600;
+
+		// If it's been a week and an hour since the first consecutive successful check, this should add a header with an hour expiration.
+		update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, $time + WP_HTTPS_UI::WEEK_IN_SECONDS + $hour_in_seconds );
+		$filtered_header = $this->instance->conditionally_add_hsts_header( $this->initial_header );
+		$this->assertEquals(
+			'max-age=' . $hour_in_seconds,
+			$filtered_header['Strict-Transport-Security']
+		);
+
+		// If it's been 2 months, 2 weeks, and an hour since since the first consecutive successful check, this should add a header with a month expiration.
+		update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, $time + WP_HTTPS_UI::WEEK_IN_SECONDS + $hour_in_seconds );
+		$filtered_header = $this->instance->conditionally_add_hsts_header( $this->initial_header );
+		$this->assertEquals(
+			'max-age=' . WP_HTTPS_UI::MONTH_IN_SECONDS,
+			$filtered_header['Strict-Transport-Security']
+		);
+	}
+
+	/**
+	 * Test get_hsts_header_expiration.
+	 *
+	 * @covers WP_HTTPS_UI::get_hsts_header_expiration()
+	 */
+	public function test_get_hsts_header_expiration() {
+		$this->assertNull( $this->instance->get_hsts_header_expiration() );
+		$time            = time();
+		$hour_in_seconds = 3600;
+
+		// If it's only been an hour since the first consecutive successful check, this should not apply HSTS.
+		update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, $hour_in_seconds );
+		$this->assertNull( $this->instance->get_hsts_header_expiration() );
+
+		// If it's been a week and an hour since the first consecutive successful check, this should have a 1-hr expiration.
+		update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, $time + WP_HTTPS_UI::WEEK_IN_SECONDS + $hour_in_seconds );
+		$this->assertEquals( $hour_in_seconds, $this->instance->get_hsts_header_expiration() );
+
+		// If it's been 2 weeks and an hour since the first consecutive successful check, this should have a 24-hr expiration.
+		update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, $time + WP_HTTPS_UI::WEEK_IN_SECONDS * 2 + $hour_in_seconds );
+		$this->assertEquals( WP_HTTPS_UI::DAY_IN_SECONDS, $this->instance->get_hsts_header_expiration() );
+
+		// If it's been 2 months, 2 weeks, and an hour since the first consecutive successful check, this should have a 1-month expiration.
+		update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, $time + WP_HTTPS_UI::MONTH_IN_SECONDS + WP_HTTPS_UI::WEEK_IN_SECONDS * 2  + $hour_in_seconds );
+		$this->assertEquals( WP_HTTPS_UI::MONTH_IN_SECONDS, $this->instance->get_hsts_header_expiration() );
 	}
 
 	/**

@@ -135,6 +135,17 @@ class WP_HTTPS_Detection {
 			empty( $support_errors->errors ) ? true : $support_errors
 		);
 
+		$last_successful_check = get_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK );
+		if ( empty( $support_errors->errors ) ) {
+			if ( ! $last_successful_check ) {
+				// There was no support error and no last consecutive successful HTTPS check, so save this has a successful check.
+				update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, time() );
+			}
+		} elseif ( $last_successful_check ) {
+			// There was a support error, so set the last successful check to null, as this check failed.
+			update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, null );
+		}
+
 		if ( $body ) {
 			update_option( self::INSECURE_CONTENT_OPTION_NAME, $this->get_insecure_content( $body ) );
 		}

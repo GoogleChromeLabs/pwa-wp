@@ -25,6 +25,20 @@ class WP_HTTPS_UI {
 	const UPGRADE_HTTPS_OPTION = 'should_upgrade_https';
 
 	/**
+	 * The option name for the time of the first consecutive successful HTTPS loopback request.
+	 *
+	 * This is used to determine if HSTS is used.
+	 * As long as HTTPS loopback requests succeed, this time will remain the same.
+	 * But a single failed check will set this to null.
+	 * If the last successful HTTPS loopback was less than 2 weeks ago,
+	 * this will not add an HSTS header.
+	 * Also, this is reset on unchecking the checkbox to upgrade to HTTPS, stored in the option self::UPGRADE_HTTPS_OPTION.
+	 *
+	 * @var string
+	 */
+	const TIME_SUCCESSFUL_HTTPS_CHECK = 'time_successful_loopback';
+
+	/**
 	 * The expected value if the option is enabled.
 	 *
 	 * @var string
@@ -60,6 +74,27 @@ class WP_HTTPS_UI {
 	const MAX_URL_LENGTH = 75;
 
 	/**
+	 * The number of seconds in a month.
+	 *
+	 * @var int
+	 */
+	const MONTH_IN_SECONDS = 2678400;
+
+	/**
+	 * The number of seconds in a week.
+	 *
+	 * @var int
+	 */
+	const WEEK_IN_SECONDS = 604800;
+
+	/**
+	 * The number of seconds in a day.
+	 *
+	 * @var int
+	 */
+	const DAY_IN_SECONDS = 86400;
+
+	/**
 	 * The instance of WP_HTTPS_Detection.
 	 *
 	 * @var WP_HTTPS_Detection
@@ -82,6 +117,7 @@ class WP_HTTPS_UI {
 		add_action( 'admin_init', array( $this, 'init_admin' ) );
 		add_action( 'init', array( $this, 'filter_site_url_and_home' ) );
 		add_action( 'init', array( $this, 'filter_header' ) );
+		add_action( 'init', array( $this, 'conditionally_add_hsts_header' ) );
 		add_action( 'template_redirect', array( $this, 'conditionally_redirect_to_https' ), 11 ); // At 11 to run after redirect_canonical().
 	}
 
@@ -341,6 +377,48 @@ class WP_HTTPS_UI {
 	public function upgrade_insecure_requests( $headers ) {
 		$headers['Content-Security-Policy'] = 'upgrade-insecure-requests';
 		return $headers;
+	}
+
+	/**
+	 * Conditionally adds an HSTS header.
+	 *
+	 * @param array $headers The response headers.
+	 * @return array $headers The filtered response headers.
+	 */
+	public function conditionally_add_hsts_header( $headers ) {
+		$expiration = $this->get_hsts_header_expiration();
+		if ( ! $expiration || ! get_option( self::UPGRADE_HTTPS_OPTION ) ) {
+			return $headers;
+		}
+
+		$headers['Strict-Transport-Security'] = 'max-age=' . intval( $expiration );
+		return $headers;
+	}
+
+	/**
+	 * Gets the HSTS header expiration time, or null if there should not be an HSTS header.
+	 *
+	 * This is based on how long there have been consecutive successful HTTPS loopback requests.
+	 * For example, after a week of successful checks, the expiration time will be 1 hour.
+	 *
+	 * @return int|null The expiration time in seconds, or null.
+	 */
+	public function get_hsts_header_expiration() {
+		$first_consecutive_https = intval( get_option( self::TIME_SUCCESSFUL_HTTPS_CHECK ) );
+		if ( ! $first_consecutive_https ) {
+			return null;
+		}
+
+		$length_successful_https = time() - $first_consecutive_https;
+		if ( $length_successful_https >= self::MONTH_IN_SECONDS + self::WEEK_IN_SECONDS * 2 ) {
+			return self::MONTH_IN_SECONDS;
+		} elseif ( $length_successful_https >= self::WEEK_IN_SECONDS * 2 ) {
+			return self::DAY_IN_SECONDS;
+		} elseif ( $length_successful_https >= self::WEEK_IN_SECONDS ) {
+			return 3600; // One hour.
+		}
+
+		return null;
 	}
 
 	/**
