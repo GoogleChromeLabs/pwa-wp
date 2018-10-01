@@ -84,7 +84,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->instance->init();
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'init_admin' ) ) );
 		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'filter_site_url_and_home' ) ) );
-		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'filter_header' ) ) );
+		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'conditionally_upgrade_insecure_requests' ) ) );
 		$this->assertEquals( 10, has_action( 'init', array( $this->instance, 'conditionally_add_hsts_header' ) ) );
 		$this->assertEquals( 11, has_action( 'template_redirect', array( $this->instance, 'conditionally_redirect_to_https' ) ) );
 	}
@@ -240,19 +240,19 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test filter_header.
+	 * Test conditionally_upgrade_insecure_requests.
 	 *
-	 * @covers WP_HTTPS_UI::filter_header()
+	 * @covers WP_HTTPS_UI::conditionally_upgrade_insecure_requests()
 	 */
-	public function test_filter_header() {
+	public function test_conditionally_upgrade_insecure_requests() {
 		// If the option to upgrade to HTTPS is not true, this should not add the filter.
 		update_option( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, '' );
-		$this->instance->filter_header();
+		$this->instance->conditionally_upgrade_insecure_requests();
 		$this->assertFalse( has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
 
 		// If the option to upgrade to HTTPS is true, this should add the filter.
 		update_option( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, true );
-		$this->instance->filter_header();
+		$this->instance->conditionally_upgrade_insecure_requests();
 		$this->assertEquals( 10, has_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) ) );
 		remove_filter( 'wp_headers', array( $this->instance, 'upgrade_insecure_requests' ) );
 

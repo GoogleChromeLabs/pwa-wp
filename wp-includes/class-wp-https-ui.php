@@ -116,7 +116,7 @@ class WP_HTTPS_UI {
 	public function init() {
 		add_action( 'admin_init', array( $this, 'init_admin' ) );
 		add_action( 'init', array( $this, 'filter_site_url_and_home' ) );
-		add_action( 'init', array( $this, 'filter_header' ) );
+		add_action( 'init', array( $this, 'conditionally_upgrade_insecure_requests' ) );
 		add_action( 'init', array( $this, 'conditionally_add_hsts_header' ) );
 		add_action( 'template_redirect', array( $this, 'conditionally_redirect_to_https' ), 11 ); // At 11 to run after redirect_canonical().
 	}
@@ -358,7 +358,7 @@ class WP_HTTPS_UI {
 	 *
 	 * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade-Insecure-Requests
 	 */
-	public function filter_header() {
+	public function conditionally_upgrade_insecure_requests() {
 		if ( get_option( self::UPGRADE_HTTPS_OPTION ) ) {
 			add_filter( 'wp_headers', array( $this, 'upgrade_insecure_requests' ) );
 		}
