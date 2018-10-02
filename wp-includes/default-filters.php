@@ -28,6 +28,5 @@ add_action( 'admin_print_footer_scripts', 'wp_print_admin_service_worker_update_
 add_action( 'wp_print_footer_scripts', 'wp_print_admin_service_worker_update_script', 11 );
 add_action( 'admin_bar_menu', 'wp_service_worker_update_node', 999 );
 
-// This could go to script-loader.php instead.
-add_action( 'wp_enqueue_scripts', 'wp_service_worker_default_assets' );
-add_action( 'admin_enqueue_scripts', 'wp_service_worker_default_assets' );
+add_action( 'wp_enqueue_scripts', 'wp_service_worker_styles' );
+add_action( 'admin_enqueue_scripts', 'wp_service_worker_styles' );

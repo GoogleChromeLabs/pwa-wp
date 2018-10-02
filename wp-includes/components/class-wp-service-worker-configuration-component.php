@@ -78,8 +78,21 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 
 		$script .= sprintf( "workbox.core.setCacheNameDetails( %s );\n", wp_service_worker_json_encode( $cache_name_details ) );
 
-		// @todo Add filter controlling workbox.skipWaiting().
-		// @todo Add filter controlling workbox.clientsClaim().
+		/**
+		 * Filters whether the service worker should update automatically when a new version is available.
+		 *
+		 * For optioning out from skipping waiting and displaying a notification to update instead, you could do:
+		 *
+		 *     add_filter( 'wp_service_worker_skip_waiting', '__return_false' );
+		 *
+		 * @param bool $skip_waiting Whether to skip waiting for the Service Worker and update when an update is available.
+		 */
+		$skip_waiting = apply_filters( 'wp_service_worker_skip_waiting', true );
+		if ( true === $skip_waiting ) {
+			$script .= "workbox.skipWaiting();\n";
+			$script .= "workbox.clientsClaim();\n";
+		}
+
 		/**
 		 * Filters whether navigation preload is enabled.
 		 *

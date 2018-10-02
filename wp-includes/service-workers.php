@@ -134,33 +134,28 @@ function wp_print_service_workers() {
 	<script>
 		if ( navigator.serviceWorker ) {
 			var updatedSw;
-
 			window.addEventListener( 'load', function() {
 				<?php foreach ( $scopes as $name => $scope ) { ?>
 					navigator.serviceWorker.register(
 						<?php echo wp_json_encode( wp_get_service_worker_url( $name ) ); ?>,
 						<?php echo wp_json_encode( compact( 'scope' ) ); ?>
-					).then( function( reg ) {
+					).then( reg => {
 						document.cookie = 'wordpress_sw_installed=1; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; secure; samesite=strict';
-						reg.addEventListener( 'updatefound', () => {
-							updatedSw = reg.installing;
-							updatedSw.addEventListener( 'statechange', () => {
+						<?php if ( false === apply_filters( 'wp_service_worker_skip_waiting', true ) ) { ?>
+							reg.addEventListener( 'updatefound', () => {
+								updatedSw = reg.installing;
+								updatedSw.addEventListener( 'statechange', () => {
 
-								// If new service worker is available, show notification.
-								if ( 'installed' === updatedSw.state ) {
-									if ( navigator.serviceWorker.controller ) {
-
-										// Allows opting out from updating the service worker automatically.
-										if ( wp.hooks.applyFilters( 'pwa.serviceWorker.skipWaiting', true ) ) {
-											updatedSw.postMessage( { action: 'skipWaiting' } );
-										} else {
+									// If new service worker is available, show notification.
+									if ( 'installed' === updatedSw.state ) {
+										if ( navigator.serviceWorker.controller ) {
 											var notification = document.getElementById( 'wp-admin-bar-pwa-sw-update-notice' );
-											jQuery( notification ).removeClass( 'hidden' );
+											notification.style.display = 'block';
 										}
 									}
-								}
+								} );
 							} );
-						} );
+						<?php } ?>
 					} );
 				<?php } ?>
 
@@ -352,15 +347,14 @@ function wp_disable_script_concatenation() {
  * Script for sending postMessage to Service Worker for skipping the waiting phase.
  */
 function wp_print_admin_service_worker_update_script() {
-	if ( ! is_user_logged_in() ) {
+	if ( ! is_admin_bar_showing() || apply_filters( 'wp_service_worker_skip_waiting', true ) ) {
 		return;
 	}
 	?>
 	<script>
 		window.addEventListener( 'load', function() {
 			var reloadBtn = document.getElementById( 'wp-admin-bar-pwa-sw-update-notice' );
-
-			if ( reloadBtn ) {
+			if ( reloadBtn && updatedSw ) {
 				reloadBtn.addEventListener( 'click', function( e ) {
 					e.preventDefault();
 					updatedSw.postMessage( { action: 'skipWaiting' } );
@@ -372,19 +366,11 @@ function wp_print_admin_service_worker_update_script() {
 }
 
 /**
- * Enqueue service worker assets.
+ * Service worker styles.
  */
-function wp_service_worker_default_assets() {
-
-	// Styles.
-	wp_enqueue_style(
-		'service-worker',
-		PWA_PLUGIN_URL . '/wp-includes/css/service-worker.css',
-		true,
-		PWA_VERSION
-	);
-
-	wp_enqueue_script( 'wp-hooks' );
+function wp_service_worker_styles() {
+	wp_enqueue_style( 'admin-bar' );
+	wp_add_inline_style( 'admin-bar', '#wp-admin-bar-pwa-sw-update-notice { display:none }' );
 }
 
 /**
@@ -393,12 +379,12 @@ function wp_service_worker_default_assets() {
  * @param object $wp_admin_bar WP Admin Bar.
  */
 function wp_service_worker_update_node( $wp_admin_bar ) {
+	if ( apply_filters( 'wp_service_worker_skip_waiting', true ) ) {
+		return;
+	}
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'pwa-sw-update-notice',
-			'meta'  => array(
-				'class' => 'hidden',
-			),
 			'title' => __( 'Update to a new version of this app!', 'pwa' ),
 			'href'  => '#',
 		)
