@@ -8,6 +8,7 @@
 	wp.serviceWorker.precaching.addRoute( {
 		ignoreUrlParametersMatching: [
 			/^utm_/,
+			/^wp-mce-/,
 			/^ver$/
 		]
 		// @todo Add urlManipulation which allows for the list of ignoreUrlParametersMatching to be supplied with each entry.
