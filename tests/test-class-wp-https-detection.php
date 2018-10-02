@@ -206,9 +206,38 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test update_successful_https_check.
+	 *
+	 * @covers WP_HTTPS_Detection::update_successful_https_check()
+	 */
+	public function test_update_successful_https_check() {
+		$last_check = time();
+		update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, $last_check );
+		$support_errors = new WP_Error();
+
+		// None of the conditions in the method is met, so this should not update the option.
+		$this->instance->update_successful_https_check( $support_errors );
+		$this->assertEquals( $last_check, get_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK ) );
+
+		// There is no support error or current option value, this should update it.
+		update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, null );
+		$this->instance->update_successful_https_check( $support_errors );
+		$this->assertNotEmpty( get_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK ) );
+
+		// There is a support error, so this should set the option to null.
+		$support_errors->add(
+			'ssl_verification_failed',
+			'The SSL verification failed'
+		);
+		update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, null );
+		$this->instance->update_successful_https_check( $support_errors );
+		$this->assertNull( get_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK ) );
+	}
+
+	/**
 	 * Test is_currently_https.
 	 *
-	 * @covers WP_HTTPS_UI::is_currently_https()
+	 * @covers WP_HTTPS_Detection::is_currently_https()
 	 */
 	public function test_is_currently_https() {
 		// If both of these options have an HTTP URL, the method should return false.

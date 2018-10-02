@@ -134,7 +134,22 @@ class WP_HTTPS_Detection {
 			self::HTTPS_SUPPORT_OPTION_NAME,
 			empty( $support_errors->errors ) ? true : $support_errors
 		);
+		$this->update_successful_https_check( $support_errors );
 
+		if ( $body ) {
+			update_option( self::INSECURE_CONTENT_OPTION_NAME, $this->get_insecure_content( $body ) );
+		}
+	}
+
+	/**
+	 * Updates the time of the first consecutive successful HTTPS check.
+	 *
+	 * Returns true only if the siteurl and home option values are HTTPS.
+	 * These are also known as the WordPress Address (URL) and Site Address (URL) in the 'General Settings' page.
+	 *
+	 * @param WP_Error $support_errors The HTTPS support errors.
+	 */
+	public function update_successful_https_check( $support_errors ) {
 		$last_successful_check = get_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK );
 		if ( empty( $support_errors->errors ) ) {
 			if ( ! $last_successful_check ) {
@@ -144,10 +159,6 @@ class WP_HTTPS_Detection {
 		} elseif ( $last_successful_check ) {
 			// There was a support error, so set the last successful check to null, as this check failed.
 			update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, null );
-		}
-
-		if ( $body ) {
-			update_option( self::INSECURE_CONTENT_OPTION_NAME, $this->get_insecure_content( $body ) );
 		}
 	}
 
