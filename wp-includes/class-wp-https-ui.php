@@ -29,10 +29,7 @@ class WP_HTTPS_UI {
 	 *
 	 * This is used to determine if HSTS is used.
 	 * As long as HTTPS loopback requests succeed, this time will remain the same.
-	 * But a single failed check will set this to null.
-	 * If the last successful HTTPS loopback was less than 2 weeks ago,
-	 * this will not add an HSTS header.
-	 * Also, this is reset on unchecking the checkbox to upgrade to HTTPS, stored in the option self::UPGRADE_HTTPS_OPTION.
+	 * But a single failed check will set this to ''.
 	 *
 	 * @var string
 	 */
@@ -387,11 +384,10 @@ class WP_HTTPS_UI {
 	 */
 	public function conditionally_add_hsts_header( $headers ) {
 		$expiration = $this->get_hsts_header_expiration();
-		if ( ! $expiration || ! get_option( self::UPGRADE_HTTPS_OPTION ) ) {
-			return $headers;
+		if ( $expiration && get_option( self::UPGRADE_HTTPS_OPTION ) ) {
+			$headers['Strict-Transport-Security'] = 'max-age=' . intval( $expiration );
 		}
 
-		$headers['Strict-Transport-Security'] = 'max-age=' . intval( $expiration );
 		return $headers;
 	}
 

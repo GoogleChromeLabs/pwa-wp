@@ -144,20 +144,18 @@ class WP_HTTPS_Detection {
 
 	/**
 	 * Updates the time of the first consecutive successful HTTPS check.
-	 *
-	 * Returns true only if the siteurl and home option values are HTTPS.
-	 * These are also known as the WordPress Address (URL) and Site Address (URL) in the 'General Settings' page.
+	 * This time is used to determine whether HSTS headers should be added.
 	 *
 	 * @param WP_Error $support_errors The HTTPS support errors.
 	 */
 	public function update_successful_https_check( $support_errors ) {
-		$last_successful_check = get_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK );
+		$first_successful_check = get_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK );
 		if ( empty( $support_errors->errors ) ) {
-			if ( ! $last_successful_check ) {
+			if ( ! $first_successful_check ) {
 				// There was no support error and no last consecutive successful HTTPS check, so save this has a successful check.
 				update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, time() );
 			}
-		} elseif ( $last_successful_check ) {
+		} elseif ( $first_successful_check ) {
 			// There was a support error, so set the last successful check to null, as this check failed.
 			update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, null );
 		}
