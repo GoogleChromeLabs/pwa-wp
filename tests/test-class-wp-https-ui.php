@@ -337,7 +337,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 		$this->assertEquals( WP_HTTPS_UI::DAY_IN_SECONDS, $this->instance->get_hsts_header_expiration() );
 
 		// If it's been 2 months, 2 weeks, and an hour since the first consecutive successful check, this should have a 1-month expiration.
-		update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, $time - ( WP_HTTPS_UI::MONTH_IN_SECONDS + WP_HTTPS_UI::WEEK_IN_SECONDS * 2  + $hour_in_seconds ) );
+		update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, $time - ( WP_HTTPS_UI::MONTH_IN_SECONDS + WP_HTTPS_UI::WEEK_IN_SECONDS * 2 + $hour_in_seconds ) );
 		$this->assertEquals( WP_HTTPS_UI::MONTH_IN_SECONDS, $this->instance->get_hsts_header_expiration() );
 	}
 

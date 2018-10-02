@@ -65,6 +65,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	public function test_init() {
 		$this->assertEquals( 10, has_action( WP_HTTPS_Detection::CRON_HOOK, array( $this->instance, 'update_https_support_options' ) ) );
 		$this->assertEquals( PHP_INT_MAX, has_filter( 'cron_request', array( $this->instance, 'conditionally_prevent_sslverify' ) ) );
+		$this->assertEquals( 10, has_action( 'update_option_' . WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, array( $this->instance, 'conditionally_reset_successful_https_check' ) ) );
 	}
 
 	/**
@@ -307,6 +308,28 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		$allowed_cron_arguments_http        = $disallowed_cron_arguments;
 		$allowed_cron_arguments_http['url'] = $http_url;
 		$this->assertEquals( $allowed_cron_arguments_http, $this->instance->conditionally_prevent_sslverify( $allowed_cron_arguments_http ) );
+	}
+
+	/**
+	 * Test conditionally_reset_successful_https_check.
+	 *
+	 * @covers WP_HTTPS_Detection::conditionally_reset_successful_https_check()
+	 */
+	public function test_conditionally_reset_successful_https_check() {
+		$old_value = true;
+		$new_value = false;
+		update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, time() );
+		$this->instance->conditionally_reset_successful_https_check( $old_value, $new_value );
+
+		// When the new value of this option is false, this should reset the time of the successful HTTPS check to null.
+		$this->assertEmpty( get_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK ) );
+
+		// When the $new_value is true, that means that the checkbox to enable HTTPS is checked, and this should not reset the time.
+		$new_value = true;
+		$time      = time();
+		update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, $time );
+		$this->instance->conditionally_reset_successful_https_check( $old_value, $new_value );
+		$this->assertEquals( $time, get_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK ) );
 	}
 
 	/**
