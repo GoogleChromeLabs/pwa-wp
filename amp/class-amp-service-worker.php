@@ -65,21 +65,24 @@ class AMP_Service_Worker {
 		}
 
 		// Add AMP scripts to runtime cache which will then get stale-while-revalidate strategy.
-		$service_workers->register( 'amp-cdn-runtime-cache', function() {
-			$urls = AMP_Service_Worker::get_runtime_precache_urls();
-			if ( empty( $urls ) ) {
-				return '';
-			}
+		$service_workers->register(
+			'amp-cdn-runtime-cache',
+			function() {
+				$urls = AMP_Service_Worker::get_runtime_precache_urls();
+				if ( empty( $urls ) ) {
+					return '';
+				}
 
-			$js = file_get_contents( dirname( __FILE__ ) . '/amp-service-worker-runtime-precaching.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
-			$js = preg_replace( '#/\*\s*global.+?\*/#', '', $js );
-			$js = str_replace(
-				'URLS',
-				wp_json_encode( $urls ),
-				$js
-			);
-			return $js;
-		} );
+				$js = file_get_contents( dirname( __FILE__ ) . '/amp-service-worker-runtime-precaching.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
+				$js = preg_replace( '#/\*\s*global.+?\*/#', '', $js );
+				$js = str_replace(
+					'URLS',
+					wp_json_encode( $urls ),
+					$js
+				);
+				return $js;
+			}
+		);
 
 		// Serve the AMP Runtime from cache and check for an updated version in the background. See <https://github.com/ampproject/amp-by-example/blob/a4d798cac6a534e0c46e78944a2718a8dab3c057/boilerplate-generator/templates/files/serviceworkerJs.js#L54-L58>.
 		$service_workers->caching_routes()->register(
@@ -248,11 +251,15 @@ class AMP_Service_Worker {
 		<?php
 
 		// Die in a way that can be unit tested.
-		add_filter( 'wp_die_handler', function() {
-			return function() {
-				die();
-			};
-		}, 1 );
+		add_filter(
+			'wp_die_handler',
+			function() {
+				return function() {
+					die();
+				};
+			},
+			1
+		);
 		wp_die();
 	}
 }
