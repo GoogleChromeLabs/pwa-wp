@@ -60,6 +60,7 @@ class WP_HTTPS_Detection {
 		add_action( 'init', array( $this, 'schedule_cron' ) );
 		add_action( self::CRON_HOOK, array( $this, 'update_https_support_options' ) );
 		add_filter( 'cron_request', array( $this, 'conditionally_prevent_sslverify' ), PHP_INT_MAX );
+		add_action( 'update_option_' . WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, array( $this, 'conditionally_reset_successful_https_check' ), 10, 2 );
 
 		$wp_https_ui = new WP_HTTPS_UI( $this );
 		$wp_https_ui->init();
@@ -134,9 +135,29 @@ class WP_HTTPS_Detection {
 			self::HTTPS_SUPPORT_OPTION_NAME,
 			empty( $support_errors->errors ) ? true : $support_errors
 		);
+		$this->update_successful_https_check( $support_errors );
 
 		if ( $body ) {
 			update_option( self::INSECURE_CONTENT_OPTION_NAME, $this->get_insecure_content( $body ) );
+		}
+	}
+
+	/**
+	 * Updates the time of the first consecutive successful HTTPS check.
+	 * This time is used to determine whether HSTS headers should be added.
+	 *
+	 * @param WP_Error $support_errors The HTTPS support errors.
+	 */
+	public function update_successful_https_check( $support_errors ) {
+		$first_successful_check = get_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK );
+		if ( empty( $support_errors->errors ) ) {
+			if ( ! $first_successful_check ) {
+				// There was no support error and no last consecutive successful HTTPS check, so save this has a successful check.
+				update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, time() );
+			}
+		} elseif ( $first_successful_check ) {
+			// There was a support error, so set the last successful check to null, as this check failed.
+			update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, null );
 		}
 	}
 
@@ -241,5 +262,22 @@ class WP_HTTPS_Detection {
 			$request['args']['sslverify'] = false;
 		}
 		return $request;
+	}
+
+	/**
+	 * On unchecking the HTTPS support checkbox, reset the successful HTTPS check time.
+	 *
+	 * The HTTPS check time is used to determine whether HSTS should be used.
+	 * On unchecking the HTTPS support box, this resets the time of the first consecutive successful check,
+	 * so there won't be HSTS headers.
+	 *
+	 * @param bool|mixed $old_value THe old value of the option.
+	 * @param bool|mixed $new_value The new value of the option.
+	 */
+	public function conditionally_reset_successful_https_check( $old_value, $new_value ) {
+		unset( $old_value );
+		if ( false === $new_value ) {
+			update_option( WP_HTTPS_UI::TIME_SUCCESSFUL_HTTPS_CHECK, null );
+		}
 	}
 }
