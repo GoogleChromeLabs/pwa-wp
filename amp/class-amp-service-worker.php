@@ -60,7 +60,7 @@ class AMP_Service_Worker {
 	 */
 	public function add_amp_runtime_caching( $service_workers ) {
 		if ( ! ( $service_workers instanceof WP_Service_Worker_Scripts ) ) {
-			_doing_it_wrong( __METHOD__, esc_html__( 'Expected argument to be WP_Service_Workers.', 'amp' ), '1.0' );
+			_doing_it_wrong( __METHOD__, esc_html__( 'Expected argument to be WP_Service_Worker_Scripts.', 'amp' ), '1.0' );
 			return;
 		}
 
@@ -102,7 +102,7 @@ class AMP_Service_Worker {
 	 */
 	public function add_image_runtime_caching( $service_workers ) {
 		if ( ! ( $service_workers instanceof WP_Service_Worker_Scripts ) ) {
-			_doing_it_wrong( __METHOD__, esc_html__( 'Expected argument to be WP_Service_Workers.', 'amp' ), '1.0' );
+			_doing_it_wrong( __METHOD__, esc_html__( 'Expected argument to be WP_Service_Worker_Scripts.', 'amp' ), '1.0' );
 			return;
 		}
 
