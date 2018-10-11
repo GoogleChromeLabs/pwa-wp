@@ -1,16 +1,16 @@
 <?php
 /**
- * WP_Service_Worker_Error_Response_Component class.
+ * WP_Service_Worker_Navigation_Routing_Component class.
  *
  * @package PWA
  */
 
 /**
- * Class representing the service worker core component for handling error responses.
+ * Class representing the service worker core component for handling navigation requests.
  *
  * @since 0.2
  */
-class WP_Service_Worker_Error_Response_Component implements WP_Service_Worker_Component {
+class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worker_Component {
 
 	/**
 	 * Internal storage for replacements to make in the error response handling script.
@@ -101,7 +101,7 @@ class WP_Service_Worker_Error_Response_Component implements WP_Service_Worker_Co
 		}
 
 		$scripts->register(
-			'wp-error-response',
+			'wp-navigation-routing',
 			array(
 				'src'  => array( $this, 'get_script' ),
 				'deps' => array( 'wp-base-config' ),
@@ -139,12 +139,12 @@ class WP_Service_Worker_Error_Response_Component implements WP_Service_Worker_Co
 	}
 
 	/**
-	 * Get script for handling of error responses when the user is offline or when there is an internal server error.
+	 * Get script for routing navigation requests.
 	 *
 	 * @return string Script.
 	 */
 	public function get_script() {
-		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-error-response-handling.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-navigation-routing.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
 
 		return str_replace(

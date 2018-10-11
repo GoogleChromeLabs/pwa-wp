@@ -110,7 +110,7 @@ class AMP_Service_Worker {
 			'/wp-content/.*\.(?:png|gif|jpg|jpeg|svg|webp)(\?.*)?$',
 			array(
 				'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
-				'cacheName' => 'images',
+				'cacheName' => 'images', // @todo This needs to get the proper prefix in JS.
 				'plugins'   => array(
 					'cacheableResponse' => array(
 						'statuses' => array( 0, 200 ),
