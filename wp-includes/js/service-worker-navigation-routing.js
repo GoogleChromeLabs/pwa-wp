@@ -1,4 +1,4 @@
-/* global console, ERROR_OFFLINE_URL, ERROR_500_URL, BLACKLIST_PATTERNS */
+/* global console, ERROR_OFFLINE_URL, ERROR_500_URL, THEME_SUPPORTS_STREAMING, STREAM_HEADER_FRAGMENT_URL, BLACKLIST_PATTERNS */
 
 wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
 	async function ( { event } ) {
@@ -52,9 +52,30 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 			}
 		}
 
-		return fetch( event.request )
-			.then( handleResponse )
-			.catch( sendOfflineResponse );
+		const themeSupportsStreaming = THEME_SUPPORTS_STREAMING;
+		if ( themeSupportsStreaming ) {
+			const streamHeaderFragmentURL = STREAM_HEADER_FRAGMENT_URL;
+			const precacheStrategy = wp.serviceWorker.strategies.cacheFirst({
+				cacheName: wp.serviceWorker.core.cacheNames.precache,
+			});
+
+			wp.serviceWorker.streams.strategy([
+				() => precacheStrategy.makeRequest({ request: streamHeaderFragmentURL }), // @todo This should be able to vary based on the request.url. No: just don't allow in paired mode.
+				fetch( event.request ), // @todo Need to amend event.request.url with wp_service_worker_stream_fragment=body?
+				// async ({event, url}) => {
+				// 	event.request.url.searchParams.set( 'wp_service_worker_stream_fragment', 'body' );
+				// 	const tag = url.searchParams.get('tag') || DEFAULT_TAG;
+				// 	const listResponse = await apiStrategy.makeRequest(...);
+				// 	const data = await listResponse.json();
+				// 	return templates.index(tag, data.items);
+				// },
+			]);
+
+		} else {
+			return fetch( event.request )
+				.then( handleResponse )
+				.catch( sendOfflineResponse );
+		}
 	},
 	{
 		blacklist: BLACKLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) )

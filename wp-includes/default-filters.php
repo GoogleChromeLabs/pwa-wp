@@ -18,6 +18,7 @@ add_action( 'wp_ajax_nopriv_wp_service_worker', 'wp_ajax_wp_service_worker' );
 add_action( 'parse_query', 'wp_hide_admin_bar_offline' );
 
 add_action( 'wp_head', 'wp_add_error_template_no_robots' );
+add_filter( 'pre_get_document_title', 'WP_Service_Worker_Navigation_Routing_Component::filter_title_for_streaming_header' );
 add_action( 'error_head', 'wp_add_error_template_no_robots' );
 add_action( 'wp_default_service_workers', 'wp_default_service_workers' );
 

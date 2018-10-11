@@ -24,6 +24,13 @@
 	<rule ref="PHPCompatibilityWP">
 		<exclude-pattern>bin/*</exclude-pattern>
 	</rule>
+
+	<rule ref="WordPress.NamingConventions.ValidVariableName">
+		<properties>
+			<property name="customPropertiesWhitelist" value="childNodes,tagName,textContent,parentNode,nodeType,nodeName,nextSibling,firstChild,lastChild,nodeValue,DEFAULT_ARGS,documentElement,removeChild,ownerDocument,DEFAULT_WIDTH,DEFAULT_HEIGHT" />
+		</properties>
+	</rule>
+
 	<!-- For help in understanding this testVersion:
 		https://github.com/PHPCompatibility/PHPCompatibility#sniffing-your-code-for-compatibility-with-specific-php-versions -->
 	<config name="testVersion" value="5.2-"/>

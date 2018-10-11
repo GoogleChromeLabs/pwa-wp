@@ -17,5 +17,6 @@ function pwa_add_error_template_query_var() {
 	global $wp;
 	$wp->add_query_var( 'wp_error_template' );
 	$wp->add_query_var( WP_Service_Workers::QUERY_VAR );
+	$wp->add_query_var( WP_Service_Worker_Navigation_Routing_Component::STREAM_FRAGMENT_QUERY_VAR );
 }
 add_action( 'init', 'pwa_add_error_template_query_var' );

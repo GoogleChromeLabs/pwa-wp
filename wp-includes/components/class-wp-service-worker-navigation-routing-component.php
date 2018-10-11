@@ -8,9 +8,34 @@
 /**
  * Class representing the service worker core component for handling navigation requests.
  *
+ * @todo The component system needs to be instantiated even if the service worker is not being served.
  * @since 0.2
  */
 class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worker_Component {
+
+	/**
+	 * Query var for requesting a stream fragment.
+	 *
+	 * @since 0.2
+	 * @var string
+	 */
+	const STREAM_FRAGMENT_QUERY_VAR = 'wp_stream_fragment';
+
+	/**
+	 * Slug used to identify whether a theme supports service worker streaming.
+	 *
+	 * @since 0.2
+	 * @var string
+	 */
+	const STREAM_THEME_SUPPORT = 'service_worker_streaming';
+
+	/**
+	 * ID for the stream boundary element.
+	 *
+	 * @since 0.2
+	 * @var string
+	 */
+	const STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID = 'wp-stream-fragment-boundary';
 
 	/**
 	 * Internal storage for replacements to make in the error response handling script.
@@ -19,6 +44,53 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * @var array
 	 */
 	protected $replacements = array();
+
+	/**
+	 * Add loading indicator for responses streamed from the service worker.
+	 *
+	 * This this function should generally be called at the end of a theme's header.php template.
+	 * A theme that uses this must also declare 'streaming' among the amp theme support.
+	 * This element is also used to demarcate the header (head) from the body (tail).
+	 *
+	 * @since 2.0
+	 * @todo Consider using progress element instead?
+	 * @todo Consider adding a comment before and after the boundary to make it easier for non-DOM location.
+	 */
+	public static function print_stream_boundary() {
+		if ( ! current_theme_supports( self::STREAM_THEME_SUPPORT ) ) {
+			_doing_it_wrong( __METHOD__, esc_html__( 'Failed to add "service_worker_streaming" theme support.', 'pwa' ), '0.2' );
+			return;
+		}
+		$stream_fragment = get_query_var( self::STREAM_FRAGMENT_QUERY_VAR );
+		if ( ! $stream_fragment ) {
+			return;
+		}
+
+		printf(
+			'<div id="%s">%s</div>',
+			esc_attr( self::STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID ),
+			esc_html__( 'Loading...', 'pwa' )
+		);
+
+		// Short-circuit the response when requesting the header since there is nothing left to stream.
+		if ( 'header' === $stream_fragment ) {
+			exit;
+		}
+	}
+
+	/**
+	 * Filter the title for the streaming header.
+	 *
+	 * @since 0.2
+	 * @param string $title Title.
+	 * @return string Title.
+	 */
+	public static function filter_title_for_streaming_header( $title ) {
+		if ( current_theme_supports( self::STREAM_THEME_SUPPORT ) && 'header' === get_query_var( self::STREAM_FRAGMENT_QUERY_VAR ) ) {
+			$title = __( 'Loading...', 'pwa' );
+		}
+		return $title;
+	}
 
 	/**
 	 * Adds the component functionality to the service worker.
@@ -115,15 +187,48 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			$scripts->precaching_routes()->register( $server_error_precache_entry['url'], isset( $server_error_precache_entry['revision'] ) ? $server_error_precache_entry['revision'] : null );
 		}
 
+		// Streaming.
+		$theme_supports_streaming        = current_theme_supports( self::STREAM_THEME_SUPPORT );
+		$streaming_header_precache_entry = null;
+		if ( $theme_supports_streaming ) {
+			$header_template_file            = locate_template( array( 'header.php' ) );
+			$streaming_header_precache_entry = array(
+				'url'      => add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'header', home_url( '/' ) ),
+				'revision' => $revision . ';' . md5( $header_template_file . file_get_contents( $header_template_file ) ), // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			);
+
+			/**
+			 * Filters what is precached to serve as the streaming header.
+			 *
+			 * @since 0.2
+			 *
+			 * @param array|false $entry {
+			 *     Offline error precache entry.
+			 *
+			 *     @type string $url      URL to streaming header fragment.
+			 *     @type string $revision Revision for the entry. Care must be taken to keep this updated based on the content that is output before the stream boundary.
+			 * }
+			 */
+			$streaming_header_precache_entry = apply_filters( 'wp_streaming_header_precache_entry', $streaming_header_precache_entry );
+
+			if ( $streaming_header_precache_entry ) {
+				$scripts->precaching_routes()->register( $streaming_header_precache_entry['url'], isset( $streaming_header_precache_entry['revision'] ) ? $streaming_header_precache_entry['revision'] : null );
+			} else {
+				$theme_supports_streaming = false;
+			}
+		}
+
 		$blacklist_patterns = array();
 		if ( ! is_admin() ) {
 			$blacklist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)';
 		}
 
 		$this->replacements = array(
-			'ERROR_OFFLINE_URL'  => isset( $offline_error_precache_entry['url'] ) ? wp_service_worker_json_encode( $offline_error_precache_entry['url'] ) : null,
-			'ERROR_500_URL'      => isset( $server_error_precache_entry['url'] ) ? wp_service_worker_json_encode( $server_error_precache_entry['url'] ) : null,
-			'BLACKLIST_PATTERNS' => wp_service_worker_json_encode( $blacklist_patterns ),
+			'ERROR_OFFLINE_URL'          => isset( $offline_error_precache_entry['url'] ) ? wp_service_worker_json_encode( $offline_error_precache_entry['url'] ) : null,
+			'ERROR_500_URL'              => isset( $server_error_precache_entry['url'] ) ? wp_service_worker_json_encode( $server_error_precache_entry['url'] ) : null,
+			'STREAM_HEADER_FRAGMENT_URL' => isset( $streaming_header_precache_entry['url'] ) ? wp_service_worker_json_encode( $streaming_header_precache_entry['url'] ) : null,
+			'BLACKLIST_PATTERNS'         => wp_service_worker_json_encode( $blacklist_patterns ),
+			'THEME_SUPPORTS_STREAMING'   => $theme_supports_streaming,
 		);
 	}
 

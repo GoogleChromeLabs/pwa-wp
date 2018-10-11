@@ -318,3 +318,104 @@ function wp_disable_script_concatenation() {
 		$concatenate_scripts = rest_sanitize_boolean( $_GET['wp_concatenate_scripts'] ); // WPCS: csrf ok, override ok.
 	}
 }
+
+/**
+ * Prepare stream fragment response.
+ *
+ * @since 0.2
+ * @todo Hook this up to work in non-AMP responses.
+ *
+ * @param DOMDocument $dom           Document.
+ * @param string      $fragment_name Fragment name.
+ * @return string|WP_Error Response fragment string, or WP_Error.
+ */
+function wp_prepare_stream_fragment_response( $dom, $fragment_name ) {
+	$boundary_element = $dom->getElementById( WP_Service_Worker_Navigation_Routing_Component::STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID );
+	if ( ! $boundary_element ) {
+		return new WP_Error( 'no_fragment_boundary' );
+	}
+
+	$boundary_comment_text = 'WP_STREAM_FRAGMENT_BOUNDARY';
+	$search                = "<!--$boundary_comment_text-->";
+
+	// Obtain header fragment.
+	if ( 'header' === $fragment_name ) {
+		$serialized = "<!DOCTYPE html>\n";
+		$comment    = $dom->createComment( $boundary_comment_text );
+		$boundary_element->parentNode->insertBefore( $comment, $boundary_element->nextSibling );
+		$serialized .= AMP_DOM_Utils::get_content_from_dom_node( $dom, $dom->documentElement );
+		$token_pos   = strpos( $serialized, $search );
+		if ( false === $token_pos ) {
+			return new WP_Error( 'fragment_boundary_not_found' );
+		}
+		$response  = substr( $serialized, 0, $token_pos );
+		$response .= sprintf(
+			'<script id="wp-stream-combine-function">%s</script>',
+			file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-stream-combiner.js' ) // phpcs:ignore
+		);
+		return $response;
+	}
+
+	// Obtain body fragment.
+	$data = array(
+		// @todo Add root_attributes?
+		'head_nodes'      => array(),
+		'body_attributes' => array(),
+	);
+	$head = $dom->getElementsByTagName( 'head' )->item( 0 );
+	if ( ! $head ) {
+		return new WP_Error( 'no_head' );
+	}
+	foreach ( $head->childNodes as $node ) {
+		if ( $node instanceof DOMElement ) {
+			if ( 'noscript' === $node->nodeName ) {
+				continue; // Obviously noscript will never be relevant to synchronize since it will never be evaluated.
+			}
+			$element = array(
+				$node->nodeName,
+				null,
+			);
+			if ( $node->hasAttributes() ) {
+				$element[1] = array();
+				foreach ( $node->attributes as $attribute ) {
+					$element[1][ $attribute->nodeName ] = $attribute->nodeValue;
+				}
+			}
+			if ( $node->firstChild instanceof DOMText ) {
+				$element[] = $node->firstChild->nodeValue;
+			}
+			$data['head_nodes'][] = $element;
+		} elseif ( $node instanceof DOMComment ) {
+			$data['head_nodes'][] = array(
+				'#comment',
+				$node->nodeValue,
+			);
+		}
+	}
+
+	$body = $dom->getElementsByTagName( 'body' )->item( 0 );
+	if ( ! $body ) {
+		return new WP_Error( 'no_body' );
+	}
+	foreach ( $body->attributes as $attribute ) {
+		$data['body_attributes'][ $attribute->nodeName ] = $attribute->nodeValue;
+	}
+
+	// @todo Also obtain classes used in nav menus.
+	$boundary_element->parentNode->insertBefore( $dom->createComment( $boundary_comment_text ), $boundary_element );
+	$boundary_element->parentNode->removeChild( $boundary_element ); // Only relevant to serve in the header fragment.
+	$serialized = AMP_DOM_Utils::get_content_from_dom_node( $dom, $dom->documentElement );
+	$token_pos  = strpos( $serialized, $search );
+	if ( false === $token_pos ) {
+		return new WP_Error( 'fragment_boundary_not_found' );
+	}
+
+	$response = sprintf(
+		'<script id="wp-stream-combine-call">wpStreamCombine( %s );</script>',
+		wp_json_encode( $data, JSON_PRETTY_PRINT ) // phpcs:ignore PHPCompatibility.PHP.NewConstants.json_pretty_printFound -- Defined in core.
+	);
+
+	$response .= substr( $serialized, $token_pos + strlen( $search ) );
+
+	return $response;
+}
