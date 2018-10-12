@@ -213,6 +213,8 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 
 			if ( $streaming_header_precache_entry ) {
 				$scripts->precaching_routes()->register( $streaming_header_precache_entry['url'], isset( $streaming_header_precache_entry['revision'] ) ? $streaming_header_precache_entry['revision'] : null );
+
+				add_filter( 'wp_service_worker_navigation_preload', '__return_false' ); // Navigation preload and streaming don't mix!
 			} else {
 				$theme_supports_streaming = false;
 			}
@@ -224,11 +226,12 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		}
 
 		$this->replacements = array(
-			'ERROR_OFFLINE_URL'          => isset( $offline_error_precache_entry['url'] ) ? wp_service_worker_json_encode( $offline_error_precache_entry['url'] ) : null,
-			'ERROR_500_URL'              => isset( $server_error_precache_entry['url'] ) ? wp_service_worker_json_encode( $server_error_precache_entry['url'] ) : null,
-			'STREAM_HEADER_FRAGMENT_URL' => isset( $streaming_header_precache_entry['url'] ) ? wp_service_worker_json_encode( $streaming_header_precache_entry['url'] ) : null,
-			'BLACKLIST_PATTERNS'         => wp_service_worker_json_encode( $blacklist_patterns ),
-			'THEME_SUPPORTS_STREAMING'   => $theme_supports_streaming,
+			'ERROR_OFFLINE_URL'                => isset( $offline_error_precache_entry['url'] ) ? wp_service_worker_json_encode( $offline_error_precache_entry['url'] ) : null,
+			'ERROR_500_URL'                    => isset( $server_error_precache_entry['url'] ) ? wp_service_worker_json_encode( $server_error_precache_entry['url'] ) : null,
+			'STREAM_HEADER_FRAGMENT_URL'       => isset( $streaming_header_precache_entry['url'] ) ? wp_service_worker_json_encode( $streaming_header_precache_entry['url'] ) : null,
+			'BLACKLIST_PATTERNS'               => wp_service_worker_json_encode( $blacklist_patterns ),
+			'THEME_SUPPORTS_STREAMING'         => $theme_supports_streaming,
+			'STREAM_HEADER_FRAGMENT_QUERY_VAR' => wp_json_encode( self::STREAM_FRAGMENT_QUERY_VAR ),
 		);
 	}
 
