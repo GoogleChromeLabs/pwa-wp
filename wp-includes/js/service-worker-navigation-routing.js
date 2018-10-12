@@ -1,8 +1,6 @@
-/* global console, ERROR_OFFLINE_URL, ERROR_500_URL, THEME_SUPPORTS_STREAMING, STREAM_HEADER_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, BLACKLIST_PATTERNS */
+/* global console, ERROR_OFFLINE_URL, ERROR_500_URL, THEME_SUPPORTS_STREAMING, STREAM_HEADER_FRAGMENT_URL, ERROR_500_BODY_FRAGMENT_URL, ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, BLACKLIST_PATTERNS */
 
-if ( THEME_SUPPORTS_STREAMING ) {
-	wp.serviceWorker.streams.isSupported(); // Make sure importScripts happens during SW installation.
-}
+const isStreamingResponses = THEME_SUPPORTS_STREAMING && wp.serviceWorker.streams.isSupported();
 
 wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
 	async function ( { event } ) {
@@ -34,11 +32,11 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 				channel.close();
 			}, 30 * 1000 );
 
-			return caches.match( ERROR_500_URL );
+			return caches.match( isStreamingResponses ? ERROR_500_BODY_FRAGMENT_URL : ERROR_500_URL );
 		};
 
 		const sendOfflineResponse = () => {
-			return caches.match( ERROR_OFFLINE_URL );
+			return caches.match( isStreamingResponses ? ERROR_OFFLINE_BODY_FRAGMENT_URL : ERROR_OFFLINE_URL );
 		};
 
 		/*
@@ -56,8 +54,7 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 			}
 		}
 
-		const themeSupportsStreaming = THEME_SUPPORTS_STREAMING;
-		if ( themeSupportsStreaming ) {
+		if ( isStreamingResponses ) {
 			const streamHeaderFragmentURL = STREAM_HEADER_FRAGMENT_URL;
 			const precacheStrategy = wp.serviceWorker.strategies.cacheFirst({
 				cacheName: wp.serviceWorker.core.cacheNames.precache,
@@ -69,11 +66,13 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 
 			const stream = wp.serviceWorker.streams.concatenateToResponse([
 				precacheStrategy.makeRequest({ request: streamHeaderFragmentURL }), // @todo This should be able to vary based on the request.url. No: just don't allow in paired mode.
-				fetch( request ),
+				fetch( request )
+					.then( handleResponse )
+					.catch( sendOfflineResponse ),
 			]);
 
 			// @todo Handle error case.
-			return handleResponse( stream.response );
+			return stream.response;
 		} else {
 			return fetch( event.request )
 				.then( handleResponse )
