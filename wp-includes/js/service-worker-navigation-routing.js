@@ -1,6 +1,6 @@
-/* global console, ERROR_OFFLINE_URL, ERROR_500_URL, THEME_SUPPORTS_STREAMING, STREAM_HEADER_FRAGMENT_URL, ERROR_500_BODY_FRAGMENT_URL, ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, BLACKLIST_PATTERNS */
+/* global console, ERROR_OFFLINE_URL, ERROR_500_URL, SHOULD_STREAM_RESPONSE, STREAM_HEADER_FRAGMENT_URL, ERROR_500_BODY_FRAGMENT_URL, ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, BLACKLIST_PATTERNS */
 
-const isStreamingResponses = THEME_SUPPORTS_STREAMING && wp.serviceWorker.streams.isSupported();
+const isStreamingResponses = SHOULD_STREAM_RESPONSE && wp.serviceWorker.streams.isSupported();
 
 wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
 	async function ( { event } ) {

@@ -103,10 +103,10 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		$template   = get_template();
 		$stylesheet = get_stylesheet();
 
-		$theme_supports_streaming = current_theme_supports( self::STREAM_THEME_SUPPORT );
+		$should_stream_response   = ! is_admin() && current_theme_supports( self::STREAM_THEME_SUPPORT );
 		$stream_combiner_revision = '';
-		if ( $theme_supports_streaming ) {
-			$stream_combiner_revision = md5( file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-stream-combiner.js' ) );
+		if ( $should_stream_response ) {
+			$stream_combiner_revision = md5( file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-stream-combiner.js' ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		}
 
 		$revision = sprintf( '%s-v%s', $template, wp_get_theme( $template )->Version );
@@ -188,7 +188,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 
 		if ( $offline_error_precache_entry ) {
 			$scripts->precaching_routes()->register( $offline_error_precache_entry['url'], isset( $offline_error_precache_entry['revision'] ) ? $offline_error_precache_entry['revision'] : null );
-			if ( $theme_supports_streaming ) {
+			if ( $should_stream_response ) {
 				$scripts->precaching_routes()->register(
 					add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $offline_error_precache_entry['url'] ),
 					( isset( $offline_error_precache_entry['revision'] ) ? $offline_error_precache_entry['revision'] : '' ) . $stream_combiner_revision
@@ -197,7 +197,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		}
 		if ( $server_error_precache_entry ) {
 			$scripts->precaching_routes()->register( $server_error_precache_entry['url'], isset( $server_error_precache_entry['revision'] ) ? $server_error_precache_entry['revision'] : null );
-			if ( $theme_supports_streaming ) {
+			if ( $should_stream_response ) {
 				$scripts->precaching_routes()->register(
 					add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $server_error_precache_entry['url'] ),
 					( isset( $server_error_precache_entry['revision'] ) ? $server_error_precache_entry['revision'] : '' ) . $stream_combiner_revision
@@ -207,7 +207,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 
 		// Streaming.
 		$streaming_header_precache_entry = null;
-		if ( $theme_supports_streaming ) {
+		if ( $should_stream_response ) {
 			$header_template_file            = locate_template( array( 'header.php' ) );
 			$streaming_header_precache_entry = array(
 				'url'      => add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'header', home_url( '/' ) ),
@@ -241,14 +241,14 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		}
 
 		$this->replacements = array(
-			'ERROR_OFFLINE_URL'                => isset( $offline_error_precache_entry['url'] ) ? wp_service_worker_json_encode( $offline_error_precache_entry['url'] ) : null,
-			'ERROR_OFFLINE_BODY_FRAGMENT_URL'  => isset( $offline_error_precache_entry['url'] ) ? wp_service_worker_json_encode( add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $offline_error_precache_entry['url'] ) ) : null,
-			'ERROR_500_URL'                    => isset( $server_error_precache_entry['url'] ) ? wp_service_worker_json_encode( $server_error_precache_entry['url'] ) : null,
-			'ERROR_500_BODY_FRAGMENT_URL'      => isset( $server_error_precache_entry['url'] ) ? wp_service_worker_json_encode( add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $server_error_precache_entry['url'] ) ) : null,
-			'STREAM_HEADER_FRAGMENT_URL'       => isset( $streaming_header_precache_entry['url'] ) ? wp_service_worker_json_encode( $streaming_header_precache_entry['url'] ) : null,
+			'ERROR_OFFLINE_URL'                => wp_service_worker_json_encode( isset( $offline_error_precache_entry['url'] ) ? $offline_error_precache_entry['url'] : null ),
+			'ERROR_OFFLINE_BODY_FRAGMENT_URL'  => wp_service_worker_json_encode( isset( $offline_error_precache_entry['url'] ) ? add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $offline_error_precache_entry['url'] ) : null ),
+			'ERROR_500_URL'                    => wp_service_worker_json_encode( isset( $server_error_precache_entry['url'] ) ? $server_error_precache_entry['url'] : null ),
+			'ERROR_500_BODY_FRAGMENT_URL'      => wp_service_worker_json_encode( isset( $server_error_precache_entry['url'] ) ? add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $server_error_precache_entry['url'] ) : null ),
+			'STREAM_HEADER_FRAGMENT_URL'       => wp_service_worker_json_encode( isset( $streaming_header_precache_entry['url'] ) ? $streaming_header_precache_entry['url'] : null ),
 			'BLACKLIST_PATTERNS'               => wp_service_worker_json_encode( $blacklist_patterns ),
-			'THEME_SUPPORTS_STREAMING'         => $theme_supports_streaming,
-			'STREAM_HEADER_FRAGMENT_QUERY_VAR' => wp_json_encode( self::STREAM_FRAGMENT_QUERY_VAR ),
+			'SHOULD_STREAM_RESPONSE'           => wp_service_worker_json_encode( $should_stream_response ),
+			'STREAM_HEADER_FRAGMENT_QUERY_VAR' => wp_service_worker_json_encode( self::STREAM_FRAGMENT_QUERY_VAR ),
 		);
 	}
 
