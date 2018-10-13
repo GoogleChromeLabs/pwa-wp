@@ -104,6 +104,10 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		$stylesheet = get_stylesheet();
 
 		$theme_supports_streaming = current_theme_supports( self::STREAM_THEME_SUPPORT );
+		$stream_combiner_revision = '';
+		if ( $theme_supports_streaming ) {
+			$stream_combiner_revision = md5( file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-stream-combiner.js' ) );
+		}
 
 		$revision = sprintf( '%s-v%s', $template, wp_get_theme( $template )->Version );
 		if ( $template !== $stylesheet ) {
@@ -187,7 +191,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			if ( $theme_supports_streaming ) {
 				$scripts->precaching_routes()->register(
 					add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $offline_error_precache_entry['url'] ),
-					isset( $offline_error_precache_entry['revision'] ) ? $offline_error_precache_entry['revision'] : null
+					( isset( $offline_error_precache_entry['revision'] ) ? $offline_error_precache_entry['revision'] : '' ) . $stream_combiner_revision
 				);
 			}
 		}
@@ -196,7 +200,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			if ( $theme_supports_streaming ) {
 				$scripts->precaching_routes()->register(
 					add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $server_error_precache_entry['url'] ),
-					isset( $server_error_precache_entry['revision'] ) ? $server_error_precache_entry['revision'] : null
+					( isset( $server_error_precache_entry['revision'] ) ? $server_error_precache_entry['revision'] : '' ) . $stream_combiner_revision
 				);
 			}
 		}
@@ -207,7 +211,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			$header_template_file            = locate_template( array( 'header.php' ) );
 			$streaming_header_precache_entry = array(
 				'url'      => add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'header', home_url( '/' ) ),
-				'revision' => $revision . ';' . md5( $header_template_file . file_get_contents( $header_template_file ) ), // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+				'revision' => $revision . ';' . md5( $header_template_file . file_get_contents( $header_template_file ) ) . $stream_combiner_revision, // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			);
 
 			/**
