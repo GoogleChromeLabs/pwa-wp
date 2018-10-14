@@ -13,23 +13,25 @@ function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 	const processedHeadNodeData = new WeakSet();
 	const processedHeadElements = new WeakSet();
 
-	// @todo Handle adding comments.
-	// @todo Rename to getElementMatch.
-	// Mark all identical nodes as having already been processed.
+	/**
+	 * Determine if a given element matches the nodeData coming from the body fragment.
+	 *
+	 * Returns true if the element name is the same and its attributes are equal.
+	 *
+	 * @returns {boolean} Matching.
+	 */
 	const isElementMatchingData = ( element, newElementData ) => {
 		if ( element.nodeName.toLowerCase() !== newElementData[0] ) {
 			return false;
 		}
 
 		const elementAttributes = Array.from( element.attributes )
-			/*.filter( ( attribute ) => ! variableAttributes.has( attribute.nodeName ) )*/
 			.map( ( attribute ) => {
 				return attribute.nodeName + '=' + attribute.nodeValue;
 			} )
 			.sort().join( ';' );
 
 		const dataAttributes = Object.entries( newElementData[ 1 ] || {} )
-			/*.filter( ( [ name ] ) => ! variableAttributes.has( name ) )*/
 			.map( ( [ name, value ] ) => {
 				return name + '=' + value;
 			} )
@@ -38,6 +40,7 @@ function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 		return elementAttributes === dataAttributes;
 	};
 
+	// Find identical nodes and update text content of any elements with matching attributes.
 	data.head_nodes
 		.filter( ( headNodeData ) => '#comment' !== headNodeData[ 0 ] )
 		.forEach( ( headNodeData ) => {
@@ -97,6 +100,21 @@ function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 		if ( ! processedHeadElements.has( meta ) && ! preservedMeta.has( meta.getAttribute( 'name' ) || meta.getAttribute( 'property' ) ) ) {
 			meta.remove();
 		}
+	} );
+
+	// Replace comments.
+	const pendingCommentNodes = data.head_nodes.filter( ( headNodeData ) => '#comment' === headNodeData[ 0 ] );
+	for ( const node of document.head.childNodes ) {
+		if ( 0 === pendingCommentNodes.length ) {
+			break;
+		}
+		if ( 8 === node.nodeType ) {
+			node.nodeValue = pendingCommentNodes.shift()[ 1 ];
+		}
+	}
+	// Add remaining comments that didn't match up.
+	pendingCommentNodes.forEach( ( headNodeData ) => {
+		document.head.appendChild( document.createTextNode( headNodeData[ 1 ] ) );
 	} );
 
 	// Populate body attributes.

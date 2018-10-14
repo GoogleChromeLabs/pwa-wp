@@ -62,12 +62,11 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * This element is also used to demarcate the header (head) from the body (tail).
 	 *
 	 * @since 2.0
-	 * @todo Consider using progress element instead?
 	 * @todo Consider adding a comment before and after the boundary to make it easier for non-DOM location.
 	 *
-	 * @param string $content Content to display in the boundary. By default it is "Loading" but it could also be a placeholder.
+	 * @param string $loading_content Content to display in the boundary. By default it is "Loading" but it could also be a placeholder.
 	 */
-	public static function print_stream_boundary( $content = '' ) {
+	public static function print_stream_boundary( $loading_content = '' ) {
 		if ( ! current_theme_supports( self::STREAM_THEME_SUPPORT ) ) {
 			_doing_it_wrong( __METHOD__, esc_html__( 'Failed to add "service_worker_streaming" theme support.', 'pwa' ), '0.2' );
 			return;
@@ -77,16 +76,15 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			return;
 		}
 
-		if ( ! $content ) {
-			$content = esc_html__( 'Loading&hellip;', 'pwa' );
+		if ( ! $loading_content ) {
+			$loading_content = esc_html__( 'Loading&hellip;', 'pwa' );
 		}
 
-		// @todo There is no reason to print this in the body fragment
-		printf(
-			'<div id="%s">%s</div>',
-			esc_attr( self::STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID ),
-			$content
-		); // WPCS: XSS OK.
+		printf( '<div id="%s">', esc_attr( self::STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID ) );
+		if ( 'header' === $stream_fragment ) {
+			echo $loading_content; // WPCS: XSS OK.
+		}
+		echo '</div>';
 
 		// Short-circuit the response when requesting the header since there is nothing left to stream.
 		if ( 'header' === $stream_fragment ) {
