@@ -13,6 +13,7 @@ function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 	const processedHeadNodeData = new WeakSet();
 	const processedHeadElements = new WeakSet();
 
+	// @todo Handle adding comments.
 	// @todo Rename to getElementMatch.
 	// Mark all identical nodes as having already been processed.
 	const isElementMatchingData = ( element, newElementData ) => {
