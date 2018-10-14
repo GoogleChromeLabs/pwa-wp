@@ -12,30 +12,128 @@
 function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 	let nodeData;
 	const processedHeadNodeData = new WeakSet();
+	const processedHeadElements = new WeakSet();
 
+	const variableLinkRels = new Set( [ 'canonical', 'shortlink' ] );
+
+	const getElementVariableAttributes = ( element ) => {
+		const nodeName = element.nodeName.toLowerCase();
+		if ( 'meta' === nodeName ) {
+			return new Set( [ 'content' ] );
+		}
+		if ( 'link' === nodeName ) {
+			return new Set( [ 'href', 'title' ] ); // @todo There are multiple rel=preconnects.
+		}
+		return new Set();
+	};
+
+	// @todo Rename to getElementMatch.
 	// Mark all identical nodes as having already been processed.
 	const isElementMatchingData = ( element, newElementData ) => {
 		if ( element.nodeName.toLowerCase() !== newElementData[0] ) {
 			return false;
 		}
-		const elementAttributes = Array.prototype.map.call( element.attributes, ( attribute ) => {
-			return attribute.nodeName + '=' + attribute.nodeValue;
-		} ).sort().join( ';' );
 
-		const dataAttributes = !newElementData[1] ? '' : Object.entries( newElementData[1] ).map( ( [key, value] ) => {
-			return key + '=' + value;
-		} ).sort().join( ';' );
+		const variableAttributes = getElementVariableAttributes( element );
 
-		if ( elementAttributes !== dataAttributes ) {
-			return false;
-		}
+		const elementAttributes = Array.from( element.attributes )
+			/*.filter( ( attribute ) => ! variableAttributes.has( attribute.nodeName ) )*/
+			.map( ( attribute ) => {
+				return attribute.nodeName + '=' + attribute.nodeValue;
+			} )
+			.sort().join( ';' );
 
-		if ( 'undefined' === typeof newElementData[2] ) {
-			return !element.firstChild;
-		} else {
-			return element.firstChild === newElementData[2];
-		}
+		const dataAttributes = Object.entries( newElementData[ 1 ] || {} )
+			/*.filter( ( [ name ] ) => ! variableAttributes.has( name ) )*/
+			.map( ( [ name, value ] ) => {
+				return name + '=' + value;
+			} )
+			.sort().join( ';' );
+
+		return elementAttributes === dataAttributes;
+		// if ( elementAttributes !== dataAttributes ) {
+		// 	return false;
+		// }
+		//
+		// if ( 'undefined' === typeof newElementData[2] ) {
+		// 	return ! element.firstChild;
+		// } else {
+		// 	return element.firstChild === newElementData[2];
+		// }
 	};
+
+	// Remove links and meta which are probably all stale in the header.
+	const preservedLinkRels = new Set( [
+		'EditURI',
+		'apple-touch-icon-precomposed',
+		'dns-prefetch',
+		'https://api.w.org/',
+		'icon',
+		'pingback',
+		'preconnect',
+		'preload',
+		'profile',
+		'stylesheet',
+		'wlwmanifest'
+	] );
+	Array.from( document.head.querySelectorAll( 'link[rel]' ) ).forEach( ( link ) => {
+		if ( ! preservedLinkRels.has( link.rel ) ) {
+			link.remove();
+		}
+	} );
+	const preservedMeta = new Set( [
+		'viewport',
+		'generator',
+		'msapplication-TileImage',
+	] );
+	Array.from( document.head.querySelectorAll( 'meta[name],meta[property]' ) ).forEach( ( meta ) => {
+		if ( ! preservedMeta.has( meta.getAttribute( 'name' ) || meta.getAttribute( 'property' ) ) ) {
+			meta.remove();
+		}
+	} );
+
+	data.head_nodes
+		.filter( ( headNodeData ) => '#comment' !== headNodeData[ 0 ] )
+		.forEach( ( headNodeData ) => {
+			const headChildElement = Array.from( document.head.getElementsByTagName( headNodeData[ 0 ] ) ).find( ( element ) => {
+				return ! processedHeadElements.has( element ) && isElementMatchingData( element, headNodeData )
+			} );
+			if ( ! headChildElement ) {
+				return;
+			}
+			const variableAttributes = getElementVariableAttributes( headChildElement );
+
+			// Update variable attributes.
+			variableAttributes.forEach( ( variableAttributeName ) => {
+				if ( headNodeData[ 1 ] && headChildElement.getAttribute( variableAttributeName ) !== headNodeData[ 1 ][ variableAttributeName ] ) {
+					headChildElement.setAttribute( variableAttributeName, headNodeData[ 1 ][ variableAttributeName ] );
+				}
+			} );
+
+			// Set node content if different.
+			if ( 'undefined' !== typeof headNodeData[ 2 ] && headChildElement.firstChild && headChildElement.firstChild.nodeType === 3 && headNodeData[ 2 ] !== headChildElement.firstChild.nodeValue ) {
+				headChildElement.firstChild.nodeValue = headNodeData[ 2 ];
+				console.info( 'update', headChildElement, headNodeData );
+			}
+
+			processedHeadElements.add( headChildElement );
+			processedHeadNodeData.add( headNodeData );
+		} );
+
+	// Now create elements for each of the remaining.
+	data.head_nodes
+		.filter( ( headNodeData ) => '#comment' !== headNodeData[ 0 ] && ! processedHeadNodeData.has( headNodeData ) )
+		.forEach( ( headNodeData ) => {
+			const element = document.createElement( headNodeData[ 0 ] );
+			for ( const [ name, value ] of Object.entries( headNodeData[ 1 ] || {} ) ) {
+				element.setAttribute( name, value );
+			}
+			console.info( 'create', element );
+			document.head.appendChild( element );
+		} );
+
+	return;
+
 	data.head_nodes.filter( ( headNodeData ) => '#comment' !== headNodeData[ 0 ] ).forEach( ( headNodeData ) => {
 		for ( const headChildElement of document.head.getElementsByTagName( headNodeData[ 0 ] ) ) {
 			if ( isElementMatchingData( headChildElement, headNodeData ) ) {
@@ -100,14 +198,14 @@ function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 	document.head.querySelectorAll( 'meta[name][content]' ).forEach( ( meta ) => {
 		const nodeData = metaHeadNodeDataLookup.get( 'name:' + meta.getAttribute( 'name' ) );
 		if ( nodeData ) {
-			meta.setAttribute( 'content', nodeData[ 1 ][ 'content' ] )
+			meta.setAttribute( 'content', nodeData[ 1 ][ 'content' ] );
 			processedHeadNodeData.add( nodeData );
 		}
 	} );
 	document.head.querySelectorAll( 'meta[property][content]' ).forEach( ( meta ) => {
 		const nodeData = metaHeadNodeDataLookup.get( 'property:' + meta.getAttribute( 'name' ) );
 		if ( nodeData ) {
-			meta.setAttribute( 'content', nodeData[ 1 ][ 'content' ] )
+			meta.setAttribute( 'content', nodeData[ 1 ][ 'content' ] );
 			processedHeadNodeData.add( nodeData );
 		}
 	} );
