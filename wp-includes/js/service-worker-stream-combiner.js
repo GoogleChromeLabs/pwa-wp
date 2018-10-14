@@ -37,36 +37,6 @@ function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 		return elementAttributes === dataAttributes;
 	};
 
-	// Remove links and meta which are probably all stale in the header.
-	const preservedLinkRels = new Set( [
-		'EditURI',
-		'apple-touch-icon-precomposed',
-		'dns-prefetch',
-		'https://api.w.org/',
-		'icon',
-		'pingback',
-		'preconnect',
-		'preload',
-		'profile',
-		'stylesheet',
-		'wlwmanifest'
-	] );
-	Array.from( document.head.querySelectorAll( 'link[rel]' ) ).forEach( ( link ) => {
-		if ( ! preservedLinkRels.has( link.rel ) ) {
-			link.remove();
-		}
-	} );
-	const preservedMeta = new Set( [
-		'viewport',
-		'generator',
-		'msapplication-TileImage',
-	] );
-	Array.from( document.head.querySelectorAll( 'meta[name],meta[property]' ) ).forEach( ( meta ) => {
-		if ( ! preservedMeta.has( meta.getAttribute( 'name' ) || meta.getAttribute( 'property' ) ) ) {
-			meta.remove();
-		}
-	} );
-
 	data.head_nodes
 		.filter( ( headNodeData ) => '#comment' !== headNodeData[ 0 ] )
 		.forEach( ( headNodeData ) => {
@@ -95,7 +65,38 @@ function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 				element.setAttribute( name, value );
 			}
 			document.head.appendChild( element );
+			processedHeadElements.add( element );
 		} );
+
+	// Remove links and meta which are probably all stale in the header.
+	const preservedLinkRels = new Set( [
+		'EditURI',
+		'apple-touch-icon-precomposed',
+		'dns-prefetch',
+		'https://api.w.org/',
+		'icon',
+		'pingback',
+		'preconnect',
+		'preload',
+		'profile',
+		'stylesheet',
+		'wlwmanifest'
+	] );
+	Array.from( document.head.querySelectorAll( 'link[rel]' ) ).forEach( ( link ) => {
+		if ( ! processedHeadElements.has( link ) && ! preservedLinkRels.has( link.rel ) ) {
+			link.remove();
+		}
+	} );
+	const preservedMeta = new Set( [
+		'viewport',
+		'generator',
+		'msapplication-TileImage',
+	] );
+	Array.from( document.head.querySelectorAll( 'meta[name],meta[property]' ) ).forEach( ( meta ) => {
+		if ( ! processedHeadElements.has( meta ) && ! preservedMeta.has( meta.getAttribute( 'name' ) || meta.getAttribute( 'property' ) ) ) {
+			meta.remove();
+		}
+	} );
 
 	// Populate body attributes.
 	for ( const key in data.body_attributes ) {
