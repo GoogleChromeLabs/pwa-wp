@@ -56,7 +56,10 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 
 		const canStreamResponse = () => {
 			const url = new URL( event.request.url );
-			return ! /\.php$/.test( url.pathname );
+			return ! (
+				/\.php$/.test( url.pathname ) ||
+				url.searchParams.has( STREAM_HEADER_FRAGMENT_QUERY_VAR )
+			);
 		};
 
 		if ( isStreamingResponses && canStreamResponse() ) {
