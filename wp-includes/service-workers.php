@@ -141,8 +141,11 @@ function wp_print_service_workers() {
 						<?php echo wp_json_encode( compact( 'scope' ) ); ?>
 					).then( reg => {
 						document.cookie = 'wordpress_sw_installed=1; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; secure; samesite=strict';
-						<?php if ( false === apply_filters( 'wp_service_worker_skip_waiting', true ) ) { ?>
+						<?php if ( ! wp_service_worker_skip_waiting() ) { ?>
 							reg.addEventListener( 'updatefound', () => {
+								if ( ! reg.installing ) {
+									return;
+								}
 								updatedSw = reg.installing;
 								updatedSw.addEventListener( 'statechange', () => {
 
@@ -150,7 +153,9 @@ function wp_print_service_workers() {
 									if ( 'installed' === updatedSw.state ) {
 										if ( navigator.serviceWorker.controller ) {
 											var notification = document.getElementById( 'wp-admin-bar-pwa-sw-update-notice' );
-											notification.style.display = 'block';
+											if ( notification ) {
+												notification.style.display = 'block';
+											}
 										}
 									}
 								} );
@@ -347,17 +352,19 @@ function wp_disable_script_concatenation() {
  * Script for sending postMessage to Service Worker for skipping the waiting phase.
  */
 function wp_print_admin_service_worker_update_script() {
-	if ( ! is_admin_bar_showing() || apply_filters( 'wp_service_worker_skip_waiting', true ) ) {
+	if ( ! is_admin_bar_showing() || wp_service_worker_skip_waiting() ) {
 		return;
 	}
 	?>
 	<script>
 		window.addEventListener( 'load', function() {
 			var reloadBtn = document.getElementById( 'wp-admin-bar-pwa-sw-update-notice' );
-			if ( reloadBtn && updatedSw ) {
+			if ( reloadBtn ) {
 				reloadBtn.addEventListener( 'click', function( e ) {
 					e.preventDefault();
-					updatedSw.postMessage( { action: 'skipWaiting' } );
+					if ( updatedSw ) {
+						updatedSw.postMessage( { action: 'skipWaiting' } );
+					}
 				} );
 			}
 		} );
@@ -369,7 +376,6 @@ function wp_print_admin_service_worker_update_script() {
  * Service worker styles.
  */
 function wp_service_worker_styles() {
-	wp_enqueue_style( 'admin-bar' );
 	wp_add_inline_style( 'admin-bar', '#wp-admin-bar-pwa-sw-update-notice { display:none }' );
 }
 
@@ -379,7 +385,7 @@ function wp_service_worker_styles() {
  * @param object $wp_admin_bar WP Admin Bar.
  */
 function wp_service_worker_update_node( $wp_admin_bar ) {
-	if ( apply_filters( 'wp_service_worker_skip_waiting', true ) ) {
+	if ( wp_service_worker_skip_waiting() ) {
 		return;
 	}
 	$wp_admin_bar->add_node(
@@ -389,4 +395,26 @@ function wp_service_worker_update_node( $wp_admin_bar ) {
 			'href'  => '#',
 		)
 	);
+}
+
+/**
+ * Checks if Service Worker should skip waiting in case of update and update automatically.
+ *
+ * @return bool If to skip waiting.
+ */
+function wp_service_worker_skip_waiting() {
+
+	/**
+	 * Filters whether the service worker should update automatically when a new version is available.
+	 *
+	 * For optioning out from skipping waiting and displaying a notification to update instead, you could do:
+	 *
+	 *     add_filter( 'wp_service_worker_skip_waiting', '__return_false' );
+	 *
+	 * @param bool $skip_waiting Whether to skip waiting for the Service Worker and update when an update is available.
+	 */
+	if ( false === apply_filters( 'wp_service_worker_skip_waiting', true ) ) {
+		return false;
+	}
+	return true;
 }

@@ -78,19 +78,28 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 
 		$script .= sprintf( "workbox.core.setCacheNameDetails( %s );\n", wp_service_worker_json_encode( $cache_name_details ) );
 
+		$skip_waiting = wp_service_worker_skip_waiting();
+
 		/**
-		 * Filters whether the service worker should update automatically when a new version is available.
+		 * Filters whether the service worker should use clientsClaim() after skipWaiting().
+		 * Using clientsClaim() ensures that all uncontrolled clients (i.e. pages) that are
+		 * within scope will be controlled by a service worker immediately after that service worker activates.
+		 * Without enabling it, they won't be controlled until the next navigation.
 		 *
-		 * For optioning out from skipping waiting and displaying a notification to update instead, you could do:
+		 * For optioning in for .clientsClaim(), you could do:
 		 *
-		 *     add_filter( 'wp_service_worker_skip_waiting', '__return_false' );
+		 *     add_filter( 'wp_service_worker_clients_claim', '__return_true' );
 		 *
-		 * @param bool $skip_waiting Whether to skip waiting for the Service Worker and update when an update is available.
+		 * @param bool $clients_claim Whether to run clientsClaim() after skipWaiting().
 		 */
-		$skip_waiting = apply_filters( 'wp_service_worker_skip_waiting', true );
+		$clients_claim = apply_filters( 'wp_service_worker_clients_claim', false );
+
 		if ( true === $skip_waiting ) {
 			$script .= "workbox.skipWaiting();\n";
-			$script .= "workbox.clientsClaim();\n";
+
+			if ( true === $clients_claim ) {
+				$script .= "workbox.clientsClaim();\n";
+			}
 		}
 
 		/**

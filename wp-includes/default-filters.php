@@ -24,9 +24,9 @@ add_action( 'wp_default_service_workers', 'wp_default_service_workers' );
 add_action( 'admin_init', 'wp_disable_script_concatenation' );
 
 // Service Worker Updating.
-add_action( 'admin_print_footer_scripts', 'wp_print_admin_service_worker_update_script' );
+add_action( 'admin_print_footer_scripts', 'wp_print_admin_service_worker_update_script', 11 );
 add_action( 'wp_print_footer_scripts', 'wp_print_admin_service_worker_update_script', 11 );
 add_action( 'admin_bar_menu', 'wp_service_worker_update_node', 999 );
 
-add_action( 'wp_enqueue_scripts', 'wp_service_worker_styles' );
-add_action( 'admin_enqueue_scripts', 'wp_service_worker_styles' );
+add_action( 'wp_enqueue_scripts', 'wp_service_worker_styles', 11 );
+add_action( 'admin_enqueue_scripts', 'wp_service_worker_styles', 11 );
