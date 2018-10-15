@@ -16,6 +16,7 @@ add_action( 'parse_query', 'wp_service_worker_loaded' );
 add_action( 'wp_ajax_wp_service_worker', 'wp_ajax_wp_service_worker' );
 add_action( 'wp_ajax_nopriv_wp_service_worker', 'wp_ajax_wp_service_worker' );
 add_action( 'parse_query', 'wp_hide_admin_bar_offline' );
+add_filter( 'old_slug_redirect_url', 'wp_service_worker_fragment_redirect_old_slug_to_new_url' );
 
 add_action( 'wp_head', 'wp_add_error_template_no_robots' );
 add_filter( 'pre_get_document_title', 'WP_Service_Worker_Navigation_Routing_Component::filter_title_for_streaming_header' );

@@ -8,7 +8,16 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 
 		const handleResponse = ( response ) => {
 			if ( response.status < 500 ) {
-				return response;
+				if ( response.redirected ) {
+					const redirectedUrl = new URL( response.url );
+					redirectedUrl.searchParams.delete( STREAM_HEADER_FRAGMENT_QUERY_VAR );
+					const script = `<script>history.replaceState( {}, '', ${ JSON.stringify( redirectedUrl.toString() ) } );</script>`;
+					return response.text().then( ( body ) => {
+						return new Response( script + body );
+					} );
+				} else {
+					return response;
+				}
 			}
 			const channel = new BroadcastChannel( 'wordpress-server-errors' );
 
