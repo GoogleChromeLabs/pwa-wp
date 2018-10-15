@@ -54,7 +54,12 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 			}
 		}
 
-		if ( isStreamingResponses ) {
+		const canStreamResponse = () => {
+			const url = new URL( event.request.url );
+			return ! /\.php$/.test( url.pathname );
+		};
+
+		if ( isStreamingResponses && canStreamResponse() ) {
 			const streamHeaderFragmentURL = STREAM_HEADER_FRAGMENT_URL;
 			const precacheStrategy = wp.serviceWorker.strategies.cacheFirst({
 				cacheName: wp.serviceWorker.core.cacheNames.precache,
