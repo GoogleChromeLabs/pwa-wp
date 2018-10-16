@@ -24,3 +24,5 @@ add_action( 'error_head', 'wp_add_error_template_no_robots' );
 add_action( 'wp_default_service_workers', 'wp_default_service_workers' );
 
 add_action( 'admin_init', 'wp_disable_script_concatenation' );
+
+add_action( 'template_redirect', 'wp_start_output_buffering_stream_fragment', PHP_INT_MAX );

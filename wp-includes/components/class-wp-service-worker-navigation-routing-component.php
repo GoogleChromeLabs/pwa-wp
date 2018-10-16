@@ -88,8 +88,40 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 
 		// Short-circuit the response when requesting the header since there is nothing left to stream.
 		if ( 'header' === $stream_fragment ) {
+			printf(
+				'<script id="wp-stream-combine-function">%s</script>',
+				file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-stream-combiner.js' ) // phpcs:ignore
+			);
 			exit;
 		}
+
+		// Handle serving the body.
+		$is_body_fragment = (
+			'body' === $stream_fragment
+			&&
+			false !== has_action( 'template_redirect', 'wp_start_output_buffering_stream_fragment' )
+			&&
+			ob_get_level() > 0
+		);
+		if ( ! $is_body_fragment ) {
+			return;
+		}
+		$header_html = ob_get_clean();
+
+		$libxml_use_errors = libxml_use_internal_errors( true );
+		$dom               = new DOMDocument( $header_html );
+		$result            = $dom->loadHTML( $header_html );
+		libxml_clear_errors();
+		libxml_use_internal_errors( $libxml_use_errors );
+		if ( ! $result ) {
+			wp_die( esc_html__( 'Failed to turn header into document.', 'pwa' ) );
+		}
+		$response = wp_prepare_stream_fragment_response( $dom, 'body' );
+		if ( is_wp_error( $response ) ) {
+			wp_die( esc_html( $response->get_error_message() ) );
+		}
+
+		echo $response; // WPCS: XSS OK.
 	}
 
 	/**

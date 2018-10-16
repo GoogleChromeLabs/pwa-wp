@@ -320,10 +320,28 @@ function wp_disable_script_concatenation() {
 }
 
 /**
+ * Start output buffering for obtaining a stream fragment.
+ *
+ * This runs at template_redirect. If the theme dues not support streaming or the body fragment is not requested,
+ * then this function does nothing.
+ *
+ * @since 0.2
+ */
+function wp_start_output_buffering_stream_fragment() {
+	if ( ! current_theme_supports( WP_Service_Worker_Navigation_Routing_Component::STREAM_THEME_SUPPORT ) ) {
+		return;
+	}
+	$stream_fragment = get_query_var( WP_Service_Worker_Navigation_Routing_Component::STREAM_FRAGMENT_QUERY_VAR );
+	if ( 'body' === $stream_fragment ) {
+		ob_start();
+	}
+}
+
+
+/**
  * Prepare stream fragment response.
  *
  * @since 0.2
- * @todo Hook this up to work in non-AMP responses.
  *
  * @param DOMDocument $dom           Document.
  * @param string      $fragment_name Fragment name.
@@ -402,20 +420,38 @@ function wp_prepare_stream_fragment_response( $dom, $fragment_name ) {
 	}
 
 	// @todo Also obtain classes used in nav menus.
-	$boundary_element->parentNode->insertBefore( $dom->createComment( $boundary_comment_text ), $boundary_element );
-	$boundary_element->parentNode->removeChild( $boundary_element ); // Only relevant to serve in the header fragment.
-	$serialized = AMP_DOM_Utils::get_content_from_dom_node( $dom, $dom->documentElement );
-	$token_pos  = strpos( $serialized, $search );
-	if ( false === $token_pos ) {
-		return new WP_Error( 'fragment_boundary_not_found' );
-	}
-
 	$response = sprintf(
 		'<script id="wp-stream-combine-call">wpStreamCombine( %s );</script>',
 		wp_json_encode( $data, JSON_PRETTY_PRINT ) // phpcs:ignore PHPCompatibility.PHP.NewConstants.json_pretty_printFound -- Defined in core.
 	);
 
-	$response .= substr( $serialized, $token_pos + strlen( $search ) );
+	// Include rest of body after the entire response was buffered.
+	if ( did_action( 'wp_footer' ) ) {
+		$boundary_element->parentNode->insertBefore( $dom->createComment( $boundary_comment_text ), $boundary_element );
+		$boundary_element->parentNode->removeChild( $boundary_element ); // Only relevant to serve in the header fragment.
+
+		/**
+		 * Allow plugins to use their own means of serializing the DOM to an HTML string.
+		 *
+		 * This is needed because PHP versions various issues with serializing HTML.
+		 *
+		 * @since 0.2
+		 * @see AMP_DOM_Utils::get_content_from_dom_node() The AMP plugin has a method that accounts for various cases.
+		 *
+		 * @param null        $pre The serialized HTML. Plugins should override this to short-circuit DOMDocument::saveHTML() from being called.
+		 * @param DOMDocument $dom The document to be serialized.
+		 */
+		$serialized = apply_filters( 'pre_wp_service_worker_serialize_stream_fragment', null, $dom );
+		if ( null === $serialized ) {
+			$serialized = $dom->saveHTML();
+		}
+
+		$token_pos = strpos( $serialized, $search );
+		if ( false === $token_pos ) {
+			return new WP_Error( 'fragment_boundary_not_found' );
+		}
+		$response .= substr( $serialized, $token_pos + strlen( $search ) );
+	}
 
 	return $response;
 }
