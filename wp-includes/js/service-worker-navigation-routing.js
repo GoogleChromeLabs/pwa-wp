@@ -1,4 +1,4 @@
-/* global console, ERROR_OFFLINE_URL, ERROR_500_URL, SHOULD_STREAM_RESPONSE, STREAM_HEADER_FRAGMENT_URL, ERROR_500_BODY_FRAGMENT_URL, ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, BLACKLIST_PATTERNS */
+/* global console, CACHING_STRATEGY, CACHING_STRATEGY_ARGS, ERROR_OFFLINE_URL, ERROR_500_URL, SHOULD_STREAM_RESPONSE, STREAM_HEADER_FRAGMENT_URL, ERROR_500_BODY_FRAGMENT_URL, ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, BLACKLIST_PATTERNS */
 
 const isStreamingResponses = SHOULD_STREAM_RESPONSE && wp.serviceWorker.streams.isSupported();
 
@@ -76,6 +76,8 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 			}
 		}
 
+		const navigationCacheStrategy = wp.serviceWorker.strategies[ CACHING_STRATEGY ]( CACHING_STRATEGY_ARGS );
+
 		if ( canStreamResponse() ) {
 			const streamHeaderFragmentURL = STREAM_HEADER_FRAGMENT_URL;
 			const precacheStrategy = wp.serviceWorker.strategies.cacheFirst({
@@ -103,14 +105,14 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 
 			const stream = wp.serviceWorker.streams.concatenateToResponse([
 				precacheStrategy.makeRequest({ request: streamHeaderFragmentURL }), // @todo This should be able to vary based on the request.url. No: just don't allow in paired mode.
-				fetch( request )
+				navigationCacheStrategy.makeRequest( { request } )
 					.then( handleResponse )
 					.catch( sendOfflineResponse ),
 			]);
 
 			return stream.response;
 		} else {
-			return fetch( event.request )
+			return navigationCacheStrategy.makeRequest( { request: event.request } )
 				.then( handleResponse )
 				.catch( sendOfflineResponse );
 		}
