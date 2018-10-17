@@ -44,7 +44,7 @@ class WP_Service_Worker_Offline_Commenting_Component implements WP_Service_Worke
 		}
 
 		$this->replacements = array(
-			'ERROR_OFFLINE_URL'  => wp_service_worker_json_encode( $offline_template_url ),
+			'ERROR_OFFLINE_URL' => wp_service_worker_json_encode( $offline_template_url ),
 		);
 	}
 
