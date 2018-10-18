@@ -80,12 +80,46 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	}
 
 	/**
+	 * Start output buffering for obtaining a stream fragment.
+	 *
+	 * This runs at template_redirect. If the theme does not support streaming or the body fragment is not requested,
+	 * then this function does nothing.
+	 *
+	 * @since 0.2
+	 * @see WP_Service_Worker_Navigation_Routing_Component::do_stream_boundary() Which reads the output buffer.
+	 */
+	public static function start_output_buffering_stream_fragment() {
+		if ( current_theme_supports( self::STREAM_THEME_SUPPORT ) && 'body' === self::get_stream_fragment_query_var() ) {
+			ob_start();
+		}
+	}
+
+	/**
 	 * Determine whether the streaming header is being served.
+	 *
+	 * This is useful to conditionally output styles that are specific to the header fragment (such as a loading progress bar).
+	 *
+	 * @since 0.2
 	 *
 	 * @return bool Whether streaming header is being served.
 	 */
 	public static function is_streaming_header() {
 		return current_theme_supports( self::STREAM_THEME_SUPPORT ) && 'header' === self::get_stream_fragment_query_var();
+	}
+
+	/**
+	 * Filter the title for the streaming header.
+	 *
+	 * @since 0.2
+	 *
+	 * @param string $title Title.
+	 * @return string Title.
+	 */
+	public static function filter_title_for_streaming_header( $title ) {
+		if ( self::is_streaming_header() ) {
+			$title = __( 'Loading...', 'pwa' );
+		}
+		return $title;
 	}
 
 	/**
@@ -97,7 +131,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 *
 	 * @since 2.0
 	 *
-	 * @param string $loading_content Content to display in the boundary. By default it is "Loading" but it could also be a placeholder.
+	 * @param string $loading_content Content to display in the boundary. By default it is "Loading" but it could also be a skeleton placeholder. May contain markup.
 	 */
 	public static function do_stream_boundary( $loading_content = '' ) {
 		if ( ! current_theme_supports( self::STREAM_THEME_SUPPORT ) ) {
@@ -145,7 +179,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			exit;
 		}
 
-		// Handle serving the body. Normally it is output-buffered here.
+		// Handle serving the body. Normally it is output-buffered here. A plugin can disable the default output buffering to handle it later.
 		$is_header_buffered = (
 			false !== has_action( 'template_redirect', 'WP_Service_Worker_Navigation_Routing_Component::start_output_buffering_stream_fragment' )
 			&&
@@ -166,22 +200,6 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			echo $response; // WPCS: XSS OK.
 		}
 	}
-	/**
-	 * Start output buffering for obtaining a stream fragment.
-	 *
-	 * This runs at template_redirect. If the theme dues not support streaming or the body fragment is not requested,
-	 * then this function does nothing.
-	 *
-	 * @since 0.2
-	 */
-	public static function start_output_buffering_stream_fragment() {
-		if ( ! current_theme_supports( self::STREAM_THEME_SUPPORT ) ) {
-			return;
-		}
-		if ( 'body' === self::get_stream_fragment_query_var() ) {
-			ob_start();
-		}
-	}
 
 	/**
 	 * Get script for adding to the beginning of the body fragment to combine it with the header.
@@ -194,7 +212,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 */
 	public static function get_header_combine_invoke_script( $dom, $serialized = true ) {
 		$data = array(
-			// @todo Add root_attributes?
+			// @todo Add html_attributes?
 			'head_nodes'      => array(),
 			'body_attributes' => array(),
 		);
@@ -228,7 +246,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			}
 		}
 
-		// @todo Also obtain classes used in nav menus.
+		// @todo Also obtain classes used in nav menus to then synchronize?
 		$body = $dom->getElementsByTagName( 'body' )->item( 0 );
 		if ( $body ) {
 			foreach ( $body->attributes as $attribute ) {
@@ -252,20 +270,6 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			);
 			return $script;
 		}
-	}
-
-	/**
-	 * Filter the title for the streaming header.
-	 *
-	 * @since 0.2
-	 * @param string $title Title.
-	 * @return string Title.
-	 */
-	public static function filter_title_for_streaming_header( $title ) {
-		if ( current_theme_supports( self::STREAM_THEME_SUPPORT ) && 'header' === self::get_stream_fragment_query_var() ) {
-			$title = __( 'Loading...', 'pwa' );
-		}
-		return $title;
 	}
 
 	/**
