@@ -35,7 +35,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * @since 0.2
 	 * @var string
 	 */
-	const STREAM_COMBINE_DEFINE_SCRIPT_ID = 'wp-stream-combine-function';
+	const STREAM_COMBINE_DEFINE_SCRIPT_ID = 'wp-stream-define-combine-function';
 
 	/**
 	 * ID for script element that contains the stream combine function invocation.
@@ -43,7 +43,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * @since 0.2
 	 * @var string
 	 */
-	const STREAM_COMBINE_INVOKE_SCRIPT_ID = 'wp-stream-combine-function';
+	const STREAM_COMBINE_INVOKE_SCRIPT_ID = 'wp-stream-invoke-combine-function';
 
 	/**
 	 * ID for the stream boundary element.
@@ -52,20 +52,6 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * @var string
 	 */
 	const STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID = 'wp-stream-fragment-boundary';
-
-	/**
-	 * Start stream boundary.
-	 *
-	 * @var string
-	 */
-	const START_STREAM_BOUNDARY_COMMENT = 'WP_BEGIN_STREAM_BOUNDARY';
-
-	/**
-	 * End stream boundary comment.
-	 *
-	 * @var string
-	 */
-	const END_STREAM_BOUNDARY_COMMENT = 'WP_END_STREAM_BOUNDARY';
 
 	/**
 	 * Internal storage for replacements to make in the error response handling script.
@@ -92,7 +78,6 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * This element is also used to demarcate the header (head) from the body (tail).
 	 *
 	 * @since 2.0
-	 * @todo Consider adding a comment before and after the boundary to make it easier for non-DOM location. Do we need this?
 	 *
 	 * @param string $loading_content Content to display in the boundary. By default it is "Loading" but it could also be a placeholder.
 	 */
@@ -108,26 +93,34 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 
 		$is_header = 'header' === $stream_fragment;
 
-//		printf( '<!--%s-->', self::START_STREAM_BOUNDARY_COMMENT ); // WPCS: XSS OK.
+		printf( '<div id="%s">', esc_attr( self::STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID ) );
 		if ( 'header' === $stream_fragment ) {
-			printf( '<div id="%s">', esc_attr( self::STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID ) );
 			if ( ! $loading_content ) {
 				$loading_content = esc_html__( 'Loading&hellip;', 'pwa' );
 			}
 			echo $loading_content; // WPCS: XSS OK.
-			echo '</div>';
 		}
+		echo '</div>';
 
 		if ( $is_header ) {
+			$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-stream-combiner.js' ); // phpcs:ignore
+			$vars   = array(
+				'STREAM_COMBINE_INVOKE_SCRIPT_ID'     => wp_json_encode( self::STREAM_COMBINE_INVOKE_SCRIPT_ID ),
+				'STREAM_COMBINE_DEFINE_SCRIPT_ID'     => wp_json_encode( self::STREAM_COMBINE_DEFINE_SCRIPT_ID ),
+				'STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID' => wp_json_encode( self::STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID ),
+			);
+			$script = str_replace(
+				array_keys( $vars ),
+				array_values( $vars ),
+				$script
+			);
+
 			printf(
 				'<script id="%s">%s</script>',
 				esc_attr( self::STREAM_COMBINE_DEFINE_SCRIPT_ID ),
-				file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-stream-combiner.js' ) // phpcs:ignore
-			);
+				$script
+			); // WPCS: XSS OK.
 		}
-
-		// @todo We don't need this really because we can just use STREAM_COMBINE_DEFINE_SCRIPT_ID as the marker.
-//		printf( '<!--%s-->', self::END_STREAM_BOUNDARY_COMMENT ); // WPCS: XSS OK.
 
 		// Short-circuit the response when requesting the header since there is nothing left to stream.
 		if ( $is_header ) {
@@ -151,11 +144,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			if ( ! $result ) {
 				wp_die( esc_html__( 'Failed to turn header into document.', 'pwa' ) );
 			}
-			$response = self::prepare_stream_body_fragment( $dom );
-			if ( is_wp_error( $response ) ) {
-				wp_die( esc_html( $response->get_error_message() ) );
-			}
-
+			$response = self::get_header_combine_invoke_script( $dom, true );
 			echo $response; // WPCS: XSS OK.
 		}
 	}
@@ -178,118 +167,74 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	}
 
 	/**
-	 * Prepare stream header fragment.
+	 * Get script for adding to the beginning of the body fragment to combine it with the header.
 	 *
 	 * @since 0.2
 	 *
-	 * @param DOMDocument $dom Document.
-	 * @return string|WP_Error Header response or error.
+	 * @param DOMDocument $dom        Document.
+	 * @param bool        $serialized Whether to return the script as HTML (true) or a DOM element (false).
+	 * @return DOMElement|string DOM element or HTML string for script element containing header data.
 	 */
-//	public static function prepare_stream_header_fragment( $dom ) {
-//		$serialized  = "<!DOCTYPE html>\n";
-//		$serialized .= AMP_DOM_Utils::get_content_from_dom_node( $dom, $dom->documentElement );
-//		$token_pos   = strpos( $serialized, sprintf( '<!--%s-->', self::END_STREAM_BOUNDARY_COMMENT ) );
-//		if ( false === $token_pos ) {
-//			return new WP_Error( 'fragment_boundary_not_found' );
-//		}
-//		$response  = substr( $serialized, 0, $token_pos );
-//		$response .= sprintf(
-//			'<script id="%s">%s</script>',
-//			esc_attr( self::STREAM_COMBINE_DEFINE_SCRIPT_ID ),
-//			file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-stream-combiner.js' ) // phpcs:ignore
-//		);
-//		return $response;
-//	}
-
-	/**
-	 * Prepare stream body fragment.
-	 *
-	 * @since 0.2
-	 *
-	 * @param DOMDocument $dom Document.
-	 * @return string|WP_Error Body response or error.
-	 */
-	public static function prepare_stream_body_fragment( $dom ) {
-
-		// Obtain body fragment.
+	public static function get_header_combine_invoke_script( $dom, $serialized = true ) {
 		$data = array(
 			// @todo Add root_attributes?
 			'head_nodes'      => array(),
 			'body_attributes' => array(),
 		);
 		$head = $dom->getElementsByTagName( 'head' )->item( 0 );
-		if ( ! $head ) {
-			return new WP_Error( 'no_head' );
-		}
-		foreach ( $head->childNodes as $node ) {
-			if ( $node instanceof DOMElement ) {
-				if ( 'noscript' === $node->nodeName ) {
-					continue; // Obviously noscript will never be relevant to synchronize since it will never be evaluated.
-				}
-				$element = array(
-					$node->nodeName,
-					null,
-				);
-				if ( $node->hasAttributes() ) {
-					$element[1] = array();
-					foreach ( $node->attributes as $attribute ) {
-						$element[1][ $attribute->nodeName ] = $attribute->nodeValue;
+		if ( $head ) {
+			foreach ( $head->childNodes as $node ) {
+				if ( $node instanceof DOMElement ) {
+					if ( 'noscript' === $node->nodeName ) {
+						continue; // Obviously noscript will never be relevant to synchronize since it will never be evaluated.
 					}
+					$element = array(
+						$node->nodeName,
+						null,
+					);
+					if ( $node->hasAttributes() ) {
+						$element[1] = array();
+						foreach ( $node->attributes as $attribute ) {
+							$element[1][ $attribute->nodeName ] = $attribute->nodeValue;
+						}
+					}
+					if ( $node->firstChild instanceof DOMText ) {
+						$element[] = $node->firstChild->nodeValue;
+					}
+					$data['head_nodes'][] = $element;
+				} elseif ( $node instanceof DOMComment ) {
+					$data['head_nodes'][] = array(
+						'#comment',
+						$node->nodeValue,
+					);
 				}
-				if ( $node->firstChild instanceof DOMText ) {
-					$element[] = $node->firstChild->nodeValue;
-				}
-				$data['head_nodes'][] = $element;
-			} elseif ( $node instanceof DOMComment ) {
-				$data['head_nodes'][] = array(
-					'#comment',
-					$node->nodeValue,
-				);
 			}
-		}
-
-		$body = $dom->getElementsByTagName( 'body' )->item( 0 );
-		if ( ! $body ) {
-			return new WP_Error( 'no_body' );
-		}
-		foreach ( $body->attributes as $attribute ) {
-			$data['body_attributes'][ $attribute->nodeName ] = $attribute->nodeValue;
 		}
 
 		// @todo Also obtain classes used in nav menus.
-		$response = sprintf(
-			'<script id="%s">wpStreamCombine( %s );</script>',
-			esc_attr( self::STREAM_COMBINE_INVOKE_SCRIPT_ID ),
-			wp_json_encode( $data, JSON_PRETTY_PRINT ) // phpcs:ignore PHPCompatibility.PHP.NewConstants.json_pretty_printFound -- Defined in core.
-		);
-
-		// Include rest of body after the entire response was buffered.
-		if ( did_action( 'wp_footer' ) ) {
-			/**
-			 * Allow plugins to use their own means of serializing the DOM to an HTML string.
-			 *
-			 * This is needed because PHP versions various issues with serializing HTML.
-			 *
-			 * @since 0.2
-			 * @see AMP_DOM_Utils::get_content_from_dom_node() The AMP plugin has a method that accounts for various cases.
-			 *
-			 * @param null        $pre The serialized HTML. Plugins should override this to short-circuit DOMDocument::saveHTML() from being called.
-			 * @param DOMDocument $dom The document to be serialized.
-			 */
-			$serialized = apply_filters( 'pre_wp_service_worker_serialize_stream_fragment', null, $dom );
-			if ( null === $serialized ) {
-				$serialized = $dom->saveHTML();
+		$body = $dom->getElementsByTagName( 'body' )->item( 0 );
+		if ( $body ) {
+			foreach ( $body->attributes as $attribute ) {
+				$data['body_attributes'][ $attribute->nodeName ] = $attribute->nodeValue;
 			}
-
-			$search    = sprintf( '<!--%s-->', self::END_STREAM_BOUNDARY_COMMENT );
-			$token_pos = strpos( $serialized, $search );
-			if ( false === $token_pos ) {
-				return new WP_Error( 'fragment_boundary_not_found' );
-			}
-			$response .= substr( $serialized, $token_pos + strlen( $search ) );
 		}
 
-		return $response;
+		if ( $serialized ) {
+			return sprintf(
+				'<script id="%s">wpStreamCombine( %s );</script>',
+				esc_attr( self::STREAM_COMBINE_INVOKE_SCRIPT_ID ),
+				wp_json_encode( $data, JSON_PRETTY_PRINT ) // phpcs:ignore PHPCompatibility.PHP.NewConstants.json_pretty_printFound -- Defined in core.
+			);
+		} else {
+			$script = $dom->createElement( 'script' );
+			$script->setAttribute( 'id', self::STREAM_COMBINE_INVOKE_SCRIPT_ID );
+			$script->appendChild(
+				$dom->createTextNode(
+					sprintf( 'wpStreamCombine( %s )', wp_json_encode( $data, JSON_PRETTY_PRINT ) ) // phpcs:ignore PHPCompatibility.PHP.NewConstants.json_pretty_printFound -- Defined in core.
+				)
+			);
+			return $script;
+		}
 	}
 
 	/**

@@ -1,3 +1,5 @@
+/*global STREAM_COMBINE_INVOKE_SCRIPT_ID, STREAM_COMBINE_DEFINE_SCRIPT_ID, STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID */
+
 "use strict";
 /* This JS file will be added as an inline script in a stream header fragment response. */
 /* This file currently uses JS features which are compatible with Chrome 40 (Googlebot). */
@@ -124,9 +126,9 @@ function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 
 	/* Purge all traces of the stream combination logic to ensure the AMP validator doesn't complain at runtime. */
 	const removedElements = [
-		'wp-stream-fragment-boundary',
-		'wp-stream-combine-function',
-		'wp-stream-combine-call'
+		STREAM_COMBINE_INVOKE_SCRIPT_ID,
+		STREAM_COMBINE_DEFINE_SCRIPT_ID,
+		STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID
 	];
 	for ( const elementId of removedElements ) {
 		const element = document.getElementById( elementId );
