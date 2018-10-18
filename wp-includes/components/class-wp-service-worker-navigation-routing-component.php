@@ -62,12 +62,30 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	protected $replacements = array();
 
 	/**
+	 * Get stream fragment query var.
+	 *
+	 * @since 0.2
+	 *
+	 * @return string|null Stream fragment name or null if not requested.
+	 */
+	public static function get_stream_fragment_query_var() {
+		if ( ! isset( $_GET[ self::STREAM_FRAGMENT_QUERY_VAR ] ) ) { // WPCS: CSRF OK.
+			return null;
+		}
+		$stream_fragment = wp_unslash( $_GET[ self::STREAM_FRAGMENT_QUERY_VAR ] ); // WPCS: CSRF OK.
+		if ( in_array( $stream_fragment, array( 'header', 'body' ), true ) ) {
+			return $stream_fragment;
+		}
+		return null;
+	}
+
+	/**
 	 * Determine whether the streaming header is being served.
 	 *
 	 * @return bool Whether streaming header is being served.
 	 */
 	public static function is_streaming_header() {
-		return current_theme_supports( self::STREAM_THEME_SUPPORT ) && 'header' === get_query_var( self::STREAM_FRAGMENT_QUERY_VAR );
+		return current_theme_supports( self::STREAM_THEME_SUPPORT ) && 'header' === self::get_stream_fragment_query_var();
 	}
 
 	/**
@@ -86,7 +104,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			_doing_it_wrong( __METHOD__, esc_html__( 'Failed to add "service_worker_streaming" theme support.', 'pwa' ), '0.2' );
 			return;
 		}
-		$stream_fragment = get_query_var( self::STREAM_FRAGMENT_QUERY_VAR );
+		$stream_fragment = self::get_stream_fragment_query_var();
 		if ( ! $stream_fragment ) {
 			return;
 		}
@@ -160,8 +178,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		if ( ! current_theme_supports( self::STREAM_THEME_SUPPORT ) ) {
 			return;
 		}
-		$stream_fragment = get_query_var( self::STREAM_FRAGMENT_QUERY_VAR );
-		if ( 'body' === $stream_fragment ) {
+		if ( 'body' === self::get_stream_fragment_query_var() ) {
 			ob_start();
 		}
 	}
@@ -245,7 +262,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * @return string Title.
 	 */
 	public static function filter_title_for_streaming_header( $title ) {
-		if ( current_theme_supports( self::STREAM_THEME_SUPPORT ) && 'header' === get_query_var( self::STREAM_FRAGMENT_QUERY_VAR ) ) {
+		if ( current_theme_supports( self::STREAM_THEME_SUPPORT ) && 'header' === self::get_stream_fragment_query_var() ) {
 			$title = __( 'Loading...', 'pwa' );
 		}
 		return $title;

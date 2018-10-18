@@ -328,9 +328,9 @@ function wp_disable_script_concatenation() {
  * @return string URL to be redirected.
  */
 function wp_service_worker_fragment_redirect_old_slug_to_new_url( $link ) {
-	$fragment = get_query_var( WP_Service_Worker_Navigation_Routing_Component::STREAM_FRAGMENT_QUERY_VAR );
+	$fragment = WP_Service_Worker_Navigation_Routing_Component::get_stream_fragment_query_var();
 	if ( $fragment ) {
-		$link = add_query_arg( WP_Service_Worker_Navigation_Routing_Component::STREAM_FRAGMENT_QUERY_VAR, sanitize_key( $fragment ), $link );
+		$link = add_query_arg( WP_Service_Worker_Navigation_Routing_Component::STREAM_FRAGMENT_QUERY_VAR, $fragment, $link );
 	}
 	return $link;
 }
