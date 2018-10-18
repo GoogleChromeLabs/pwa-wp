@@ -16,6 +16,7 @@ pwa_get_header( 'error' );
 <main>
 	<h1><?php esc_html_e( 'Oops! It looks like you&#8217;re offline.', 'pwa' ); ?></h1>
 	<p><?php esc_html_e( 'Please check your internet connection, and try again.', 'pwa' ); ?></p>
+	<p><!-- WP_OFFLINE_COMMENT --></p>
 </main>
 <?php
 

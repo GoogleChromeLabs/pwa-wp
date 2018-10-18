@@ -334,3 +334,12 @@ function wp_service_worker_fragment_redirect_old_slug_to_new_url( $link ) {
 	}
 	return $link;
 }
+
+/**
+ * Get offline message.
+ *
+ * @todo This is a placeholder for offline messages, to be changed to be more general / allow multiple.
+ */
+function wp_service_worker_get_offline_message() {
+	return apply_filters( 'wp_service_worker_offline_messages', __( 'Your comment will be submitted once you are back online!', 'pwa' ) );
+}

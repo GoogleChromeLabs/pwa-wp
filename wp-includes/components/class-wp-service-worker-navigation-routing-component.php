@@ -425,6 +425,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			'BLACKLIST_PATTERNS'               => wp_service_worker_json_encode( $blacklist_patterns ),
 			'SHOULD_STREAM_RESPONSE'           => wp_service_worker_json_encode( $should_stream_response ),
 			'STREAM_HEADER_FRAGMENT_QUERY_VAR' => wp_service_worker_json_encode( self::STREAM_FRAGMENT_QUERY_VAR ),
+			'WP_OFFLINE_MESSAGE'               => wp_service_worker_json_encode( wp_service_worker_get_offline_message() ), // @todo This is a placeholder for general messages tag.
 		);
 	}
 
@@ -445,8 +446,8 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * @return string Script.
 	 */
 	public function get_script() {
-		$script  = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-navigation-routing.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$script .= file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-offline-commenting.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$script  = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-offline-commenting.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$script .= file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-navigation-routing.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$script  = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
 
 		return str_replace(
