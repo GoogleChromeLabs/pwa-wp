@@ -6,6 +6,19 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 	async function ( { event } ) {
 		const { url } = event.request;
 
+		let responsePreloaded = false;
+
+		const canStreamResponse = () => {
+			if ( ! isStreamingResponses || responsePreloaded ) {
+				return false;
+			}
+			const url = new URL( event.request.url );
+			return ! (
+				/\.php$/.test( url.pathname ) ||
+				url.searchParams.has( STREAM_HEADER_FRAGMENT_QUERY_VAR )
+			);
+		};
+
 		const handleResponse = ( response ) => {
 			if ( response.status < 500 ) {
 				if ( response.redirected ) {
@@ -41,11 +54,11 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 				channel.close();
 			}, 30 * 1000 );
 
-			return caches.match( isStreamingResponses ? ERROR_500_BODY_FRAGMENT_URL : ERROR_500_URL );
+			return caches.match( canStreamResponse() ? ERROR_500_BODY_FRAGMENT_URL : ERROR_500_URL );
 		};
 
 		const sendOfflineResponse = () => {
-			return caches.match( isStreamingResponses ? ERROR_OFFLINE_BODY_FRAGMENT_URL : ERROR_OFFLINE_URL );
+			return caches.match( canStreamResponse() ? ERROR_OFFLINE_BODY_FRAGMENT_URL : ERROR_OFFLINE_URL );
 		};
 
 		/*
@@ -56,22 +69,16 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 			try {
 				const response = await event.preloadResponse;
 				if ( response ) {
+					responsePreloaded = true;
 					return handleResponse( response );
 				}
 			} catch ( error ) {
+				responsePreloaded = true;
 				return sendOfflineResponse();
 			}
 		}
 
-		const canStreamResponse = () => {
-			const url = new URL( event.request.url );
-			return ! (
-				/\.php$/.test( url.pathname ) ||
-				url.searchParams.has( STREAM_HEADER_FRAGMENT_QUERY_VAR )
-			);
-		};
-
-		if ( isStreamingResponses && canStreamResponse() ) {
+		if ( canStreamResponse() ) {
 			const streamHeaderFragmentURL = STREAM_HEADER_FRAGMENT_URL;
 			const precacheStrategy = wp.serviceWorker.strategies.cacheFirst({
 				cacheName: wp.serviceWorker.core.cacheNames.precache,
