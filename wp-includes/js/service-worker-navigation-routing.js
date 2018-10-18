@@ -11,7 +11,7 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 				if ( response.redirected ) {
 					const redirectedUrl = new URL( response.url );
 					redirectedUrl.searchParams.delete( STREAM_HEADER_FRAGMENT_QUERY_VAR );
-					const script = `<script>history.replaceState( {}, '', ${ JSON.stringify( redirectedUrl.toString() ) } );</script>`;
+					const script = `<script id="wp-stream-fragment-replace-state">history.replaceState( {}, '', ${ JSON.stringify( redirectedUrl.toString() ) } ); document.getElementById( 'wp-stream-fragment-replace-state' ).remove();</script>`;
 					return response.text().then( ( body ) => {
 						return new Response( script + body );
 					} );
@@ -88,7 +88,6 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 					.catch( sendOfflineResponse ),
 			]);
 
-			// @todo Handle error case.
 			return stream.response;
 		} else {
 			return fetch( event.request )

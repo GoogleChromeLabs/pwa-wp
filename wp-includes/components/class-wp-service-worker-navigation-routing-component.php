@@ -189,7 +189,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			$header_html       = ob_get_clean();
 			$libxml_use_errors = libxml_use_internal_errors( true );
 			$header_html       = preg_replace( '#<noscript.+?</noscript>#s', '', $header_html ); // Some libxml versions croak at noscript in head.
-			$dom               = new DOMDocument( $header_html );
+			$dom               = new DOMDocument();
 			$result            = $dom->loadHTML( $header_html );
 			libxml_clear_errors();
 			libxml_use_internal_errors( $libxml_use_errors );

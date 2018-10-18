@@ -18,8 +18,10 @@ function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 	/**
 	 * Determine if a given element matches the nodeData coming from the body fragment.
 	 *
-	 * Returns true if the element name is the same and its attributes are equal.
+	 * Returns true if the element name is the same and its attributes are equal. Node textContent is not matched.
 	 *
+	 * @param {Element} element        - Element in head to compare.
+	 * @param {Object}  newElementData - Head node data to compare with.
 	 * @returns {boolean} Matching.
 	 */
 	const isElementMatchingData = ( element, newElementData ) => {
