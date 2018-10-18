@@ -30,12 +30,42 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	const STREAM_THEME_SUPPORT = 'service_worker_streaming';
 
 	/**
+	 * ID for script element that contains the stream combine function definition.
+	 *
+	 * @since 0.2
+	 * @var string
+	 */
+	const STREAM_COMBINE_DEFINE_SCRIPT_ID = 'wp-stream-combine-function';
+
+	/**
+	 * ID for script element that contains the stream combine function invocation.
+	 *
+	 * @since 0.2
+	 * @var string
+	 */
+	const STREAM_COMBINE_INVOKE_SCRIPT_ID = 'wp-stream-combine-function';
+
+	/**
 	 * ID for the stream boundary element.
 	 *
 	 * @since 0.2
 	 * @var string
 	 */
 	const STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID = 'wp-stream-fragment-boundary';
+
+	/**
+	 * Start stream boundary.
+	 *
+	 * @var string
+	 */
+	const START_STREAM_BOUNDARY_COMMENT = 'WP_BEGIN_STREAM_BOUNDARY';
+
+	/**
+	 * End stream boundary comment.
+	 *
+	 * @var string
+	 */
+	const END_STREAM_BOUNDARY_COMMENT = 'WP_END_STREAM_BOUNDARY';
 
 	/**
 	 * Internal storage for replacements to make in the error response handling script.
@@ -62,11 +92,11 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * This element is also used to demarcate the header (head) from the body (tail).
 	 *
 	 * @since 2.0
-	 * @todo Consider adding a comment before and after the boundary to make it easier for non-DOM location.
+	 * @todo Consider adding a comment before and after the boundary to make it easier for non-DOM location. Do we need this?
 	 *
 	 * @param string $loading_content Content to display in the boundary. By default it is "Loading" but it could also be a placeholder.
 	 */
-	public static function print_stream_boundary( $loading_content = '' ) {
+	public static function do_stream_boundary( $loading_content = '' ) {
 		if ( ! current_theme_supports( self::STREAM_THEME_SUPPORT ) ) {
 			_doing_it_wrong( __METHOD__, esc_html__( 'Failed to add "service_worker_streaming" theme support.', 'pwa' ), '0.2' );
 			return;
@@ -76,52 +106,190 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			return;
 		}
 
-		if ( ! $loading_content ) {
-			$loading_content = esc_html__( 'Loading&hellip;', 'pwa' );
-		}
+		$is_header = 'header' === $stream_fragment;
 
-		printf( '<div id="%s">', esc_attr( self::STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID ) );
+//		printf( '<!--%s-->', self::START_STREAM_BOUNDARY_COMMENT ); // WPCS: XSS OK.
 		if ( 'header' === $stream_fragment ) {
+			printf( '<div id="%s">', esc_attr( self::STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID ) );
+			if ( ! $loading_content ) {
+				$loading_content = esc_html__( 'Loading&hellip;', 'pwa' );
+			}
 			echo $loading_content; // WPCS: XSS OK.
+			echo '</div>';
 		}
-		echo '</div>';
 
-		// Short-circuit the response when requesting the header since there is nothing left to stream.
-		if ( 'header' === $stream_fragment ) {
+		if ( $is_header ) {
 			printf(
-				'<script id="wp-stream-combine-function">%s</script>',
+				'<script id="%s">%s</script>',
+				esc_attr( self::STREAM_COMBINE_DEFINE_SCRIPT_ID ),
 				file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-stream-combiner.js' ) // phpcs:ignore
 			);
+		}
+
+		// @todo We don't need this really because we can just use STREAM_COMBINE_DEFINE_SCRIPT_ID as the marker.
+//		printf( '<!--%s-->', self::END_STREAM_BOUNDARY_COMMENT ); // WPCS: XSS OK.
+
+		// Short-circuit the response when requesting the header since there is nothing left to stream.
+		if ( $is_header ) {
 			exit;
 		}
 
-		// Handle serving the body.
-		$is_body_fragment = (
-			'body' === $stream_fragment
-			&&
-			false !== has_action( 'template_redirect', 'wp_start_output_buffering_stream_fragment' )
+		// Handle serving the body. Normally it is output-buffered here.
+		$is_header_buffered = (
+			false !== has_action( 'template_redirect', 'WP_Service_Worker_Navigation_Routing_Component::start_output_buffering_stream_fragment' )
 			&&
 			ob_get_level() > 0
 		);
-		if ( ! $is_body_fragment ) {
+		if ( $is_header_buffered ) {
+			$header_html       = ob_get_clean();
+			$libxml_use_errors = libxml_use_internal_errors( true );
+			$header_html       = preg_replace( '#<noscript.+?</noscript>#s', '', $header_html ); // Some libxml versions croak at noscript in head.
+			$dom               = new DOMDocument( $header_html );
+			$result            = $dom->loadHTML( $header_html );
+			libxml_clear_errors();
+			libxml_use_internal_errors( $libxml_use_errors );
+			if ( ! $result ) {
+				wp_die( esc_html__( 'Failed to turn header into document.', 'pwa' ) );
+			}
+			$response = self::prepare_stream_body_fragment( $dom );
+			if ( is_wp_error( $response ) ) {
+				wp_die( esc_html( $response->get_error_message() ) );
+			}
+
+			echo $response; // WPCS: XSS OK.
+		}
+	}
+	/**
+	 * Start output buffering for obtaining a stream fragment.
+	 *
+	 * This runs at template_redirect. If the theme dues not support streaming or the body fragment is not requested,
+	 * then this function does nothing.
+	 *
+	 * @since 0.2
+	 */
+	public static function start_output_buffering_stream_fragment() {
+		if ( ! current_theme_supports( self::STREAM_THEME_SUPPORT ) ) {
 			return;
 		}
-		$header_html = ob_get_clean();
-
-		$libxml_use_errors = libxml_use_internal_errors( true );
-		$dom               = new DOMDocument( $header_html );
-		$result            = $dom->loadHTML( $header_html );
-		libxml_clear_errors();
-		libxml_use_internal_errors( $libxml_use_errors );
-		if ( ! $result ) {
-			wp_die( esc_html__( 'Failed to turn header into document.', 'pwa' ) );
+		$stream_fragment = get_query_var( self::STREAM_FRAGMENT_QUERY_VAR );
+		if ( 'body' === $stream_fragment ) {
+			ob_start();
 		}
-		$response = wp_prepare_stream_fragment_response( $dom, 'body' );
-		if ( is_wp_error( $response ) ) {
-			wp_die( esc_html( $response->get_error_message() ) );
+	}
+
+	/**
+	 * Prepare stream header fragment.
+	 *
+	 * @since 0.2
+	 *
+	 * @param DOMDocument $dom Document.
+	 * @return string|WP_Error Header response or error.
+	 */
+//	public static function prepare_stream_header_fragment( $dom ) {
+//		$serialized  = "<!DOCTYPE html>\n";
+//		$serialized .= AMP_DOM_Utils::get_content_from_dom_node( $dom, $dom->documentElement );
+//		$token_pos   = strpos( $serialized, sprintf( '<!--%s-->', self::END_STREAM_BOUNDARY_COMMENT ) );
+//		if ( false === $token_pos ) {
+//			return new WP_Error( 'fragment_boundary_not_found' );
+//		}
+//		$response  = substr( $serialized, 0, $token_pos );
+//		$response .= sprintf(
+//			'<script id="%s">%s</script>',
+//			esc_attr( self::STREAM_COMBINE_DEFINE_SCRIPT_ID ),
+//			file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-stream-combiner.js' ) // phpcs:ignore
+//		);
+//		return $response;
+//	}
+
+	/**
+	 * Prepare stream body fragment.
+	 *
+	 * @since 0.2
+	 *
+	 * @param DOMDocument $dom Document.
+	 * @return string|WP_Error Body response or error.
+	 */
+	public static function prepare_stream_body_fragment( $dom ) {
+
+		// Obtain body fragment.
+		$data = array(
+			// @todo Add root_attributes?
+			'head_nodes'      => array(),
+			'body_attributes' => array(),
+		);
+		$head = $dom->getElementsByTagName( 'head' )->item( 0 );
+		if ( ! $head ) {
+			return new WP_Error( 'no_head' );
+		}
+		foreach ( $head->childNodes as $node ) {
+			if ( $node instanceof DOMElement ) {
+				if ( 'noscript' === $node->nodeName ) {
+					continue; // Obviously noscript will never be relevant to synchronize since it will never be evaluated.
+				}
+				$element = array(
+					$node->nodeName,
+					null,
+				);
+				if ( $node->hasAttributes() ) {
+					$element[1] = array();
+					foreach ( $node->attributes as $attribute ) {
+						$element[1][ $attribute->nodeName ] = $attribute->nodeValue;
+					}
+				}
+				if ( $node->firstChild instanceof DOMText ) {
+					$element[] = $node->firstChild->nodeValue;
+				}
+				$data['head_nodes'][] = $element;
+			} elseif ( $node instanceof DOMComment ) {
+				$data['head_nodes'][] = array(
+					'#comment',
+					$node->nodeValue,
+				);
+			}
 		}
 
-		echo $response; // WPCS: XSS OK.
+		$body = $dom->getElementsByTagName( 'body' )->item( 0 );
+		if ( ! $body ) {
+			return new WP_Error( 'no_body' );
+		}
+		foreach ( $body->attributes as $attribute ) {
+			$data['body_attributes'][ $attribute->nodeName ] = $attribute->nodeValue;
+		}
+
+		// @todo Also obtain classes used in nav menus.
+		$response = sprintf(
+			'<script id="%s">wpStreamCombine( %s );</script>',
+			esc_attr( self::STREAM_COMBINE_INVOKE_SCRIPT_ID ),
+			wp_json_encode( $data, JSON_PRETTY_PRINT ) // phpcs:ignore PHPCompatibility.PHP.NewConstants.json_pretty_printFound -- Defined in core.
+		);
+
+		// Include rest of body after the entire response was buffered.
+		if ( did_action( 'wp_footer' ) ) {
+			/**
+			 * Allow plugins to use their own means of serializing the DOM to an HTML string.
+			 *
+			 * This is needed because PHP versions various issues with serializing HTML.
+			 *
+			 * @since 0.2
+			 * @see AMP_DOM_Utils::get_content_from_dom_node() The AMP plugin has a method that accounts for various cases.
+			 *
+			 * @param null        $pre The serialized HTML. Plugins should override this to short-circuit DOMDocument::saveHTML() from being called.
+			 * @param DOMDocument $dom The document to be serialized.
+			 */
+			$serialized = apply_filters( 'pre_wp_service_worker_serialize_stream_fragment', null, $dom );
+			if ( null === $serialized ) {
+				$serialized = $dom->saveHTML();
+			}
+
+			$search    = sprintf( '<!--%s-->', self::END_STREAM_BOUNDARY_COMMENT );
+			$token_pos = strpos( $serialized, $search );
+			if ( false === $token_pos ) {
+				return new WP_Error( 'fragment_boundary_not_found' );
+			}
+			$response .= substr( $serialized, $token_pos + strlen( $search ) );
+		}
+
+		return $response;
 	}
 
 	/**

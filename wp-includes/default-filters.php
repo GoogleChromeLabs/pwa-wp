@@ -25,4 +25,4 @@ add_action( 'wp_default_service_workers', 'wp_default_service_workers' );
 
 add_action( 'admin_init', 'wp_disable_script_concatenation' );
 
-add_action( 'template_redirect', 'wp_start_output_buffering_stream_fragment', PHP_INT_MAX );
+add_action( 'template_redirect', 'WP_Service_Worker_Navigation_Routing_Component::start_output_buffering_stream_fragment', PHP_INT_MAX );
