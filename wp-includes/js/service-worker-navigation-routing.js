@@ -84,7 +84,22 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 
 			const url = new URL( event.request.url );
 			url.searchParams.append( STREAM_HEADER_FRAGMENT_QUERY_VAR, 'body' );
-			const request = new Request( url.toString(), {...event.request} );
+			const init = {
+				mode: 'same-origin'
+			};
+			const copiedProps = [
+				'method',
+				'headers',
+				'credentials',
+				'cache',
+				'redirect',
+				'referrer',
+				'integrity',
+			];
+			for ( const initProp of copiedProps ) {
+				init[ initProp ] = event.request[ initProp ];
+			}
+			const request = new Request( url.toString(), init );
 
 			const stream = wp.serviceWorker.streams.concatenateToResponse([
 				precacheStrategy.makeRequest({ request: streamHeaderFragmentURL }), // @todo This should be able to vary based on the request.url. No: just don't allow in paired mode.
