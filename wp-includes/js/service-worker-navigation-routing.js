@@ -6,12 +6,23 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 	async function ( { event } ) {
 		const { url } = event.request;
 
+		let responsePreloaded = false;
+
+		const canStreamResponse = () => {
+			return isStreamingResponses && ! responsePreloaded;
+		};
+
 		const handleResponse = ( response ) => {
 			if ( response.status < 500 ) {
 				if ( response.redirected ) {
 					const redirectedUrl = new URL( response.url );
 					redirectedUrl.searchParams.delete( STREAM_HEADER_FRAGMENT_QUERY_VAR );
-					const script = `<script>history.replaceState( {}, '', ${ JSON.stringify( redirectedUrl.toString() ) } );</script>`;
+					const script = `
+						<script id="wp-stream-fragment-replace-state">
+						history.replaceState( {}, '', ${ JSON.stringify( redirectedUrl.toString() ) } );
+						document.getElementById( 'wp-stream-fragment-replace-state' ).remove();
+						</script>
+					`;
 					return response.text().then( ( body ) => {
 						return new Response( script + body );
 					} );
@@ -41,11 +52,11 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 				channel.close();
 			}, 30 * 1000 );
 
-			return caches.match( isStreamingResponses ? ERROR_500_BODY_FRAGMENT_URL : ERROR_500_URL );
+			return caches.match( canStreamResponse() ? ERROR_500_BODY_FRAGMENT_URL : ERROR_500_URL );
 		};
 
 		const sendOfflineResponse = () => {
-			return caches.match( isStreamingResponses ? ERROR_OFFLINE_BODY_FRAGMENT_URL : ERROR_OFFLINE_URL );
+			return caches.match( canStreamResponse() ? ERROR_OFFLINE_BODY_FRAGMENT_URL : ERROR_OFFLINE_URL );
 		};
 
 		/*
@@ -56,22 +67,16 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 			try {
 				const response = await event.preloadResponse;
 				if ( response ) {
+					responsePreloaded = true;
 					return handleResponse( response );
 				}
 			} catch ( error ) {
+				responsePreloaded = true;
 				return sendOfflineResponse();
 			}
 		}
 
-		const canStreamResponse = () => {
-			const url = new URL( event.request.url );
-			return ! (
-				/\.php$/.test( url.pathname ) ||
-				url.searchParams.has( STREAM_HEADER_FRAGMENT_QUERY_VAR )
-			);
-		};
-
-		if ( isStreamingResponses && canStreamResponse() ) {
+		if ( canStreamResponse() ) {
 			const streamHeaderFragmentURL = STREAM_HEADER_FRAGMENT_URL;
 			const precacheStrategy = wp.serviceWorker.strategies.cacheFirst({
 				cacheName: wp.serviceWorker.core.cacheNames.precache,
@@ -79,7 +84,22 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 
 			const url = new URL( event.request.url );
 			url.searchParams.append( STREAM_HEADER_FRAGMENT_QUERY_VAR, 'body' );
-			const request = new Request( url.toString(), {...event.request} );
+			const init = {
+				mode: 'same-origin'
+			};
+			const copiedProps = [
+				'method',
+				'headers',
+				'credentials',
+				'cache',
+				'redirect',
+				'referrer',
+				'integrity',
+			];
+			for ( const initProp of copiedProps ) {
+				init[ initProp ] = event.request[ initProp ];
+			}
+			const request = new Request( url.toString(), init );
 
 			const stream = wp.serviceWorker.streams.concatenateToResponse([
 				precacheStrategy.makeRequest({ request: streamHeaderFragmentURL }), // @todo This should be able to vary based on the request.url. No: just don't allow in paired mode.
@@ -88,7 +108,6 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 					.catch( sendOfflineResponse ),
 			]);
 
-			// @todo Handle error case.
 			return stream.response;
 		} else {
 			return fetch( event.request )
