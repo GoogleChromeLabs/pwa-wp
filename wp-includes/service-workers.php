@@ -336,10 +336,23 @@ function wp_service_worker_fragment_redirect_old_slug_to_new_url( $link ) {
 }
 
 /**
- * Get offline message.
+ * Get service worker error messages.
  *
- * @todo This is a placeholder for offline messages, to be changed to be more general / allow multiple.
+ * @return array Array of error messages: default, comment.
  */
-function wp_service_worker_get_offline_message() {
-	return apply_filters( 'wp_service_worker_offline_messages', __( 'Your comment will be submitted once you are back online!', 'pwa' ) );
+function wp_service_worker_get_error_messages() {
+	return apply_filters(
+		'wp_service_worker_error_messages',
+		array(
+			'default' => __( 'Please check your internet connection, and try again.', 'pwa' ),
+			'comment' => __( 'Your comment will be submitted once you are back online!', 'pwa' ),
+		)
+	);
+}
+
+/**
+ * Display service worker error message template tag.
+ */
+function wp_service_worker_error_message_placeholder() {
+	echo wp_kses_post( '<p><!--WP_SERVICE_WORKER_ERROR_MESSAGE--></p>' );
 }

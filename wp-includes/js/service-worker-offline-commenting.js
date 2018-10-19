@@ -1,6 +1,7 @@
-/* global ERROR_OFFLINE_URL, WP_OFFLINE_MESSAGE */
+/* global ERROR_OFFLINE_URL, ERROR_MESSAGES */
 {
 	const queue = new wp.serviceWorker.backgroundSync.Queue( 'wpPendingComments' );
+	const errorMessages = ERROR_MESSAGES;
 
 	const commentHandler = ( { event } ) => {
 
@@ -38,7 +39,7 @@
 							headers: response.headers
 						};
 
-						const body = text.replace( /<!-- WP_OFFLINE_COMMENT -->/, WP_OFFLINE_MESSAGE );
+						const body = text.replace( /<!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/, errorMessages.comment );
 
 						return new Response( body, init );
 					} );

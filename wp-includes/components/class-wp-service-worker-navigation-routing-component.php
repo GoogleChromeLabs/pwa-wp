@@ -424,7 +424,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			'BLACKLIST_PATTERNS'               => wp_service_worker_json_encode( $this->get_blacklist_patterns() ),
 			'SHOULD_STREAM_RESPONSE'           => wp_service_worker_json_encode( $should_stream_response ),
 			'STREAM_HEADER_FRAGMENT_QUERY_VAR' => wp_service_worker_json_encode( self::STREAM_FRAGMENT_QUERY_VAR ),
-			'WP_OFFLINE_MESSAGE'               => wp_service_worker_json_encode( wp_service_worker_get_offline_message() ), // @todo This is a placeholder for general messages tag.
+			'ERROR_MESSAGES'                   => wp_service_worker_json_encode( wp_service_worker_get_error_messages() ),
 		);
 	}
 
