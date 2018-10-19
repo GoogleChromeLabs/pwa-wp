@@ -7,7 +7,7 @@
 /**
  * Apply the stream body data to the stream header.
  *
- * @param {Array}  data Data.
+ * @param {Array}  data                 - Data collected from the DOMDocument prior to the stream boundary.
  * @param {Array}  data.head_nodes      - Nodes in HEAD.
  * @param {Object} data.body_attributes - Attributes on body.
  */

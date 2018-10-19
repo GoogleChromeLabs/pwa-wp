@@ -9,14 +9,7 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 		let responsePreloaded = false;
 
 		const canStreamResponse = () => {
-			if ( ! isStreamingResponses || responsePreloaded ) {
-				return false;
-			}
-			const url = new URL( event.request.url );
-			return ! (
-				/\.php$/.test( url.pathname ) ||
-				url.searchParams.has( STREAM_HEADER_FRAGMENT_QUERY_VAR )
-			);
+			return isStreamingResponses && ! responsePreloaded;
 		};
 
 		const handleResponse = ( response ) => {
@@ -24,7 +17,12 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 				if ( response.redirected ) {
 					const redirectedUrl = new URL( response.url );
 					redirectedUrl.searchParams.delete( STREAM_HEADER_FRAGMENT_QUERY_VAR );
-					const script = `<script id="wp-stream-fragment-replace-state">history.replaceState( {}, '', ${ JSON.stringify( redirectedUrl.toString() ) } ); document.getElementById( 'wp-stream-fragment-replace-state' ).remove();</script>`;
+					const script = `
+						<script id="wp-stream-fragment-replace-state">
+						history.replaceState( {}, '', ${ JSON.stringify( redirectedUrl.toString() ) } );
+						document.getElementById( 'wp-stream-fragment-replace-state' ).remove();
+						</script>
+					`;
 					return response.text().then( ( body ) => {
 						return new Response( script + body );
 					} );

@@ -415,21 +415,45 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			}
 		}
 
-		$blacklist_patterns = array();
-		if ( ! is_admin() ) {
-			$blacklist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)';
-		}
-
 		$this->replacements = array(
 			'ERROR_OFFLINE_URL'                => wp_service_worker_json_encode( isset( $offline_error_precache_entry['url'] ) ? $offline_error_precache_entry['url'] : null ),
 			'ERROR_OFFLINE_BODY_FRAGMENT_URL'  => wp_service_worker_json_encode( isset( $offline_error_precache_entry['url'] ) ? add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $offline_error_precache_entry['url'] ) : null ),
 			'ERROR_500_URL'                    => wp_service_worker_json_encode( isset( $server_error_precache_entry['url'] ) ? $server_error_precache_entry['url'] : null ),
 			'ERROR_500_BODY_FRAGMENT_URL'      => wp_service_worker_json_encode( isset( $server_error_precache_entry['url'] ) ? add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $server_error_precache_entry['url'] ) : null ),
 			'STREAM_HEADER_FRAGMENT_URL'       => wp_service_worker_json_encode( isset( $streaming_header_precache_entry['url'] ) ? $streaming_header_precache_entry['url'] : null ),
-			'BLACKLIST_PATTERNS'               => wp_service_worker_json_encode( $blacklist_patterns ),
+			'BLACKLIST_PATTERNS'               => wp_service_worker_json_encode( $this->get_blacklist_patterns() ),
 			'SHOULD_STREAM_RESPONSE'           => wp_service_worker_json_encode( $should_stream_response ),
 			'STREAM_HEADER_FRAGMENT_QUERY_VAR' => wp_service_worker_json_encode( self::STREAM_FRAGMENT_QUERY_VAR ),
 		);
+	}
+
+	/**
+	 * Get blacklist patterns for routes to exclude from navigation route handling.
+	 *
+	 * @since 0.2
+	 * @todo This list should probably be filterable.
+	 *
+	 * @return array Route regular expressions.
+	 */
+	public function get_blacklist_patterns() {
+		$blacklist_patterns = array();
+
+		// Exclude admin URLs.
+		$blacklist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)';
+
+		// Exclude REST API.
+		$blacklist_patterns[] = '^' . preg_quote( wp_parse_url( get_rest_url(), PHP_URL_PATH ), '/' ) . '.*';
+
+		// Exclude PHP files (e.g. wp-login.php).
+		$blacklist_patterns[] = '[^\?]*.\.php($|\?.*)';
+
+		// Exclude service worker and stream fragment requests (to ease debugging).
+		$blacklist_patterns[] = '.*\?(.*&)?(' . join( '|', array( self::STREAM_FRAGMENT_QUERY_VAR, WP_Service_Workers::QUERY_VAR ) ) . ')=';
+
+		// Exclude feed requests.
+		$blacklist_patterns[] = '[^\?]*\/feed\/(\w+\/)?$';
+
+		return $blacklist_patterns;
 	}
 
 	/**
