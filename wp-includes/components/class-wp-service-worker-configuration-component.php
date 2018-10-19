@@ -82,6 +82,7 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 
 		/**
 		 * Filters whether the service worker should use clientsClaim() after skipWaiting().
+		 *
 		 * Using clientsClaim() ensures that all uncontrolled clients (i.e. pages) that are
 		 * within scope will be controlled by a service worker immediately after that service worker activates.
 		 * Without enabling it, they won't be controlled until the next navigation.
@@ -89,6 +90,8 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 		 * For optioning in for .clientsClaim(), you could do:
 		 *
 		 *     add_filter( 'wp_service_worker_clients_claim', '__return_true' );
+		 *
+		 * @since 0.2
 		 *
 		 * @param bool $clients_claim Whether to run clientsClaim() after skipWaiting().
 		 */

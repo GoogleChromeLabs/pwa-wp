@@ -28,8 +28,6 @@ add_action( 'admin_init', 'wp_disable_script_concatenation' );
 add_action( 'template_redirect', 'WP_Service_Worker_Navigation_Routing_Component::start_output_buffering_stream_fragment', PHP_INT_MAX );
 
 // Service Worker Updating.
-add_action( 'admin_print_footer_scripts', 'wp_print_admin_service_worker_update_script', 11 );
-add_action( 'wp_print_footer_scripts', 'wp_print_admin_service_worker_update_script', 11 );
 add_action( 'admin_bar_menu', 'wp_service_worker_update_node', 999 );
 
 add_action( 'wp_enqueue_scripts', 'wp_service_worker_styles', 11 );
