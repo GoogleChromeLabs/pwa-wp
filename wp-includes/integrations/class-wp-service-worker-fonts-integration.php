@@ -24,7 +24,7 @@ class WP_Service_Worker_Fonts_Integration extends WP_Service_Worker_Base_Integra
 			'^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/(.*)',
 			array(
 				'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
-				'cacheName' => 'googleapis',
+				'cacheName' => 'googleapis', // @todo This needs to get the proper prefix in JS.
 				'plugins'   => array(
 					'cacheableResponse' => array(
 						'statuses' => array( 0, 200 ),

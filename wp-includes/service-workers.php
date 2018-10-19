@@ -349,6 +349,22 @@ function wp_disable_script_concatenation() {
 }
 
 /**
+ * Preserve stream fragment query param on canonical redirects.
+ *
+ * @since 0.2
+ *
+ * @param string $link New URL of the post.
+ * @return string URL to be redirected.
+ */
+function wp_service_worker_fragment_redirect_old_slug_to_new_url( $link ) {
+	$fragment = WP_Service_Worker_Navigation_Routing_Component::get_stream_fragment_query_var();
+	if ( $fragment ) {
+		$link = add_query_arg( WP_Service_Worker_Navigation_Routing_Component::STREAM_FRAGMENT_QUERY_VAR, $fragment, $link );
+	}
+	return $link;
+}
+
+/**
  * Script for sending postMessage to Service Worker for skipping the waiting phase.
  */
 function wp_print_admin_service_worker_update_script() {
@@ -391,7 +407,7 @@ function wp_service_worker_update_node( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'pwa-sw-update-notice',
-			'title' => __( 'Update to a new version of this app!', 'pwa' ),
+			'title' => __( 'Update to a new version of this site!', 'pwa' ),
 			'href'  => '#',
 		)
 	);
