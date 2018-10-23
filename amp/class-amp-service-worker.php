@@ -143,6 +143,7 @@ class AMP_Service_Worker {
 			'amp-runtime',
 			'amp-bind', // Used by comments.
 			'amp-form', // Used by comments.
+			'amp-install-serviceworker',
 		);
 
 		$theme_support = AMP_Theme_Support::get_theme_support_args();

@@ -78,8 +78,33 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 
 		$script .= sprintf( "workbox.core.setCacheNameDetails( %s );\n", wp_service_worker_json_encode( $cache_name_details ) );
 
-		// @todo Add filter controlling workbox.skipWaiting().
-		// @todo Add filter controlling workbox.clientsClaim().
+		$skip_waiting = wp_service_worker_skip_waiting();
+
+		/**
+		 * Filters whether the service worker should use clientsClaim() after skipWaiting().
+		 *
+		 * Using clientsClaim() ensures that all uncontrolled clients (i.e. pages) that are
+		 * within scope will be controlled by a service worker immediately after that service worker activates.
+		 * Without enabling it, they won't be controlled until the next navigation.
+		 *
+		 * For optioning in for .clientsClaim(), you could do:
+		 *
+		 *     add_filter( 'wp_service_worker_clients_claim', '__return_true' );
+		 *
+		 * @since 0.2
+		 *
+		 * @param bool $clients_claim Whether to run clientsClaim() after skipWaiting().
+		 */
+		$clients_claim = apply_filters( 'wp_service_worker_clients_claim', false );
+
+		if ( true === $skip_waiting ) {
+			$script .= "workbox.skipWaiting();\n";
+
+			if ( true === $clients_claim ) {
+				$script .= "workbox.clientsClaim();\n";
+			}
+		}
+
 		/**
 		 * Filters whether navigation preload is enabled.
 		 *
