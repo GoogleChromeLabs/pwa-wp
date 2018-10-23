@@ -1,4 +1,4 @@
-/* global ERROR_OFFLINE_URL, ERROR_MESSAGES */
+/* global ERROR_OFFLINE_URL, ERROR_MESSAGES, ERROR_500_URL */
 {
 	const queue = new wp.serviceWorker.backgroundSync.Queue( 'wpPendingComments' );
 	const errorMessages = ERROR_MESSAGES;
@@ -8,7 +8,34 @@
 		const clone = event.request.clone();
 		return fetch( event.request )
 			.then( ( response ) => {
-				return response;
+				if ( response.status < 500 ) {
+					return response;
+				}
+
+				// @todo Replace depending on BroadcastChannel.
+				const channel = new BroadcastChannel( 'wordpress-server-errors' );
+
+				// Wait for client to request the error message.
+				channel.onmessage = ( event ) => {
+					if ( event.data && event.data.clientUrl && clone.url === event.data.clientUrl ) {
+						response.text().then( ( text ) => {
+							channel.postMessage({
+								requestUrl: clone.url,
+								bodyText: text,
+								status: response.status,
+								statusText: response.statusText
+							});
+							channel.close();
+						} );
+					}
+				};
+
+				// Close the channel if client did not request the message within 30 seconds.
+				setTimeout( () => {
+					channel.close();
+				}, 30 * 1000 );
+
+				return caches.match( ERROR_500_URL );
 			} )
 			.catch( () => {
 				const bodyPromise = clone.blob();

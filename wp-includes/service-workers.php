@@ -354,5 +354,5 @@ function wp_service_worker_get_error_messages() {
  * Display service worker error message template tag.
  */
 function wp_service_worker_error_message_placeholder() {
-	echo wp_kses_post( '<p><!--WP_SERVICE_WORKER_ERROR_MESSAGE--></p>' );
+	echo '<p><!--WP_SERVICE_WORKER_ERROR_MESSAGE--></p>'; // WPCS: XSS OK.
 }

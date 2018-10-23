@@ -61,6 +61,7 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 			'navigation_routing' => new WP_Service_Worker_Navigation_Routing_Component(),
 			'precaching_routes'  => new WP_Service_Worker_Precaching_Routes_Component(),
 			'caching_routes'     => new WP_Service_Worker_Caching_Routes_Component(),
+			'offline_commenting' => new WP_Service_Worker_Offline_Commenting_Component(),
 		);
 
 		$this->scripts = new WP_Service_Worker_Scripts( $components );

@@ -52,6 +52,7 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/components/interface-wp-service-work
 
 /** WP_Service_Worker_Component Implementation Classes */
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-configuration-component.php';
+require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-offline-commenting-component.php';
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-navigation-routing-component.php';
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-precaching-routes-component.php';
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-precaching-routes.php';

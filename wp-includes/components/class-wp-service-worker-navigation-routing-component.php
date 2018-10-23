@@ -465,7 +465,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * @return int Hook priority. A higher number means a lower priority.
 	 */
 	public function get_priority() {
-		return -99999;
+		return 99;
 	}
 
 	/**
@@ -474,9 +474,8 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * @return string Script.
 	 */
 	public function get_script() {
-		$script  = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-offline-commenting.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$script .= file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-navigation-routing.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$script  = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
+		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-navigation-routing.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
 
 		return str_replace(
 			array_keys( $this->replacements ),
