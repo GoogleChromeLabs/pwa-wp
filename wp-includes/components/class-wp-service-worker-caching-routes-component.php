@@ -135,7 +135,8 @@ class WP_Service_Worker_Caching_Routes_Component implements WP_Service_Worker_Co
 				}
 
 				if ( ! in_array( $plugin_name, $recognized_plugins, true ) ) {
-					_doing_it_wrong( 'WP_Service_Workers::register_cached_route', esc_html__( 'Unrecognized plugin', 'pwa' ), '0.2' );
+					/* translators: %s is plugin name */
+					_doing_it_wrong( 'WP_Service_Workers::register_cached_route', esc_html( sprintf( __( 'Unrecognized plugin: %s', 'pwa' ), $plugin_name ) ), '0.2' );
 				} else {
 					$plugins_js[] = sprintf(
 						'new wp.serviceWorker[ %s ].Plugin( %s )',
