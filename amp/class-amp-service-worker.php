@@ -38,6 +38,7 @@ class AMP_Service_Worker {
 		add_action( 'wp', array( $this, 'add_install_hooks' ) );
 		add_action( 'wp_front_service_worker', array( $this, 'add_amp_runtime_caching' ) );
 		add_action( 'wp_front_service_worker', array( $this, 'add_image_runtime_caching' ) );
+		add_action( 'wp_front_service_worker', array( $this, 'add_live_list_offline_commenting' ) );
 	}
 
 	/**
@@ -122,6 +123,38 @@ class AMP_Service_Worker {
 				),
 			)
 		);
+	}
+
+	/**
+	 * Add live list offline commenting service worker script.
+	 *
+	 * @param object $service_workers WP Service Workers object.
+	 */
+	public function add_live_list_offline_commenting( $service_workers ) {
+		if ( ! ( $service_workers instanceof WP_Service_Worker_Scripts ) ) {
+			_doing_it_wrong( __METHOD__, esc_html__( 'Expected argument to be WP_Service_Worker_Scripts.', 'amp' ), '1.0' );
+			return;
+		}
+
+		$theme_support = AMP_Theme_Support::get_theme_support_args();
+		if ( empty( $theme_support['comments_live_list'] ) ) {
+			return;
+		}
+
+		$service_workers->register(
+			'amp-offline-commenting',
+			function() {
+				$js = file_get_contents( dirname( __FILE__ ) . '/amp-service-worker-offline-commenting.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
+				$js = preg_replace( '#/\*\s*global.+?\*/#', '', $js );
+				$js = str_replace(
+					'ERROR_MESSAGES',
+					wp_json_encode( wp_service_worker_get_error_messages() ),
+					$js
+				);
+				return $js;
+			}
+		);
+
 	}
 
 	/**

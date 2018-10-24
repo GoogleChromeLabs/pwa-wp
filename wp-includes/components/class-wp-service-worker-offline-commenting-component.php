@@ -132,7 +132,7 @@ class WP_Service_Worker_Offline_Commenting_Component implements WP_Service_Worke
 	 * @return int Hook priority. A higher number means a lower priority.
 	 */
 	public function get_priority() {
-		return -99;
+		return 10;
 	}
 
 	/**
