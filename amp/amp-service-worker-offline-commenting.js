@@ -1,4 +1,4 @@
-/* global ERROR_MESSAGES */
+/* global ERROR_MESSAGES, SITE_URL */
 {
 	const queue = new wp.serviceWorker.backgroundSync.Queue( 'amp-wpPendingComments' );
 	const errorMessages = ERROR_MESSAGES;
@@ -12,7 +12,7 @@
 			} )
 			.catch( () => {
 				const bodyPromise = clone.blob();
-				bodyPromise.then(
+				return bodyPromise.then(
 					function( body ) {
 						const request = event.request;
 						const req = new Request( request.url, {
@@ -27,12 +27,19 @@
 
 						// Add request to queue. @todo Replace when upgrading to Workbox v4!
 						queue.addRequest( req );
+
+						const jsonBody = JSON.stringify( { 'error': errorMessages.comment } );
+						return new Response( jsonBody, {
+							headers: {
+								'Access-Control-Allow-Credentials': 'true',
+								'Content-Type': 'application/json; charset=UTF-8',
+								'Access-Control-Expose-Headers': 'AMP-Access-Control-Allow-Source-Origin',
+								'AMP-Access-Control-Allow-Source-Origin': SITE_URL,
+								'Cache-Control': 'no-cache, must-revalidate, max-age=0'
+							}
+						} );
 					}
 				);
-
-				// @todo That's not actually working yet.
-				const body = JSON.stringify( { 'error': errorMessages.comment } );
-				return new Response( body, {} );
 			} );
 	};
 

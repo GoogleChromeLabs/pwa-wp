@@ -151,6 +151,11 @@ class AMP_Service_Worker {
 					wp_json_encode( wp_service_worker_get_error_messages() ),
 					$js
 				);
+				$js = str_replace(
+					'SITE_URL',
+					wp_json_encode( site_url() ),
+					$js
+				);
 				return $js;
 			}
 		);
