@@ -10,36 +10,31 @@
 				// @todo Make sure that 409 etc. error still work as expected.
 				return response;
 			} )
-			.catch( () => {
-				const bodyPromise = clone.blob();
-				return bodyPromise.then(
-					function( body ) {
-						const request = event.request;
-						const req = new Request( request.url, {
-							method: request.method,
-							headers: request.headers,
-							mode: 'same-origin',
-							credentials: request.credentials,
-							referrer: request.referrer,
-							redirect: 'manual',
-							body: body
-						} );
+			.catch( () => clone.blob() )
+			.then( ( body ) => {
+				const queuedRequest = new Request( event.request.url, {
+					method: event.request.method,
+					headers: event.request.headers,
+					mode: 'same-origin',
+					credentials: event.request.credentials,
+					referrer: event.request.referrer,
+					redirect: 'manual',
+					body: body
+				} );
 
-						// Add request to queue. @todo Replace when upgrading to Workbox v4!
-						queue.addRequest( req );
+				// Add request to queue. @todo Replace when upgrading to Workbox v4!
+				queue.addRequest( queuedRequest );
 
-						const jsonBody = JSON.stringify( { 'error': errorMessages.comment } );
-						return new Response( jsonBody, {
-							headers: {
-								'Access-Control-Allow-Credentials': 'true',
-								'Content-Type': 'application/json; charset=UTF-8',
-								'Access-Control-Expose-Headers': 'AMP-Access-Control-Allow-Source-Origin',
-								'AMP-Access-Control-Allow-Source-Origin': SITE_URL,
-								'Cache-Control': 'no-cache, must-revalidate, max-age=0'
-							}
-						} );
+				const jsonBody = JSON.stringify( { 'error': errorMessages.comment } );
+				return new Response( jsonBody, {
+					headers: {
+						'Access-Control-Allow-Credentials': 'true',
+						'Content-Type': 'application/json; charset=UTF-8',
+						'Access-Control-Expose-Headers': 'AMP-Access-Control-Allow-Source-Origin',
+						'AMP-Access-Control-Allow-Source-Origin': SITE_URL,
+						'Cache-Control': 'no-cache, must-revalidate, max-age=0'
 					}
-				);
+				} );
 			} );
 	};
 
