@@ -39,7 +39,7 @@
 	};
 
 	wp.serviceWorker.routing.registerRoute(
-		new RegExp('/wp-comments-post\.php\?.*_wp_amp_action_xhr_converted.*' ), // eslint-disable-line no-useless-escape
+		/\/wp-comments-post\.php\?.*_wp_amp_action_xhr_converted.*/,
 		commentHandler,
 		'POST'
 	);
