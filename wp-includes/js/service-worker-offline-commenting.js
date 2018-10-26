@@ -75,7 +75,7 @@
 	};
 
 	wp.serviceWorker.routing.registerRoute(
-		'/wp-comments-post.php',
+		new RegExp('/wp-comments-post\.php' ), // eslint-disable-line no-useless-escape
 		commentHandler,
 		'POST'
 	);
