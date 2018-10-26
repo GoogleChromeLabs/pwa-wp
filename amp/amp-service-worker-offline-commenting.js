@@ -28,6 +28,7 @@
 				const jsonBody = JSON.stringify( { 'error': errorMessages.comment } );
 				return new Response( jsonBody, {
 					headers: {
+						'Access-Control-Allow-Origin': SITE_URL,
 						'Access-Control-Allow-Credentials': 'true',
 						'Content-Type': 'application/json; charset=UTF-8',
 						'Access-Control-Expose-Headers': 'AMP-Access-Control-Allow-Source-Origin',
