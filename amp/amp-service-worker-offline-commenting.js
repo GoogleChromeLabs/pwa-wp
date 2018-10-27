@@ -25,7 +25,7 @@
 					// Add request to queue. @todo Replace when upgrading to Workbox v4!
 					queue.addRequest( queuedRequest );
 
-					const jsonBody = JSON.stringify( { 'error': errorMessages.comment } );
+					const jsonBody = JSON.stringify( { 'message': errorMessages.comment } );
 					return new Response( jsonBody, {
 						status: 202,
 						statusText: 'Accepted',
