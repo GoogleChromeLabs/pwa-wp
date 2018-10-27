@@ -52,7 +52,7 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 	 */
 	public function get_script() {
 		$current_scope = wp_service_workers()->get_current_scope();
-		$workbox_dir   = 'wp-includes/js/workbox-v3.6.1/';
+		$workbox_dir   = 'wp-includes/js/workbox/';
 
 		if ( WP_DEBUG ) {
 			// Load with importScripts() so that source map is available.
