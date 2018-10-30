@@ -5,11 +5,7 @@
 
 	const commentHandler = ( { event } ) => {
 		const clonedRequest = event.request.clone();
-		return fetch( event.request )
-			.then( ( response ) => {
-				return response;
-			} )
-			.catch( () => {
+		return fetch( event.request ).catch( () => {
 				return clonedRequest.blob().then( ( body ) => {
 					const queuedRequest = new Request( event.request.url, {
 						method: event.request.method,
