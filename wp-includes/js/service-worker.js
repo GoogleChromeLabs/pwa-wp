@@ -43,8 +43,7 @@ wp.serviceWorker = workbox;
 
 						firstMatch = {
 							route,
-							params: matchResult,
-							handler: route.handler
+							params: matchResult
 						};
 					}
 				}
@@ -52,7 +51,7 @@ wp.serviceWorker = workbox;
 
 			// If we didn't have a match, then return undefined values.
 			if ( 0 === matches ) {
-				return { handler: undefined, params: undefined };
+				return { route: undefined, params: undefined };
 			} else {
 				// Log conflicting routes and return the first.
 				if ( 1 < matches ) {
