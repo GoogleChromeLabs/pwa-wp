@@ -164,9 +164,11 @@ You can optionally add an [HSTS header](https://developer.mozilla.org/en-US/docs
  * Adds an HSTS header to the response.
  *
  * @param array $headers The headers to filter.
+ * @return array $headers The filtered headers.
  */
 add_filter( 'wp_headers', function( $headers ) {
 	$headers['Strict-Transport-Security'] = 'max-age=3600'; // Or another max-age.
+	return $headers;
 } );
 </pre>
 
