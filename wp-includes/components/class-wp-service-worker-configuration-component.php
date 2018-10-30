@@ -52,12 +52,19 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 	 */
 	public function get_script() {
 		$current_scope = wp_service_workers()->get_current_scope();
-		$workbox_dir   = 'wp-includes/js/workbox-v3.6.1/';
+		$workbox_dir   = 'wp-includes/js/workbox/';
 
-		$script = sprintf(
-			"importScripts( %s );\n",
-			wp_service_worker_json_encode( PWA_PLUGIN_URL . $workbox_dir . 'workbox-sw.js' )
-		);
+		if ( WP_DEBUG ) {
+			// Load with importScripts() so that source map is available.
+			$script = sprintf(
+				"importScripts( %s );\n",
+				wp_service_worker_json_encode( PWA_PLUGIN_URL . $workbox_dir . 'workbox-sw.js' )
+			);
+		} else {
+			// Inline the workbox-sw.js to avoid an additional HTTP request.
+			$script = file_get_contents( PWA_PLUGIN_DIR . '/' . $workbox_dir . 'workbox-sw.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			$script = preg_replace( '://# sourceMappingURL=.+?\.map:', '', $script );
+		}
 
 		$options = array(
 			'debug'            => WP_DEBUG,

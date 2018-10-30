@@ -157,6 +157,27 @@ HTTPS is a prerequisite for progressive web apps. A service worker is only able 
 
 At the moment the plugin provides an API to detection of whether a site supports HTTPS. Building on that it's intended that this can then be used to present a user with an opt-in to switch over to HTTPS, which will also then need to include support for rewriting URLs from HTTP to HTTPS. See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Ahttps) and see WordPress core tracking ticket [#28521](https://core.trac.wordpress.org/ticket/28521).
 
+You can optionally add an [HSTS header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security) (HTTP `Strict-Transport-Security`). This indicates to the browser to only load the site with HTTPS, not HTTP.
+
+<pre lang=php>
+/**
+ * Adds an HSTS header to the response.
+ *
+ * @param array $headers The headers to filter.
+ * @return array $headers The filtered headers.
+ */
+add_filter( 'wp_headers', function( $headers ) {
+	$headers['Strict-Transport-Security'] = 'max-age=3600'; // Or another max-age.
+	return $headers;
+} );
+</pre>
+
+This can prevent a case where users initially visit the HTTP version of the site, and are redirected to a malicious site before a redirect to the proper HTTPS version.
+
+The [wp_headers](https://developer.wordpress.org/reference/hooks/wp_headers/) filter allows you to add a `Strict-Transport-Security` header for this.
+
+Please see the [documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security#Directives) for the directives, including the `max-age`.
+
 == Changelog ==
 
 = 0.1.0 (2018-07-12) =
