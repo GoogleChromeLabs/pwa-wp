@@ -119,3 +119,8 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 		blacklist: BLACKLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) )
 	}
 ) );
+
+// Add fallback network-only navigation route to ensure preloadResponse is used if available.
+wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
+	wp.serviceWorker.strategies.networkOnly()
+) );

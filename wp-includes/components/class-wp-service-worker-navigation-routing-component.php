@@ -438,14 +438,16 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	public function get_blacklist_patterns() {
 		$blacklist_patterns = array();
 
-		// Exclude admin URLs.
-		$blacklist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)';
+		if ( ! is_admin() ) {
+			// Exclude admin URLs, if not in the admin.
+			$blacklist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)';
+
+			// Exclude PHP files (e.g. wp-login.php).
+			$blacklist_patterns[] = '[^\?]*.\.php($|\?.*)';
+		}
 
 		// Exclude REST API.
 		$blacklist_patterns[] = '^' . preg_quote( wp_parse_url( get_rest_url(), PHP_URL_PATH ), '/' ) . '.*';
-
-		// Exclude PHP files (e.g. wp-login.php).
-		$blacklist_patterns[] = '[^\?]*.\.php($|\?.*)';
 
 		// Exclude service worker and stream fragment requests (to ease debugging).
 		$blacklist_patterns[] = '.*\?(.*&)?(' . join( '|', array( self::STREAM_FRAGMENT_QUERY_VAR, WP_Service_Workers::QUERY_VAR ) ) . ')=';
