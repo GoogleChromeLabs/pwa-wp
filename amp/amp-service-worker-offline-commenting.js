@@ -7,7 +7,6 @@
 		const clonedRequest = event.request.clone();
 		return fetch( event.request )
 			.then( ( response ) => {
-				// @todo Make sure that 409 etc. error still work as expected.
 				return response;
 			} )
 			.catch( () => {
