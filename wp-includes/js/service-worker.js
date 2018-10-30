@@ -17,13 +17,17 @@ wp.serviceWorker = workbox;
 	 */
 	class WPRouter extends wp.serviceWorker.routing.Router {
 
-		_findHandlerAndParams( event, url ) {
-			const routes = this._routes.get( event.request.method ) || [];
+		findMatchingRoute( {
+			url,
+			request,
+			event
+		} ) {
+			const routes = this._routes.get( request.method ) || [];
 			let matches = 0,
 				matchResult,
 				firstMatch;
 			for ( const route of routes ) {
-				matchResult = route.match( { url, event } );
+				matchResult = route.match( { url, request, event } );
 				if ( matchResult ) {
 					matches++;
 
@@ -39,8 +43,7 @@ wp.serviceWorker = workbox;
 
 						firstMatch = {
 							route,
-							params: matchResult,
-							handler: route.handler
+							params: matchResult
 						};
 					}
 				}
@@ -48,7 +51,7 @@ wp.serviceWorker = workbox;
 
 			// If we didn't have a match, then return undefined values.
 			if ( 0 === matches ) {
-				return { handler: undefined, params: undefined };
+				return { route: undefined, params: undefined };
 			} else {
 				// Log conflicting routes and return the first.
 				if ( 1 < matches ) {
@@ -143,7 +146,8 @@ wp.serviceWorker = workbox;
 
 // @todo There is another 'fetch' handler being for DefaultRouter added in the workbox-routing module which will be unused since.
 self.addEventListener( 'fetch', event => {
-	const responsePromise = wp.serviceWorker.routing.handleRequest( event );
+	const request = event.request;
+	const responsePromise = wp.serviceWorker.routing.handleRequest( { request, event } );
 	if ( responsePromise ) {
 		event.respondWith( responsePromise );
 	}
