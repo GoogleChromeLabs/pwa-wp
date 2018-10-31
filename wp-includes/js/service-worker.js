@@ -22,7 +22,7 @@ wp.serviceWorker = workbox;
 			request,
 			event
 		} ) {
-			const routes = this._routes.get( request.method ) || [];
+			const routes = this.routes.get( request.method ) || [];
 			let matches = 0,
 				matchResult,
 				firstMatch;
