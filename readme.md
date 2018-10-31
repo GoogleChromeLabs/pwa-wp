@@ -150,7 +150,6 @@ add_action( 'wp_admin_service_worker', 'register_baz_service_worker_script' );
 
 See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Aservice-workers) and see WordPress core tracking ticket [#36995](https://core.trac.wordpress.org/ticket/36995).
 
-
 ### Caching ###
 Service Workers in the feature plugin are using [Workbox](https://developers.google.com/web/tools/workbox/) to power a higher-level PHP abstraction for themes and plugins to indicate the routes and the caching strategies in a declarative way. Since only one handler can be used per one route then conflicts are also detected and reported in console when using debug mode.
 
@@ -204,18 +203,51 @@ wp_register_service_worker_precaching_route(
 </pre>
 
 ### Offline / 500 error handling ###
-The feature plugins offers improved offline experience for the users mainly by two enhancements:
-1. Offline / 500 error templates;
-2.
+The feature plugins offers improved offline experience by displaying a template when user is offline instead of the default message in browser. Same goes for 500 errors -- a template is displayed together with error details. Here is how the default templates look like.
 
+Themes can override the default template by using `error.php`, `offline.php`, and `500.php` in you theme folder. `error.php` is a general template for both offline and 500 error pages and it is overriden by `offline.php` and `500.php` if they exist.
+
+Note that the templates should use `wp_service_worker_error_message_placeholder()` for displaying the offline messages.
 ### Offline Commenting ###
-
-
+Another feature improving the offline experience is Offline Commenting implemented leveraging [Workbox Background Sync API](https://developers.google.com/web/tools/workbox/modules/workbox-background-sync).
+In case of submitting a comment and being offline (failing to fetch) the request is added to a queue and once the browsers "thinks" the connectivity is back then Sync is triggered and all the commenting requests in the queue are replayed. This meas that the comment will be resubmitted once the connection is back. 
 ### Available actions and filters ###
 
-Here is a list of all available actions and filters added by the feature plugin:
+Here is a list of all available actions and filters added by the feature plugin.
+#### Filters ####
+- `wp_service_worker_integrations`: Filters the service worker integrations to initialize.
+  - Has one argument: `$integrations` which is an array of `$slug` => `$integration pairs, where $integration is an instance of a class that implements the WP_Service_Worker_Integration interface.`
+- `wp_service_worker_skip_waiting`: Filters whether the service worker should update automatically when a new version is available.
+  - Has one boolean argument which defaults to `true`.
+- `wp_service_worker_clients_claim`: Filters whether the service worker should use `clientsClaim()` after `skipWaiting()`.
+  - Has one boolean argument which defaults to `false`;
+- `wp_service_worker_navigation_preload`: Filters whether navigation preload is enabled. Has two arguments:
+  - boolean which defaults to `true`;
+  - `$current_scope`, either 1 (WP_Service_Workers::SCOPE_FRONT) or 2 (WP_Service_Workers::SCOPE_ADMIN);
+- `wp_offline_error_precache_entry`: Filters what is precached to serve as the offline error response on the frontend.
+  - Has one parameter `$entry` which is an array:
+    - `$url` URL to page that shows the offline error template.
+    - `$revision` Revision for the template. This defaults to the template and stylesheet names, with their respective theme versions.
+- `wp_server_error_precache_entry`: Filters what is precached to serve as the internal server error response on the frontend.
+  - Has one parameter `$entry` which is an array:
+    - `$url` URL to page that shows the server error template.
+    - `$revision` Revision for the template. This defaults to the template and stylesheet names, with their respective theme versions.
+- `wp_service_worker_error_messages`: Filters the offline error messages displayed on the offline template by default and in case of offline commenting.
+  - Has one argument with array of messages:
+    - `$default` The message to display on the default offline template;
+    - `$comment` The message to display on the offline template in case of commenting;
+- `wp_streaming_header_precache_entry`: Filters what is precached to serve as the streaming header.
+  - Has one `$entry` param which is an array with the following arguments:
+    - `$url` URL to streaming header fragment.
+    - `$revision` Revision for the entry. Care must be taken to keep this updated based on the content that is output before the stream boundary.
 
-                  
+#### Actions ####
+- `wp_front_service_worker`: Fires before serving the frontend service worker, when its scripts should be registered, caching routes established, and assets precached.
+  - Has one argument `$scripts` WP_Service_Worker_Scripts Instance to register service worker behavior with.
+- `wp_admin_service_worker`: Fires before serving the wp-admin service worker, when its scripts should be registered, caching routes established, and assets precached.
+  - Has one argument `$scripts` WP_Service_Worker_Scripts Instance to register service worker behavior with.
+- `wp_default_service_workers`: Fires when the WP_Service_Worker_Scripts instance is initialized.
+  - Has one argument `$scripts` WP_Service_Worker_Scripts Instance to register service worker behavior with.
 ### HTTPS ###
 HTTPS is a prerequisite for progressive web apps. A service worker is only able to be installed on sites that are served as HTTPS. For this reason core's support for HTTPS needs to be further improved, continuing the great progress made over the past few years.
 
@@ -242,12 +274,9 @@ The [wp_headers](https://developer.wordpress.org/reference/hooks/wp_headers/) fi
 
 Please see the [documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security#Directives) for the directives, including the `max-age`.
 
-
 ## Changelog ##
 
 ### 0.1.0 (2018-07-12) ###
 * Adds support for web app manifests which can be customized via a `web_app_manifest` filter.
 * Adds initial support for service workers via `wp_register_service_worker()`.
 * Adds an API for detecting whether HTTPS is available for a given site.
-
-
