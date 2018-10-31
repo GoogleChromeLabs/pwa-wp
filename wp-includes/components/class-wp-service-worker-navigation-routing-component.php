@@ -359,10 +359,18 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		}
 
 		$scripts->register(
+			'wp-offline-commenting',
+			array(
+				'src'  => array( $this, 'get_offline_commenting_script' ),
+				'deps' => array( 'wp-base-config' ),
+			)
+		);
+
+		$scripts->register(
 			'wp-navigation-routing',
 			array(
 				'src'  => array( $this, 'get_script' ),
-				'deps' => array( 'wp-base-config' ),
+				'deps' => array( 'wp-base-config', 'wp-offline-commenting' ),
 			)
 		);
 
@@ -424,6 +432,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			'BLACKLIST_PATTERNS'               => wp_service_worker_json_encode( $this->get_blacklist_patterns() ),
 			'SHOULD_STREAM_RESPONSE'           => wp_service_worker_json_encode( $should_stream_response ),
 			'STREAM_HEADER_FRAGMENT_QUERY_VAR' => wp_service_worker_json_encode( self::STREAM_FRAGMENT_QUERY_VAR ),
+			'ERROR_MESSAGES'                   => wp_service_worker_json_encode( wp_service_worker_get_error_messages() ),
 		);
 	}
 
@@ -466,7 +475,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * @return int Hook priority. A higher number means a lower priority.
 	 */
 	public function get_priority() {
-		return -99999;
+		return 99;
 	}
 
 	/**
@@ -476,6 +485,22 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 */
 	public function get_script() {
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-navigation-routing.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
+
+		return str_replace(
+			array_keys( $this->replacements ),
+			array_values( $this->replacements ),
+			$script
+		);
+	}
+
+	/**
+	 * Get script for offline commenting requests.
+	 *
+	 * @return string Script.
+	 */
+	public function get_offline_commenting_script() {
+		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-offline-commenting.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
 
 		return str_replace(
