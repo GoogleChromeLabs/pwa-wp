@@ -428,3 +428,25 @@ function wp_service_worker_skip_waiting() {
 	 */
 	return (bool) apply_filters( 'wp_service_worker_skip_waiting', true );
 }
+
+/**
+ * Get service worker error messages.
+ *
+ * @return array Array of error messages: default, comment.
+ */
+function wp_service_worker_get_error_messages() {
+	return apply_filters(
+		'wp_service_worker_error_messages',
+		array(
+			'default' => __( 'Please check your internet connection, and try again.', 'pwa' ),
+			'comment' => __( 'Your comment will be submitted once you are back online!', 'pwa' ),
+		)
+	);
+}
+
+/**
+ * Display service worker error message template tag.
+ */
+function wp_service_worker_error_message_placeholder() {
+	echo '<p><!--WP_SERVICE_WORKER_ERROR_MESSAGE--></p>'; // WPCS: XSS OK.
+}
