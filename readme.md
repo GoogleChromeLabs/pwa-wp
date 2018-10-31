@@ -148,10 +148,74 @@ add_action( 'wp_front_service_worker', 'register_baz_service_worker_script' );
 add_action( 'wp_admin_service_worker', 'register_baz_service_worker_script' );
 </pre>
 
-The next step for service workers in the feature plugin is to explore the use of [Workbox](https://developers.google.com/web/tools/workbox/) to power a higher-level PHP abstraction for themes and plugins to indicate the routes and the caching strategies in a declarative way (with detection for conflicts).
-
 See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Aservice-workers) and see WordPress core tracking ticket [#36995](https://core.trac.wordpress.org/ticket/36995).
 
+
+### Caching ###
+Service Workers in the feature plugin are using [Workbox](https://developers.google.com/web/tools/workbox/) to power a higher-level PHP abstraction for themes and plugins to indicate the routes and the caching strategies in a declarative way. Since only one handler can be used per one route then conflicts are also detected and reported in console when using debug mode.
+
+The API abstraction allows registering routes for caching and urls for precaching using the following two methods:
+- `wp_register_service_worker_caching_route`
+- `wp_register_service_worker_precaching_route`
+
+`wp_register_service_worker_caching_route` accepts the following two parameters:
+
+* `$route`: Route regular expression, without delimiters.
+* `$args`: An array of additional route arguments as `$key => $value` pairs:
+	* `$strategy`: Required. Strategy, can be WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
+                   WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
+                   WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY.
+	* `$cache_name`: Name to use for the cache.
+	* `$plugins`: Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
+                  See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
+                  
+`wp_register_service_worker_precaching_route` accepts the following two parameters:
+
+* `$url`: URL to cache.
+* `$args`: An array of additional route arguments as `$key => $value` pairs:
+	* `$revision`: Revision, optional.
+	
+Examples of using the API:
+
+<pre lang=php>
+wp_register_service_worker_caching_route(
+			'/wp-content/.*\.(?:png|gif|jpg|jpeg|svg|webp)(\?.*)?$',
+			array(
+				'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
+				'cacheName' => 'images',
+				'plugins'   => array(
+					'expiration'        => array(
+						'maxEntries'    => 60,
+						'maxAgeSeconds' => 60 * 60 * 24,
+                ),
+            ),
+        )
+    );
+</pre>
+
+<pre lang=php>
+wp_register_service_worker_precaching_route(
+			'https://example.com/wp-content/themes/my-theme/my-theme-image.png',
+			array(
+				'revision' => get_bloginfo( 'version' ),
+            ),
+        )
+    );
+</pre>
+
+### Offline / 500 error handling ###
+The feature plugins offers improved offline experience for the users mainly by two enhancements:
+1. Offline / 500 error templates;
+2.
+
+### Offline Commenting ###
+
+
+### Available actions and filters ###
+
+Here is a list of all available actions and filters added by the feature plugin:
+
+                  
 ### HTTPS ###
 HTTPS is a prerequisite for progressive web apps. A service worker is only able to be installed on sites that are served as HTTPS. For this reason core's support for HTTPS needs to be further improved, continuing the great progress made over the past few years.
 
