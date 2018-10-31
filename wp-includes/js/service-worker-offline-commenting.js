@@ -12,30 +12,27 @@
 					return response;
 				}
 
-				// @todo Replace depending on BroadcastChannel.
-				const channel = new BroadcastChannel( 'wordpress-server-errors' );
+				return response.text().then( function( errorText ) {
+					return caches.match( ERROR_500_URL ).then( function( errorResponse ) {
 
-				// Wait for client to request the error message.
-				channel.onmessage = ( event ) => {
-					if ( event.data && event.data.clientUrl && clone.url === event.data.clientUrl ) {
-						response.text().then( ( text ) => {
-							channel.postMessage({
-								requestUrl: clone.url,
-								bodyText: text,
-								status: response.status,
-								statusText: response.statusText
-							});
-							channel.close();
+						if ( ! errorResponse ) {
+							return response;
+						}
+
+						return errorResponse.text().then( function( text ) {
+							let init = {
+								status: errorResponse.status,
+								statusText: errorResponse.statusText,
+								headers: errorResponse.headers
+							};
+
+							let body = text.replace( /<!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/, errorMessages.error );
+							body = body.replace( /<!--WP_SERVICE_WORKER_ERROR_DETAILS-->/, errorText );
+
+							return new Response( body, init );
 						} );
-					}
-				};
-
-				// Close the channel if client did not request the message within 30 seconds.
-				setTimeout( () => {
-					channel.close();
-				}, 30 * 1000 );
-
-				return caches.match( ERROR_500_URL );
+					} );
+				} );
 			} )
 			.catch( () => {
 				const bodyPromise = clone.blob();

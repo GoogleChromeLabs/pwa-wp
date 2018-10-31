@@ -439,6 +439,7 @@ function wp_service_worker_get_error_messages() {
 		'wp_service_worker_error_messages',
 		array(
 			'default' => __( 'Please check your internet connection, and try again.', 'pwa' ),
+			'error'   => __( 'Something prevented the page from being rendered. Please try again.', 'pwa' ),
 			'comment' => __( 'Your comment will be submitted once you are back online!', 'pwa' ),
 		)
 	);
@@ -449,4 +450,11 @@ function wp_service_worker_get_error_messages() {
  */
 function wp_service_worker_error_message_placeholder() {
 	echo '<p><!--WP_SERVICE_WORKER_ERROR_MESSAGE--></p>'; // WPCS: XSS OK.
+}
+
+/**
+ * Display service worker error details template tag.
+ */
+function wp_service_worker_error_details_placeholder() {
+	echo '<!--WP_SERVICE_WORKER_ERROR_DETAILS-->'; // WPCS: XSS OK.
 }

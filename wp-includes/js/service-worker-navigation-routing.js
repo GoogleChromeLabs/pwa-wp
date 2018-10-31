@@ -31,29 +31,32 @@
 						return response;
 					}
 				}
-				const channel = new BroadcastChannel( 'wordpress-server-errors' );
 
-				// Wait for client to request the error message.
-				channel.onmessage = ( event ) => {
-					if ( event.data && event.data.clientUrl && url === event.data.clientUrl ) {
-						response.text().then( ( text ) => {
-							channel.postMessage({
-								requestUrl: url,
-								bodyText: text,
-								status: response.status,
-								statusText: response.statusText
-							});
-							channel.close();
+				if ( canStreamResponse() ) {
+					return caches.match( ERROR_500_BODY_FRAGMENT_URL );
+				}
+
+				return response.text().then( function( errorText ) {
+					return caches.match( ERROR_500_URL ).then( function( errorResponse ) {
+
+						if ( ! errorResponse ) {
+							return response;
+						}
+
+						return errorResponse.text().then( function( text ) {
+							let init = {
+								status: errorResponse.status,
+								statusText: errorResponse.statusText,
+								headers: errorResponse.headers
+							};
+
+							let body = text.replace( /<!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/, errorMessages.error );
+							body = body.replace( /<!--WP_SERVICE_WORKER_ERROR_DETAILS-->/, errorText );
+
+							return new Response( body, init );
 						} );
-					}
-				};
-
-				// Close the channel if client did not request the message within 30 seconds.
-				setTimeout( () => {
-					channel.close();
-				}, 30 * 1000 );
-
-				return caches.match( canStreamResponse() ? ERROR_500_BODY_FRAGMENT_URL : ERROR_500_URL );
+					} );
+				} );
 			};
 
 			const sendOfflineResponse = () => {
