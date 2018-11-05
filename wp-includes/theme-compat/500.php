@@ -17,10 +17,7 @@ pwa_get_header( 'error' );
 <main>
 	<h1><?php esc_html_e( 'Oops! Something went wrong.', 'pwa' ); ?></h1>
 	<?php wp_service_worker_error_message_placeholder(); ?>
-	<details id="error-details">
-		<summary><?php esc_html_e( 'More details', 'pwa' ); ?></summary>
-		<iframe style="width:100%;" srcdoc="<?php wp_service_worker_error_details_placeholder(); ?>"></iframe>
-	</details>
+	<?php wp_service_worker_error_details_template(); ?>
 </main>
 <?php
 

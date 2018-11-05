@@ -446,15 +446,22 @@ function wp_service_worker_get_error_messages() {
 }
 
 /**
+ * Display service worker error details template.
+ *
+ * @param string $output Error details template output.
+ */
+function wp_service_worker_error_details_template( $output = '' ) {
+	if ( empty( $output ) ) {
+		$output = '<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary>{{{error_details_iframe}}}</details>';
+	}
+	echo '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->'; // WPCS: XSS OK.
+	echo wp_kses_post( $output );
+	echo '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->'; // WPCS: XSS OK.
+}
+
+/**
  * Display service worker error message template tag.
  */
 function wp_service_worker_error_message_placeholder() {
 	echo '<p><!--WP_SERVICE_WORKER_ERROR_MESSAGE--></p>'; // WPCS: XSS OK.
-}
-
-/**
- * Display service worker error details template tag.
- */
-function wp_service_worker_error_details_placeholder() {
-	echo '<!--WP_SERVICE_WORKER_ERROR_DETAILS-->'; // WPCS: XSS OK.
 }
