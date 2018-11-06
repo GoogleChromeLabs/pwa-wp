@@ -5,8 +5,6 @@
 
 	wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
 		async function ( { event } ) {
-			const { url } = event.request;
-
 			let responsePreloaded = false;
 
 			const canStreamResponse = () => {
@@ -31,29 +29,63 @@
 						return response;
 					}
 				}
-				const channel = new BroadcastChannel( 'wordpress-server-errors' );
 
-				// Wait for client to request the error message.
-				channel.onmessage = ( event ) => {
-					if ( event.data && event.data.clientUrl && url === event.data.clientUrl ) {
-						response.text().then( ( text ) => {
-							channel.postMessage({
-								requestUrl: url,
-								bodyText: text,
-								status: response.status,
-								statusText: response.statusText
-							});
-							channel.close();
-						} );
+				if ( canStreamResponse() ) {
+					return caches.match( ERROR_500_BODY_FRAGMENT_URL );
+				}
+
+				const originalResponse = response.clone();
+				return response.text().then( function( responseBody ) {
+
+					// Prevent serving custom error template if WordPress is already responding with a valid error page (e.g. via wp_die()).
+					if ( -1 !== responseBody.indexOf( '</html>' ) ) {
+						return originalResponse;
 					}
-				};
 
-				// Close the channel if client did not request the message within 30 seconds.
-				setTimeout( () => {
-					channel.close();
-				}, 30 * 1000 );
+					return caches.match( ERROR_500_URL ).then( function( errorResponse ) {
 
-				return caches.match( canStreamResponse() ? ERROR_500_BODY_FRAGMENT_URL : ERROR_500_URL );
+						if ( ! errorResponse ) {
+							return response;
+						}
+
+						return errorResponse.text().then( function( text ) {
+							let init = {
+								status: errorResponse.status,
+								statusText: errorResponse.statusText,
+								headers: errorResponse.headers
+							};
+
+							let body = text.replace( /<!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/, errorMessages.error );
+							body = body.replace(
+								/(<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->)((?:.|\n)+?)(<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->)/,
+								( details ) => {
+									if ( ! responseBody ) {
+										return ''; // Remove the details from the document entirely.
+									}
+									const src = 'data:text/html;base64,' + btoa( responseBody ); // The errorText encoded as a text/html data URL.
+									const srcdoc = responseBody
+										.replace( /&/g, '&amp;' )
+										.replace( /'/g, '&#39;' )
+										.replace( /"/g, '&quot;' )
+										.replace( /</g, '&lt;' )
+										.replace( />/g, '&gt;' );
+									const iframe = `<iframe style="width:100%" src="${src}" data-srcdoc="${srcdoc}"></iframe>`;
+									details = details.replace( '{{{error_details_iframe}}}', iframe );
+									// The following are in case the user wants to include the <iframe> in the template.
+									details = details.replace( '{{{iframe_src}}}', src );
+									details = details.replace( '{{{iframe_srcdoc}}}', srcdoc );
+
+									// Replace the comments.
+									details = details.replace( '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->', '' );
+									details = details.replace( '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->', '' );
+									return details;
+								}
+							);
+
+							return new Response( body, init );
+						} );
+					} );
+				} );
 			};
 
 			const sendOfflineResponse = () => {
@@ -120,7 +152,7 @@
 				const request = new Request( url.toString(), init );
 
 				const stream = wp.serviceWorker.streams.concatenateToResponse([
-					precacheStrategy.makeRequest({ request: streamHeaderFragmentURL }), // @todo This should be able to vary based on the request.url. No: just don't allow in paired mode.
+					precacheStrategy.makeRequest({ request: streamHeaderFragmentURL }),
 					fetch( request )
 						.then( handleResponse )
 						.catch( sendOfflineResponse ),
@@ -141,5 +173,8 @@
 
 // Add fallback network-only navigation route to ensure preloadResponse is used if available.
 wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
-	wp.serviceWorker.strategies.networkOnly()
+	wp.serviceWorker.strategies.networkOnly(),
+	{
+		whitelist: BLACKLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) )
+	}
 ) );

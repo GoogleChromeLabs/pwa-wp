@@ -348,13 +348,19 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			$server_error_precache_entry = apply_filters( 'wp_server_error_precache_entry', $server_error_precache_entry );
 
 		} else {
+			$revision = PWA_VERSION;
+			if ( WP_DEBUG ) {
+				$revision .= filemtime( PWA_PLUGIN_DIR . '/wp-admin/error.php' );
+				$revision .= filemtime( PWA_PLUGIN_DIR . '/wp-includes/service-workers.php' );
+			}
+
 			$offline_error_precache_entry = array(
 				'url'      => add_query_arg( 'code', 'offline', admin_url( 'admin-ajax.php?action=wp_error_template' ) ), // Upon core merge, this would use admin_url( 'error.php' ).
-				'revision' => PWA_VERSION, // Upon core merge, this should be the core version.
+				'revision' => $revision, // Upon core merge, this should be the core version.
 			);
 			$server_error_precache_entry  = array(
 				'url'      => add_query_arg( 'code', '500', admin_url( 'admin-ajax.php?action=wp_error_template' ) ), // Upon core merge, this would use admin_url( 'error.php' ).
-				'revision' => PWA_VERSION, // Upon core merge, this should be the core version.
+				'revision' => $revision, // Upon core merge, this should be the core version.
 			);
 		}
 
