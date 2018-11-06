@@ -321,7 +321,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 */
 			$caching_strategy_args = apply_filters( 'wp_service_worker_navigation_caching_strategy_args', array() );
 
-			$caching_strategy_args_js = WP_Service_Worker_Caching_Routes_Component::prepare_strategy_args_for_js_export( $caching_strategy_args );
+			$caching_strategy_args_js = WP_Service_Worker_Caching_Routes::prepare_strategy_args_for_js_export( $caching_strategy_args );
 
 			$offline_error_template_file  = pwa_locate_template( array( 'offline.php', 'error.php' ) );
 			$offline_error_precache_entry = array(
