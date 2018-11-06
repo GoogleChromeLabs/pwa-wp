@@ -152,7 +152,7 @@
 				const request = new Request( url.toString(), init );
 
 				const stream = wp.serviceWorker.streams.concatenateToResponse([
-					precacheStrategy.makeRequest({ request: streamHeaderFragmentURL }), // @todo This should be able to vary based on the request.url. No: just don't allow in paired mode.
+					precacheStrategy.makeRequest({ request: streamHeaderFragmentURL }),
 					fetch( request )
 						.then( handleResponse )
 						.catch( sendOfflineResponse ),
@@ -173,5 +173,8 @@
 
 // Add fallback network-only navigation route to ensure preloadResponse is used if available.
 wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
-	wp.serviceWorker.strategies.networkOnly()
+	wp.serviceWorker.strategies.networkOnly(),
+	{
+		whitelist: BLACKLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) )
+	}
 ) );

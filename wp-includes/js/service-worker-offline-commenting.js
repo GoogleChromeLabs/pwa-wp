@@ -12,6 +12,7 @@
 					return response;
 				}
 
+				// @todo This is duplicated with code in service-worker-navigation-routing.js.
 				return response.text().then( function( errorText ) {
 					return caches.match( ERROR_500_URL ).then( function( errorResponse ) {
 
@@ -78,6 +79,7 @@
 					}
 				);
 
+				// @todo This is duplicated with code in service-worker-navigation-routing.js.
 				return caches.match( ERROR_OFFLINE_URL ).then( function( response ) {
 
 					return response.text().then( function( text ) {
