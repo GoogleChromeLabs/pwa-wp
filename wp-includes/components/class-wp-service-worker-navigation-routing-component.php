@@ -373,21 +373,35 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			$server_error_precache_entry = apply_filters( 'wp_server_error_precache_entry', $server_error_precache_entry );
 
 		} else {
+			$revision = PWA_VERSION;
+			if ( WP_DEBUG ) {
+				$revision .= filemtime( PWA_PLUGIN_DIR . '/wp-admin/error.php' );
+				$revision .= filemtime( PWA_PLUGIN_DIR . '/wp-includes/service-workers.php' );
+			}
+
 			$offline_error_precache_entry = array(
 				'url'      => add_query_arg( 'code', 'offline', admin_url( 'admin-ajax.php?action=wp_error_template' ) ), // Upon core merge, this would use admin_url( 'error.php' ).
-				'revision' => PWA_VERSION, // Upon core merge, this should be the core version.
+				'revision' => $revision, // Upon core merge, this should be the core version.
 			);
 			$server_error_precache_entry  = array(
 				'url'      => add_query_arg( 'code', '500', admin_url( 'admin-ajax.php?action=wp_error_template' ) ), // Upon core merge, this would use admin_url( 'error.php' ).
-				'revision' => PWA_VERSION, // Upon core merge, this should be the core version.
+				'revision' => $revision, // Upon core merge, this should be the core version.
 			);
 		}
+
+		$scripts->register(
+			'wp-offline-commenting',
+			array(
+				'src'  => array( $this, 'get_offline_commenting_script' ),
+				'deps' => array( 'wp-base-config' ),
+			)
+		);
 
 		$scripts->register(
 			'wp-navigation-routing',
 			array(
 				'src'  => array( $this, 'get_script' ),
-				'deps' => array( 'wp-base-config' ),
+				'deps' => array( 'wp-base-config', 'wp-offline-commenting' ),
 			)
 		);
 
@@ -451,6 +465,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			'BLACKLIST_PATTERNS'               => wp_service_worker_json_encode( $this->get_blacklist_patterns() ),
 			'SHOULD_STREAM_RESPONSE'           => wp_service_worker_json_encode( $should_stream_response ),
 			'STREAM_HEADER_FRAGMENT_QUERY_VAR' => wp_service_worker_json_encode( self::STREAM_FRAGMENT_QUERY_VAR ),
+			'ERROR_MESSAGES'                   => wp_service_worker_json_encode( wp_service_worker_get_error_messages() ),
 		);
 	}
 
@@ -465,14 +480,16 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	public function get_blacklist_patterns() {
 		$blacklist_patterns = array();
 
-		// Exclude admin URLs.
-		$blacklist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)';
+		if ( ! is_admin() ) {
+			// Exclude admin URLs, if not in the admin.
+			$blacklist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)';
+
+			// Exclude PHP files (e.g. wp-login.php).
+			$blacklist_patterns[] = '[^\?]*.\.php($|\?.*)';
+		}
 
 		// Exclude REST API.
 		$blacklist_patterns[] = '^' . preg_quote( wp_parse_url( get_rest_url(), PHP_URL_PATH ), '/' ) . '.*';
-
-		// Exclude PHP files (e.g. wp-login.php).
-		$blacklist_patterns[] = '[^\?]*.\.php($|\?.*)';
 
 		// Exclude service worker and stream fragment requests (to ease debugging).
 		$blacklist_patterns[] = '.*\?(.*&)?(' . join( '|', array( self::STREAM_FRAGMENT_QUERY_VAR, WP_Service_Workers::QUERY_VAR ) ) . ')=';
@@ -491,7 +508,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * @return int Hook priority. A higher number means a lower priority.
 	 */
 	public function get_priority() {
-		return -99999;
+		return 99;
 	}
 
 	/**
@@ -506,6 +523,22 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		return preg_replace_callback(
 			'/\b(' . implode( '|', array_keys( $this->replacements ) ) . ')\b/',
 			array( $this, 'replace_exported_variable' ),
+			$script
+		);
+	}
+
+	/**
+	 * Get script for offline commenting requests.
+	 *
+	 * @return string Script.
+	 */
+	public function get_offline_commenting_script() {
+		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-offline-commenting.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
+
+		return str_replace(
+			array_keys( $this->replacements ),
+			array_values( $this->replacements ),
 			$script
 		);
 	}

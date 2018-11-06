@@ -2,3 +2,5 @@ wp-includes/js/service-worker.js
 wp-includes/js/service-worker-navigation-routing.js
 wp-includes/js/service-worker-precaching.js
 wp-includes/js/service-worker-stream-combiner.js
+amp/amp-service-worker-offline-commenting.js
+wp-includes/js/service-worker-offline-commenting.js

@@ -191,36 +191,6 @@ function wp_print_service_workers() {
 }
 
 /**
- * Print the script that is responsible for populating the details iframe with the error info from the service worker.
- *
- * Broadcast a request to obtain the original response text from the internal server error response and display it inside
- * a details iframe if the 500 response included any body (such as an error message). This is used in a the 500.php template.
- *
- * @since 0.2
- *
- * @param string $callback Function in JS to invoke with the data. This may be either a global function name or method of another object, e.g. "mySite.handleServerError".
- */
-function wp_print_service_worker_error_details_script( $callback ) {
-	?>
-	<script>
-		{
-			const clientUrl = location.href;
-			const channel = new BroadcastChannel( 'wordpress-server-errors' );
-			channel.onmessage = ( event ) => {
-				if ( event.data && event.data.requestUrl && clientUrl === event.data.requestUrl ) {
-					channel.onmessage = null;
-					channel.close();
-
-					<?php echo 'window[' . implode( '][', array_map( 'json_encode', explode( '.', $callback ) ) ) . ']( event.data );'; ?>
-				}
-			};
-			channel.postMessage( { clientUrl } )
-		}
-	</script>
-	<?php
-}
-
-/**
  * Serve the service worker for the frontend if requested.
  *
  * @since 0.1
@@ -427,4 +397,41 @@ function wp_service_worker_skip_waiting() {
 	 * @param bool $skip_waiting Whether to skip waiting for the Service Worker and update when an update is available.
 	 */
 	return (bool) apply_filters( 'wp_service_worker_skip_waiting', true );
+}
+
+/**
+ * Get service worker error messages.
+ *
+ * @return array Array of error messages: default, comment.
+ */
+function wp_service_worker_get_error_messages() {
+	return apply_filters(
+		'wp_service_worker_error_messages',
+		array(
+			'default' => __( 'Please check your internet connection, and try again.', 'pwa' ),
+			'error'   => __( 'Something prevented the page from being rendered. Please try again.', 'pwa' ),
+			'comment' => __( 'Your comment will be submitted once you are back online!', 'pwa' ),
+		)
+	);
+}
+
+/**
+ * Display service worker error details template.
+ *
+ * @param string $output Error details template output.
+ */
+function wp_service_worker_error_details_template( $output = '' ) {
+	if ( empty( $output ) ) {
+		$output = '<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary>{{{error_details_iframe}}}</details>';
+	}
+	echo '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->'; // WPCS: XSS OK.
+	echo wp_kses_post( $output );
+	echo '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->'; // WPCS: XSS OK.
+}
+
+/**
+ * Display service worker error message template tag.
+ */
+function wp_service_worker_error_message_placeholder() {
+	echo '<p><!--WP_SERVICE_WORKER_ERROR_MESSAGE--></p>'; // WPCS: XSS OK.
 }

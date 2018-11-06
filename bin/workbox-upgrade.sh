@@ -7,21 +7,19 @@ if [ ! -z "$(git status --porcelain -uno)" ]; then
 fi
 
 cd $( dirname "$0" )/..
-rm -r wp-includes/js/workbox-v*
+rm -r wp-includes/js/workbox*
 git add -u wp-includes/js
 npm install # Get the latest.
+git add package.json package-lock.json
 npx workbox copyLibraries wp-includes/js/
-git add wp-includes/js/workbox-v*
-workbox_dir=$(ls -d wp-includes/js/workbox-v*)
-sed -i.bak "s:wp-includes/js/workbox-v.*/:$workbox_dir/:" wp-includes/class-wp-service-workers.php
-rm wp-includes/class-wp-service-workers.php.bak
-git add wp-includes/class-wp-service-workers.php
+mv wp-includes/js/workbox-v* wp-includes/js/workbox
+git add wp-includes/js/workbox
 
 if [ -z "$(git status --porcelain -uno)" ]; then
 	echo "Already up to date"
 else
 	git status
-	git commit -m "Upgrade Workbox to $( sed 's/.*-v/v/' <<< $workbox_dir )" --edit
+	git commit -m "Upgrade Workbox to v$(npm list workbox-cli --depth=0 | grep workbox-cli | sed 's/.*@//')" --edit
 fi
 
 
