@@ -12,30 +12,52 @@
 					return response;
 				}
 
-				// @todo Replace depending on BroadcastChannel.
-				const channel = new BroadcastChannel( 'wordpress-server-errors' );
+				// @todo This is duplicated with code in service-worker-navigation-routing.js.
+				return response.text().then( function( errorText ) {
+					return caches.match( ERROR_500_URL ).then( function( errorResponse ) {
 
-				// Wait for client to request the error message.
-				channel.onmessage = ( event ) => {
-					if ( event.data && event.data.clientUrl && clone.url === event.data.clientUrl ) {
-						response.text().then( ( text ) => {
-							channel.postMessage({
-								requestUrl: clone.url,
-								bodyText: text,
-								status: response.status,
-								statusText: response.statusText
-							});
-							channel.close();
+						if ( ! errorResponse ) {
+							return response;
+						}
+
+						return errorResponse.text().then( function( text ) {
+							let init = {
+								status: errorResponse.status,
+								statusText: errorResponse.statusText,
+								headers: errorResponse.headers
+							};
+
+							let body = text.replace( /<!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/, errorMessages.error );
+							body = body.replace(
+								/(<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->)((?:.|\n)+?)(<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->)/,
+								( details ) => {
+									if ( ! errorText ) {
+										return ''; // Remove the details from the document entirely.
+									}
+									const src = 'data:text/html;base64,' + btoa( errorText ); // The errorText encoded as a text/html data URL.
+									const srcdoc = errorText
+										.replace( /&/g, '&amp;' )
+										.replace( /'/g, '&#39;' )
+										.replace( /"/g, '&quot;' )
+										.replace( /</g, '&lt;' )
+										.replace( />/g, '&gt;' );
+									const iframe = `<iframe style="width:100%" src="${src}"  srcdoc="${srcdoc}"></iframe>`;
+									details = details.replace( '{{{error_details_iframe}}}', iframe );
+									// The following are in case the user wants to include the <iframe> in the template.
+									details = details.replace( '{{{iframe_src}}}', src );
+									details = details.replace( '{{{iframe_srcdoc}}}', srcdoc );
+
+									// Replace the comments.
+									details = details.replace( '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->', '' );
+									details = details.replace( '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->', '' );
+									return details;
+								}
+							);
+
+							return new Response( body, init );
 						} );
-					}
-				};
-
-				// Close the channel if client did not request the message within 30 seconds.
-				setTimeout( () => {
-					channel.close();
-				}, 30 * 1000 );
-
-				return caches.match( ERROR_500_URL );
+					} );
+				} );
 			} )
 			.catch( () => {
 				const bodyPromise = clone.blob();
@@ -57,6 +79,7 @@
 					}
 				);
 
+				// @todo This is duplicated with code in service-worker-navigation-routing.js.
 				return caches.match( ERROR_OFFLINE_URL ).then( function( response ) {
 
 					return response.text().then( function( text ) {

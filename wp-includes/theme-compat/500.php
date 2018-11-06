@@ -16,21 +16,8 @@ pwa_get_header( 'error' );
 ?>
 <main>
 	<h1><?php esc_html_e( 'Oops! Something went wrong.', 'pwa' ); ?></h1>
-	<p><?php esc_html_e( 'Something prevented the page from being rendered. Please try again.', 'pwa' ); ?></p>
-	<details id="error-details" hidden>
-		<summary><?php esc_html_e( 'More details', 'pwa' ); ?></summary>
-		<iframe style="width:100%;" srcdoc=""></iframe>
-		<script>
-		function renderErrorDetails( data ) {
-			if ( data.bodyText.trim().length ) {
-				const details = document.getElementById( 'error-details' );
-				details.querySelector( 'iframe' ).srcdoc = data.bodyText;
-				details.hidden = false;
-			}
-		}
-		</script>
-		<?php wp_print_service_worker_error_details_script( 'renderErrorDetails' ); ?>
-	</details>
+	<?php wp_service_worker_error_message_placeholder(); ?>
+	<?php wp_service_worker_error_details_template(); ?>
 </main>
 <?php
 
