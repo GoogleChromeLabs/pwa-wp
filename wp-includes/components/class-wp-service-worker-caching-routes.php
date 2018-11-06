@@ -136,4 +136,84 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	public function get_all() {
 		return $this->routes;
 	}
+
+
+	/**
+	 * Prepare caching strategy args for export to JS.
+	 *
+	 * @since 0.2
+	 *
+	 * @param array $strategy_args Strategy args.
+	 * @return string JS IIFE which returns object for passing to registerRoute.
+	 */
+	public static function prepare_strategy_args_for_js_export( $strategy_args ) {
+		$exported = '( function() {';
+
+		// Extract plugins since not JSON-serializable as-is.
+		$plugins = array();
+		if ( isset( $strategy_args['plugins'] ) ) {
+			$plugins = $strategy_args['plugins'];
+			unset( $strategy_args['plugins'] );
+		}
+
+		foreach ( $strategy_args as $strategy_arg_name => $strategy_arg_value ) {
+			if ( false !== strpos( $strategy_arg_name, '_' ) ) {
+				$strategy_arg_name = preg_replace_callback( '/_[a-z]/', array( __CLASS__, 'convert_snake_case_to_camel_case_callback' ), $strategy_arg_name );
+			}
+			$exported_strategy_args[ $strategy_arg_name ] = $strategy_arg_value;
+		}
+
+		$exported .= sprintf( 'const strategyArgs = %s;', empty( $exported_strategy_args ) ? '{}' : wp_service_worker_json_encode( $exported_strategy_args ) );
+
+		if ( is_array( $plugins ) ) {
+
+			$recognized_plugins = array(
+				'backgroundSync',
+				'broadcastUpdate',
+				'cacheableResponse',
+				'expiration',
+				'rangeRequests',
+			);
+
+			$plugins_js = array();
+			foreach ( $plugins as $plugin_name => $plugin_args ) {
+				if ( false !== strpos( $plugin_name, '_' ) ) {
+					$plugin_name = preg_replace_callback( '/_[a-z]/', array( __CLASS__, 'convert_snake_case_to_camel_case_callback' ), $plugin_name );
+				}
+
+				if ( ! in_array( $plugin_name, $recognized_plugins, true ) ) {
+					/* translators: %s is plugin name */
+					_doing_it_wrong( 'WP_Service_Workers::register_cached_route', esc_html( sprintf( __( 'Unrecognized plugin: %s', 'pwa' ), $plugin_name ) ), '0.2' );
+				} else {
+					$plugins_js[] = sprintf(
+						'new wp.serviceWorker[ %s ].Plugin( %s )',
+						wp_service_worker_json_encode( $plugin_name ),
+						empty( $plugin_args ) ? '{}' : wp_service_worker_json_encode( $plugin_args )
+					);
+				}
+			}
+
+			$exported .= sprintf( 'strategyArgs.plugins = [%s];', implode( ', ', $plugins_js ) );
+		}
+
+		$exported .= 'return strategyArgs;';
+		$exported .= '} )()';
+
+		return $exported;
+	}
+
+	/**
+	 * Convert snake_case to camelCase.
+	 *
+	 * This is is used by `preg_replace_callback()` for the pattern /_[a-z]/.
+	 *
+	 * @since 0.2
+	 * @see WP_Service_Worker_Caching_Routes_Component::get_script()
+	 *
+	 * @param array $matches Matches.
+	 * @return string Replaced string.
+	 */
+	protected static function convert_snake_case_to_camel_case_callback( $matches ) {
+		return strtoupper( ltrim( $matches[0], '_' ) );
+	}
 }

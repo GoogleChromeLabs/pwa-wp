@@ -298,6 +298,31 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		$revision .= sprintf( ';user-%d', get_current_user_id() );
 
 		if ( ! is_admin() ) {
+
+			// @todo Allow different routes to have varying caching strategies?
+
+			/**
+			 * Filters caching strategy used for frontend navigation requests.
+			 *
+			 * @since 0.2
+			 * @see WP_Service_Worker_Caching_Routes::register()
+			 *
+			 * @param string $caching_strategy Caching strategy to use for frontend navigation requests.
+			 */
+			$caching_strategy = apply_filters( 'wp_service_worker_navigation_caching_strategy', WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY );
+
+			/**
+			 * Filters the caching strategy args used for frontend navigation requests.
+			 *
+			 * @since 0.2
+			 * @see WP_Service_Worker_Caching_Routes::register()
+			 *
+			 * @param array $caching_strategy_args Caching strategy args.
+			 */
+			$caching_strategy_args = apply_filters( 'wp_service_worker_navigation_caching_strategy_args', array() );
+
+			$caching_strategy_args_js = WP_Service_Worker_Caching_Routes::prepare_strategy_args_for_js_export( $caching_strategy_args );
+
 			$offline_error_template_file  = pwa_locate_template( array( 'offline.php', 'error.php' ) );
 			$offline_error_precache_entry = array(
 				'url'      => add_query_arg( 'wp_error_template', 'offline', home_url( '/' ) ),
@@ -430,6 +455,8 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		}
 
 		$this->replacements = array(
+			'CACHING_STRATEGY'                 => wp_service_worker_json_encode( isset( $caching_strategy ) ? $caching_strategy : null ),
+			'CACHING_STRATEGY_ARGS'            => isset( $caching_strategy_args_js ) ? $caching_strategy_args_js : 'null',
 			'ERROR_OFFLINE_URL'                => wp_service_worker_json_encode( isset( $offline_error_precache_entry['url'] ) ? $offline_error_precache_entry['url'] : null ),
 			'ERROR_OFFLINE_BODY_FRAGMENT_URL'  => wp_service_worker_json_encode( isset( $offline_error_precache_entry['url'] ) ? add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $offline_error_precache_entry['url'] ) : null ),
 			'ERROR_500_URL'                    => wp_service_worker_json_encode( isset( $server_error_precache_entry['url'] ) ? $server_error_precache_entry['url'] : null ),
@@ -493,9 +520,9 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-navigation-routing.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
 
-		return str_replace(
-			array_keys( $this->replacements ),
-			array_values( $this->replacements ),
+		return preg_replace_callback(
+			'/\b(' . implode( '|', array_keys( $this->replacements ) ) . ')\b/',
+			array( $this, 'replace_exported_variable' ),
 			$script
 		);
 	}
@@ -514,5 +541,18 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			array_values( $this->replacements ),
 			$script
 		);
+	}
+
+	/**
+	 * Replace exported variable.
+	 *
+	 * @param array $matches Matches.
+	 * @return string Replacement.
+	 */
+	protected function replace_exported_variable( $matches ) {
+		if ( isset( $this->replacements[ $matches[0] ] ) ) {
+			return $this->replacements[ $matches[0] ];
+		}
+		return 'null';
 	}
 }

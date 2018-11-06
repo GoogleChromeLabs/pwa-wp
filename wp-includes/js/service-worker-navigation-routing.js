@@ -1,4 +1,4 @@
-/* global console, ERROR_OFFLINE_URL, ERROR_500_URL, SHOULD_STREAM_RESPONSE, STREAM_HEADER_FRAGMENT_URL, ERROR_500_BODY_FRAGMENT_URL, ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, BLACKLIST_PATTERNS, ERROR_MESSAGES */
+/* global console, CACHING_STRATEGY, CACHING_STRATEGY_ARGS, ERROR_OFFLINE_URL, ERROR_500_URL, SHOULD_STREAM_RESPONSE, STREAM_HEADER_FRAGMENT_URL, ERROR_500_BODY_FRAGMENT_URL, ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, BLACKLIST_PATTERNS, ERROR_MESSAGES */
 {
 	const isStreamingResponses = SHOULD_STREAM_RESPONSE && wp.serviceWorker.streams.isSupported();
 	const errorMessages = ERROR_MESSAGES;
@@ -126,6 +126,8 @@
 				}
 			}
 
+			const navigationCacheStrategy = wp.serviceWorker.strategies[ CACHING_STRATEGY ]( CACHING_STRATEGY_ARGS );
+
 			if ( canStreamResponse() ) {
 				const streamHeaderFragmentURL = STREAM_HEADER_FRAGMENT_URL;
 				const precacheStrategy = wp.serviceWorker.strategies.cacheFirst({
@@ -150,17 +152,16 @@
 					init[ initProp ] = event.request[ initProp ];
 				}
 				const request = new Request( url.toString(), init );
-
 				const stream = wp.serviceWorker.streams.concatenateToResponse([
 					precacheStrategy.makeRequest({ request: streamHeaderFragmentURL }),
-					fetch( request )
+					navigationCacheStrategy.makeRequest( { request } )
 						.then( handleResponse )
 						.catch( sendOfflineResponse ),
 				]);
 
 				return stream.response;
 			} else {
-				return fetch( event.request )
+				return navigationCacheStrategy.makeRequest( { request: event.request } )
 					.then( handleResponse )
 					.catch( sendOfflineResponse );
 			}
