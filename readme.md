@@ -153,7 +153,7 @@ See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Aservi
 ### Caching ###
 Service Workers in the feature plugin are using [Workbox](https://developers.google.com/web/tools/workbox/) to power a higher-level PHP abstraction for themes and plugins to indicate the routes and the caching strategies in a declarative way. Since only one handler can be used per one route then conflicts are also detected and reported in console when using debug mode.
 
-The API abstraction allows registering routes for caching and urls for precaching using the following two methods:
+The API abstraction allows registering routes for caching and urls for precaching using the following two functions:
 
 1. `wp_register_service_worker_caching_route`: accepts the following two parameters:
 
@@ -205,7 +205,23 @@ The feature plugins offers improved offline experience by displaying a custom te
 
 Themes can override the default template by using `error.php`, `offline.php`, and `500.php` in you theme folder. `error.php` is a general template for both offline and 500 error pages and it is overriden by `offline.php` and `500.php` if they exist.
 
-Note that the templates should use `wp_service_worker_error_message_placeholder()` for displaying the offline messages.
+Note that the templates should use `wp_service_worker_error_message_placeholder()` for displaying the offline / error messages. Additionally, on the 500 error template the details of the error can be displayed using the function `wp_service_worker_error_details_template( $output )`.
+
+For development purposes the offline and 500 error templates are visible on the following URLs on your site:
+- `https://your-site-name.com/?wp_error_template=offline`;
+- `https://your-site-name.com/?wp_error_template=500`
+
+Default value for `$output` is the following:
+`<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary>{{{error_details_iframe}}}</details>` where `{{{error_details_iframe}}}` will be replaced by the iframe.
+
+In case of using the `<iframe>` within the template `{{{iframe_src}}}` and `{{{iframe_srcdoc}}}` are available as well.
+
+For example this could be done:
+ <pre lang=php>
+wp_service_worker_error_details_template(
+    '<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary><iframe style="width:100%" src="{{{iframe_src}}}" data-srcdoc="{{{iframe_srcdoc}}}"></iframe></details>'
+);
+</pre>
 ### Offline Commenting ###
 Another feature improving the offline experience is Offline Commenting implemented leveraging [Workbox Background Sync API](https://developers.google.com/web/tools/workbox/modules/workbox-background-sync).
 

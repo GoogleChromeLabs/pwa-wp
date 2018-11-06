@@ -147,10 +147,74 @@ add_action( 'wp_front_service_worker', 'register_baz_service_worker_script' );
 add_action( 'wp_admin_service_worker', 'register_baz_service_worker_script' );
 </pre>
 
-The next step for service workers in the feature plugin is to explore the use of [Workbox](https://developers.google.com/web/tools/workbox/) to power a higher-level PHP abstraction for themes and plugins to indicate the routes and the caching strategies in a declarative way (with detection for conflicts).
-
 See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Aservice-workers) and see WordPress core tracking ticket [#36995](https://core.trac.wordpress.org/ticket/36995).
 
+= Caching =
+Service Workers in the feature plugin are using [Workbox](https://developers.google.com/web/tools/workbox/) to power a higher-level PHP abstraction for themes and plugins to indicate the routes and the caching strategies in a declarative way. Since only one handler can be used per one route then conflicts are also detected and reported in console when using debug mode.
+
+The API abstraction allows registering routes for caching and urls for precaching using the following two functions:
+1. `wp_register_service_worker_caching_route()`: accepts the following two parameters:
+* `$route`: Route regular expression, without delimiters.
+* `$args`: An array of additional route arguments as `$key => $value` pairs:
+	* `$strategy`: Required. Strategy, can be `WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE`, `WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST`,
+                   `WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST`, `WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY`,
+                   `WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY`.
+	* `$cache_name`: Name to use for the cache.
+	* `$plugins`: Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
+                  See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
+
+2. `wp_register_service_worker_precaching_route()`: accepts the following two parameters:
+ * `$url`: URL to cache.
+* `$args`: An array of additional route arguments as `$key => $value` pairs:
+	* `$revision`: Revision, optional.
+
+Examples of using the API:
+ <pre lang=php>
+wp_register_service_worker_caching_route(
+    '/wp-content/.*\.(?:png|gif|jpg|jpeg|svg|webp)(\?.*)?$',
+        array(
+            'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
+            'cacheName' => 'images',
+            'plugins'   => array(
+                'expiration'        => array(
+                    'maxEntries'    => 60,
+                    'maxAgeSeconds' => 60 * 60 * 24,
+            ),
+        ),
+    )
+);
+</pre>
+ <pre lang=php>
+wp_register_service_worker_precaching_route(
+        'https://example.com/wp-content/themes/my-theme/my-theme-image.png',
+        array(
+            'revision' => get_bloginfo( 'version' ),
+        ),
+    )
+);
+</pre>
+= Offline / 500 error handling =
+The feature plugins offers improved offline experience by displaying a custom template when user is offline instead of the default message in browser. Same goes for 500 errors -- a template is displayed together with error details.
+
+Themes can override the default template by using `error.php`, `offline.php`, and `500.php` in you theme folder. `error.php` is a general template for both offline and 500 error pages and it is overriden by `offline.php` and `500.php` if they exist.
+
+Note that the templates should use `wp_service_worker_error_message_placeholder()` for displaying the offline / error messages. Additionally, on the 500 error template the details of the error can be displayed using the function `wp_service_worker_error_details_template( $output )`.
+
+For development purposes the offline and 500 error templates are visible on the following URLs on your site:
+- `https://your-site-name.com/?wp_error_template=offline`;
+- `https://your-site-name.com/?wp_error_template=500`
+
+Default value for `$output` is the following:
+`<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary>{{{error_details_iframe}}}</details>` where `{{{error_details_iframe}}}` will be replaced by the iframe.
+
+In case of using the `<iframe>` within the template `{{{iframe_src}}}` and `{{{iframe_srcdoc}}}` are available as well.
+
+For example this could be done:
+ <pre lang=php>
+wp_service_worker_error_details_template(
+    '<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary><iframe style="width:100%" src="{{{iframe_src}}}" data-srcdoc="{{{iframe_srcdoc}}}"></iframe></details>'
+);
+</pre>
 = HTTPS =
 
 HTTPS is a prerequisite for progressive web apps. A service worker is only able to be installed on sites that are served as HTTPS. For this reason core's support for HTTPS needs to be further improved, continuing the great progress made over the past few years.
