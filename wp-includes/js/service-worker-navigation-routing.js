@@ -34,7 +34,14 @@
 					return caches.match( ERROR_500_BODY_FRAGMENT_URL );
 				}
 
-				return response.text().then( function( errorText ) {
+				const originalResponse = response.clone();
+				return response.text().then( function( responseBody ) {
+
+					// Prevent serving custom error template if WordPress is already responding with a valid error page (e.g. via wp_die()).
+					if ( -1 !== responseBody.indexOf( '</html>' ) ) {
+						return originalResponse;
+					}
+
 					return caches.match( ERROR_500_URL ).then( function( errorResponse ) {
 
 						if ( ! errorResponse ) {
@@ -52,11 +59,11 @@
 							body = body.replace(
 								/(<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->)((?:.|\n)+?)(<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->)/,
 								( details ) => {
-									if ( ! errorText ) {
+									if ( ! responseBody ) {
 										return ''; // Remove the details from the document entirely.
 									}
-									const src = 'data:text/html;base64,' + btoa( errorText ); // The errorText encoded as a text/html data URL.
-									const srcdoc = errorText
+									const src = 'data:text/html;base64,' + btoa( responseBody ); // The errorText encoded as a text/html data URL.
+									const srcdoc = responseBody
 										.replace( /&/g, '&amp;' )
 										.replace( /'/g, '&#39;' )
 										.replace( /"/g, '&quot;' )
