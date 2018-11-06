@@ -156,41 +156,40 @@ The API abstraction allows registering routes for caching and urls for precachin
 1. `wp_register_service_worker_caching_route()`: accepts the following two parameters:
 * `$route`: Route regular expression, without delimiters.
 * `$args`: An array of additional route arguments as `$key => $value` pairs:
-	* `$strategy`: Required. Strategy, can be `WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE`, `WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST`,
-                   `WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST`, `WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY`,
-                   `WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY`.
-	* `$cache_name`: Name to use for the cache.
-	* `$plugins`: Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
-                  See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
+  * `$strategy`: Required. Strategy, can be `WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE`, `WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST`, `WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST`, `WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY`, `WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY`.
+  * `$cache_name`: Name to use for the cache.
+  * `$plugins`: Array of plugins with configuration. The key of each plugin in the array must match the plugin's name. See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
 
 2. `wp_register_service_worker_precaching_route()`: accepts the following two parameters:
  * `$url`: URL to cache.
-* `$args`: An array of additional route arguments as `$key => $value` pairs:
-	* `$revision`: Revision, optional.
+ * `$args`: An array of additional route arguments as `$key => $value` pairs:
+   * `$revision`: Revision, optional.
 
 Examples of using the API:
- <pre lang=php>
+
+<pre lang=php>
 wp_register_service_worker_caching_route(
-    '/wp-content/.*\.(?:png|gif|jpg|jpeg|svg|webp)(\?.*)?$',
-        array(
-            'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
-            'cacheName' => 'images',
-            'plugins'   => array(
-                'expiration'        => array(
-                    'maxEntries'    => 60,
-                    'maxAgeSeconds' => 60 * 60 * 24,
-            ),
-        ),
-    )
+	'/wp-content/.*\.(?:png|gif|jpg|jpeg|svg|webp)(\?.*)?$',
+		array(
+			'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
+			'cacheName' => 'images',
+			'plugins'   => array(
+				'expiration'        => array(
+					'maxEntries'    => 60,
+					'maxAgeSeconds' => 60 * 60 * 24,
+			),
+		),
+	)
 );
 </pre>
- <pre lang=php>
+
+<pre lang=php>
 wp_register_service_worker_precaching_route(
-        'https://example.com/wp-content/themes/my-theme/my-theme-image.png',
-        array(
-            'revision' => get_bloginfo( 'version' ),
-        ),
-    )
+		'https://example.com/wp-content/themes/my-theme/my-theme-image.png',
+		array(
+			'revision' => get_bloginfo( 'version' ),
+		),
+	)
 );
 </pre>
 = Offline / 500 error handling =
@@ -210,11 +209,57 @@ Default value for `$output` is the following:
 In case of using the `<iframe>` within the template `{{{iframe_src}}}` and `{{{iframe_srcdoc}}}` are available as well.
 
 For example this could be done:
- <pre lang=php>
+
+<pre lang=php>
 wp_service_worker_error_details_template(
     '<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary><iframe style="width:100%" src="{{{iframe_src}}}" data-srcdoc="{{{iframe_srcdoc}}}"></iframe></details>'
 );
 </pre>
+
+= Offline Commenting =
+Another feature improving the offline experience is Offline Commenting implemented leveraging [Workbox Background Sync API](https://developers.google.com/web/tools/workbox/modules/workbox-background-sync).
+
+In case of submitting a comment and being offline (failing to fetch) the request is added to a queue and once the browsers "thinks" the connectivity is back then Sync is triggered and all the commenting requests in the queue are replayed. This meas that the comment will be resubmitted once the connection is back.
+
+= Available actions and filters =
+
+Here is a list of all available actions and filters added by the feature plugin.
+
+**Filters:**
+- `wp_service_worker_integrations`: Filters the service worker integrations to initialize.
+  - Has one argument: `$integrations` which is an array of `$slug` => `$integration pairs, where $integration is an instance of a class that implements the WP_Service_Worker_Integration interface.`
+- `wp_service_worker_skip_waiting`: Filters whether the service worker should update automatically when a new version is available.
+  - Has one boolean argument which defaults to `true`.
+- `wp_service_worker_clients_claim`: Filters whether the service worker should use `clientsClaim()` after `skipWaiting()`.
+  - Has one boolean argument which defaults to `false`;
+- `wp_service_worker_navigation_preload`: Filters whether navigation preload is enabled. Has two arguments:
+  - boolean which defaults to `true`;
+  - `$current_scope`, either 1 (WP_Service_Workers::SCOPE_FRONT) or 2 (WP_Service_Workers::SCOPE_ADMIN);
+- `wp_offline_error_precache_entry`: Filters what is precached to serve as the offline error response on the frontend.
+  - Has one parameter `$entry` which is an array:
+    - `$url` URL to page that shows the offline error template.
+    - `$revision` Revision for the template. This defaults to the template and stylesheet names, with their respective theme versions.
+- `wp_server_error_precache_entry`: Filters what is precached to serve as the internal server error response on the frontend.
+  - Has one parameter `$entry` which is an array:
+    - `$url` URL to page that shows the server error template.
+    - `$revision` Revision for the template. This defaults to the template and stylesheet names, with their respective theme versions.
+- `wp_service_worker_error_messages`: Filters the offline error messages displayed on the offline template by default and in case of offline commenting.
+  - Has one argument with array of messages:
+    - `$default` The message to display on the default offline template;
+    - `$comment` The message to display on the offline template in case of commenting;
+- `wp_streaming_header_precache_entry`: Filters what is precached to serve as the streaming header.
+  - Has one `$entry` param which is an array with the following arguments:
+    - `$url` URL to streaming header fragment.
+    - `$revision` Revision for the entry. Care must be taken to keep this updated based on the content that is output before the stream boundary.
+
+**Actions:**
+- `wp_front_service_worker`: Fires before serving the frontend service worker, when its scripts should be registered, caching routes established, and assets precached.
+  - Has one argument `$scripts` WP_Service_Worker_Scripts Instance to register service worker behavior with.
+- `wp_admin_service_worker`: Fires before serving the wp-admin service worker, when its scripts should be registered, caching routes established, and assets precached.
+  - Has one argument `$scripts` WP_Service_Worker_Scripts Instance to register service worker behavior with.
+- `wp_default_service_workers`: Fires when the WP_Service_Worker_Scripts instance is initialized.
+  - Has one argument `$scripts` WP_Service_Worker_Scripts Instance to register service worker behavior with.
+
 = HTTPS =
 
 HTTPS is a prerequisite for progressive web apps. A service worker is only able to be installed on sites that are served as HTTPS. For this reason core's support for HTTPS needs to be further improved, continuing the great progress made over the past few years.

@@ -154,49 +154,43 @@ See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Aservi
 Service Workers in the feature plugin are using [Workbox](https://developers.google.com/web/tools/workbox/) to power a higher-level PHP abstraction for themes and plugins to indicate the routes and the caching strategies in a declarative way. Since only one handler can be used per one route then conflicts are also detected and reported in console when using debug mode.
 
 The API abstraction allows registering routes for caching and urls for precaching using the following two functions:
-
-1. `wp_register_service_worker_caching_route`: accepts the following two parameters:
-
+1. `wp_register_service_worker_caching_route()`: accepts the following two parameters:
 * `$route`: Route regular expression, without delimiters.
 * `$args`: An array of additional route arguments as `$key => $value` pairs:
-	* `$strategy`: Required. Strategy, can be `WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE`, `WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST`,
-                   `WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST`, `WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY`,
-                   `WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY`.
-	* `$cache_name`: Name to use for the cache.
-	* `$plugins`: Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
-                  See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
-                  
-2. `wp_register_service_worker_precaching_route`: accepts the following two parameters:
+  * `$strategy`: Required. Strategy, can be `WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE`, `WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST`, `WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST`, `WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY`, `WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY`.
+  * `$cache_name`: Name to use for the cache.
+  * `$plugins`: Array of plugins with configuration. The key of each plugin in the array must match the plugin's name. See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
 
-* `$url`: URL to cache.
-* `$args`: An array of additional route arguments as `$key => $value` pairs:
-	* `$revision`: Revision, optional.
-	
+2. `wp_register_service_worker_precaching_route()`: accepts the following two parameters:
+ * `$url`: URL to cache.
+ * `$args`: An array of additional route arguments as `$key => $value` pairs:
+   * `$revision`: Revision, optional.
+
 Examples of using the API:
 
 <pre lang=php>
 wp_register_service_worker_caching_route(
-    '/wp-content/.*\.(?:png|gif|jpg|jpeg|svg|webp)(\?.*)?$',
-        array(
-            'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
-            'cacheName' => 'images',
-            'plugins'   => array(
-                'expiration'        => array(
-                    'maxEntries'    => 60,
-                    'maxAgeSeconds' => 60 * 60 * 24,
-            ),
-        ),
-    )
+	'/wp-content/.*\.(?:png|gif|jpg|jpeg|svg|webp)(\?.*)?$',
+		array(
+			'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
+			'cacheName' => 'images',
+			'plugins'   => array(
+				'expiration'        => array(
+					'maxEntries'    => 60,
+					'maxAgeSeconds' => 60 * 60 * 24,
+			),
+		),
+	)
 );
 </pre>
 
 <pre lang=php>
 wp_register_service_worker_precaching_route(
-        'https://example.com/wp-content/themes/my-theme/my-theme-image.png',
-        array(
-            'revision' => get_bloginfo( 'version' ),
-        ),
-    )
+		'https://example.com/wp-content/themes/my-theme/my-theme-image.png',
+		array(
+			'revision' => get_bloginfo( 'version' ),
+		),
+	)
 );
 </pre>
 
@@ -217,19 +211,22 @@ Default value for `$output` is the following:
 In case of using the `<iframe>` within the template `{{{iframe_src}}}` and `{{{iframe_srcdoc}}}` are available as well.
 
 For example this could be done:
- <pre lang=php>
+
+<pre lang=php>
 wp_service_worker_error_details_template(
     '<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary><iframe style="width:100%" src="{{{iframe_src}}}" data-srcdoc="{{{iframe_srcdoc}}}"></iframe></details>'
 );
 </pre>
+
 ### Offline Commenting ###
 Another feature improving the offline experience is Offline Commenting implemented leveraging [Workbox Background Sync API](https://developers.google.com/web/tools/workbox/modules/workbox-background-sync).
 
-In case of submitting a comment and being offline (failing to fetch) the request is added to a queue and once the browsers "thinks" the connectivity is back then Sync is triggered and all the commenting requests in the queue are replayed. This meas that the comment will be resubmitted once the connection is back. 
-### Available actions and filters ###
+In case of submitting a comment and being offline (failing to fetch) the request is added to a queue and once the browsers "thinks" the connectivity is back then Sync is triggered and all the commenting requests in the queue are replayed. This meas that the comment will be resubmitted once the connection is back.
 
+### Available actions and filters ###
 Here is a list of all available actions and filters added by the feature plugin.
-#### Filters ####
+
+**Filters:**
 - `wp_service_worker_integrations`: Filters the service worker integrations to initialize.
   - Has one argument: `$integrations` which is an array of `$slug` => `$integration pairs, where $integration is an instance of a class that implements the WP_Service_Worker_Integration interface.`
 - `wp_service_worker_skip_waiting`: Filters whether the service worker should update automatically when a new version is available.
@@ -256,13 +253,14 @@ Here is a list of all available actions and filters added by the feature plugin.
     - `$url` URL to streaming header fragment.
     - `$revision` Revision for the entry. Care must be taken to keep this updated based on the content that is output before the stream boundary.
 
-#### Actions ####
+**Actions:**
 - `wp_front_service_worker`: Fires before serving the frontend service worker, when its scripts should be registered, caching routes established, and assets precached.
   - Has one argument `$scripts` WP_Service_Worker_Scripts Instance to register service worker behavior with.
 - `wp_admin_service_worker`: Fires before serving the wp-admin service worker, when its scripts should be registered, caching routes established, and assets precached.
   - Has one argument `$scripts` WP_Service_Worker_Scripts Instance to register service worker behavior with.
 - `wp_default_service_workers`: Fires when the WP_Service_Worker_Scripts instance is initialized.
   - Has one argument `$scripts` WP_Service_Worker_Scripts Instance to register service worker behavior with.
+
 ### HTTPS ###
 HTTPS is a prerequisite for progressive web apps. A service worker is only able to be installed on sites that are served as HTTPS. For this reason core's support for HTTPS needs to be further improved, continuing the great progress made over the past few years.
 
@@ -289,9 +287,12 @@ The [wp_headers](https://developer.wordpress.org/reference/hooks/wp_headers/) fi
 
 Please see the [documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security#Directives) for the directives, including the `max-age`.
 
+
 ## Changelog ##
 
 ### 0.1.0 (2018-07-12) ###
 * Adds support for web app manifests which can be customized via a `web_app_manifest` filter.
 * Adds initial support for service workers via `wp_register_service_worker()`.
 * Adds an API for detecting whether HTTPS is available for a given site.
+
+
