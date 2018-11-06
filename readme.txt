@@ -192,6 +192,23 @@ wp_register_service_worker_precaching_route(
 	)
 );
 </pre>
+
+If you would like to opt-in to a caching strategy for navigation requests, you can do:
+
+<pre lang=php>
+add_filter( 'wp_service_worker_navigation_preload', '__return_false' );
+
+add_filter( 'wp_service_worker_navigation_caching_strategy', function() {
+	return WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE;
+} );
+
+add_filter( 'wp_service_worker_navigation_caching_strategy_args', function( $args ) {
+	$args['cacheName'] = 'pages';
+	$args['plugins']['expiration']['maxEntries'] = 50;
+	return $args;
+} );
+</pre>
+
 = Offline / 500 error handling =
 The feature plugins offers improved offline experience by displaying a custom template when user is offline instead of the default message in browser. Same goes for 500 errors -- a template is displayed together with error details.
 
