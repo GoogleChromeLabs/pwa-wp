@@ -3,14 +3,6 @@
 	const queue = new wp.serviceWorker.backgroundSync.Queue( 'wpPendingComments' );
 	const errorMessages = ERROR_MESSAGES;
 
-	const PWA_ESCAPE_MAP = {
-		'&': '&amp;',
-		'<': '&lt;',
-		'>': '&gt;',
-		'"': '&quot;',
-		"'": '&#39;'
-	};
-
 	const commentHandler = ( { event } ) => {
 
 		const clone = event.request.clone();
@@ -42,9 +34,12 @@
 										return ''; // Remove the details from the document entirely.
 									}
 									const src = 'data:text/html;base64,' + btoa( errorText ); // The errorText encoded as a text/html data URL.
-									const srcdoc = errorText.replace( /[&<>]/g, function( char ) {
-										return PWA_ESCAPE_MAP[ char ];
-									} ); // The errorText escaped for use in an HTML attribute.
+									const srcdoc = errorText
+										.replace( /&/g, '&amp;' )
+										.replace( /'/g, '&#39;' )
+										.replace( /"/g, '&quot;' )
+										.replace( /</g, '&lt;' )
+										.replace( />/g, '&gt;' );
 									const iframe = `<iframe style="width:100%" src="${src}"  srcdoc="${srcdoc}"></iframe>`;
 									details = details.replace( '{{{error_details_iframe}}}', iframe );
 									// The following are in case the user wants to include the <iframe> in the template.
