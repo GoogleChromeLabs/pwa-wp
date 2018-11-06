@@ -191,36 +191,6 @@ function wp_print_service_workers() {
 }
 
 /**
- * Print the script that is responsible for populating the details iframe with the error info from the service worker.
- *
- * Broadcast a request to obtain the original response text from the internal server error response and display it inside
- * a details iframe if the 500 response included any body (such as an error message). This is used in a the 500.php template.
- *
- * @since 0.2
- *
- * @param string $callback Function in JS to invoke with the data. This may be either a global function name or method of another object, e.g. "mySite.handleServerError".
- */
-function wp_print_service_worker_error_details_script( $callback ) {
-	?>
-	<script>
-		{
-			const clientUrl = location.href;
-			const channel = new BroadcastChannel( 'wordpress-server-errors' );
-			channel.onmessage = ( event ) => {
-				if ( event.data && event.data.requestUrl && clientUrl === event.data.requestUrl ) {
-					channel.onmessage = null;
-					channel.close();
-
-					<?php echo 'window[' . implode( '][', array_map( 'json_encode', explode( '.', $callback ) ) ) . ']( event.data );'; ?>
-				}
-			};
-			channel.postMessage( { clientUrl } )
-		}
-	</script>
-	<?php
-}
-
-/**
  * Serve the service worker for the frontend if requested.
  *
  * @since 0.1
