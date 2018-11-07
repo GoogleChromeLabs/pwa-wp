@@ -3,7 +3,7 @@ this.workbox.core = (function () {
   'use strict';
 
   try {
-    self.workbox.v['workbox:core:4.0.0-alpha.0'] = 1;
+    self.workbox.v['workbox:core:4.0.0-beta.0'] = 1;
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -239,10 +239,9 @@ this.workbox.core = (function () {
       return `The route you're trying to unregister was not previously ` + `registered.`;
     },
     'queue-replay-failed': ({
-      name,
-      count
+      name
     }) => {
-      return `${count} requests failed, while trying to replay Queue: ${name}.`;
+      return `Replaying the background sync queue '${name}' failed.`;
     },
     'duplicate-queue-name': ({
       name
@@ -367,6 +366,12 @@ this.workbox.core = (function () {
       }
 
       return message;
+    },
+    'bad-precaching-response': ({
+      url,
+      status
+    }) => {
+      return `The precaching request for '${url}' failed with an HTTP ` + `status of ${status}.`;
     }
   };
 
@@ -648,9 +653,9 @@ this.workbox.core = (function () {
      * @param {string} name
      * @param {number} version
      * @param {Object=} [callback]
-     * @param {function(this:DBWrapper, Event)} [callbacks.onupgradeneeded]
-     * @param {function(this:DBWrapper, Event)} [callbacks.onversionchange]
-     *     Defaults to DBWrapper.prototype._onversionchange when not specified.
+     * @param {!Function} [callbacks.onupgradeneeded]
+     * @param {!Function} [callbacks.onversionchange] Defaults to
+     *     DBWrapper.prototype._onversionchange when not specified.
      */
     constructor(name, version, {
       onupgradeneeded,
@@ -664,12 +669,18 @@ this.workbox.core = (function () {
       this._db = null;
     }
     /**
+     * Returns the IDBDatabase instance (not normally needed).
+     */
+
+
+    get db() {
+      return this._db;
+    }
+    /**
      * Opens a connected to an IDBDatabase, invokes any onupgradedneeded
      * callback, and added an onversionchange callback to the database.
      *
      * @return {IDBDatabase}
-     *
-     * @private
      */
 
 
@@ -688,7 +699,7 @@ this.workbox.core = (function () {
         }, this.OPEN_TIMEOUT);
         const openRequest = indexedDB.open(this._name, this._version);
 
-        openRequest.onerror = evt => reject(openRequest.error);
+        openRequest.onerror = () => reject(openRequest.error);
 
         openRequest.onupgradeneeded = evt => {
           if (openRequestTimedOut) {
@@ -699,8 +710,10 @@ this.workbox.core = (function () {
           }
         };
 
-        openRequest.onsuccess = evt => {
-          const db = evt.target.result;
+        openRequest.onsuccess = ({
+          target
+        }) => {
+          const db = target.result;
 
           if (openRequestTimedOut) {
             db.close();
@@ -713,103 +726,54 @@ this.workbox.core = (function () {
       return this;
     }
     /**
-     * Delegates to the native `get()` method for the object store.
-     *
-     * @param {string} storeName The name of the object store to put the value.
-     * @param {...*} args The values passed to the delegated method.
-     * @return {*} The key of the entry.
-     *
-     * @private
-     */
-
-
-    async get(storeName, ...args) {
-      return await this._call('get', storeName, 'readonly', ...args);
-    }
-    /**
-     * Delegates to the native `add()` method for the object store.
-     *
-     * @param {string} storeName The name of the object store to put the value.
-     * @param {...*} args The values passed to the delegated method.
-     * @return {*} The key of the entry.
-     *
-     * @private
-     */
-
-
-    async add(storeName, ...args) {
-      return await this._call('add', storeName, 'readwrite', ...args);
-    }
-    /**
-     * Delegates to the native `put()` method for the object store.
-     *
-     * @param {string} storeName The name of the object store to put the value.
-     * @param {...*} args The values passed to the delegated method.
-     * @return {*} The key of the entry.
-     *
-     * @private
-     */
-
-
-    async put(storeName, ...args) {
-      return await this._call('put', storeName, 'readwrite', ...args);
-    }
-    /**
-     * Delegates to the native `delete()` method for the object store.
+     * Polyfills the native `getKey()` method. Note, this is overridden at
+     * runtime if the browser supports the native method.
      *
      * @param {string} storeName
-     * @param {...*} args The values passed to the delegated method.
-     *
-     * @private
+     * @param {*} query
+     * @return {Array}
      */
 
 
-    async delete(storeName, ...args) {
-      await this._call('delete', storeName, 'readwrite', ...args);
+    async getKey(storeName, query) {
+      return (await this.getAllKeys(storeName, query, 1))[0];
     }
     /**
-     * Deletes the underlying database, ensuring that any open connections are
-     * closed first.
-     *
-     * @private
-     */
-
-
-    async deleteDatabase() {
-      this.close();
-      this._db = null;
-      await new Promise((resolve, reject) => {
-        const request = indexedDB.deleteDatabase(this._name);
-
-        request.onerror = evt => reject(evt.target.error);
-
-        request.onblocked = () => reject(new Error('Deletion was blocked.'));
-
-        request.onsuccess = () => resolve();
-      });
-    }
-    /**
-     * Delegates to the native `getAll()` or polyfills it via the `find()`
-     * method in older browsers.
+     * Polyfills the native `getAll()` method. Note, this is overridden at
+     * runtime if the browser supports the native method.
      *
      * @param {string} storeName
      * @param {*} query
      * @param {number} count
      * @return {Array}
-     *
-     * @private
      */
 
 
     async getAll(storeName, query, count) {
-      if ('getAll' in IDBObjectStore.prototype) {
-        return await this._call('getAll', storeName, 'readonly', query, count);
-      } else {
-        return await this.getAllMatching(storeName, {
-          query,
-          count
-        });
-      }
+      return await this.getAllMatching(storeName, {
+        query,
+        count
+      });
+    }
+    /**
+     * Polyfills the native `getAllKeys()` method. Note, this is overridden at
+     * runtime if the browser supports the native method.
+     *
+     * @param {string} storeName
+     * @param {*} query
+     * @param {number} count
+     * @return {Array}
+     */
+
+
+    async getAllKeys(storeName, query, count) {
+      return (await this.getAllMatching(storeName, {
+        query,
+        count,
+        includeKeys: true
+      })).map(({
+        key
+      }) => key);
     }
     /**
      * Supports flexible lookup in an object store by specifying an index,
@@ -818,32 +782,34 @@ this.workbox.core = (function () {
      *
      * @param {string} storeName
      * @param {Object} [opts]
-     * @param {IDBCursorDirection} [opts.direction]
-     * @param {*} [opts.query]
      * @param {string} [opts.index] The index to use (if specified).
+     * @param {*} [opts.query]
+     * @param {IDBCursorDirection} [opts.direction]
      * @param {number} [opts.count] The max number of results to return.
      * @param {boolean} [opts.includeKeys] When true, the structure of the
      *     returned objects is changed from an array of values to an array of
      *     objects in the form {key, primaryKey, value}.
      * @return {Array}
-     *
-     * @private
      */
 
 
-    async getAllMatching(storeName, opts = {}) {
-      return await this.transaction([storeName], 'readonly', (stores, done) => {
-        const store = stores[storeName];
-        const target = opts.index ? store.index(opts.index) : store;
-        const results = []; // Passing `undefined` arguments to Edge's `openCursor(...)` causes
-        // 'DOMException: DataError'
-        // Details in issue: https://github.com/GoogleChrome/workbox/issues/1509
+    async getAllMatching(storeName, {
+      index,
+      query = null,
+      // IE errors if query === `undefined`.
+      direction = 'next',
+      count,
+      includeKeys
+    } = {}) {
+      return await this.transaction([storeName], 'readonly', (txn, done) => {
+        const store = txn.objectStore(storeName);
+        const target = index ? store.index(index) : store;
+        const results = [];
 
-        const query = opts.query || null;
-        const direction = opts.direction || 'next';
-
-        target.openCursor(query, direction).onsuccess = evt => {
-          const cursor = evt.target.result;
+        target.openCursor(query, direction).onsuccess = ({
+          target
+        }) => {
+          const cursor = target.result;
 
           if (cursor) {
             const {
@@ -851,13 +817,13 @@ this.workbox.core = (function () {
               key,
               value
             } = cursor;
-            results.push(opts.includeKeys ? {
+            results.push(includeKeys ? {
               primaryKey,
               key,
               value
             } : value);
 
-            if (opts.count && results.length >= opts.count) {
+            if (count && results.length >= count) {
               done(results);
             } else {
               cursor.continue();
@@ -872,50 +838,33 @@ this.workbox.core = (function () {
      * Accepts a list of stores, a transaction type, and a callback and
      * performs a transaction. A promise is returned that resolves to whatever
      * value the callback chooses. The callback holds all the transaction logic
-     * and is invoked with three arguments:
-     *   1. An object mapping object store names to IDBObjectStore values.
+     * and is invoked with two arguments:
+     *   1. The IDBTransaction object
      *   2. A `done` function, that's used to resolve the promise when
-     *      when the transaction is done.
-     *   3. An `abort` function that can be called to abort the transaction
-     *      at any time.
+     *      when the transaction is done, if passed a value, the promise is
+     *      resolved to that value.
      *
      * @param {Array<string>} storeNames An array of object store names
      *     involved in the transaction.
      * @param {string} type Can be `readonly` or `readwrite`.
-     * @param {function(Object, function(), function(*)):?IDBRequest} callback
+     * @param {!Function} callback
      * @return {*} The result of the transaction ran by the callback.
-     *
-     * @private
      */
 
 
     async transaction(storeNames, type, callback) {
       await this.open();
-      const result = await new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         const txn = this._db.transaction(storeNames, type);
 
-        const done = value => resolve(value);
-
-        const abort = () => {
-          reject(new Error('The transaction was manually aborted'));
-          txn.abort();
-        };
-
-        txn.onerror = evt => reject(evt.target.error);
-
-        txn.onabort = evt => reject(evt.target.error);
+        txn.onabort = ({
+          target
+        }) => reject(target.error);
 
         txn.oncomplete = () => resolve();
 
-        const stores = {};
-
-        for (const storeName of storeNames) {
-          stores[storeName] = txn.objectStore(storeName);
-        }
-
-        callback(stores, done, abort);
+        callback(txn, value => resolve(value));
       });
-      return result;
     }
     /**
      * Delegates async to a native IDBObjectStore method.
@@ -925,17 +874,15 @@ this.workbox.core = (function () {
      * @param {string} type Can be `readonly` or `readwrite`.
      * @param {...*} args The list of args to pass to the native method.
      * @return {*} The result of the transaction.
-     *
-     * @private
      */
 
 
     async _call(method, storeName, type, ...args) {
-      await this.open();
-
-      const callback = (stores, done) => {
-        stores[storeName][method](...args).onsuccess = evt => {
-          done(evt.target.result);
+      const callback = (txn, done) => {
+        txn.objectStore(storeName)[method](...args).onsuccess = ({
+          target
+        }) => {
+          done(target.result);
         };
       };
 
@@ -944,14 +891,10 @@ this.workbox.core = (function () {
     /**
      * The default onversionchange handler, which closes the database so other
      * connections can open without being blocked.
-     *
-     * @param {Event} evt
-     *
-     * @private
      */
 
 
-    _onversionchange(evt) {
+    _onversionchange() {
       this.close();
     }
     /**
@@ -964,8 +907,6 @@ this.workbox.core = (function () {
      * The primary use case for needing to close a connection is when another
      * reference (typically in another tab) needs to upgrade it and would be
      * blocked by the current, open connection.
-     *
-     * @private
      */
 
 
@@ -976,8 +917,103 @@ this.workbox.core = (function () {
   } // Exposed to let users modify the default timeout on a per-instance
   // or global basis.
 
+  DBWrapper.prototype.OPEN_TIMEOUT = 2000; // Wrap native IDBObjectStore methods according to their mode.
 
-  DBWrapper.prototype.OPEN_TIMEOUT = 2000;
+  const methodsToWrap = {
+    'readonly': ['get', 'count', 'getKey', 'getAll', 'getAllKeys'],
+    'readwrite': ['add', 'put', 'clear', 'delete']
+  };
+
+  for (const [mode, methods] of Object.entries(methodsToWrap)) {
+    for (const method of methods) {
+      if (method in IDBObjectStore.prototype) {
+        // Don't use arrow functions here since we're outside of the class.
+        DBWrapper.prototype[method] = async function (storeName, ...args) {
+          return await this._call(method, storeName, mode, ...args);
+        };
+      }
+    }
+  }
+
+  /*
+    Copyright 2018 Google LLC
+
+    Use of this source code is governed by an MIT-style
+    license that can be found in the LICENSE file or at
+    https://opensource.org/licenses/MIT.
+  */
+  /**
+   * Deletes the database.
+   * Note: this is exported separately from the DBWrapper module because most
+   * usages of IndexedDB in workbox dont need deleting, and this way it can be
+   * reused in tests to delete databases without creating DBWrapper instances.
+   *
+   * @param {string} name The database name.
+   * @private
+   */
+
+  const deleteDatabase = async name => {
+    await new Promise((resolve, reject) => {
+      const request = indexedDB.deleteDatabase(name);
+
+      request.onerror = ({
+        target
+      }) => {
+        reject(target.error);
+      };
+
+      request.onblocked = () => {
+        reject(new Error('Delete blocked'));
+      };
+
+      request.onsuccess = () => {
+        resolve();
+      };
+    });
+  };
+
+  /*
+    Copyright 2018 Google LLC
+
+    Use of this source code is governed by an MIT-style
+    license that can be found in the LICENSE file or at
+    https://opensource.org/licenses/MIT.
+  */
+  /**
+   * Handles running a series of migration functions to upgrade an IndexedDB
+   * database in a `versionchange` event.
+   *
+   * @private
+   * @param {IDBVersionChangeEvent} event
+   * @param {Object<string, Function>} migrationFunctions
+   */
+
+  const migrateDb = (event, migrationFunctions) => {
+    let {
+      oldVersion,
+      newVersion
+    } = event; // Call all `migrationFunctions` values between oldVersion and newVersion.
+
+    const migrate = oldVersion => {
+      const next = () => {
+        ++oldVersion;
+
+        if (oldVersion <= newVersion) {
+          migrate(oldVersion);
+        }
+      };
+
+      const migrationFunction = migrationFunctions[`v${oldVersion}`];
+
+      if (typeof migrationFunction === 'function') {
+        migrationFunction(next);
+      } else {
+        next();
+      }
+    };
+
+    migrate(oldVersion);
+  };
 
   /*
     Copyright 2018 Google LLC
@@ -1424,6 +1460,8 @@ this.workbox.core = (function () {
 
   var _private = /*#__PURE__*/Object.freeze({
     DBWrapper: DBWrapper,
+    deleteDatabase: deleteDatabase,
+    migrateDb: migrateDb,
     WorkboxError: WorkboxError,
     assert: finalAssertExports,
     cacheNames: cacheNames,

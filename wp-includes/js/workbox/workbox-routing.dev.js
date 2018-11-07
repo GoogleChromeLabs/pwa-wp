@@ -3,7 +3,7 @@ this.workbox.routing = (function (assert_mjs,logger_mjs,WorkboxError_mjs,getFrie
   'use strict';
 
   try {
-    self.workbox.v['workbox:routing:4.0.0-alpha.0'] = 1;
+    self.workbox.v['workbox:routing:4.0.0-beta.0'] = 1;
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -218,12 +218,14 @@ this.workbox.routing = (function (assert_mjs,logger_mjs,WorkboxError_mjs,getFrie
 
       const pathnameAndSearch = url.pathname + url.search;
 
-      if (this._blacklist.some(regExp => regExp.test(pathnameAndSearch))) {
-        {
-          logger_mjs.logger.debug(`The navigation route is not being used, since the ` + `request URL matches both the whitelist and blacklist.`);
-        }
+      for (const regExp of this._blacklist) {
+        if (regExp.test(pathnameAndSearch)) {
+          {
+            logger_mjs.logger.log(`The navigation route is not being used, since the ` + `URL matches this blacklist pattern: ${regExp}`);
+          }
 
-        return false;
+          return false;
+        }
       }
 
       if (this._whitelist.some(regExp => regExp.test(pathnameAndSearch))) {
@@ -232,10 +234,10 @@ this.workbox.routing = (function (assert_mjs,logger_mjs,WorkboxError_mjs,getFrie
         }
 
         return true;
-      } else {
-        {
-          logger_mjs.logger.debug(`The navigation route is not being used, since the ` + `URL being navigated to doesn't match the whitelist.`);
-        }
+      }
+
+      {
+        logger_mjs.logger.log(`The navigation route is not being used, since the URL ` + `being navigated to doesn't match the whitelist.`);
       }
 
       return false;
@@ -351,9 +353,17 @@ this.workbox.routing = (function (assert_mjs,logger_mjs,WorkboxError_mjs,getFrie
      * Initializes a new Router.
      */
     constructor() {
-      // _routes will contain a mapping of HTTP method name ('GET', etc.) to an
-      // array of all the corresponding Route instances that are registered.
       this._routes = new Map();
+    }
+    /**
+     * @return {Map<string, Array<workbox.routing.Route>>} routes A `Map` of HTTP
+     * method name ('GET', etc.) to an array of all the corresponding `Route`
+     * instances that are registered.
+     */
+
+
+    get routes() {
+      return this._routes;
     }
     /**
      * Adds a fetch event listener to respond to events when a route matches

@@ -3,7 +3,7 @@ this.workbox.broadcastUpdate = (function (exports,WorkboxError_mjs,logger_mjs,as
   'use strict';
 
   try {
-    self.workbox.v['workbox:broadcast-cache-update:4.0.0-alpha.0'] = 1;
+    self.workbox.v['workbox:broadcast-cache-update:4.0.0-beta.0'] = 1;
   } catch (e) {} // eslint-disable-line
 
   /*

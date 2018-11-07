@@ -26,22 +26,7 @@ switch ( isset( $_REQUEST['code'] ) ? sanitize_key( $_REQUEST['code'] ) : null )
 			esc_html__( 'Something went wrong which prevented WordPress from serving a response. Please check your error logs.', 'pwa' )
 		);
 		ob_start();
-		?>
-		<details id="error-details" hidden>
-			<summary><?php esc_html_e( 'More details', 'pwa' ); ?></summary>
-			<iframe id="error-details__iframe" style="width:100%;" srcdoc=""></iframe>
-			<script>
-			function renderErrorDetails( data ) {
-				if ( data.bodyText.trim().length ) {
-					const details = document.getElementById( 'error-details' );
-					details.querySelector( 'iframe' ).srcdoc = data.bodyText;
-					details.hidden = false;
-				}
-			}
-			</script>
-			<?php wp_print_service_worker_error_details_script( 'renderErrorDetails' ); ?>
-		</details>
-		<?php
+		wp_service_worker_error_details_template();
 		$content .= ob_get_clean();
 		break;
 	default:
