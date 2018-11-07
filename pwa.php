@@ -26,6 +26,34 @@ define( 'PWA_PLUGIN_FILE', __FILE__ );
 define( 'PWA_PLUGIN_DIR', dirname( __FILE__ ) );
 define( 'PWA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
+/**
+ * Print admin notice if plugin installed with incorrect slug (which impacts WordPress's auto-update system).
+ *
+ * @since 0.2
+ */
+function _pwa_incorrect_plugin_slug_admin_notice() {
+	$actual_slug = basename( PWA_PLUGIN_DIR );
+	?>
+	<div class="notice notice-warning">
+		<p>
+			<?php
+			echo wp_kses_post(
+				sprintf(
+					/* translators: %1$s is the current directory name, and %2$s is the required directory name */
+					__( 'You appear to have installed the PWA plugin incorrectly. It is currently installed in the <code>%1$s</code> directory, but it needs to be placed in a directory named <code>%2$s</code>. Please rename the directory. This is important for WordPress plugin auto-updates.', 'pwa' ),
+					$actual_slug,
+					'pwa'
+				)
+			);
+			?>
+		</p>
+	</div>
+	<?php
+}
+if ( 'pwa' !== basename( PWA_PLUGIN_DIR ) ) {
+	add_action( 'admin_notices', '_pwa_incorrect_plugin_slug_admin_notice' );
+}
+
 /** WP_Web_App_Manifest Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-web-app-manifest.php';
 
