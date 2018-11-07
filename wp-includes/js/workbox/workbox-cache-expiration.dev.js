@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.expiration = (function (exports,DBWrapper_mjs,WorkboxError_mjs,assert_mjs,logger_mjs,cacheNames_mjs,index_mjs) {
+this.workbox.expiration = (function (exports,DBWrapper_mjs,deleteDatabase_mjs,WorkboxError_mjs,assert_mjs,logger_mjs,cacheNames_mjs,index_mjs) {
   'use strict';
 
   try {
-    self.workbox.v['workbox:cache-expiration:4.0.0-alpha.0'] = 1;
+    self.workbox.v['workbox:cache-expiration:4.0.0-beta.0'] = 1;
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -119,7 +119,7 @@ this.workbox.expiration = (function (exports,DBWrapper_mjs,WorkboxError_mjs,asse
 
 
     async delete() {
-      await this._db.deleteDatabase();
+      await deleteDatabase_mjs.deleteDatabase(this._cacheName);
       this._db = null;
     }
 
@@ -664,6 +664,6 @@ this.workbox.expiration = (function (exports,DBWrapper_mjs,WorkboxError_mjs,asse
 
   return exports;
 
-}({},workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core));
+}({},workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core));
 
 //# sourceMappingURL=workbox-cache-expiration.dev.js.map
