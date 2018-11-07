@@ -3,7 +3,7 @@ this.workbox.precaching = (function (DBWrapper_mjs,logger_mjs,cacheNames_mjs,Wor
   'use strict';
 
   try {
-    self.workbox.v['workbox:precaching:4.0.0-alpha.0'] = 1;
+    self.workbox.v['workbox:precaching:4.0.0-beta.0'] = 1;
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -529,11 +529,9 @@ this.workbox.precaching = (function (DBWrapper_mjs,logger_mjs,cacheNames_mjs,Wor
           });
         }
       } // Empty the temporary cache.
-      // NOTE: We remove all entries instead of deleting the cache as the cache
-      // may be marked for deletion but still exist until a later stage
-      // resulting in unexpected behavior of being deletect when all references
-      // are dropped.
-      // https://github.com/GoogleChrome/workbox/issues/1368
+      // NOTE: We remove all entries instead of calling caches.delete(), as the
+      // cache may be marked for deletion but still exist.
+      // See https://github.com/GoogleChrome/workbox/issues/1368
 
 
       const tempCache = await caches.open(this._getTempCacheName());
@@ -598,8 +596,11 @@ this.workbox.precaching = (function (DBWrapper_mjs,logger_mjs,cacheNames_mjs,Wor
           plugins: options.plugins
         });
         await tempCache.delete(request);
-      }
+      } // Remove the temporary Cache object, now that all the entries are copied.
+      // See https://github.com/GoogleChrome/workbox/issues/1735
 
+
+      await caches.delete(this._getTempCacheName());
       return this._cleanup();
     }
     /**
@@ -615,8 +616,13 @@ this.workbox.precaching = (function (DBWrapper_mjs,logger_mjs,cacheNames_mjs,Wor
       return `${this._cacheName}-temp`;
     }
     /**
-     * Requests the entry and saves it to the cache if the response
-     * is valid.
+     * Requests the entry and saves it to the cache if the response is valid.
+     * By default, any response with a status code of less than 400 (including
+     * opaque responses) is considered valid.
+     *
+     * If you need to use custom criteria to determine what's valid and what
+     * isn't, then pass in an item in `options.plugins` that implements the
+     * `cacheWillUpdate()` lifecycle event.
      *
      * @private
      * @param {Object} options
@@ -641,7 +647,32 @@ this.workbox.precaching = (function (DBWrapper_mjs,logger_mjs,cacheNames_mjs,Wor
         event,
         fetchOptions: null,
         plugins
-      });
+      }); // Allow developers to override the default logic about what is and isn't
+      // valid by passing in a plugin implementing cacheWillUpdate(), e.g.
+      // a workbox.cacheableResponse.Plugin instance.
+
+      let cacheWillUpdateCallback;
+
+      for (const plugin of plugins || []) {
+        if ('cacheWillUpdate' in plugin) {
+          cacheWillUpdateCallback = plugin.cacheWillUpdate;
+        }
+      }
+
+      const isValidResponse = cacheWillUpdateCallback ? // Use a callback if provided. It returns a truthy value if valid.
+      cacheWillUpdateCallback({
+        response
+      }) : // Otherwise, default to considering any response status under 400 valid.
+      // This includes, by default, considering opaque responses valid.
+      response.status < 400; // Consider this a failure, leading to the `install` handler failing, if
+      // we get back an invalid response.
+
+      if (!isValidResponse) {
+        throw new WorkboxError_mjs.WorkboxError('bad-precaching-response', {
+          url: precacheEntry._networkRequest.url,
+          status: response.status
+        });
+      }
 
       if (response.redirected) {
         response = await cleanRedirect(response);
@@ -907,6 +938,13 @@ this.workbox.precaching = (function (DBWrapper_mjs,logger_mjs,cacheNames_mjs,Wor
         event,
         plugins,
         suppressWarnings
+      }).catch(error => {
+        {
+          logger_mjs.logger.error(`Service worker installation failed. It will ` + `be retried automatically during the next navigation.`);
+        } // Re-throw the error to ensure installation fails.
+
+
+        throw error;
       }));
     });
     self.addEventListener('activate', event => {

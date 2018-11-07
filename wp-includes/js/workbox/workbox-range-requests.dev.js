@@ -3,7 +3,7 @@ this.workbox.rangeRequests = (function (exports,WorkboxError_mjs,assert_mjs,logg
   'use strict';
 
   try {
-    self.workbox.v['workbox:range-requests:4.0.0-alpha.0'] = 1;
+    self.workbox.v['workbox:range-requests:4.0.0-beta.0'] = 1;
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -131,10 +131,13 @@ this.workbox.rangeRequests = (function (exports,WorkboxError_mjs,assert_mjs,logg
    * Given a `Request` and `Response` objects as input, this will return a
    * promise for a new `Response`.
    *
+   * If the original `Response` already contains partial content (i.e. it has
+   * a status of 206), then this assumes it already fulfills the `Range:`
+   * requirements, and will return it as-is.
+   *
    * @param {Request} request A request, which should contain a Range:
    * header.
-   * @param {Response} originalResponse An original response containing the full
-   * content.
+   * @param {Response} originalResponse A response.
    * @return {Promise<Response>} Either a `206 Partial Content` response, with
    * the response body set to the slice of content specified by the request's
    * `Range:` header, or a `416 Range Not Satisfiable` response if the
@@ -156,6 +159,12 @@ this.workbox.rangeRequests = (function (exports,WorkboxError_mjs,assert_mjs,logg
           funcName: 'createPartialResponse',
           paramName: 'originalResponse'
         });
+      }
+
+      if (originalResponse.status === 206) {
+        // If we already have a 206, then just pass it through as-is;
+        // see https://github.com/GoogleChrome/workbox/issues/1720
+        return originalResponse;
       }
 
       const rangeHeader = request.headers.get('range');

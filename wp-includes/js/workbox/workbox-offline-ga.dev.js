@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,Route_mjs,Router_mjs,NetworkFirst_mjs,NetworkOnly_mjs) {
+this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,getFriendlyURL_mjs,logger_mjs,Route_mjs,Router_mjs,NetworkFirst_mjs,NetworkOnly_mjs) {
   'use strict';
 
   try {
-    self.workbox.v['workbox:google-analytics:4.0.0-alpha.0'] = 1;
+    self.workbox.v['workbox:google-analytics:4.0.0-beta.0'] = 1;
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -34,29 +34,6 @@ this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,Rout
     https://opensource.org/licenses/MIT.
   */
   /**
-   * Promisifies the FileReader API to await a text response from a Blob.
-   *
-   * @param {Blob} blob
-   * @return {Promise<string>}
-   *
-   * @private
-   */
-
-  const getTextFromBlob = async blob => {
-    // This usage of `return await new Promise...` is intentional to work around
-    // a bug in the transpiled/minified output.
-    // See https://github.com/GoogleChrome/workbox/issues/1186
-    return await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-
-      reader.onloadend = () => resolve(reader.result);
-
-      reader.onerror = () => reject(reader.error);
-
-      reader.readAsText(blob);
-    });
-  };
-  /**
    * Creates the requestWillDequeue callback to be used with the background
    * sync queue plugin. The callback takes the failed request and adds the
    * `qt` param based on the current time, as well as applies any other
@@ -68,53 +45,71 @@ this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,Rout
    * @private
    */
 
+  const createOnSyncCallback = config => {
+    return async ({
+      queue
+    }) => {
+      let entry;
 
-  const createRequestWillReplayCallback = config => {
-    return async storableRequest => {
-      let {
-        url,
-        requestInit,
-        timestamp
-      } = storableRequest;
-      url = new URL(url); // Measurement protocol requests can set their payload parameters in either
-      // the URL query string (for GET requests) or the POST body.
+      while (entry = await queue.shiftRequest()) {
+        const {
+          request,
+          timestamp
+        } = entry;
+        const url = new URL(request.url);
 
-      let params;
+        try {
+          // Measurement protocol requests can set their payload parameters in
+          // either the URL query string (for GET requests) or the POST body.
+          const params = request.method === 'POST' ? new URLSearchParams((await request.text())) : url.searchParams; // Calculate the qt param, accounting for the fact that an existing
+          // qt param may be present and should be updated rather than replaced.
 
-      if (requestInit.body) {
-        const payload = requestInit.body instanceof Blob ? await getTextFromBlob(requestInit.body) : requestInit.body;
-        params = new URLSearchParams(payload);
-      } else {
-        params = url.searchParams;
-      } // Calculate the qt param, accounting for the fact that an existing
-      // qt param may be present and should be updated rather than replaced.
+          const originalHitTime = timestamp - (Number(params.get('qt')) || 0);
+          const queueTime = Date.now() - originalHitTime; // Set the qt param prior to applying hitFilter or parameterOverrides.
+
+          params.set('qt', queueTime); // Apply `paramterOverrideds`, if set.
+
+          if (config.parameterOverrides) {
+            for (const param of Object.keys(config.parameterOverrides)) {
+              const value = config.parameterOverrides[param];
+              params.set(param, value);
+            }
+          } // Apply `hitFilter`, if set.
 
 
-      const originalHitTime = timestamp - (Number(params.get('qt')) || 0);
-      const queueTime = Date.now() - originalHitTime; // Set the qt param prior to applying the hitFilter or parameterOverrides.
+          if (typeof config.hitFilter === 'function') {
+            config.hitFilter.call(null, params);
+          } // Retry the fetch. Ignore URL search params form the URL as they're
+          // now in the post body.
 
-      params.set('qt', queueTime);
 
-      if (config.parameterOverrides) {
-        for (const param of Object.keys(config.parameterOverrides)) {
-          const value = config.parameterOverrides[param];
-          params.set(param, value);
+          await fetch(new Request(url.origin + url.pathname, {
+            body: params.toString(),
+            method: 'POST',
+            mode: 'cors',
+            credentials: 'omit',
+            headers: {
+              'Content-Type': 'text/plain'
+            }
+          }));
+
+          {
+            logger_mjs.logger.log(`Request for '${getFriendlyURL_mjs.getFriendlyURL(url.href)}'` + `has been replayed`);
+          }
+        } catch (err) {
+          await queue.unshiftRequest(entry);
+
+          {
+            logger_mjs.logger.log(`Request for '${getFriendlyURL_mjs.getFriendlyURL(url.href)}'` + `failed to replay, putting it back in the queue.`);
+          }
+
+          return;
         }
       }
 
-      if (typeof config.hitFilter === 'function') {
-        config.hitFilter.call(null, params);
+      {
+        logger_mjs.logger.log(`All Google Analytics request successfully replayed; ` + `the queue is now empty!`);
       }
-
-      requestInit.body = params.toString();
-      requestInit.method = 'POST';
-      requestInit.mode = 'cors';
-      requestInit.credentials = 'omit';
-      requestInit.headers = {
-        'Content-Type': 'text/plain'
-      }; // Ignore URL search params as they're now in the post body.
-
-      storableRequest.url = `${url.origin}${url.pathname}`;
     };
   };
   /**
@@ -199,9 +194,7 @@ this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,Rout
     const cacheName = cacheNames_mjs.cacheNames.getGoogleAnalyticsName(options.cacheName);
     const queuePlugin = new Plugin_mjs.Plugin(QUEUE_NAME, {
       maxRetentionTime: MAX_RETENTION_TIME,
-      callbacks: {
-        requestWillReplay: createRequestWillReplayCallback(options)
-      }
+      onSync: createOnSyncCallback(options)
     });
     const routes = [createAnalyticsJsRoute(cacheName), createGtagJsRoute(cacheName), ...createCollectRoutes(queuePlugin)];
     const router = new Router_mjs.Router();
@@ -233,6 +226,6 @@ this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,Rout
 
   return exports;
 
-}({},workbox.backgroundSync,workbox.core._private,workbox.routing,workbox.routing,workbox.strategies,workbox.strategies));
+}({},workbox.backgroundSync,workbox.core._private,workbox.core._private,workbox.core._private,workbox.routing,workbox.routing,workbox.strategies,workbox.strategies));
 
 //# sourceMappingURL=workbox-offline-ga.dev.js.map

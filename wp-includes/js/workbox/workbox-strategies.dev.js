@@ -3,7 +3,7 @@ this.workbox.strategies = (function (logger_mjs,assert_mjs,cacheNames_mjs,cacheW
   'use strict';
 
   try {
-    self.workbox.v['workbox:strategies:4.0.0-alpha.0'] = 1;
+    self.workbox.v['workbox:strategies:4.0.0-beta.0'] = 1;
   } catch (e) {} // eslint-disable-line
 
   /*
