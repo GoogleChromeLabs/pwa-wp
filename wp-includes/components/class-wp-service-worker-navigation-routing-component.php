@@ -497,6 +497,15 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		// Exclude feed requests.
 		$blacklist_patterns[] = '[^\?]*\/feed\/(\w+\/)?$';
 
+		/**
+		 * Filter list of URL patterns to blacklist from handling from the navigation router.
+		 *
+		 * @since 0.2
+		 *
+		 * @param array $blacklist_patterns Blacklist patterns.
+		 */
+		$blacklist_patterns = apply_filters( 'wp_service_worker_navigation_route_blacklist_patterns', $blacklist_patterns );
+
 		return $blacklist_patterns;
 	}
 

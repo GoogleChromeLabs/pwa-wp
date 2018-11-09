@@ -13,15 +13,15 @@
 
 			const handleResponse = ( response ) => {
 				if ( response.status < 500 ) {
-					if ( response.redirected ) {
+					if ( response.redirected && canStreamResponse() ) {
 						const redirectedUrl = new URL( response.url );
 						redirectedUrl.searchParams.delete( STREAM_HEADER_FRAGMENT_QUERY_VAR );
 						const script = `
-						<script id="wp-stream-fragment-replace-state">
-						history.replaceState( {}, '', ${ JSON.stringify( redirectedUrl.toString() ) } );
-						document.getElementById( 'wp-stream-fragment-replace-state' ).remove();
-						</script>
-					`;
+							<script id="wp-stream-fragment-replace-state">
+							history.replaceState( {}, '', ${ JSON.stringify( redirectedUrl.toString() ) } );
+							document.getElementById( 'wp-stream-fragment-replace-state' ).remove();
+							</script>
+						`;
 						return response.text().then( ( body ) => {
 							return new Response( script + body );
 						} );

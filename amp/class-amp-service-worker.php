@@ -39,6 +39,19 @@ class AMP_Service_Worker {
 		add_action( 'wp_front_service_worker', array( $this, 'add_amp_runtime_caching' ) );
 		add_action( 'wp_front_service_worker', array( $this, 'add_image_runtime_caching' ) );
 		add_action( 'wp_front_service_worker', array( $this, 'add_live_list_offline_commenting' ) );
+
+		$theme_support = AMP_Theme_Support::get_theme_support_args();
+		if ( isset( $theme_support['app_shell'] ) ) {
+			add_filter( 'wp_service_worker_navigation_preload', '__return_false' ); // @todo This should be an app shell theme support flag?
+
+			// Prevent app shell from being served when requesting AMP version directly.
+			if ( ! is_admin() ) {
+				add_filter( 'wp_service_worker_navigation_route_blacklist_patterns', function( $blacklist_patterns ) {
+					$blacklist_patterns[] = '\?(.+&)*' . preg_quote( amp_get_slug(), '/' ) . '(=|&|$)';
+					return $blacklist_patterns;
+				} );
+			}
+		}
 	}
 
 	/**
