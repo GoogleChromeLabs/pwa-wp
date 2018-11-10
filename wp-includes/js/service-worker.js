@@ -130,6 +130,63 @@ wp.serviceWorker = workbox;
 			super.registerRoute( route );
 			return route;
 		}
+
+		/**
+		 * Register a route that will return a precached file for a navigation
+		 * request. This is useful for the
+		 * [application shell pattern]{@link https://developers.google.com/web/fundamentals/architecture/app-shell}.
+		 *
+		 * This method will generate a
+		 * [NavigationRoute]{@link workbox.routing.NavigationRoute}
+		 * and call
+		 * [Router.registerRoute()]{@link workbox.routing.Router#registerRoute}
+		 * .
+		 *
+		 * @param {string} cachedAssetUrl
+		 * @param {Object} [options]
+		 * @param {string} [options.cacheName] Cache name to store and retrieve
+		 * requests. Defaults to precache cache name provided by
+		 * [workbox-core.cacheNames]{@link workbox.core.cacheNames}.
+		 * @param {Array<RegExp>} [options.blacklist=[]] If any of these patterns
+		 * match, the route will not handle the request (even if a whitelist entry
+		 * matches).
+		 * @param {Array<RegExp>} [options.whitelist=[/./]] If any of these patterns
+		 * match the URL's pathname and search parameter, the route will handle the
+		 * request (assuming the blacklist doesn't match).
+		 * @return {workbox.routing.NavigationRoute} Returns the generated
+		 * Route.
+		 *
+		 * @alias workbox.routing.registerNavigationRoute
+		 */
+		registerNavigationRoute(cachedAssetUrl, options = {}) {
+			const cacheName = wp.serviceWorker.core.cacheNames.precache;
+			const handler = () => caches.match(cachedAssetUrl, {cacheName})
+				.then((response) => {
+					if (response) {
+						return response;
+					}
+					// This shouldn't normally happen, but there are edge cases:
+					// https://github.com/GoogleChrome/workbox/issues/1441
+					throw new Error(`The cache ${cacheName} did not have an entry for ` +
+						`${cachedAssetUrl}.`);
+				}).catch(() => {
+					// If there's either a cache miss, or the caches.match() call threw
+					// an exception, then attempt to fulfill the navigation request with
+					// a response from the network rather than leaving the user with a
+					// failed navigation.
+
+					// This might still fail if the browser is offline...
+					return fetch(cachedAssetUrl);
+				});
+
+			const route = new wp.serviceWorker.routing.NavigationRoute(handler, {
+				whitelist: options.whitelist,
+				blacklist: options.blacklist,
+			});
+			super.registerRoute(route);
+
+			return route;
+		}
 	}
 
 	wp.serviceWorker.WPRouter = WPRouter;
