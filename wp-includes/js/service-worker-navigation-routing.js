@@ -1,6 +1,6 @@
 /* global console, CACHING_STRATEGY, CACHING_STRATEGY_ARGS,
 ERROR_OFFLINE_URL, ERROR_500_URL, SHOULD_STREAM_RESPONSE, STREAM_HEADER_FRAGMENT_URL, ERROR_500_BODY_FRAGMENT_URL,
-ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, BLACKLIST_PATTERNS, ERROR_MESSAGES */
+ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BLACKLIST_PATTERNS, ERROR_MESSAGES */
 
 {
 	const isStreamingResponses = SHOULD_STREAM_RESPONSE && wp.serviceWorker.streams.isSupported();
@@ -178,7 +178,7 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, BLACKLIST_PAT
 	wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
 		handleNavigationRequest,
 		{
-			blacklist: BLACKLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) )
+			blacklist: NAVIGATION_BLACKLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) )
 		}
 	) );
 }
@@ -187,6 +187,6 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, BLACKLIST_PAT
 wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
 	wp.serviceWorker.strategies.networkOnly(),
 	{
-		whitelist: BLACKLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) )
+		whitelist: NAVIGATION_BLACKLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) )
 	}
 ) );

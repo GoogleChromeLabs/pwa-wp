@@ -462,7 +462,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			'ERROR_500_URL'                    => wp_service_worker_json_encode( isset( $server_error_precache_entry['url'] ) ? $server_error_precache_entry['url'] : null ),
 			'ERROR_500_BODY_FRAGMENT_URL'      => wp_service_worker_json_encode( isset( $server_error_precache_entry['url'] ) ? add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $server_error_precache_entry['url'] ) : null ),
 			'STREAM_HEADER_FRAGMENT_URL'       => wp_service_worker_json_encode( isset( $streaming_header_precache_entry['url'] ) ? $streaming_header_precache_entry['url'] : null ),
-			'BLACKLIST_PATTERNS'               => wp_service_worker_json_encode( $this->get_blacklist_patterns() ),
+			'NAVIGATION_BLACKLIST_PATTERNS'    => wp_service_worker_json_encode( $this->get_navigation_route_blacklist_patterns() ),
 			'SHOULD_STREAM_RESPONSE'           => wp_service_worker_json_encode( $should_stream_response ),
 			'STREAM_HEADER_FRAGMENT_QUERY_VAR' => wp_service_worker_json_encode( self::STREAM_FRAGMENT_QUERY_VAR ),
 			'ERROR_MESSAGES'                   => wp_service_worker_json_encode( wp_service_worker_get_error_messages() ),
@@ -473,38 +473,37 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * Get blacklist patterns for routes to exclude from navigation route handling.
 	 *
 	 * @since 0.2
-	 * @todo This list should probably be filterable.
 	 *
 	 * @return array Route regular expressions.
 	 */
-	public function get_blacklist_patterns() {
+	public function get_navigation_route_blacklist_patterns() {
 		$blacklist_patterns = array();
 
 		if ( ! is_admin() ) {
+			/**
+			 * Filter list of URL patterns to blacklist from handling from the navigation router.
+			 *
+			 * @since 0.2
+			 *
+			 * @param array $blacklist_patterns Blacklist patterns.
+			 */
+			$blacklist_patterns = apply_filters( 'wp_service_worker_navigation_route_blacklist_patterns', $blacklist_patterns );
+
 			// Exclude admin URLs, if not in the admin.
 			$blacklist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)';
 
 			// Exclude PHP files (e.g. wp-login.php).
 			$blacklist_patterns[] = '[^\?]*.\.php($|\?.*)';
+
+			// Exclude service worker and stream fragment requests (to ease debugging).
+			$blacklist_patterns[] = '.*\?(.*&)?(' . join( '|', array( self::STREAM_FRAGMENT_QUERY_VAR, WP_Service_Workers::QUERY_VAR ) ) . ')=';
+
+			// Exclude feed requests.
+			$blacklist_patterns[] = '[^\?]*\/feed\/(\w+\/)?$';
 		}
 
-		// Exclude REST API.
+		// Exclude REST API (this only matters if you directly access the REST API in browser).
 		$blacklist_patterns[] = '^' . preg_quote( wp_parse_url( get_rest_url(), PHP_URL_PATH ), '/' ) . '.*';
-
-		// Exclude service worker and stream fragment requests (to ease debugging).
-		$blacklist_patterns[] = '.*\?(.*&)?(' . join( '|', array( self::STREAM_FRAGMENT_QUERY_VAR, WP_Service_Workers::QUERY_VAR ) ) . ')=';
-
-		// Exclude feed requests.
-		$blacklist_patterns[] = '[^\?]*\/feed\/(\w+\/)?$';
-
-		/**
-		 * Filter list of URL patterns to blacklist from handling from the navigation router.
-		 *
-		 * @since 0.2
-		 *
-		 * @param array $blacklist_patterns Blacklist patterns.
-		 */
-		$blacklist_patterns = apply_filters( 'wp_service_worker_navigation_route_blacklist_patterns', $blacklist_patterns );
 
 		return $blacklist_patterns;
 	}
