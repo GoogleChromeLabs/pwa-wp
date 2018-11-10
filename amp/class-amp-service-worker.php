@@ -42,7 +42,75 @@ class AMP_Service_Worker {
 
 		$theme_support = AMP_Theme_Support::get_theme_support_args();
 		if ( isset( $theme_support['app_shell'] ) ) {
-			add_filter( 'wp_service_worker_navigation_preload', '__return_false' ); // @todo This should be an app shell theme support flag?
+
+			// App shell is mutually exclusive with navigation preload.
+			add_filter( 'wp_service_worker_navigation_preload', '__return_false' );
+
+			// Opt to route all navigation requests through the app shell.
+			add_filter(
+				'wp_service_worker_navigation_route',
+				function () {
+					$template   = get_template();
+					$stylesheet = get_stylesheet();
+					$revision   = sprintf( '%s-v%s', $template, wp_get_theme( $template )->Version );
+					if ( $template !== $stylesheet ) {
+						$revision .= sprintf( ';%s-v%s', $stylesheet, wp_get_theme( $stylesheet )->Version );
+					}
+					$revision .= sprintf( ';user-%d', get_current_user_id() );
+
+					/*
+					 * Note that themes will need to vary the revision further by whatever is contained in the app shell.
+					 * In particular, the post_modified times of the nav menu items appearing in the header and footer should
+					 * be included in the revision.
+					 */
+					$revision .= ';' . md5(
+						wp_json_encode(
+							array(
+								'blogname'        => get_option( 'blogname' ),
+								'blogdescription' => get_option( 'blogdescription' ),
+								'site_icon_url'   => get_site_icon_url(),
+								'theme_mods'      => get_theme_mods(),
+								'version'         => PWA_VERSION,
+							)
+						)
+					);
+
+					return array(
+						'url'      => add_query_arg( AMP_Theme_Support::APP_SHELL_COMPONENT_QUERY_VAR, 'outer', home_url( '/' ) ),
+						'revision' => $revision,
+					);
+				}
+			);
+
+			/*
+			 * Force the service worker to treat requests with ?amp_app_shell_component=inner as if they were navigation requests.
+			 * This ensures that any navigation caching strategy will be used for fetch requests in the app shell, and that the
+			 * the offline page will
+			 */
+			add_filter(
+				'wp_service_worker_fetch_navigation_patterns',
+				function( $fetch_navigation_patterns ) {
+					$fetch_navigation_patterns[] = '\?(.+&)*' . preg_quote( AMP_Theme_Support::APP_SHELL_COMPONENT_QUERY_VAR . '=inner', '/' ) . '(=|&|$)';
+					return $fetch_navigation_patterns;
+				}
+			);
+
+			/**
+			 * Add the query var to designate that the inner app shell is being requested.
+			 *
+			 * @param array $precache_entry Precache entry.
+			 * @return array Modified precache entry.
+			 */
+			$add_inner_app_shell_component = function( $precache_entry ) {
+				$precache_entry['url'] = add_query_arg(
+					AMP_Theme_Support::APP_SHELL_COMPONENT_QUERY_VAR,
+					'inner',
+					$precache_entry['url']
+				);
+				return $precache_entry;
+			};
+			add_filter( 'wp_offline_error_precache_entry', $add_inner_app_shell_component, 100 );
+			add_filter( 'wp_server_error_precache_entry', $add_inner_app_shell_component, 100 );
 
 			// Prevent app shell from being served when requesting AMP version directly.
 			add_filter(
