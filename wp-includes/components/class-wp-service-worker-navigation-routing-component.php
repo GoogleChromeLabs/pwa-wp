@@ -294,7 +294,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			$revision .= sprintf( ';%s-v%s', $stylesheet, wp_get_theme( $stylesheet )->Version );
 		}
 
-		// Ensure the user-specific offline/500 pages are precached, and thet they update when user logs out or switches to another user.
+		// Ensure the user-specific offline/500 pages are precached, and that they update when user logs out or switches to another user.
 		$revision .= sprintf( ';user-%d', get_current_user_id() );
 
 		if ( ! is_admin() ) {
@@ -343,6 +343,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 * must be incremented to ensure the URL is re-fetched to store in the precache.
 			 *
 			 * @since 0.2
+			 * @todo Rename this filter to wp_offline_error_route.
 			 *
 			 * @param array|false $entry {
 			 *     Offline error precache entry.
@@ -362,6 +363,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 * must be incremented to ensure the URL is re-fetched to store in the precache.
 			 *
 			 * @since 0.2
+			 * @todo Rename this filter to wp_server_error_route.
 			 *
 			 * @param array $entry {
 			 *     Server error precache entry.
@@ -371,6 +373,20 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 * }
 			 */
 			$server_error_precache_entry = apply_filters( 'wp_server_error_precache_entry', $server_error_precache_entry );
+
+			/**
+			 * Filters the entry that is used for serving as app shell.
+			 *
+			 * @since 0.2
+			 *
+			 * @param false|array $entry {
+			 *     Navigation route entry. If false, then app shell is not used.
+			 *
+			 *     @type string $url      URL to page that shows the server error template.
+			 *     @type string $revision Revision for the template. This defaults to the template and stylesheet names, with their respective theme versions.
+			 * }
+			 */
+			$navigation_route_precache_entry = apply_filters( 'wp_service_worker_navigation_route', false );
 
 		} else {
 			$revision = PWA_VERSION;
@@ -387,6 +403,8 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 				'url'      => add_query_arg( 'code', '500', admin_url( 'admin-ajax.php?action=wp_error_template' ) ), // Upon core merge, this would use admin_url( 'error.php' ).
 				'revision' => $revision, // Upon core merge, this should be the core version.
 			);
+
+			$navigation_route_precache_entry = false;
 		}
 
 		$scripts->register(
@@ -423,6 +441,9 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 				);
 			}
 		}
+		if ( $navigation_route_precache_entry ) {
+			$scripts->precaching_routes()->register( $navigation_route_precache_entry['url'], isset( $navigation_route_precache_entry['revision'] ) ? $navigation_route_precache_entry['revision'] : null );
+		}
 
 		// Streaming.
 		$streaming_header_precache_entry = null;
@@ -457,6 +478,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		$this->replacements = array(
 			'CACHING_STRATEGY'                 => wp_service_worker_json_encode( isset( $caching_strategy ) ? $caching_strategy : null ),
 			'CACHING_STRATEGY_ARGS'            => isset( $caching_strategy_args_js ) ? $caching_strategy_args_js : 'null',
+			'NAVIGATION_ROUTE_ENTRY'           => wp_service_worker_json_encode( $navigation_route_precache_entry ),
 			'ERROR_OFFLINE_URL'                => wp_service_worker_json_encode( isset( $offline_error_precache_entry['url'] ) ? $offline_error_precache_entry['url'] : null ),
 			'ERROR_OFFLINE_BODY_FRAGMENT_URL'  => wp_service_worker_json_encode( isset( $offline_error_precache_entry['url'] ) ? add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $offline_error_precache_entry['url'] ) : null ),
 			'ERROR_500_URL'                    => wp_service_worker_json_encode( isset( $server_error_precache_entry['url'] ) ? $server_error_precache_entry['url'] : null ),
