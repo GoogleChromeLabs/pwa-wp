@@ -500,6 +500,10 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 
 			// Exclude feed requests.
 			$blacklist_patterns[] = '[^\?]*\/feed\/(\w+\/)?$';
+
+			// Exclude Customizer preview.
+			$blacklist_patterns[] = '\?(.+&)*wp_customize=';
+			$blacklist_patterns[] = '\?(.+&)*customize_changeset_uuid=';
 		}
 
 		// Exclude REST API (this only matters if you directly access the REST API in browser).
