@@ -145,10 +145,8 @@ $wp_https_detection->init();
  */
 function pwa_amp_bootstrap() {
 	global $amp_service_worker;
-	if ( function_exists( 'is_amp_endpoint' ) && version_compare( PHP_VERSION, '5.3', '>=' ) ) {
-		require_once dirname( __FILE__ ) . '/amp/class-amp-service-worker.php';
-		$amp_service_worker = new AMP_Service_Worker();
-		$amp_service_worker->init();
-	}
+	require_once dirname( __FILE__ ) . '/amp/class-amp-service-worker.php';
+	$amp_service_worker = new AMP_Service_Worker();
+	$amp_service_worker->init();
 }
-add_action( 'plugins_loaded', 'pwa_amp_bootstrap' );
+add_action( 'amp_init', 'pwa_amp_bootstrap' );
