@@ -45,7 +45,7 @@ class AMP_Service_Worker {
 			add_filter( 'wp_service_worker_navigation_preload', '__return_false' ); // @todo This should be an app shell theme support flag?
 
 			// Prevent app shell from being served when requesting AMP version directly.
-			if ( ! is_admin() ) {
+			if ( ! is_admin() ) { // @todo This should not apply outside frontend.
 				add_filter( 'wp_service_worker_navigation_route_blacklist_patterns', function( $blacklist_patterns ) {
 					$blacklist_patterns[] = '\?(.+&)*' . preg_quote( amp_get_slug(), '/' ) . '(=|&|$)';
 					return $blacklist_patterns;
