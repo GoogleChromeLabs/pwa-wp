@@ -552,7 +552,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 */
 	public function get_script() {
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-navigation-routing.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
+		$script = preg_replace( '#/\*\s*global.+?\*/#s', '', $script );
 
 		return preg_replace_callback(
 			'/\b(' . implode( '|', array_keys( $this->replacements ) ) . ')\b/',
