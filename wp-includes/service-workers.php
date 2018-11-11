@@ -196,10 +196,11 @@ function wp_print_service_workers() {
  * @since 0.1
  * @see rest_api_loaded()
  * @see wp_ajax_wp_service_worker()
+ *
+ * @param WP_Query $query Query.
  */
-function wp_service_worker_loaded() {
-	global $wp;
-	if ( isset( $wp->query_vars[ WP_Service_Workers::QUERY_VAR ] ) ) {
+function wp_service_worker_loaded( WP_Query $query ) {
+	if ( $query->is_main_query() && $query->get( WP_Service_Workers::QUERY_VAR ) ) {
 		wp_service_workers()->serve_request();
 		exit;
 	}
