@@ -54,7 +54,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		parent::setUp();
 		$this->instance = new WP_HTTPS_Detection();
 		$this->instance->init();
-		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
+		add_filter( 'pre_http_request', array( $this, 'mock_successful_response' ) );
 	}
 
 	/**
@@ -158,51 +158,52 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 
 		update_option( 'siteurl', self::HTTP_URL );
 		update_option( 'home', self::HTTP_URL );
-		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
+		add_filter( 'pre_http_request', array( $this, 'mock_successful_response' ) );
 		$this->instance->update_https_support_options();
 		$this->assertTrue( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
 		$this->assertEquals( array( self::HTTP_URL ), get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME ) );
-		remove_filter( 'http_response', array( $this, 'mock_successful_response' ) );
+		remove_filter( 'pre_http_request', array( $this, 'mock_successful_response' ) );
 		delete_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME );
 
 		/*
 		 * The HTTPS support option should be false, as the request for the HTTPS page failed.
 		 * And because the request failed, it should not update the insecure content option.
 		 */
+		add_filter( 'pre_http_request', array( $this, 'mock_incorrect_response' ) );
 		$this->instance->update_https_support_options();
 		$support = get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME );
 		$this->assertInstanceOf( 'WP_Error', $support );
 		$this->assertArrayHasKey( 'response_error', $support->errors );
 		$this->assertEmpty( get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME ) );
-		remove_filter( 'http_response', array( $this, 'mock_error_response' ) );
+		remove_filter( 'pre_http_request', array( $this, 'mock_error_response' ) );
 
 		// The response is a 301, so the option value should be false.
-		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
+		add_filter( 'pre_http_request', array( $this, 'mock_incorrect_response' ) );
 		$this->instance->update_https_support_options();
 		$support = get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME );
 		$this->assertInstanceOf( 'WP_Error', $support );
 		$this->assertArrayHasKey( 'response_error', $support->errors );
 		$this->assertEmpty( get_option( WP_HTTPS_Detection::INSECURE_CONTENT_OPTION_NAME ) );
-		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
+		remove_filter( 'pre_http_request', array( $this, 'mock_incorrect_response' ) );
 
-		add_filter( 'http_response', array( $this, 'mock_successful_response' ) );
+		add_filter( 'pre_http_request', array( $this, 'mock_successful_response' ) );
 		$this->instance->update_https_support_options();
 		$this->assertTrue( get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME ) );
-		remove_filter( 'http_response', array( $this, 'mock_successful_response' ) );
+		remove_filter( 'pre_http_request', array( $this, 'mock_successful_response' ) );
 
 		// The response should have a code of 301.
-		add_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
+		add_filter( 'pre_http_request', array( $this, 'mock_incorrect_response' ) );
 		$this->instance->update_https_support_options();
 		$support = get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME );
 		$this->assertInstanceOf( 'WP_Error', $support );
-		remove_filter( 'http_response', array( $this, 'mock_incorrect_response' ) );
+		remove_filter( 'pre_http_request', array( $this, 'mock_incorrect_response' ) );
 
-		add_filter( 'http_response', array( $this, 'mock_response_incorrect_manifest' ) );
+		add_filter( 'pre_http_request', array( $this, 'mock_response_incorrect_manifest' ) );
 		$this->instance->update_https_support_options();
 		$support = get_option( WP_HTTPS_Detection::HTTPS_SUPPORT_OPTION_NAME );
 		$this->assertInstanceOf( 'WP_Error', $support );
 		$this->assertEquals( 'invalid_https_validation_source', $support->get_error_code() );
-		remove_filter( 'http_response', array( $this, 'mock_response_incorrect_manifest' ) );
+		remove_filter( 'pre_http_request', array( $this, 'mock_response_incorrect_manifest' ) );
 	}
 
 	/**
@@ -288,6 +289,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 */
 	public function mock_incorrect_response( $response ) {
 		$response['response']['code'] = self::MOCK_INCORRECT_RESPONSE_CODE;
+		$response['response']['message'] = 'Incorrect Response';
 		return $response;
 	}
 
@@ -319,7 +321,8 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 				)
 			),
 			'response' => array(
-				'code' => 200,
+				'code'    => 200,
+				'message' => 'OK',
 			),
 		);
 	}
@@ -333,7 +336,8 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		return array(
 			'body'     => '<html><head><link rel="manifest" href="https://example.com/incorrect-manifest-location"></head><body>%s</body></html>',
 			'response' => array(
-				'code' => 200,
+				'code'    => 200,
+				'message' => 'OK',
 			),
 		);
 	}
