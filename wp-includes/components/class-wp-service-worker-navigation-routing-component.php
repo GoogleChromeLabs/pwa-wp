@@ -246,7 +246,6 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			}
 		}
 
-		// @todo Also obtain classes used in nav menus to then synchronize?
 		$body = $dom->getElementsByTagName( 'body' )->item( 0 );
 		if ( $body ) {
 			foreach ( $body->attributes as $attribute ) {
@@ -270,6 +269,25 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			);
 			return $script;
 		}
+	}
+
+	/**
+	 * Get hash of nav menu locations and their items.
+	 *
+	 * This is used to vary the cache of the navigation route, offline template route, and 500 error route.
+	 *
+	 * @since 0.2
+	 *
+	 * @return string Hash of nav menu items.
+	 */
+	protected function get_nav_menu_locations_hash() {
+		$items = array();
+		foreach ( get_nav_menu_locations() as $nav_menu_id ) {
+			if ( $nav_menu_id ) {
+				$items[ $nav_menu_id ] = wp_get_nav_menu_items( (int) $nav_menu_id );
+			}
+		}
+		return md5( wp_json_encode( $items ) );
 	}
 
 	/**
@@ -298,6 +316,8 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		$revision .= sprintf( ';user-%d', get_current_user_id() );
 
 		if ( ! is_admin() ) {
+			// Vary the precaches by the nav menus.
+			$revision .= ';nav=' . $this->get_nav_menu_locations_hash();
 
 			// @todo Allow different routes to have varying caching strategies?
 
@@ -387,7 +407,18 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 * }
 			 */
 			$navigation_route_precache_entry = apply_filters( 'wp_service_worker_navigation_route', false );
-
+			if ( is_array( $navigation_route_precache_entry ) ) {
+				if ( is_string( $navigation_route_precache_entry ) ) {
+					$navigation_route_precache_entry = array(
+						'url'      => $navigation_route_precache_entry,
+						'revision' => $revision,
+					);
+				} elseif ( ! isset( $navigation_route_precache_entry['revision'] ) ) {
+					$navigation_route_precache_entry['revision'] .= ';' . $revision;
+				} else {
+					$navigation_route_precache_entry['revision'] = $revision;
+				}
+			}
 		} else {
 			// Only network strategy for admin (for now).
 			$caching_strategy = WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY;
