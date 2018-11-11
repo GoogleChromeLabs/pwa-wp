@@ -75,23 +75,25 @@ class AMP_Service_Worker {
 						)
 					);
 
+					// Include all scripts and styles in revision.
+					$enqueued_scripts = array();
+					foreach ( wp_scripts()->queue as $handle ) {
+						if ( isset( wp_scripts()->registered[ $handle ] ) ) {
+							$enqueued_scripts[ $handle ] = wp_scripts()->registered[ $handle ];
+						}
+					}
+					$enqueued_styles = array();
+					foreach ( wp_styles()->queue as $handle ) {
+						if ( isset( wp_styles()->registered[ $handle ] ) ) {
+							$enqueued_styles[ $handle ] = wp_styles()->registered[ $handle ];
+						}
+					}
+					$revision .= ';deps=' . md5( wp_json_encode( compact( 'enqueued_scripts', 'enqueued_styles' ) ) );
+
 					return array(
 						'url'      => add_query_arg( AMP_Theme_Support::APP_SHELL_COMPONENT_QUERY_VAR, 'outer', home_url( '/' ) ),
 						'revision' => $revision,
 					);
-				}
-			);
-
-			/*
-			 * Force the service worker to treat requests with ?amp_app_shell_component=inner as if they were navigation requests.
-			 * This ensures that any navigation caching strategy will be used for fetch requests in the app shell, and that the
-			 * the offline page will
-			 */
-			add_filter(
-				'wp_service_worker_fetch_navigation_patterns',
-				function( $fetch_navigation_patterns ) {
-					$fetch_navigation_patterns[] = '\?(.+&)*' . preg_quote( AMP_Theme_Support::APP_SHELL_COMPONENT_QUERY_VAR . '=inner', '/' ) . '(=|&|$)';
-					return $fetch_navigation_patterns;
 				}
 			);
 
