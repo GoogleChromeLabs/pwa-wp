@@ -114,6 +114,7 @@ class AMP_Service_Worker {
 			add_filter( 'wp_offline_error_precache_entry', $add_inner_app_shell_component, 100 );
 			add_filter( 'wp_server_error_precache_entry', $add_inner_app_shell_component, 100 );
 
+			// @todo There should be some query var that is used to disable navigation routing entirely so that there is no need to bypass for network.
 			// Prevent app shell from being served when requesting AMP version directly.
 			add_filter(
 				'wp_service_worker_navigation_route_blacklist_patterns',

@@ -181,7 +181,57 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 		wp.serviceWorker.routing.registerNavigationRoute(
 			navigationRouteEntry.url,
 			{ blacklist }
-		)
+		);
+
+		class FetchNavigationRoute extends wp.serviceWorker.routing.Route {
+			/**
+			 * If both `blacklist` and `whiltelist` are provided, the `blacklist` will
+			 * take precedence and the request will not match this route.
+			 *
+			 * @inheritDoc
+			 */
+			constructor(handler, {
+				whitelist = [/./],
+				blacklist = []
+			} = {}) {
+				super(options => this._match(options), handler);
+				this._whitelist = whitelist;
+				this._blacklist = blacklist;
+			}
+
+			/**
+			 * Routes match handler.
+			 *
+			 * @param {Object} options
+			 * @param {URL} options.url
+			 * @param {Request} options.request
+			 * @return {boolean}
+			 *
+			 * @private
+			 */
+			_match({ url, request }) {
+				// This replaces checking for navigate in NavigationRoute, which looks for 'navigate' instead.
+				if ( request.mode !== 'same-origin' ) {
+					return false;
+				}
+
+				const pathnameAndSearch = url.pathname + url.search;
+				for (const regExp of this._blacklist) {
+					if (regExp.test(pathnameAndSearch)) {
+						return false;
+					}
+				}
+
+				return this._whitelist.some(regExp => regExp.test(pathnameAndSearch));
+			}
+		}
+
+		wp.serviceWorker.routing.registerRoute(
+			new FetchNavigationRoute(
+				handleNavigationRequest,
+				{ blacklist }
+			)
+		);
 	} else {
 		wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
 			handleNavigationRequest,
