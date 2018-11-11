@@ -390,8 +390,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 
 		} else {
 			// Only network strategy for admin (for now).
-			$caching_strategy      = WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY;
-			$caching_strategy_args = array();
+			$caching_strategy = WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY;
 
 			$revision = PWA_VERSION;
 			if ( WP_DEBUG ) {
@@ -481,7 +480,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 
 		$this->replacements = array(
 			'CACHING_STRATEGY'                 => wp_service_worker_json_encode( $caching_strategy ),
-			'CACHING_STRATEGY_ARGS'            => wp_service_worker_json_encode( $caching_strategy_args ),
+			'CACHING_STRATEGY_ARGS'            => isset( $caching_strategy_args_js ) ? $caching_strategy_args_js : '{}',
 			'NAVIGATION_ROUTE_ENTRY'           => wp_service_worker_json_encode( $navigation_route_precache_entry ),
 			'ERROR_OFFLINE_URL'                => wp_service_worker_json_encode( isset( $offline_error_precache_entry['url'] ) ? $offline_error_precache_entry['url'] : null ),
 			'ERROR_OFFLINE_BODY_FRAGMENT_URL'  => wp_service_worker_json_encode( isset( $offline_error_precache_entry['url'] ) ? add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $offline_error_precache_entry['url'] ) : null ),
