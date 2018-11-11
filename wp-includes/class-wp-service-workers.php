@@ -145,6 +145,10 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 		$this->scripts->do_items( array_keys( $this->scripts->registered ) );
 		$output = ob_get_clean();
 
+		// @todo There should should rather be added as another registered script which is registered last.
+		$output .= "\n\n/* service-worker-add-routing-fetch-event-listener */\n";
+		$output .= file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-add-routing-fetch-event-listener.js' ); // phpcs:ignore
+
 		$file_hash = md5( $output );
 		@header( "ETag: $file_hash" ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged
 

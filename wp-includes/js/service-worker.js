@@ -201,14 +201,12 @@ wp.serviceWorker = workbox;
 	wp.serviceWorker.routing = Object.assign( new WPRouter(), publicAPI );
 }
 
-// @todo There is another 'fetch' handler being for DefaultRouter added in the workbox-routing module which will be unused since.
-self.addEventListener( 'fetch', event => {
-	const request = event.request;
-	const responsePromise = wp.serviceWorker.routing.handleRequest( { request, event } );
-	if ( responsePromise ) {
-		event.respondWith( responsePromise );
-	}
-} );
+/*
+ * Note: The fetch event listener was moved from here to wp-includes/js/service-worker-add-routing-fetch-event-listener.js
+ * The reason for this is that the fetch event needs to be added _after_ the call to precaching.addRoute() is made, so
+ * that precached assets will be handled before falling back to other caching strategies for non-precached routes.
+ * If the caching strategy handler is added first, then the precache route would never handle it.
+ */
 
 // Skip the waiting phase for the Service Worker.
 self.addEventListener( 'message', function ( event ) {
