@@ -10,7 +10,7 @@
  * Plugin Name:       PWA
  * Plugin URI:        https://github.com/xwp/pwa-wp
  * Description:       Feature plugin to bring Progressive Web App (PWA) capabilities to Core
- * Version:           0.2-alpha
+ * Version:           0.2-alpha1
  * Author:            XWP, Google, and contributors
  * Author URI:        https://github.com/xwp/pwa-wp/graphs/contributors
  * Text Domain:       pwa
@@ -21,7 +21,7 @@
  * Requires WP:       4.9
  */
 
-define( 'PWA_VERSION', '0.2-alpha' );
+define( 'PWA_VERSION', '0.2-alpha1' );
 define( 'PWA_PLUGIN_FILE', __FILE__ );
 define( 'PWA_PLUGIN_DIR', dirname( __FILE__ ) );
 define( 'PWA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
