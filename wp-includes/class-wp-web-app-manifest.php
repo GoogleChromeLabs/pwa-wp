@@ -69,7 +69,6 @@ class WP_Web_App_Manifest {
 	 * Gets the theme color for the manifest.
 	 *
 	 * Mainly copied from Jetpack_PWA_Helpers::get_theme_color().
-	 * First looks for the header background color in the AMP for WordPress plugin, if it's active.
 	 * This color displays on loading the app.
 	 *
 	 * @return string $theme_color The theme color for the manifest.json file, as a hex value.

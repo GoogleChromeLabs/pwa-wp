@@ -126,7 +126,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * Add loading indicator for responses streamed from the service worker.
 	 *
 	 * This this function should generally be called at the end of a theme's header.php template.
-	 * A theme that uses this must also declare 'streaming' among the amp theme support.
+	 * A theme that uses this must also declare 'service_worker_streaming' theme support
 	 * This element is also used to demarcate the header (head) from the body (tail).
 	 *
 	 * @since 2.0
@@ -246,7 +246,6 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			}
 		}
 
-		// @todo Also obtain classes used in nav menus to then synchronize?
 		$body = $dom->getElementsByTagName( 'body' )->item( 0 );
 		if ( $body ) {
 			foreach ( $body->attributes as $attribute ) {
@@ -273,6 +272,25 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	}
 
 	/**
+	 * Get hash of nav menu locations and their items.
+	 *
+	 * This is used to vary the cache of the navigation route, offline template route, and 500 error route.
+	 *
+	 * @since 0.2
+	 *
+	 * @return string Hash of nav menu items.
+	 */
+	protected function get_nav_menu_locations_hash() {
+		$items = array();
+		foreach ( get_nav_menu_locations() as $nav_menu_id ) {
+			if ( $nav_menu_id ) {
+				$items[ $nav_menu_id ] = wp_get_nav_menu_items( (int) $nav_menu_id );
+			}
+		}
+		return md5( wp_json_encode( $items ) );
+	}
+
+	/**
 	 * Adds the component functionality to the service worker.
 	 *
 	 * @since 0.2
@@ -289,15 +307,46 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			$stream_combiner_revision = md5( file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-stream-combiner.js' ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		}
 
-		$revision = sprintf( '%s-v%s', $template, wp_get_theme( $template )->Version );
+		$revision = PWA_VERSION;
+
+		$revision .= sprintf( ';%s=%s', $template, wp_get_theme( $template )->Version );
 		if ( $template !== $stylesheet ) {
-			$revision .= sprintf( ';%s-v%s', $stylesheet, wp_get_theme( $stylesheet )->Version );
+			$revision .= sprintf( ';%s=%s', $stylesheet, wp_get_theme( $stylesheet )->Version );
 		}
 
-		// Ensure the user-specific offline/500 pages are precached, and thet they update when user logs out or switches to another user.
-		$revision .= sprintf( ';user-%d', get_current_user_id() );
+		// Ensure the user-specific offline/500 pages are precached, and that they update when user logs out or switches to another user.
+		$revision .= sprintf( ';user=%d', get_current_user_id() );
 
 		if ( ! is_admin() ) {
+			// Note that themes will need to vary the revision further by whatever is contained in the app shell.
+			$revision .= ';options=' . md5(
+				wp_json_encode(
+					array(
+						'blogname'        => get_option( 'blogname' ),
+						'blogdescription' => get_option( 'blogdescription' ),
+						'site_icon_url'   => get_site_icon_url(),
+						'theme_mods'      => get_theme_mods(),
+					)
+				)
+			);
+
+			// Vary the precaches by the nav menus.
+			$revision .= ';nav=' . $this->get_nav_menu_locations_hash();
+
+			// Include all scripts and styles in revision.
+			$enqueued_scripts = array();
+			foreach ( wp_scripts()->queue as $handle ) {
+				if ( isset( wp_scripts()->registered[ $handle ] ) ) {
+					$enqueued_scripts[ $handle ] = wp_scripts()->registered[ $handle ];
+				}
+			}
+			$enqueued_styles = array();
+			foreach ( wp_styles()->queue as $handle ) {
+				if ( isset( wp_styles()->registered[ $handle ] ) ) {
+					$enqueued_styles[ $handle ] = wp_styles()->registered[ $handle ];
+				}
+			}
+			$revision .= ';deps=' . md5( wp_json_encode( compact( 'enqueued_scripts', 'enqueued_styles' ) ) );
 
 			// @todo Allow different routes to have varying caching strategies?
 
@@ -343,6 +392,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 * must be incremented to ensure the URL is re-fetched to store in the precache.
 			 *
 			 * @since 0.2
+			 * @todo Rename this filter to wp_offline_error_route.
 			 *
 			 * @param array|false $entry {
 			 *     Offline error precache entry.
@@ -362,6 +412,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 * must be incremented to ensure the URL is re-fetched to store in the precache.
 			 *
 			 * @since 0.2
+			 * @todo Rename this filter to wp_server_error_route.
 			 *
 			 * @param array $entry {
 			 *     Server error precache entry.
@@ -372,7 +423,29 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 */
 			$server_error_precache_entry = apply_filters( 'wp_server_error_precache_entry', $server_error_precache_entry );
 
+			/**
+			 * Filters the entry that is used for serving as app shell.
+			 *
+			 * @since 0.2
+			 *
+			 * @param array $entry {
+			 *     Navigation route entry.
+			 *
+			 *     @type string|null  $url      URL to page that serves the app shell. By default this is null which means no navigation route is registered.
+			 *     @type string       $revision Revision for the the app shell template.
+			 * }
+			 */
+			$navigation_route_precache_entry = apply_filters(
+				'wp_service_worker_navigation_route',
+				array(
+					'url'      => null,
+					'revision' => $revision,
+				)
+			);
 		} else {
+			// Only network strategy for admin (for now).
+			$caching_strategy = WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY;
+
 			$revision = PWA_VERSION;
 			if ( WP_DEBUG ) {
 				$revision .= filemtime( PWA_PLUGIN_DIR . '/wp-admin/error.php' );
@@ -387,6 +460,8 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 				'url'      => add_query_arg( 'code', '500', admin_url( 'admin-ajax.php?action=wp_error_template' ) ), // Upon core merge, this would use admin_url( 'error.php' ).
 				'revision' => $revision, // Upon core merge, this should be the core version.
 			);
+
+			$navigation_route_precache_entry = false;
 		}
 
 		$scripts->register(
@@ -423,6 +498,9 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 				);
 			}
 		}
+		if ( ! empty( $navigation_route_precache_entry['url'] ) ) {
+			$scripts->precaching_routes()->register( $navigation_route_precache_entry['url'], isset( $navigation_route_precache_entry['revision'] ) ? $navigation_route_precache_entry['revision'] : null );
+		}
 
 		// Streaming.
 		$streaming_header_precache_entry = null;
@@ -455,14 +533,15 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		}
 
 		$this->replacements = array(
-			'CACHING_STRATEGY'                 => wp_service_worker_json_encode( isset( $caching_strategy ) ? $caching_strategy : null ),
-			'CACHING_STRATEGY_ARGS'            => isset( $caching_strategy_args_js ) ? $caching_strategy_args_js : 'null',
+			'CACHING_STRATEGY'                 => wp_service_worker_json_encode( $caching_strategy ),
+			'CACHING_STRATEGY_ARGS'            => isset( $caching_strategy_args_js ) ? $caching_strategy_args_js : '{}',
+			'NAVIGATION_ROUTE_ENTRY'           => wp_service_worker_json_encode( $navigation_route_precache_entry ),
 			'ERROR_OFFLINE_URL'                => wp_service_worker_json_encode( isset( $offline_error_precache_entry['url'] ) ? $offline_error_precache_entry['url'] : null ),
 			'ERROR_OFFLINE_BODY_FRAGMENT_URL'  => wp_service_worker_json_encode( isset( $offline_error_precache_entry['url'] ) ? add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $offline_error_precache_entry['url'] ) : null ),
 			'ERROR_500_URL'                    => wp_service_worker_json_encode( isset( $server_error_precache_entry['url'] ) ? $server_error_precache_entry['url'] : null ),
 			'ERROR_500_BODY_FRAGMENT_URL'      => wp_service_worker_json_encode( isset( $server_error_precache_entry['url'] ) ? add_query_arg( self::STREAM_FRAGMENT_QUERY_VAR, 'body', $server_error_precache_entry['url'] ) : null ),
 			'STREAM_HEADER_FRAGMENT_URL'       => wp_service_worker_json_encode( isset( $streaming_header_precache_entry['url'] ) ? $streaming_header_precache_entry['url'] : null ),
-			'BLACKLIST_PATTERNS'               => wp_service_worker_json_encode( $this->get_blacklist_patterns() ),
+			'NAVIGATION_BLACKLIST_PATTERNS'    => wp_service_worker_json_encode( $this->get_navigation_route_blacklist_patterns() ),
 			'SHOULD_STREAM_RESPONSE'           => wp_service_worker_json_encode( $should_stream_response ),
 			'STREAM_HEADER_FRAGMENT_QUERY_VAR' => wp_service_worker_json_encode( self::STREAM_FRAGMENT_QUERY_VAR ),
 			'ERROR_MESSAGES'                   => wp_service_worker_json_encode( wp_service_worker_get_error_messages() ),
@@ -473,29 +552,41 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * Get blacklist patterns for routes to exclude from navigation route handling.
 	 *
 	 * @since 0.2
-	 * @todo This list should probably be filterable.
 	 *
 	 * @return array Route regular expressions.
 	 */
-	public function get_blacklist_patterns() {
+	public function get_navigation_route_blacklist_patterns() {
 		$blacklist_patterns = array();
 
 		if ( ! is_admin() ) {
+			/**
+			 * Filter list of URL patterns to blacklist from handling from the navigation router.
+			 *
+			 * @since 0.2
+			 *
+			 * @param array $blacklist_patterns Blacklist patterns.
+			 */
+			$blacklist_patterns = apply_filters( 'wp_service_worker_navigation_route_blacklist_patterns', $blacklist_patterns );
+
 			// Exclude admin URLs, if not in the admin.
 			$blacklist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)';
 
 			// Exclude PHP files (e.g. wp-login.php).
 			$blacklist_patterns[] = '[^\?]*.\.php($|\?.*)';
+
+			// Exclude service worker and stream fragment requests (to ease debugging).
+			$blacklist_patterns[] = '.*\?(.*&)?(' . join( '|', array( self::STREAM_FRAGMENT_QUERY_VAR, WP_Service_Workers::QUERY_VAR ) ) . ')=';
+
+			// Exclude feed requests.
+			$blacklist_patterns[] = '[^\?]*\/feed\/(\w+\/)?$';
+
+			// Exclude Customizer preview.
+			$blacklist_patterns[] = '\?(.+&)*wp_customize=';
+			$blacklist_patterns[] = '\?(.+&)*customize_changeset_uuid=';
 		}
 
-		// Exclude REST API.
+		// Exclude REST API (this only matters if you directly access the REST API in browser).
 		$blacklist_patterns[] = '^' . preg_quote( wp_parse_url( get_rest_url(), PHP_URL_PATH ), '/' ) . '.*';
-
-		// Exclude service worker and stream fragment requests (to ease debugging).
-		$blacklist_patterns[] = '.*\?(.*&)?(' . join( '|', array( self::STREAM_FRAGMENT_QUERY_VAR, WP_Service_Workers::QUERY_VAR ) ) . ')=';
-
-		// Exclude feed requests.
-		$blacklist_patterns[] = '[^\?]*\/feed\/(\w+\/)?$';
 
 		return $blacklist_patterns;
 	}
@@ -518,7 +609,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 */
 	public function get_script() {
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-navigation-routing.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
+		$script = preg_replace( '#/\*\s*global.+?\*/#s', '', $script );
 
 		return preg_replace_callback(
 			'/\b(' . implode( '|', array_keys( $this->replacements ) ) . ')\b/',
