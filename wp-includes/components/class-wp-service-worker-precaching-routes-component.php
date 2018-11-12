@@ -51,12 +51,17 @@ class WP_Service_Worker_Precaching_Routes_Component implements WP_Service_Worker
 	/**
 	 * Gets the priority this component should be hooked into the service worker action with.
 	 *
+	 * This must be low so that precaching precaching.addRoute() is called before routing.registerRoute().
+	 * This is important because a the precaching fetch event handler needs to be added before the fetch
+	 * handler for routing, as otherwise a caching strategy could prevent the precached resource from being
+	 * served. See https://github.com/google/WebFundamentals/pull/6820/files#diff-a298f19f420180849fe4a3cde57504bfR72
+	 *
 	 * @since 0.2
 	 *
 	 * @return int Hook priority. A higher number means a lower priority.
 	 */
 	public function get_priority() {
-		return 99999;
+		return -99999;
 	}
 
 	/**
