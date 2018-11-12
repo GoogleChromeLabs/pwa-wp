@@ -137,16 +137,3 @@ $wp_web_app_manifest->init();
 
 $wp_https_detection = new WP_HTTPS_Detection();
 $wp_https_detection->init();
-
-/**
- * Bootstrap AMP integration for PWA.
- *
- * This will be moved to the AMP plugin once the PWA plugin's API stabilizes.
- */
-function pwa_amp_bootstrap() {
-	global $amp_service_worker;
-	require_once dirname( __FILE__ ) . '/amp/class-amp-service-worker.php';
-	$amp_service_worker = new AMP_Service_Worker();
-	$amp_service_worker->init();
-}
-add_action( 'amp_init', 'pwa_amp_bootstrap' );

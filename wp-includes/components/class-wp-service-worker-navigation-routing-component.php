@@ -126,7 +126,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * Add loading indicator for responses streamed from the service worker.
 	 *
 	 * This this function should generally be called at the end of a theme's header.php template.
-	 * A theme that uses this must also declare 'streaming' among the amp theme support.
+	 * A theme that uses this must also declare 'service_worker_streaming' theme support
 	 * This element is also used to demarcate the header (head) from the body (tail).
 	 *
 	 * @since 2.0

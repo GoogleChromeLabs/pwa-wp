@@ -126,7 +126,7 @@ function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 		document.body.setAttribute( key, data.body_attributes[ key ] );
 	}
 
-	/* Purge all traces of the stream combination logic to ensure the AMP validator doesn't complain at runtime. */
+	/* Purge all traces of the stream combination logic since it isn't needed anymore. */
 	const removedElements = [
 		STREAM_COMBINE_INVOKE_SCRIPT_ID,
 		STREAM_COMBINE_DEFINE_SCRIPT_ID,
