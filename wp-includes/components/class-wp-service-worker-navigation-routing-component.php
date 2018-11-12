@@ -307,17 +307,46 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			$stream_combiner_revision = md5( file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-stream-combiner.js' ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		}
 
-		$revision = sprintf( '%s-v%s', $template, wp_get_theme( $template )->Version );
+		$revision = PWA_VERSION;
+
+		$revision .= sprintf( ';%s=%s', $template, wp_get_theme( $template )->Version );
 		if ( $template !== $stylesheet ) {
-			$revision .= sprintf( ';%s-v%s', $stylesheet, wp_get_theme( $stylesheet )->Version );
+			$revision .= sprintf( ';%s=%s', $stylesheet, wp_get_theme( $stylesheet )->Version );
 		}
 
 		// Ensure the user-specific offline/500 pages are precached, and that they update when user logs out or switches to another user.
-		$revision .= sprintf( ';user-%d', get_current_user_id() );
+		$revision .= sprintf( ';user=%d', get_current_user_id() );
 
 		if ( ! is_admin() ) {
+			// Note that themes will need to vary the revision further by whatever is contained in the app shell.
+			$revision .= ';options=' . md5(
+				wp_json_encode(
+					array(
+						'blogname'        => get_option( 'blogname' ),
+						'blogdescription' => get_option( 'blogdescription' ),
+						'site_icon_url'   => get_site_icon_url(),
+						'theme_mods'      => get_theme_mods(),
+					)
+				)
+			);
+
 			// Vary the precaches by the nav menus.
 			$revision .= ';nav=' . $this->get_nav_menu_locations_hash();
+
+			// Include all scripts and styles in revision.
+			$enqueued_scripts = array();
+			foreach ( wp_scripts()->queue as $handle ) {
+				if ( isset( wp_scripts()->registered[ $handle ] ) ) {
+					$enqueued_scripts[ $handle ] = wp_scripts()->registered[ $handle ];
+				}
+			}
+			$enqueued_styles = array();
+			foreach ( wp_styles()->queue as $handle ) {
+				if ( isset( wp_styles()->registered[ $handle ] ) ) {
+					$enqueued_styles[ $handle ] = wp_styles()->registered[ $handle ];
+				}
+			}
+			$revision .= ';deps=' . md5( wp_json_encode( compact( 'enqueued_scripts', 'enqueued_styles' ) ) );
 
 			// @todo Allow different routes to have varying caching strategies?
 
@@ -399,26 +428,20 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 *
 			 * @since 0.2
 			 *
-			 * @param false|array $entry {
-			 *     Navigation route entry. If false, then app shell is not used.
+			 * @param array $entry {
+			 *     Navigation route entry.
 			 *
-			 *     @type string $url      URL to page that shows the server error template.
-			 *     @type string $revision Revision for the template. This defaults to the template and stylesheet names, with their respective theme versions.
+			 *     @type string|null  $url      URL to page that serves the app shell. By default this is null which means no navigation route is registered.
+			 *     @type string       $revision Revision for the the app shell template.
 			 * }
 			 */
-			$navigation_route_precache_entry = apply_filters( 'wp_service_worker_navigation_route', false );
-			if ( is_array( $navigation_route_precache_entry ) ) {
-				if ( is_string( $navigation_route_precache_entry ) ) {
-					$navigation_route_precache_entry = array(
-						'url'      => $navigation_route_precache_entry,
-						'revision' => $revision,
-					);
-				} elseif ( ! isset( $navigation_route_precache_entry['revision'] ) ) {
-					$navigation_route_precache_entry['revision'] .= ';' . $revision;
-				} else {
-					$navigation_route_precache_entry['revision'] = $revision;
-				}
-			}
+			$navigation_route_precache_entry = apply_filters(
+				'wp_service_worker_navigation_route',
+				array(
+					'url'      => null,
+					'revision' => $revision,
+				)
+			);
 		} else {
 			// Only network strategy for admin (for now).
 			$caching_strategy = WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY;
@@ -475,7 +498,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 				);
 			}
 		}
-		if ( $navigation_route_precache_entry ) {
+		if ( ! empty( $navigation_route_precache_entry['url'] ) ) {
 			$scripts->precaching_routes()->register( $navigation_route_precache_entry['url'], isset( $navigation_route_precache_entry['revision'] ) ? $navigation_route_precache_entry['revision'] : null );
 		}
 

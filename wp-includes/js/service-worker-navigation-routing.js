@@ -177,7 +177,7 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 	}
 
 	const blacklist = NAVIGATION_BLACKLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) );
-	if ( navigationRouteEntry ) {
+	if ( navigationRouteEntry && navigationRouteEntry.url ) {
 		wp.serviceWorker.routing.registerNavigationRoute(
 			navigationRouteEntry.url,
 			{ blacklist }
@@ -185,7 +185,7 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 
 		class FetchNavigationRoute extends wp.serviceWorker.routing.Route {
 			/**
-			 * If both `blacklist` and `whiltelist` are provided, the `blacklist` will
+			 * If both `blacklist` and `whitelist` are provided, the `blacklist` will
 			 * take precedence and the request will not match this route.
 			 *
 			 * @inheritDoc

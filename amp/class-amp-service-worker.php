@@ -49,51 +49,9 @@ class AMP_Service_Worker {
 			// Opt to route all navigation requests through the app shell.
 			add_filter(
 				'wp_service_worker_navigation_route',
-				function () {
-					$template   = get_template();
-					$stylesheet = get_stylesheet();
-					$revision   = sprintf( '%s-v%s', $template, wp_get_theme( $template )->Version );
-					if ( $template !== $stylesheet ) {
-						$revision .= sprintf( ';%s-v%s', $stylesheet, wp_get_theme( $stylesheet )->Version );
-					}
-					$revision .= sprintf( ';user-%d', get_current_user_id() );
-
-					/*
-					 * Note that themes will need to vary the revision further by whatever is contained in the app shell.
-					 * In particular, the post_modified times of the nav menu items appearing in the header and footer should
-					 * be included in the revision.
-					 */
-					$revision .= ';' . md5(
-						wp_json_encode(
-							array(
-								'blogname'        => get_option( 'blogname' ),
-								'blogdescription' => get_option( 'blogdescription' ),
-								'site_icon_url'   => get_site_icon_url(),
-								'theme_mods'      => get_theme_mods(),
-								'version'         => PWA_VERSION,
-							)
-						)
-					);
-
-					// Include all scripts and styles in revision.
-					$enqueued_scripts = array();
-					foreach ( wp_scripts()->queue as $handle ) {
-						if ( isset( wp_scripts()->registered[ $handle ] ) ) {
-							$enqueued_scripts[ $handle ] = wp_scripts()->registered[ $handle ];
-						}
-					}
-					$enqueued_styles = array();
-					foreach ( wp_styles()->queue as $handle ) {
-						if ( isset( wp_styles()->registered[ $handle ] ) ) {
-							$enqueued_styles[ $handle ] = wp_styles()->registered[ $handle ];
-						}
-					}
-					$revision .= ';deps=' . md5( wp_json_encode( compact( 'enqueued_scripts', 'enqueued_styles' ) ) );
-
-					return array(
-						'url'      => add_query_arg( AMP_Theme_Support::APP_SHELL_COMPONENT_QUERY_VAR, 'outer', home_url( '/' ) ),
-						'revision' => $revision,
-					);
+				function ( $navigation_route ) {
+					$navigation_route['url'] = add_query_arg( AMP_Theme_Support::APP_SHELL_COMPONENT_QUERY_VAR, 'outer', home_url( '/' ) );
+					return $navigation_route;
 				}
 			);
 
