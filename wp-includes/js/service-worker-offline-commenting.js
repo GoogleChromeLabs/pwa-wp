@@ -74,8 +74,8 @@
 							body: body
 						} );
 
-						// Add request to queue. @todo Replace when upgrading to Workbox v4!
-						queue.addRequest( req );
+						// Add request to queue.
+						queue.pushRequest( req );
 					}
 				);
 
