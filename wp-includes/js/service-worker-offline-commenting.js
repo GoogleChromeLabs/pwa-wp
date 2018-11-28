@@ -75,7 +75,9 @@
 						} );
 
 						// Add request to queue.
-						queue.pushRequest( req );
+						queue.pushRequest( {
+							request: req 
+						} );
 					}
 				);
 
