@@ -34,6 +34,8 @@ In general a PWA depends on the following technologies to be available:
 
 This plugin serves as a place to implement support for these in WordPress with the intention of being proposed for core merge, piece by piece.
 
+☞ Please note that this feature plugin is _not_ intended to obsolete the other plugins and themes which turn WordPress sites into PWAs. Rather, this plugin is intended to provide the PWA building blocks and coordination mechanism for these themes and plugins to not reinvent the wheel and also to not conflict with each other. For example, a theme that implements the app shell model should be able to extend the core service worker while a plugin that provides push notifications should be able to do the same. Themes and plugins no longer should have to each create a service worker on their own, something which is inheritly problematic because only one service worker can be active at a time: only one service worker can win. This feature plugin intends to create win-win situations for themes and plugins that each leverage PWA features.
+
 **Development of this plugin is done [on GitHub](https://github.com/xwp/pwa-wp). Pull requests welcome. Please see [issues](https://github.com/xwp/pwa-wp/issues) reported there before going to the [plugin forum](https://wordpress.org/support/plugin/pwa).**
 
 = Web App Manifest =
