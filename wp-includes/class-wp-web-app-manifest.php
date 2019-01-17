@@ -61,7 +61,7 @@ class WP_Web_App_Manifest {
 	public function manifest_link_and_meta() {
 		?>
 		<link rel="manifest" href="<?php echo esc_url( rest_url( self::REST_NAMESPACE . self::REST_ROUTE ) ); ?>">
-		<meta name="theme-color" content="<?php echo esc_attr( apply_filters( 'theme_color_meta', $this->get_theme_color() ) ); ?>">
+		<meta name="theme-color" content="<?php echo esc_attr( $this->get_theme_color() ); ?>">
 		<?php
 	}
 
@@ -85,7 +85,7 @@ class WP_Web_App_Manifest {
 			$theme_color = self::FALLBACK_THEME_COLOR;
 		}
 
-		return $theme_color;
+		return apply_filters( 'theme_color_meta', $theme_color );
 	}
 
 	/**
