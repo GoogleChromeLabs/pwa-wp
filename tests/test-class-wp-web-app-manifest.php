@@ -238,10 +238,12 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 	 * Creates a mock site icon, and stores the expected image URL in a property.
 	 */
 	public function mock_site_icon() {
-		$mock_site_icon_id = $this->factory()->attachment->create_object( array(
-			'file'           => 'foo/site-icon.jpeg',
-			'post_mime_type' => self::MIME_TYPE,
-		) );
+		$mock_site_icon_id = $this->factory()->attachment->create_object(
+			array(
+				'file'           => 'foo/site-icon.jpeg',
+				'post_mime_type' => self::MIME_TYPE,
+			)
+		);
 		update_option( 'site_icon', $mock_site_icon_id );
 
 		$attachment_image                 = wp_get_attachment_image_src( $mock_site_icon_id, 'full' );
