@@ -1,2 +1,6 @@
 ASSETS_DIR=wp-assets
 DEV_LIB_SKIP=$DEV_LIB_SKIP,jshint
+
+if [[ ! -z $TRAVIS ]]; then
+	CHECK_SCOPE=all
+fi
