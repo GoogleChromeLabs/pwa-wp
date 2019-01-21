@@ -119,8 +119,8 @@ function wp_print_service_workers() {
 	$home_host  = wp_parse_url( home_url(), PHP_URL_HOST );
 	$admin_host = wp_parse_url( admin_url(), PHP_URL_HOST );
 
-	$home_url   = ( $home_port ) ? "$home_host:$home_port" : $home_host;
-	$admin_url  = ( $admin_port ) ? "$admin_host:$admin_port" : $admin_port;
+	$home_url  = ( $home_port ) ? "$home_host:$home_port" : $home_host;
+	$admin_url = ( $admin_port ) ? "$admin_host:$admin_port" : $admin_port;
 
 	$on_front_domain = isset( $_SERVER['HTTP_HOST'] ) && $home_url === $_SERVER['HTTP_HOST'];
 	$on_admin_domain = isset( $_SERVER['HTTP_HOST'] ) && $admin_url === $_SERVER['HTTP_HOST'];
