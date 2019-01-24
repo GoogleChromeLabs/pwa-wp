@@ -4,15 +4,15 @@
 ![Banner](wp-assets/banner-1544x500.png)
 WordPress feature plugin to bring Progressive Web App (PWA) capabilities to Core
 
-**Contributors:** [xwp](https://profiles.wordpress.org/xwp), [google](https://profiles.wordpress.org/google), [automattic](https://profiles.wordpress.org/automattic)  
-**Tags:** [pwa](https://wordpress.org/plugins/tags/pwa), [progressive web apps](https://wordpress.org/plugins/tags/progressive-web-apps), [service workers](https://wordpress.org/plugins/tags/service-workers), [web app manifest](https://wordpress.org/plugins/tags/web-app-manifest), [https](https://wordpress.org/plugins/tags/https)  
-**Requires at least:** 4.9  
-**Tested up to:** 4.9  
-**Stable tag:** 0.1.0  
-**License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
-**Requires PHP:** 5.2  
+**Contributors:** [xwp](https://profiles.wordpress.org/xwp), [google](https://profiles.wordpress.org/google), [automattic](https://profiles.wordpress.org/automattic)
+**Tags:** [pwa](https://wordpress.org/plugins/tags/pwa), [progressive web apps](https://wordpress.org/plugins/tags/progressive-web-apps), [service workers](https://wordpress.org/plugins/tags/service-workers), [web app manifest](https://wordpress.org/plugins/tags/web-app-manifest), [https](https://wordpress.org/plugins/tags/https)
+**Requires at least:** 4.9
+**Tested up to:** 4.9
+**Stable tag:** 0.1.0
+**License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)
+**Requires PHP:** 5.2
 
-[![Build Status](https://travis-ci.org/xwp/pwa-wp.svg?branch=master)](https://travis-ci.org/xwp/pwa-wp) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) 
+[![Build Status](https://travis-ci.org/xwp/pwa-wp.svg?branch=master)](https://travis-ci.org/xwp/pwa-wp) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com)
 
 ## Description ##
 
@@ -150,6 +150,25 @@ add_action( 'wp_admin_service_worker', 'register_baz_service_worker_script' );
 
 See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Aservice-workers) and see WordPress core tracking ticket [#36995](https://core.trac.wordpress.org/ticket/36995).
 
+### Integrations
+The plugin bundles several experimental integrations that are kept separate from the service worker core code. These integrations act as examples and proof-of-concept to achieve certain goals. While all of them are generally applicable and recommended to truly benefit from service workers, they are not crucial for the core API.
+
+All these integrations are hidden behind a feature flag. To enable them, you can either set a constant `WP_SERVICE_WORKER_INTEGRATIONS_ENABLED` in your `wp-config.php` and set it to true, or add a one-liner must-use plugin:
+
+<pre lang=php>
+<?php
+/*
+Plugin Name: Enable Service Worker Integrations
+Plugin URI:  https://github.com/xwp/pwa-wp
+Description: Enables the experimental service worker integrations in the PWA plugin.
+Version:     1.0.0
+Author:      XWP, Google, and contributors
+Author URI:  https://github.com/xwp/pwa-wp
+*/
+
+add_filter( 'wp_service_worker_integrations_enabled', '__return_true' );
+</pre>
+
 ### Caching ###
 Service Workers in the feature plugin are using [Workbox](https://developers.google.com/web/tools/workbox/) to power a higher-level PHP abstraction for themes and plugins to indicate the routes and the caching strategies in a declarative way. Since only one handler can be used per one route then conflicts are also detected and reported in console when using debug mode.
 
@@ -243,6 +262,7 @@ In case of submitting a comment and being offline (failing to fetch) the request
 Here is a list of all available actions and filters added by the feature plugin.
 
 **Filters:**
+- `wp_service_worker_integrations_enabled`: Filters whether the experimental integrations should be enabled.
 - `wp_service_worker_integrations`: Filters the service worker integrations to initialize.
   - Has one argument: `$integrations` which is an array of `$slug` => `$integration pairs, where $integration is an instance of a class that implements the WP_Service_Worker_Integration interface.`
 - `wp_service_worker_skip_waiting`: Filters whether the service worker should update automatically when a new version is available.
