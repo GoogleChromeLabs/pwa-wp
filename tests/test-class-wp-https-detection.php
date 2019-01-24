@@ -94,10 +94,12 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 				$insecure_video_src
 			)
 		);
-		$this->assertEmpty( array_diff(
-			array( $insecure_audio_src, $insecure_video_src ),
-			$this->instance->get_insecure_content( $body )
-		) );
+		$this->assertEmpty(
+			array_diff(
+				array( $insecure_audio_src, $insecure_video_src ),
+				$this->instance->get_insecure_content( $body )
+			)
+		);
 
 		// Allow interpolating tags into the <head>.
 		$html_boilerplate    = '<!DOCTYPE html><html><head>%s</head><body>%s</body></html>';
@@ -115,10 +117,12 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 				$insecure_audio_src
 			)
 		);
-		$this->assertEmpty( array_diff(
-			array( $insecure_audio_src, $insecure_script_src, $insecure_link_href ),
-			$this->instance->get_insecure_content( $body )
-		) );
+		$this->assertEmpty(
+			array_diff(
+				array( $insecure_audio_src, $insecure_script_src, $insecure_link_href ),
+				$this->instance->get_insecure_content( $body )
+			)
+		);
 	}
 
 	/**
@@ -288,7 +292,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	 * @return WP_HTTP_Requests_Response $response The filtered response object.
 	 */
 	public function mock_incorrect_response( $response ) {
-		$response['response']['code'] = self::MOCK_INCORRECT_RESPONSE_CODE;
+		$response['response']['code']    = self::MOCK_INCORRECT_RESPONSE_CODE;
 		$response['response']['message'] = 'Incorrect Response';
 		return $response;
 	}

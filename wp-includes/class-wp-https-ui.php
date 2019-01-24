@@ -142,11 +142,13 @@ class WP_HTTPS_UI {
 		?>
 		<p class="description">
 			<?php
-			echo wp_kses_post( sprintf(
-				/* translators: %s: a link for more details */
-				__( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to it. %s', 'pwa' ),
-				$https_more_details
-			) );
+			echo wp_kses_post(
+				sprintf(
+					/* translators: %s: a link for more details */
+					__( 'HTTPS is essential to securing your WordPress site, we strongly suggest upgrading to it. %s', 'pwa' ),
+					$https_more_details
+				)
+			);
 			?>
 		</p>
 
@@ -258,24 +260,24 @@ class WP_HTTPS_UI {
 			} )( jQuery );
 		</script>
 		<style>
-			.<?php echo $insecure_urls_class; // WPCS: XSS OK. ?> {
+			.<?php echo $insecure_urls_class; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> {
 				margin: 0 0 0 5px;
 			}
 
-			.<?php echo $insecure_urls_class; // WPCS: XSS OK. ?> li {
+			.<?php echo $insecure_urls_class; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> li {
 				padding: 4px 0;
 				margin-bottom: 0;
 			}
 
-			.<?php echo $insecure_urls_class; // WPCS: XSS OK. ?> li:nth-child(odd) {
+			.<?php echo $insecure_urls_class; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> li:nth-child(odd) {
 				background: rgba(255,255,255,0.6);
 			}
 
-			#<?php echo $show_more_button_id; // WPCS: XSS OK. ?> {
+			#<?php echo $show_more_button_id; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> {
 				margin-top: 10px;
 			}
 
-			#<?php echo $insecure_content_id; // WPCS: XSS OK. ?> .description {
+			#<?php echo $insecure_content_id; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> .description {
 				margin: 20px 0;
 			}
 		</style>
