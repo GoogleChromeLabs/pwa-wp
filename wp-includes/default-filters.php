@@ -21,7 +21,6 @@ add_filter( 'old_slug_redirect_url', 'wp_service_worker_fragment_redirect_old_sl
 add_action( 'wp_head', 'wp_add_error_template_no_robots' );
 add_filter( 'pre_get_document_title', 'WP_Service_Worker_Navigation_Routing_Component::filter_title_for_streaming_header' );
 add_action( 'error_head', 'wp_add_error_template_no_robots' );
-add_action( 'wp_default_service_workers', 'wp_default_service_workers' );
 
 add_action( 'admin_init', 'wp_disable_script_concatenation' );
 
