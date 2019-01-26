@@ -129,23 +129,23 @@ require_once PWA_PLUGIN_DIR . '/wp-admin/admin.php';
  */
 if ( apply_filters( 'wp_service_worker_integrations_enabled', defined( 'WP_SERVICE_WORKER_INTEGRATIONS_ENABLED' ) && WP_SERVICE_WORKER_INTEGRATIONS_ENABLED ) ) {
 	/** WP_Service_Worker_Integration Interface */
-	require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/interface-wp-service-worker-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/interface-wp-service-worker-integration.php';
 
 	/** WP_Service_Worker_Base_Integration Class */
-	require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-base-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-base-integration.php';
 
 	/** WP_Service_Worker_Integration Implementation Classes */
-	require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-site-icon-integration.php';
-	require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-custom-logo-integration.php';
-	require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-custom-header-integration.php';
-	require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-custom-background-integration.php';
-	require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-scripts-integration.php';
-	require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-styles-integration.php';
-	require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-fonts-integration.php';
-	require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-admin-assets-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-site-icon-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-custom-logo-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-custom-header-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-custom-background-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-scripts-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-styles-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-fonts-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-admin-assets-integration.php';
 
 	/** WordPress Service Worker Integration Functions */
-	require_once PWA_PLUGIN_DIR . '/wp-includes/service-worker-integrations.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/functions.php';
 }
 
 $wp_web_app_manifest = new WP_Web_App_Manifest();
