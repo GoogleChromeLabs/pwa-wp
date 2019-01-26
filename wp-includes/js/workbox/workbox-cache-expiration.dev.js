@@ -3,7 +3,7 @@ this.workbox.expiration = (function (exports,DBWrapper_mjs,deleteDatabase_mjs,Wo
   'use strict';
 
   try {
-    self.workbox.v['workbox:cache-expiration:4.0.0-beta.0'] = 1;
+    self.workbox.v['workbox:cache-expiration:4.0.0-beta.1'] = 1;
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -110,7 +110,7 @@ this.workbox.expiration = (function (exports,DBWrapper_mjs,deleteDatabase_mjs,Wo
      */
 
 
-    async deleteUrl(url) {
+    async deleteURL(url) {
       await this._db.delete(this._storeName, new URL(url, location).href);
     }
     /**
@@ -214,15 +214,15 @@ this.workbox.expiration = (function (exports,DBWrapper_mjs,deleteDatabase_mjs,Wo
       const extraEntries = await this._findExtraEntries(); // Use a Set to remove any duplicates following the concatenation, then
       // convert back into an array.
 
-      const allUrls = [...new Set(oldEntries.concat(extraEntries))];
-      await Promise.all([this._deleteFromCache(allUrls), this._deleteFromIDB(allUrls)]);
+      const allURLs = [...new Set(oldEntries.concat(extraEntries))];
+      await Promise.all([this._deleteFromCache(allURLs), this._deleteFromIDB(allURLs)]);
 
       {
         // TODO: break apart entries deleted due to expiration vs size restraints
-        if (allUrls.length > 0) {
-          logger_mjs.logger.groupCollapsed(`Expired ${allUrls.length} ` + `${allUrls.length === 1 ? 'entry' : 'entries'} and removed ` + `${allUrls.length === 1 ? 'it' : 'them'} from the ` + `'${this._cacheName}' cache.`);
-          logger_mjs.logger.log(`Expired the following ${allUrls.length === 1 ? 'URL' : 'URLs'}:`);
-          allUrls.forEach(url => logger_mjs.logger.log(`    ${url}`));
+        if (allURLs.length > 0) {
+          logger_mjs.logger.groupCollapsed(`Expired ${allURLs.length} ` + `${allURLs.length === 1 ? 'entry' : 'entries'} and removed ` + `${allURLs.length === 1 ? 'it' : 'them'} from the ` + `'${this._cacheName}' cache.`);
+          logger_mjs.logger.log(`Expired the following ${allURLs.length === 1 ? 'URL' : 'URLs'}:`);
+          allURLs.forEach(url => logger_mjs.logger.log(`    ${url}`));
           logger_mjs.logger.groupEnd();
         } else {
           logger_mjs.logger.debug(`Cache expiration ran and found no entries to remove.`);
@@ -262,13 +262,13 @@ this.workbox.expiration = (function (exports,DBWrapper_mjs,deleteDatabase_mjs,Wo
 
       const expireOlderThan = expireFromTimestamp - this._maxAgeSeconds * 1000;
       const timestamps = await this._timestampModel.getAllTimestamps();
-      const expiredUrls = [];
+      const expiredURLs = [];
       timestamps.forEach(timestampDetails => {
         if (timestampDetails.timestamp < expireOlderThan) {
-          expiredUrls.push(timestampDetails.url);
+          expiredURLs.push(timestampDetails.url);
         }
       });
-      return expiredUrls;
+      return expiredURLs;
     }
     /**
      * @return {Promise<Array>}
@@ -278,7 +278,7 @@ this.workbox.expiration = (function (exports,DBWrapper_mjs,deleteDatabase_mjs,Wo
 
 
     async _findExtraEntries() {
-      const extraUrls = [];
+      const extraURLs = [];
 
       if (!this._maxEntries) {
         return [];
@@ -288,10 +288,10 @@ this.workbox.expiration = (function (exports,DBWrapper_mjs,deleteDatabase_mjs,Wo
 
       while (timestamps.length > this._maxEntries) {
         const lastUsed = timestamps.shift();
-        extraUrls.push(lastUsed.url);
+        extraURLs.push(lastUsed.url);
       }
 
-      return extraUrls;
+      return extraURLs;
     }
     /**
      * @param {Array<string>} urls Array of URLs to delete from cache.
@@ -316,7 +316,7 @@ this.workbox.expiration = (function (exports,DBWrapper_mjs,deleteDatabase_mjs,Wo
 
     async _deleteFromIDB(urls) {
       for (const url of urls) {
-        await this._timestampModel.deleteUrl(url);
+        await this._timestampModel.deleteURL(url);
       }
     }
     /**
@@ -642,14 +642,6 @@ this.workbox.expiration = (function (exports,DBWrapper_mjs,deleteDatabase_mjs,Wo
     }
 
   }
-
-  /*
-    Copyright 2018 Google LLC
-
-    Use of this source code is governed by an MIT-style
-    license that can be found in the LICENSE file or at
-    https://opensource.org/licenses/MIT.
-  */
 
   /*
     Copyright 2018 Google LLC

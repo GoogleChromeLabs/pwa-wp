@@ -3,7 +3,7 @@ this.workbox.broadcastUpdate = (function (exports,WorkboxError_mjs,logger_mjs,as
   'use strict';
 
   try {
-    self.workbox.v['workbox:broadcast-cache-update:4.0.0-beta.0'] = 1;
+    self.workbox.v['workbox:broadcast-cache-update:4.0.0-beta.1'] = 1;
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -95,7 +95,7 @@ this.workbox.broadcastUpdate = (function (exports,WorkboxError_mjs,logger_mjs,as
    *   meta: 'workbox-broadcast-cache-update',
    *   payload: {
    *     cacheName: 'the-cache-name',
-   *     updatedUrl: 'https://example.com/'
+   *     updatedURL: 'https://example.com/'
    *   }
    * }
    * ```
@@ -139,7 +139,7 @@ this.workbox.broadcastUpdate = (function (exports,WorkboxError_mjs,logger_mjs,as
       meta: CACHE_UPDATED_MESSAGE_META,
       payload: {
         cacheName: cacheName,
-        updatedUrl: url
+        updatedURL: url
       }
     };
 
@@ -462,14 +462,6 @@ this.workbox.broadcastUpdate = (function (exports,WorkboxError_mjs,logger_mjs,as
     }
 
   }
-
-  /*
-    Copyright 2018 Google LLC
-
-    Use of this source code is governed by an MIT-style
-    license that can be found in the LICENSE file or at
-    https://opensource.org/licenses/MIT.
-  */
 
   /*
     Copyright 2018 Google LLC

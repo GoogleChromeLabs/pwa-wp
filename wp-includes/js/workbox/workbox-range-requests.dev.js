@@ -3,7 +3,7 @@ this.workbox.rangeRequests = (function (exports,WorkboxError_mjs,assert_mjs,logg
   'use strict';
 
   try {
-    self.workbox.v['workbox:range-requests:4.0.0-beta.0'] = 1;
+    self.workbox.v['workbox:range-requests:4.0.0-beta.1'] = 1;
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -192,9 +192,9 @@ this.workbox.rangeRequests = (function (exports,WorkboxError_mjs,assert_mjs,logg
       {
         logger_mjs.logger.warn(`Unable to construct a partial response; returning a ` + `416 Range Not Satisfiable response instead.`);
         logger_mjs.logger.groupCollapsed(`View details here.`);
-        logger_mjs.logger.unprefixed.log(error);
-        logger_mjs.logger.unprefixed.log(request);
-        logger_mjs.logger.unprefixed.log(originalResponse);
+        logger_mjs.logger.log(error);
+        logger_mjs.logger.log(request);
+        logger_mjs.logger.log(originalResponse);
         logger_mjs.logger.groupEnd();
       }
 
@@ -250,14 +250,6 @@ this.workbox.rangeRequests = (function (exports,WorkboxError_mjs,assert_mjs,logg
     }
 
   }
-
-  /*
-    Copyright 2018 Google LLC
-
-    Use of this source code is governed by an MIT-style
-    license that can be found in the LICENSE file or at
-    https://opensource.org/licenses/MIT.
-  */
 
   /*
     Copyright 2018 Google LLC

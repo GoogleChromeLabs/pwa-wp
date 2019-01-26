@@ -3,7 +3,7 @@ this.workbox.streams = (function (exports,logger_mjs,assert_mjs) {
   'use strict';
 
   try {
-    self.workbox.v['workbox:streams:4.0.0-beta.0'] = 1;
+    self.workbox.v['workbox:streams:4.0.0-beta.1'] = 1;
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -317,14 +317,6 @@ this.workbox.streams = (function (exports,logger_mjs,assert_mjs) {
       });
     };
   }
-
-  /*
-    Copyright 2018 Google LLC
-
-    Use of this source code is governed by an MIT-style
-    license that can be found in the LICENSE file or at
-    https://opensource.org/licenses/MIT.
-  */
 
   /*
     Copyright 2018 Google LLC

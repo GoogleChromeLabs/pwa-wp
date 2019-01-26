@@ -3,7 +3,7 @@ this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,getF
   'use strict';
 
   try {
-    self.workbox.v['workbox:google-analytics:4.0.0-beta.0'] = 1;
+    self.workbox.v['workbox:google-analytics:4.0.0-beta.1'] = 1;
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -205,14 +205,6 @@ this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,getF
 
     router.addFetchListener();
   };
-
-  /*
-    Copyright 2018 Google LLC
-
-    Use of this source code is governed by an MIT-style
-    license that can be found in the LICENSE file or at
-    https://opensource.org/licenses/MIT.
-  */
 
   /*
     Copyright 2018 Google LLC
