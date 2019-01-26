@@ -74,18 +74,25 @@ class WP_Web_App_Manifest {
 	 * @return string $theme_color The theme color for the manifest.json file, as a hex value.
 	 */
 	public function get_theme_color() {
-		if ( current_theme_supports( 'custom-background' ) ) {
-			$background_color = get_background_color(); // This returns a hex value without the leading #, or an empty string.
-			if ( $background_color ) {
-				$theme_color = "#{$background_color}";
+
+		// Check if the current theme supports theme-color and a color is defined.
+		if ( current_theme_supports( 'theme-color' ) ) {
+			$theme_color = get_theme_support( 'theme-color' );
+			if ( $theme_color ) {
+				return $theme_color;
 			}
 		}
 
-		if ( ! isset( $theme_color ) ) {
-			$theme_color = self::FALLBACK_THEME_COLOR;
+		// Check if the current theme supports custom-background and a color is defined.
+		if ( current_theme_supports( 'custom-background' ) ) {
+			$background_color = get_background_color(); // This returns a hex value without the leading #, or an empty string.
+			if ( $background_color ) {
+				return "#{$background_color}";
+			}
 		}
 
-		return $theme_color;
+		// Fallback color.
+		return self::FALLBACK_THEME_COLOR;
 	}
 
 	/**
