@@ -18,7 +18,7 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	 * @since 0.2
 	 * @var string
 	 */
-	const STRATEGY_STALE_WHILE_REVALIDATE = 'staleWhileRevalidate';
+	const STRATEGY_STALE_WHILE_REVALIDATE = 'StaleWhileRevalidate';
 
 	/**
 	 * Cache first caching strategy.
@@ -26,7 +26,7 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	 * @since 0.2
 	 * @var string
 	 */
-	const STRATEGY_CACHE_FIRST = 'cacheFirst';
+	const STRATEGY_CACHE_FIRST = 'CacheFirst';
 
 	/**
 	 * Network first caching strategy.
@@ -34,7 +34,7 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	 * @since 0.2
 	 * @var string
 	 */
-	const STRATEGY_NETWORK_FIRST = 'networkFirst';
+	const STRATEGY_NETWORK_FIRST = 'NetworkFirst';
 
 	/**
 	 * Cache only caching strategy.
@@ -42,7 +42,7 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	 * @since 0.2
 	 * @var string
 	 */
-	const STRATEGY_CACHE_ONLY = 'cacheOnly';
+	const STRATEGY_CACHE_ONLY = 'CacheOnly';
 
 	/**
 	 * Network only caching strategy.
@@ -50,7 +50,7 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	 * @since 0.2
 	 * @var string
 	 */
-	const STRATEGY_NETWORK_ONLY = 'networkOnly';
+	const STRATEGY_NETWORK_ONLY = 'NetworkOnly';
 
 	/**
 	 * Registered caching routes.

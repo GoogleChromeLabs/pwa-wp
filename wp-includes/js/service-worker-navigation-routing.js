@@ -242,7 +242,7 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 
 // Add fallback network-only navigation route to ensure preloadResponse is used if available.
 wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
-	wp.serviceWorker.strategies.networkOnly(),
+	new wp.serviceWorker.strategies.NetworkOnly(),
 	{
 		whitelist: NAVIGATION_BLACKLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) )
 	}
