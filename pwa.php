@@ -117,17 +117,25 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-query.php';
 require_once PWA_PLUGIN_DIR . '/wp-admin/admin.php';
 
 /**
- * Filters whether service worker integrations should be enabled.
+ * Load service worker integrations.
  *
- * As these are experimental, they are kept separate from the service worker core code and hidden behind a feature flag.
- *
- * Instead of using this filter, you can also use a constant `WP_SERVICE_WORKER_INTEGRATIONS_ENABLED`.
- *
- * @since 0.2
- *
- * @param bool $enabled Whether or not service worker integrations are enabled.
+ * @since 0.2.0
  */
-if ( apply_filters( 'wp_service_worker_integrations_enabled', defined( 'WP_SERVICE_WORKER_INTEGRATIONS_ENABLED' ) && WP_SERVICE_WORKER_INTEGRATIONS_ENABLED ) ) {
+function pwa_load_service_worker_integrations() {
+	/**
+	 * Filters whether service worker integrations should be enabled.
+	 *
+	 * As these are experimental, they are kept separate from the service worker core code and hidden behind a feature flag.
+	 *
+	 * Instead of using this filter, you can also use a constant `WP_SERVICE_WORKER_INTEGRATIONS_ENABLED`.
+	 *
+	 * @since 0.2
+	 *
+	 * @param bool $enabled Whether or not service worker integrations are enabled.
+	 */
+	if ( ! apply_filters( 'wp_service_worker_integrations_enabled', defined( 'WP_SERVICE_WORKER_INTEGRATIONS_ENABLED' ) && WP_SERVICE_WORKER_INTEGRATIONS_ENABLED ) ) {
+		return;
+	}
 	/** WP_Service_Worker_Integration Interface */
 	require_once PWA_PLUGIN_DIR . '/integrations/interface-wp-service-worker-integration.php';
 
@@ -147,6 +155,7 @@ if ( apply_filters( 'wp_service_worker_integrations_enabled', defined( 'WP_SERVI
 	/** WordPress Service Worker Integration Functions */
 	require_once PWA_PLUGIN_DIR . '/integrations/functions.php';
 }
+add_action( 'plugins_loaded', 'pwa_load_service_worker_integrations' );
 
 $wp_web_app_manifest = new WP_Web_App_Manifest();
 $wp_web_app_manifest->init();
