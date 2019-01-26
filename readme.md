@@ -4,15 +4,15 @@
 ![Banner](wp-assets/banner-1544x500.png)
 WordPress feature plugin to bring Progressive Web App (PWA) capabilities to Core
 
-**Contributors:** [xwp](https://profiles.wordpress.org/xwp), [google](https://profiles.wordpress.org/google), [automattic](https://profiles.wordpress.org/automattic)
-**Tags:** [pwa](https://wordpress.org/plugins/tags/pwa), [progressive web apps](https://wordpress.org/plugins/tags/progressive-web-apps), [service workers](https://wordpress.org/plugins/tags/service-workers), [web app manifest](https://wordpress.org/plugins/tags/web-app-manifest), [https](https://wordpress.org/plugins/tags/https)
-**Requires at least:** 4.9
-**Tested up to:** 4.9
-**Stable tag:** 0.1.0
-**License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)
-**Requires PHP:** 5.2
+**Contributors:** [xwp](https://profiles.wordpress.org/xwp), [google](https://profiles.wordpress.org/google), [automattic](https://profiles.wordpress.org/automattic)  
+**Tags:** [pwa](https://wordpress.org/plugins/tags/pwa), [progressive web apps](https://wordpress.org/plugins/tags/progressive-web-apps), [service workers](https://wordpress.org/plugins/tags/service-workers), [web app manifest](https://wordpress.org/plugins/tags/web-app-manifest), [https](https://wordpress.org/plugins/tags/https)  
+**Requires at least:** 4.9  
+**Tested up to:** 4.9  
+**Stable tag:** 0.1.0  
+**License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
+**Requires PHP:** 5.2  
 
-[![Build Status](https://travis-ci.org/xwp/pwa-wp.svg?branch=master)](https://travis-ci.org/xwp/pwa-wp) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com)
+[![Build Status](https://travis-ci.org/xwp/pwa-wp.svg?branch=master)](https://travis-ci.org/xwp/pwa-wp) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) 
 
 ## Description ##
 
@@ -150,7 +150,7 @@ add_action( 'wp_admin_service_worker', 'register_baz_service_worker_script' );
 
 See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Aservice-workers) and see WordPress core tracking ticket [#36995](https://core.trac.wordpress.org/ticket/36995).
 
-### Integrations
+### Integrations ###
 The plugin bundles several experimental integrations that are kept separate from the service worker core code. These integrations act as examples and proof-of-concept to achieve certain goals. While all of them are generally applicable and recommended to truly benefit from service workers, they are not crucial for the core API.
 
 All these integrations are hidden behind a feature flag. To enable them, you can either set a constant `WP_SERVICE_WORKER_INTEGRATIONS_ENABLED` in your `wp-config.php` and set it to true, or add a one-liner must-use plugin:
