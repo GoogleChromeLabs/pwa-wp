@@ -113,8 +113,17 @@ function wp_print_service_workers() {
 	global $pagenow;
 	$scopes = array();
 
-	$on_front_domain = isset( $_SERVER['HTTP_HOST'] ) && wp_parse_url( home_url(), PHP_URL_HOST ) === $_SERVER['HTTP_HOST'];
-	$on_admin_domain = isset( $_SERVER['HTTP_HOST'] ) && wp_parse_url( admin_url(), PHP_URL_HOST ) === $_SERVER['HTTP_HOST'];
+	$home_port  = wp_parse_url( home_url(), PHP_URL_PORT );
+	$admin_port = wp_parse_url( admin_url(), PHP_URL_PORT );
+
+	$home_host  = wp_parse_url( home_url(), PHP_URL_HOST );
+	$admin_host = wp_parse_url( admin_url(), PHP_URL_HOST );
+
+	$home_url  = ( $home_port ) ? "$home_host:$home_port" : $home_host;
+	$admin_url = ( $admin_port ) ? "$admin_host:$admin_port" : $admin_host;
+
+	$on_front_domain = isset( $_SERVER['HTTP_HOST'] ) && $home_url === $_SERVER['HTTP_HOST'];
+	$on_admin_domain = isset( $_SERVER['HTTP_HOST'] ) && $admin_url === $_SERVER['HTTP_HOST'];
 
 	// Install the front service worker if currently on the home domain.
 	if ( $on_front_domain ) {

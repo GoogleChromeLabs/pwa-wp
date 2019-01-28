@@ -156,11 +156,15 @@ class WP_Web_App_Manifest {
 	 * Registers the rest route to get the manifest.
 	 */
 	public function register_manifest_rest_route() {
-		register_rest_route( self::REST_NAMESPACE, self::REST_ROUTE, array(
-			'methods'             => 'GET',
-			'callback'            => array( $this, 'get_manifest' ),
-			'permission_callback' => array( $this, 'rest_permission' ),
-		) );
+		register_rest_route(
+			self::REST_NAMESPACE,
+			self::REST_ROUTE,
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_manifest' ),
+				'permission_callback' => array( $this, 'rest_permission' ),
+			)
+		);
 	}
 
 	/**

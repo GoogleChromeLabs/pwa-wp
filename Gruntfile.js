@@ -88,7 +88,7 @@ module.exports = function( grunt ) {
 			versionAppend = commitHash + '-' + new Date().toISOString().replace( /\.\d+/, '' ).replace( /-|:/g, '' );
 
 			paths = lsOutput.trim().split( /\n/ ).filter( function( file ) {
-				return ! /^(\.|bin|([^/]+)+\.(md|json|xml)|Gruntfile\.js|tests|wp-assets|dev-lib|readme\.md|composer\..*|webpack.*)/.test( file );
+				return ! /^(\.|bin|([^/]+)+\.(md|json|xml)|Gruntfile\.js|tests|wp-assets|readme\.md|composer\..*|webpack.*)/.test( file );
 			} );
 
 			grunt.task.run( 'clean' );

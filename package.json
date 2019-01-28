@@ -18,12 +18,12 @@
   "grunt-wp-deploy": "^1.3.0",
   "husky": "^0.14.3",
   "workbox-cli": "^4.0.0-beta.0",
-  "wp-dev-lib": "github:xwp/wp-dev-lib"
+  "wp-dev-lib": "github:xwp/wp-dev-lib#1.0.0"
  },
  "scripts": {
   "install": "composer install",
-  "precommit": "./node_modules/wp-dev-lib/pre-commit",
-  "generate-readme": "./node_modules/wp-dev-lib/generate-markdown-readme",
+  "precommit": "./node_modules/wp-dev-lib/scripts/pre-commit",
+  "generate-readme": "./node_modules/wp-dev-lib/scripts/generate-markdown-readme",
   "build": "grunt build; grunt create-build-zip",
   "deploy": "grunt deploy",
   "workbox-upgrade": "bin/workbox-upgrade.sh"
