@@ -3,9 +3,9 @@ ERROR_OFFLINE_URL, ERROR_500_URL, SHOULD_STREAM_RESPONSE, STREAM_HEADER_FRAGMENT
 ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BLACKLIST_PATTERNS, ERROR_MESSAGES */
 
 {
-	const isStreamingResponses = SHOULD_STREAM_RESPONSE && wp.serviceWorker.streams.isSupported();
-	const errorMessages = ERROR_MESSAGES;
-	const navigationRouteEntry = NAVIGATION_ROUTE_ENTRY;
+	var isStreamingResponses = SHOULD_STREAM_RESPONSE && wp.serviceWorker.streams.isSupported();
+	var errorMessages = ERROR_MESSAGES;
+	var navigationRouteEntry = NAVIGATION_ROUTE_ENTRY;
 
 	/**
 	 * Handle navigation request.
