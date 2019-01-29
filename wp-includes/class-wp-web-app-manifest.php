@@ -59,9 +59,22 @@ class WP_Web_App_Manifest {
 	 * Mainly copied from Jetpack_PWA_Manifest::render_manifest_link().
 	 */
 	public function manifest_link_and_meta() {
+		$manifest = $this->get_manifest();
 		?>
 		<link rel="manifest" href="<?php echo esc_url( rest_url( self::REST_NAMESPACE . self::REST_ROUTE ) ); ?>">
-		<meta name="theme-color" content="<?php echo esc_attr( $this->get_theme_color() ); ?>">
+		<meta name="theme-color" content="<?php echo esc_attr( $manifest['theme_color'] ); ?>">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-touch-fullscreen" content="YES" />
+		<?php if ( ! empty( $manifest['icons'] ) ) : ?>
+			<?php if ( ! empty( $manifest['icons'][1] ) && ! empty( $manifest['icons'][1]['src'] ) ) : ?>
+				<link rel="apple-touch-startup-image" href="<?php echo esc_url_raw( $manifest['icons'][1]['src'] ); ?>">
+			<?php elseif ( ! empty( $manifest['icons'][0] ) && ! empty( $manifest['icons'][0]['src'] ) ) : ?>
+				<link rel="apple-touch-startup-image" href="<?php echo esc_url_raw( $manifest['icons'][0]['src'] ); ?>">
+			<?php endif; ?>
+		<?php endif; ?>
+		<meta name="apple-mobile-web-app-title" content="<?php echo esc_attr( $manifest['short_name'] ); ?>">
+		<meta name='application-name' content='<?php echo esc_attr( $manifest['short_name'] ); ?>'>
 		<?php
 	}
 
