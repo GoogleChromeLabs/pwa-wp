@@ -1,5 +1,7 @@
 /* global ERROR_OFFLINE_URL, ERROR_MESSAGES, ERROR_500_URL */
-{
+
+// IIFE is used for lexical scoping instead of just a braces block due to bug with const in Safari.
+( () => {
 	const queue = new wp.serviceWorker.backgroundSync.Queue( 'wpPendingComments' );
 	const errorMessages = ERROR_MESSAGES;
 
@@ -104,4 +106,4 @@
 		commentHandler,
 		'POST'
 	);
-}
+} )();
