@@ -3,7 +3,7 @@ this.workbox.core = (function (exports) {
   'use strict';
 
   try {
-    self.workbox.v['workbox:core:4.0.0-beta.1'] = 1;
+    self['workbox:core:4.0.0-beta.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -1388,11 +1388,8 @@ this.workbox.core = (function (exports) {
     try {
       let fetchResponse; // See https://github.com/GoogleChrome/workbox/issues/1796
 
-      if (request.mode === 'navigate' && fetchOptions && Object.keys(fetchOptions).length > 0) {
-        pluginFilteredRequest = new Request(request, {
-          mode: 'same-origin'
-        });
-        fetchResponse = await fetch(pluginFilteredRequest, fetchOptions);
+      if (request.mode === 'navigate') {
+        fetchResponse = await fetch(request);
       } else {
         fetchResponse = await fetch(request, fetchOptions);
       }

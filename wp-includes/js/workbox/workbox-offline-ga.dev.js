@@ -3,7 +3,7 @@ this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,getF
   'use strict';
 
   try {
-    self.workbox.v['workbox:google-analytics:4.0.0-beta.1'] = 1;
+    self['workbox:google-analytics:4.0.0-beta.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
