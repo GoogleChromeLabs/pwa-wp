@@ -17,7 +17,7 @@
   "grunt-shell": "^2.1.0",
   "grunt-wp-deploy": "^1.3.0",
   "husky": "^0.14.3",
-  "workbox-cli": "4.0.0-beta.1",
+  "workbox-cli": "4.0.0-beta.2",
   "wp-dev-lib": "github:xwp/wp-dev-lib#1.0.0"
  },
  "scripts": {
