@@ -63,18 +63,26 @@ class WP_Web_App_Manifest {
 		?>
 		<link rel="manifest" href="<?php echo esc_url( rest_url( self::REST_NAMESPACE . self::REST_ROUTE ) ); ?>">
 		<meta name="theme-color" content="<?php echo esc_attr( $manifest['theme_color'] ); ?>">
-		<meta name="apple-mobile-web-app-capable" content="yes" />
-		<meta name="mobile-web-app-capable" content="yes" />
-		<meta name="apple-touch-fullscreen" content="YES" />
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta name="apple-touch-fullscreen" content="YES">
 		<?php if ( ! empty( $manifest['icons'] ) ) : ?>
-			<?php if ( ! empty( $manifest['icons'][1] ) && ! empty( $manifest['icons'][1]['src'] ) ) : ?>
-				<link rel="apple-touch-startup-image" href="<?php echo esc_url_raw( $manifest['icons'][1]['src'] ); ?>">
-			<?php elseif ( ! empty( $manifest['icons'][0] ) && ! empty( $manifest['icons'][0]['src'] ) ) : ?>
-				<link rel="apple-touch-startup-image" href="<?php echo esc_url_raw( $manifest['icons'][0]['src'] ); ?>">
+			<?php
+			$icons = $manifest['icons'];
+			usort(
+				$icons,
+				function( $a, $b ) {
+					return intval( strtok( $a['sizes'], 'x' ) ) - intval( strtok( $b['sizes'], 'x' ) );
+				}
+			);
+			$icon = array_shift( $icons );
+			?>
+			<?php if ( ! empty( $icon ) ) : ?>
+				<link rel="apple-touch-startup-image" href="<?php echo esc_url( $icon['src'] ); ?>">
 			<?php endif; ?>
 		<?php endif; ?>
 		<meta name="apple-mobile-web-app-title" content="<?php echo esc_attr( $manifest['short_name'] ); ?>">
-		<meta name='application-name' content='<?php echo esc_attr( $manifest['short_name'] ); ?>'>
+		<meta name="application-name" content="<?php echo esc_attr( $manifest['short_name'] ); ?>">
 		<?php
 	}
 
@@ -201,12 +209,12 @@ class WP_Web_App_Manifest {
 	 *
 	 * Mainly copied from Jetpack_PWA_Manifest::build_icon_object() and Jetpack_PWA_Helpers::site_icon_url().
 	 *
-	 * @return array|null $icon_object An array of icons, or null if there's no site icon.
+	 * @return array $icon_object An array of icons, which may be empty.
 	 */
 	public function get_icons() {
 		$site_icon_id = get_option( 'site_icon' );
 		if ( ! $site_icon_id || ! function_exists( 'get_site_icon_url' ) ) {
-			return null;
+			return array();
 		}
 
 		$icons     = array();
