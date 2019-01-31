@@ -66,20 +66,13 @@ class WP_Web_App_Manifest {
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="mobile-web-app-capable" content="yes">
 		<meta name="apple-touch-fullscreen" content="YES">
-		<?php if ( ! empty( $manifest['icons'] ) ) : ?>
-			<?php
-			$icons = $manifest['icons'];
-			usort(
-				$icons,
-				function( $a, $b ) {
-					return intval( strtok( $a['sizes'], 'x' ) ) - intval( strtok( $b['sizes'], 'x' ) );
-				}
-			);
-			$icon = array_shift( $icons );
-			?>
-			<?php if ( ! empty( $icon ) ) : ?>
-				<link rel="apple-touch-startup-image" href="<?php echo esc_url( $icon['src'] ); ?>">
-			<?php endif; ?>
+		<?php
+		$icons = $manifest['icons'];
+		usort( $icons, array( $this, 'sort_icons_callback' ) );
+		$icon = array_shift( $icons );
+		?>
+		<?php if ( ! empty( $icon ) ) : ?>
+			<link rel="apple-touch-startup-image" href="<?php echo esc_url( $icon['src'] ); ?>">
 		<?php endif; ?>
 		<meta name="apple-mobile-web-app-title" content="<?php echo esc_attr( $manifest['short_name'] ); ?>">
 		<meta name="application-name" content="<?php echo esc_attr( $manifest['short_name'] ); ?>">
@@ -227,5 +220,18 @@ class WP_Web_App_Manifest {
 			);
 		}
 		return $icons;
+	}
+
+	/**
+	 * Sort icon sizes.
+	 * 
+	 * Used as a callback in usort(), called from the manifest_link_and_meta() method.
+	 *
+	 * @param array $a The 1st icon item in our comparison.
+	 * @param array $b The 2nd icon item in our comparison.
+	 * @return int
+	 */
+	public function sort_icons_callback( $a, $b ) {
+		return intval( strtok( $a['sizes'], 'x' ) ) - intval( strtok( $b['sizes'], 'x' ) );
 	}
 }
