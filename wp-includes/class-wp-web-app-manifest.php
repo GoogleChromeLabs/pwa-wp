@@ -224,7 +224,7 @@ class WP_Web_App_Manifest {
 
 	/**
 	 * Sort icon sizes.
-	 * 
+	 *
 	 * Used as a callback in usort(), called from the manifest_link_and_meta() method.
 	 *
 	 * @param array $a The 1st icon item in our comparison.
