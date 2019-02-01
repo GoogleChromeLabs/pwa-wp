@@ -1,5 +1,7 @@
 /* global PRECACHE_ENTRIES */
-{
+
+// IIFE is used for lexical scoping instead of just a braces block due to bug in Safari.
+( () => {
 	wp.serviceWorker.precaching.precache( PRECACHE_ENTRIES );
 
 	// @todo Should not these parameters be specific to each entry as opposed to all entries?
@@ -13,4 +15,4 @@
 		]
 		// @todo Add urlManipulation which allows for the list of ignoreUrlParametersMatching to be supplied with each entry.
 	} );
-}
+} )();

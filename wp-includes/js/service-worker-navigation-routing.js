@@ -2,7 +2,8 @@
 ERROR_OFFLINE_URL, ERROR_500_URL, SHOULD_STREAM_RESPONSE, STREAM_HEADER_FRAGMENT_URL, ERROR_500_BODY_FRAGMENT_URL,
 ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BLACKLIST_PATTERNS, ERROR_MESSAGES */
 
-{
+// IIFE is used for lexical scoping instead of just a braces block due to bug with const in Safari.
+( () => {
 	const isStreamingResponses = SHOULD_STREAM_RESPONSE && wp.serviceWorker.streams.isSupported();
 	const errorMessages = ERROR_MESSAGES;
 	const navigationRouteEntry = NAVIGATION_ROUTE_ENTRY;
@@ -238,7 +239,7 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 			{ blacklist }
 		) );
 	}
-}
+} )();
 
 // Add fallback network-only navigation route to ensure preloadResponse is used if available.
 wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
