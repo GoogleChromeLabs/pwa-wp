@@ -67,7 +67,7 @@ class WP_Web_App_Manifest {
 		<meta name="mobile-web-app-capable" content="yes">
 		<meta name="apple-touch-fullscreen" content="YES">
 		<?php
-		$icons = $manifest['icons'];
+		$icons = isset( $manifest['icons'] ) ? $manifest['icons'] : array();
 		usort( $icons, array( $this, 'sort_icons_callback' ) );
 		$icon = array_shift( $icons );
 		?>
@@ -151,7 +151,7 @@ class WP_Web_App_Manifest {
 		}
 
 		$manifest_icons = $this->get_icons();
-		if ( $manifest_icons ) {
+		if ( ! empty( $manifest_icons ) ) {
 			$manifest['icons'] = $manifest_icons;
 		}
 
