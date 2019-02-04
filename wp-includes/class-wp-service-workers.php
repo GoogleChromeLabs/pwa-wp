@@ -108,15 +108,6 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 			/**
 			 * Fires before serving the frontend service worker, when its scripts should be registered, caching routes established, and assets precached.
 			 *
-			 * The following integrations are hooked into this action by default: 'wp-site-icon', 'wp-custom-logo', 'wp-custom-header', 'wp-custom-background',
-			 * 'wp-scripts', 'wp-styles', and 'wp-fonts'. This default behavior can be disabled with code such as the following, for disabling the
-			 * 'wp-custom-header' integration:
-			 *
-			 *     add_filter( 'wp_service_worker_integrations', function( $integrations ) {
-			 *         unset( $integrations['wp-custom-header'] );
-			 *         return $integrations;
-			 *     } );
-			 *
 			 * @since 0.2
 			 *
 			 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
