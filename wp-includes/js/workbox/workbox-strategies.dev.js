@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.strategies = (function (logger_mjs,assert_mjs,cacheNames_mjs,cacheWrapper_mjs,fetchWrapper_mjs,getFriendlyURL_mjs,WorkboxError_mjs) {
+this.workbox.strategies = (function (exports,logger_mjs,assert_mjs,cacheNames_mjs,cacheWrapper_mjs,fetchWrapper_mjs,getFriendlyURL_mjs,WorkboxError_mjs) {
   'use strict';
 
   try {
-    self.workbox.v['workbox:strategies:4.0.0-beta.0'] = 1;
+    self['workbox:strategies:4.0.0-beta.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -24,12 +24,12 @@ this.workbox.strategies = (function (logger_mjs,assert_mjs,cacheNames_mjs,cacheW
     return urlObj.href;
   };
 
-  var messages = {
+  const messages = {
     strategyStart: (strategyName, request) => `Using ${strategyName} to ` + `respond to '${getFriendlyURL(request.url)}'`,
     printFinalResponse: response => {
       if (response) {
         logger_mjs.logger.groupCollapsed(`View the final response here.`);
-        logger_mjs.logger.unprefixed.log(response);
+        logger_mjs.logger.log(response);
         logger_mjs.logger.groupEnd();
       }
     }
@@ -357,10 +357,10 @@ this.workbox.strategies = (function (logger_mjs,assert_mjs,cacheNames_mjs,cacheW
     license that can be found in the LICENSE file or at
     https://opensource.org/licenses/MIT.
   */
-  var cacheOkAndOpaquePlugin = {
+  const cacheOkAndOpaquePlugin = {
     /**
-     * Return return a response (i.e. allow caching) if the
-     * response is ok (i.e. 200) or is opaque.
+     * Returns a valid response (to allow caching) if the status is 200 (OK) or
+     * 0 (opaque).
      *
      * @param {Object} options
      * @param {Response} options.response
@@ -371,7 +371,7 @@ this.workbox.strategies = (function (logger_mjs,assert_mjs,cacheNames_mjs,cacheW
     cacheWillUpdate: ({
       response
     }) => {
-      if (response.ok || response.status === 0) {
+      if (response.status === 200 || response.status === 0) {
         return response;
       }
 
@@ -1060,52 +1060,6 @@ this.workbox.strategies = (function (logger_mjs,assert_mjs,cacheNames_mjs,cacheW
     license that can be found in the LICENSE file or at
     https://opensource.org/licenses/MIT.
   */
-
-  var publicAPI = /*#__PURE__*/Object.freeze({
-    CacheFirst: CacheFirst,
-    CacheOnly: CacheOnly,
-    NetworkFirst: NetworkFirst,
-    NetworkOnly: NetworkOnly,
-    StaleWhileRevalidate: StaleWhileRevalidate
-  });
-
-  /*
-    Copyright 2018 Google LLC
-
-    Use of this source code is governed by an MIT-style
-    license that can be found in the LICENSE file or at
-    https://opensource.org/licenses/MIT.
-  */
-  /**
-   * @function workbox.strategies.cacheFirst
-   * @param {Object} options See the {@link workbox.strategies.CacheFirst}
-   * constructor for more info.
-   */
-
-  /**
-   * @function workbox.strategies.cacheOnly
-   * @param {Object} options See the {@link workbox.strategies.CacheOnly}
-   * constructor for more info.
-   */
-
-  /**
-   * @function workbox.strategies.networkFirst
-   * @param {Object} options See the {@link workbox.strategies.NetworkFirst}
-   * constructor for more info.
-   */
-
-  /**
-   * @function workbox.strategies.networkOnly
-   * @param {Object} options See the {@link workbox.strategies.NetworkOnly}
-   * constructor for more info.
-   */
-
-  /**
-   * @function workbox.strategies.staleWhileRevalidate
-   * @param {Object} options See the
-   * {@link workbox.strategies.StaleWhileRevalidate} constructor for more info.
-   */
-
   const mapping = {
     cacheFirst: CacheFirst,
     cacheOnly: CacheOnly,
@@ -1113,25 +1067,73 @@ this.workbox.strategies = (function (logger_mjs,assert_mjs,cacheNames_mjs,cacheW
     networkOnly: NetworkOnly,
     staleWhileRevalidate: StaleWhileRevalidate
   };
-  const defaultExport = {};
-  Object.keys(mapping).forEach(keyName => {
-    defaultExport[keyName] = (options = {}) => {
-      const StrategyClass = mapping[keyName];
-      return new StrategyClass(Object.assign(options));
+
+  const deprecate = strategy => {
+    const StrategyCtr = mapping[strategy];
+    return options => {
+      {
+        const strategyCtrName = strategy[0].toUpperCase() + strategy.slice(1);
+        logger_mjs.logger.warn(`The 'workbox.strategies.${strategy}()' function has been` + `deprecated and will be removed in a future version of Workbox.\n` + `Please use 'new workbox.strategies.${strategyCtrName}()'' instead.`);
+      }
+
+      return new StrategyCtr(options);
     };
-  });
+  };
+  /**
+   * @function workbox.strategies.cacheFirst
+   * @param {Object} options See the {@link workbox.strategies.CacheFirst}
+   * constructor for more info.
+   * @deprecated since v4.0.0
+   */
 
-  /*
-    Copyright 2018 Google LLC
 
-    Use of this source code is governed by an MIT-style
-    license that can be found in the LICENSE file or at
-    https://opensource.org/licenses/MIT.
-  */
-  const finalExport = Object.assign(defaultExport, publicAPI);
+  const cacheFirst = deprecate('cacheFirst');
+  /**
+   * @function workbox.strategies.cacheOnly
+   * @param {Object} options See the {@link workbox.strategies.CacheOnly}
+   * constructor for more info.
+   * @deprecated since v4.0.0
+   */
 
-  return finalExport;
+  const cacheOnly = deprecate('cacheOnly');
+  /**
+   * @function workbox.strategies.networkFirst
+   * @param {Object} options See the {@link workbox.strategies.NetworkFirst}
+   * constructor for more info.
+   * @deprecated since v4.0.0
+   */
 
-}(workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private));
+  const networkFirst = deprecate('networkFirst');
+  /**
+   * @function workbox.strategies.networkOnly
+   * @param {Object} options See the {@link workbox.strategies.NetworkOnly}
+   * constructor for more info.
+   * @deprecated since v4.0.0
+   */
+
+  const networkOnly = deprecate('networkOnly');
+  /**
+   * @function workbox.strategies.staleWhileRevalidate
+   * @param {Object} options See the
+   * {@link workbox.strategies.StaleWhileRevalidate} constructor for more info.
+   * @deprecated since v4.0.0
+   */
+
+  const staleWhileRevalidate = deprecate('staleWhileRevalidate');
+
+  exports.CacheFirst = CacheFirst;
+  exports.CacheOnly = CacheOnly;
+  exports.NetworkFirst = NetworkFirst;
+  exports.NetworkOnly = NetworkOnly;
+  exports.StaleWhileRevalidate = StaleWhileRevalidate;
+  exports.cacheFirst = cacheFirst;
+  exports.cacheOnly = cacheOnly;
+  exports.networkFirst = networkFirst;
+  exports.networkOnly = networkOnly;
+  exports.staleWhileRevalidate = staleWhileRevalidate;
+
+  return exports;
+
+}({},workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private));
 
 //# sourceMappingURL=workbox-strategies.dev.js.map
