@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.backgroundSync = (function (assert_mjs,DBWrapper_mjs,migrateDb_mjs,WorkboxError_mjs,logger_mjs,getFriendlyURL_mjs) {
+this.workbox.backgroundSync = (function (exports,assert_mjs,DBWrapper_mjs,migrateDb_mjs,WorkboxError_mjs,logger_mjs,getFriendlyURL_mjs) {
   'use strict';
 
   try {
-    self.workbox.v['workbox:background-sync:4.0.0-beta.0'] = 1;
+    self['workbox:background-sync:4.0.0-beta.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -396,7 +396,7 @@ this.workbox.backgroundSync = (function (assert_mjs,DBWrapper_mjs,migrateDb_mjs,
      *     the 'sync' event fires. The function is invoked with an object
      *     containing the `queue` property (referencing this instance), and you
      *     can use the callback to customize the replay behavior of the queue.
-     *.    When not set the `replayRequests()` method is called.
+     *     When not set the `replayRequests()` method is called.
      * @param {number} [options.maxRetentionTime=7 days] The amount of time (in
      *     minutes) a request may be retried. After this amount of time has
      *     passed, the request will be deleted from the queue.
@@ -555,7 +555,7 @@ this.workbox.backgroundSync = (function (assert_mjs,DBWrapper_mjs,migrateDb_mjs,
       await this.registerSync();
 
       {
-        logger_mjs.logger.log(`Request for '${getFriendlyURL_mjs.getFriendlyURL(storableRequest.url)}' has ` + `been added to background sync queue '${this._name}'.`);
+        logger_mjs.logger.log(`Request for '${getFriendlyURL_mjs.getFriendlyURL(request.url)}' has ` + `been added to background sync queue '${this._name}'.`);
       }
     }
     /**
@@ -736,21 +736,11 @@ this.workbox.backgroundSync = (function (assert_mjs,DBWrapper_mjs,migrateDb_mjs,
     https://opensource.org/licenses/MIT.
   */
 
-  var publicAPI = /*#__PURE__*/Object.freeze({
-    Queue: Queue,
-    Plugin: Plugin
-  });
+  exports.Queue = Queue;
+  exports.Plugin = Plugin;
 
-  /*
-    Copyright 2018 Google LLC
+  return exports;
 
-    Use of this source code is governed by an MIT-style
-    license that can be found in the LICENSE file or at
-    https://opensource.org/licenses/MIT.
-  */
-
-  return publicAPI;
-
-}(workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private));
+}({},workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private));
 
 //# sourceMappingURL=workbox-background-sync.dev.js.map

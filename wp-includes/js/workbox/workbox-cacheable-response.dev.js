@@ -3,7 +3,7 @@ this.workbox.cacheableResponse = (function (exports,WorkboxError_mjs,assert_mjs,
   'use strict';
 
   try {
-    self.workbox.v['workbox:cacheable-response:4.0.0-beta.0'] = 1;
+    self['workbox:cacheable-response:4.0.0-beta.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -106,20 +106,20 @@ this.workbox.cacheableResponse = (function (exports,WorkboxError_mjs,assert_mjs,
         if (!cacheable) {
           logger_mjs.logger.groupCollapsed(`The request for ` + `'${getFriendlyURL_mjs.getFriendlyURL(response.url)}' returned a response that does ` + `not meet the criteria for being cached.`);
           logger_mjs.logger.groupCollapsed(`View cacheability criteria here.`);
-          logger_mjs.logger.unprefixed.log(`Cacheable statuses: ` + JSON.stringify(this._statuses));
-          logger_mjs.logger.unprefixed.log(`Cacheable headers: ` + JSON.stringify(this._headers, null, 2));
+          logger_mjs.logger.log(`Cacheable statuses: ` + JSON.stringify(this._statuses));
+          logger_mjs.logger.log(`Cacheable headers: ` + JSON.stringify(this._headers, null, 2));
           logger_mjs.logger.groupEnd();
           const logFriendlyHeaders = {};
           response.headers.forEach((value, key) => {
             logFriendlyHeaders[key] = value;
           });
           logger_mjs.logger.groupCollapsed(`View response status and headers here.`);
-          logger_mjs.logger.unprefixed.log(`Response status: ` + response.status);
-          logger_mjs.logger.unprefixed.log(`Response headers: ` + JSON.stringify(logFriendlyHeaders, null, 2));
+          logger_mjs.logger.log(`Response status: ` + response.status);
+          logger_mjs.logger.log(`Response headers: ` + JSON.stringify(logFriendlyHeaders, null, 2));
           logger_mjs.logger.groupEnd();
           logger_mjs.logger.groupCollapsed(`View full response details here.`);
-          logger_mjs.logger.unprefixed.log(response.headers);
-          logger_mjs.logger.unprefixed.log(response);
+          logger_mjs.logger.log(response.headers);
+          logger_mjs.logger.log(response);
           logger_mjs.logger.groupEnd();
           logger_mjs.logger.groupEnd();
         }
@@ -182,14 +182,6 @@ this.workbox.cacheableResponse = (function (exports,WorkboxError_mjs,assert_mjs,
     }
 
   }
-
-  /*
-    Copyright 2018 Google LLC
-
-    Use of this source code is governed by an MIT-style
-    license that can be found in the LICENSE file or at
-    https://opensource.org/licenses/MIT.
-  */
 
   /*
     Copyright 2018 Google LLC

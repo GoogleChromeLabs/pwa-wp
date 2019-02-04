@@ -68,12 +68,17 @@ class WP_Service_Worker_Styles_Integration extends WP_Service_Worker_Base_Integr
 
 			$url = $dependency->src;
 
+			if ( is_string( $url ) && ! preg_match( '|^(https?:)?//|', $url ) && ! ( wp_styles()->content_url && 0 === strpos( $url, wp_styles()->content_url ) ) ) {
+				$url = wp_styles()->base_url . $url;
+			}
+
 			$revision = false === $dependency->ver ? get_bloginfo( 'version' ) : $dependency->ver;
 
 			/** This filter is documented in wp-includes/class.wp-styles.php */
 			$url = apply_filters( 'style_loader_src', $url, $handle );
 
-			if ( $url && $this->is_local_file_url( $url ) ) {
+			// @todo Issue a warning when it is not a local file?
+			if ( is_string( $url ) && $this->is_local_file_url( $url ) ) {
 				$scripts->precaching_routes()->register( $url, $revision );
 			}
 		}

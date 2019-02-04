@@ -105,10 +105,10 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 		$clients_claim = apply_filters( 'wp_service_worker_clients_claim', false );
 
 		if ( true === $skip_waiting ) {
-			$script .= "workbox.skipWaiting();\n";
+			$script .= "workbox.core.skipWaiting();\n";
 
 			if ( true === $clients_claim ) {
-				$script .= "workbox.clientsClaim();\n";
+				$script .= "workbox.core.clientsClaim();\n";
 			}
 		}
 

@@ -1,39 +1,68 @@
 this.workbox = this.workbox || {};
-this.workbox.core = (function () {
+this.workbox.core = (function (exports) {
   'use strict';
 
   try {
-    self.workbox.v['workbox:core:4.0.0-beta.0'] = 1;
+    self['workbox:core:4.0.0-beta.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
-    Copyright 2018 Google LLC
-
+    Copyright 2019 Google LLC
     Use of this source code is governed by an MIT-style
     license that can be found in the LICENSE file or at
     https://opensource.org/licenses/MIT.
   */
-  /**
-   * The available log levels in Workbox: debug, log, warn, error and silent.
-   *
-   * @property {int} debug Prints all logs from Workbox. Useful for debugging.
-   * @property {int} log Prints console log, warn, error and groups. Default for
-   * debug builds.
-   * @property {int} warn Prints console warn, error and groups. Default for
-   * non-debug builds.
-   * @property {int} error Print console error and groups.
-   * @property {int} silent Force no logging from Workbox.
-   *
-   * @alias workbox.core.LOG_LEVELS
-   */
+  const logger = (() => {
+    let inGroup = false;
+    const methodToColorMap = {
+      debug: `#7f8c8d`,
+      // Gray
+      log: `#2ecc71`,
+      // Green
+      warn: `#f39c12`,
+      // Yellow
+      error: `#c0392b`,
+      // Red
+      groupCollapsed: `#3498db`,
+      // Blue
+      groupEnd: null // No colored prefix on groupEnd
 
-  var LOG_LEVELS = {
-    debug: 0,
-    log: 1,
-    warn: 2,
-    error: 3,
-    silent: 4
-  };
+    };
+
+    const print = function (method, args) {
+      if (method === 'groupCollapsed') {
+        // Safari doesn't print all console.groupCollapsed() arguments:
+        // https://bugs.webkit.org/show_bug.cgi?id=182754
+        if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+          console[method](...args);
+          return;
+        }
+      }
+
+      const styles = [`background: ${methodToColorMap[method]}`, `border-radius: 0.5em`, `color: white`, `font-weight: bold`, `padding: 2px 0.5em`]; // When in a group, the workbox prefix is not displayed.
+
+      const logPrefix = inGroup ? [] : ['%cworkbox', styles.join(';')];
+      console[method](...logPrefix, ...args);
+
+      if (method === 'groupCollapsed') {
+        inGroup = true;
+      }
+
+      if (method === 'groupEnd') {
+        inGroup = false;
+      }
+    };
+
+    const api = {};
+
+    for (const method of Object.keys(methodToColorMap)) {
+      api[method] = (...args) => {
+        print(method, args);
+      };
+    }
+
+    return api;
+  })();
 
   /*
     Copyright 2018 Google LLC
@@ -42,80 +71,7 @@ this.workbox.core = (function () {
     license that can be found in the LICENSE file or at
     https://opensource.org/licenses/MIT.
   */
-  // Related bug: https://bugs.webkit.org/show_bug.cgi?id=182754
-
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  const GREY = `#7f8c8d`;
-  const GREEN = `#2ecc71`;
-  const YELLOW = `#f39c12`;
-  const RED = `#c0392b`;
-  const BLUE = `#3498db`;
-
-  const getDefaultLogLevel = () => LOG_LEVELS.log;
-
-  let logLevel = getDefaultLogLevel();
-
-  const shouldPrint = minLevel => logLevel <= minLevel;
-
-  const setLoggerLevel = newLogLevel => logLevel = newLogLevel;
-
-  const getLoggerLevel = () => logLevel; // We always want groups to be logged unless logLevel is silent.
-
-
-  const groupLevel = LOG_LEVELS.error;
-
-  const _print = function (keyName, logArgs, levelColor) {
-    const logLevel = keyName.indexOf('group') === 0 ? groupLevel : LOG_LEVELS[keyName];
-
-    if (!shouldPrint(logLevel)) {
-      return;
-    }
-
-    if (!levelColor || keyName === 'groupCollapsed' && isSafari) {
-      console[keyName](...logArgs);
-      return;
-    }
-
-    const logPrefix = ['%cworkbox', `background: ${levelColor}; color: white; padding: 2px 0.5em; ` + `border-radius: 0.5em;`];
-    console[keyName](...logPrefix, ...logArgs);
-  };
-
-  const groupEnd = () => {
-    if (shouldPrint(groupLevel)) {
-      console.groupEnd();
-    }
-  };
-
-  const defaultExport = {
-    groupEnd,
-    unprefixed: {
-      groupEnd
-    }
-  };
-
-  const setupLogs = (keyName, color) => {
-    defaultExport[keyName] = (...args) => _print(keyName, args, color);
-
-    defaultExport.unprefixed[keyName] = (...args) => _print(keyName, args);
-  };
-
-  const levelToColor = {
-    debug: GREY,
-    log: GREEN,
-    warn: YELLOW,
-    error: RED,
-    groupCollapsed: BLUE
-  };
-  Object.keys(levelToColor).forEach(keyName => setupLogs(keyName, levelToColor[keyName]));
-
-  /*
-    Copyright 2018 Google LLC
-
-    Use of this source code is governed by an MIT-style
-    license that can be found in the LICENSE file or at
-    https://opensource.org/licenses/MIT.
-  */
-  var messages = {
+  const messages = {
     'invalid-value': ({
       paramName,
       validValueDescription,
@@ -205,7 +161,7 @@ this.workbox.core = (function () {
         throw new Error(`Unexpected input to ` + `'add-to-cache-list-duplicate-entries' error.`);
       }
 
-      return `Two of the entries passed to ` + `'workbox-precaching.PrecacheController.addToCacheList()' had matching ` + `URLs but different revision details. This means workbox-precaching ` + `is unable to determine cache the asset correctly. Please remove one ` + `of the entries.`;
+      return `Two of the entries passed to ` + `'workbox-precaching.PrecacheController.addToCacheList()' had the URL ` + `${firstEntry._entryId} but different revision details. Workbox is ` + `is unable to cache and version the asset correctly. Please remove one ` + `of the entries.`;
     },
     'plugin-error-request-will-fetch': ({
       thrownError
@@ -292,11 +248,11 @@ this.workbox.core = (function () {
       funcName,
       paramName
     }) => {
-      if (!paramName || !moduleName || !className || !funcName) {
+      if (!paramName || !moduleName || !funcName) {
         throw new Error(`Unexpected input to 'invalid-string' error.`);
       }
 
-      return `When using strings, the '${paramName}' parameter must start with ` + `'http' (for cross-origin matches) or '/' (for same-origin matches). ` + `Please see the docs for ${moduleName}.${className}.${funcName}() for ` + `more info.`;
+      return `When using strings, the '${paramName}' parameter must start with ` + `'http' (for cross-origin matches) or '/' (for same-origin matches). ` + `Please see the docs for ${moduleName}.${funcName}() for ` + `more info.`;
     },
     'channel-name-required': () => {
       return `You must provide a channelName to construct a ` + `BroadcastCacheUpdate instance.`;
@@ -393,7 +349,7 @@ this.workbox.core = (function () {
     return message(...args);
   };
 
-  const exportedValue = generatorFunction;
+  const messageGenerator = generatorFunction;
 
   /*
     Copyright 2018 Google LLC
@@ -422,7 +378,7 @@ this.workbox.core = (function () {
      * be added as a key on the context object.
      */
     constructor(errorCode, details) {
-      let message = exportedValue(errorCode, details);
+      let message = messageGenerator(errorCode, details);
       super(message);
       this.name = errorCode;
       this.details = details;
@@ -441,7 +397,7 @@ this.workbox.core = (function () {
    * This method returns true if the current context is a service worker.
    */
 
-  const isSwEnv = moduleName => {
+  const isSWEnv = moduleName => {
     if (!('ServiceWorkerGlobalScope' in self)) {
       throw new WorkboxError('not-in-sw', {
         moduleName
@@ -570,7 +526,7 @@ this.workbox.core = (function () {
     isArray,
     isInstance,
     isOneOf,
-    isSwEnv,
+    isSWEnv,
     isType,
     isArrayOfClass
   };
@@ -603,7 +559,7 @@ this.workbox.core = (function () {
     callbacks.add(callback);
 
     {
-      defaultExport.log('Registered a callback to respond to quota errors.', callback);
+      logger.log('Registered a callback to respond to quota errors.', callback);
     }
   }
   /**
@@ -617,21 +573,29 @@ this.workbox.core = (function () {
 
   async function executeQuotaErrorCallbacks() {
     {
-      defaultExport.log(`About to run ${callbacks.size} callbacks to clean up caches.`);
+      logger.log(`About to run ${callbacks.size} callbacks to clean up caches.`);
     }
 
     for (const callback of callbacks) {
       await callback();
 
       {
-        defaultExport.log(callback, 'is complete.');
+        logger.log(callback, 'is complete.');
       }
     }
 
     {
-      defaultExport.log('Finished running callbacks.');
+      logger.log('Finished running callbacks.');
     }
   }
+
+  /*
+    Copyright 2019 Google LLC
+
+    Use of this source code is governed by an MIT-style
+    license that can be found in the LICENSE file or at
+    https://opensource.org/licenses/MIT.
+  */
 
   /*
     Copyright 2018 Google LLC
@@ -1023,11 +987,11 @@ this.workbox.core = (function () {
     https://opensource.org/licenses/MIT.
   */
   const _cacheNameDetails = {
-    prefix: 'workbox',
-    suffix: self.registration.scope,
     googleAnalytics: 'googleAnalytics',
-    precache: 'precache',
-    runtime: 'runtime'
+    precache: 'precache-v2',
+    prefix: 'workbox',
+    runtime: 'runtime',
+    suffix: self.registration.scope
   };
 
   const _createCacheName = cacheName => {
@@ -1060,11 +1024,12 @@ this.workbox.core = (function () {
     license that can be found in the LICENSE file or at
     https://opensource.org/licenses/MIT.
   */
-  var pluginEvents = {
+  const pluginEvents = {
     CACHE_DID_UPDATE: 'cacheDidUpdate',
     CACHE_WILL_UPDATE: 'cacheWillUpdate',
     CACHED_RESPONSE_WILL_BE_USED: 'cachedResponseWillBeUsed',
     FETCH_DID_FAIL: 'fetchDidFail',
+    FETCH_DID_SUCCEED: 'fetchDidSucceed',
     REQUEST_WILL_FETCH: 'requestWillFetch'
   };
 
@@ -1075,9 +1040,9 @@ this.workbox.core = (function () {
     license that can be found in the LICENSE file or at
     https://opensource.org/licenses/MIT.
   */
-  var pluginUtils = {
-    filter: (plugins, callbackname) => {
-      return plugins.filter(plugin => callbackname in plugin);
+  const pluginUtils = {
+    filter: (plugins, callbackName) => {
+      return plugins.filter(plugin => callbackName in plugin);
     }
   };
 
@@ -1131,7 +1096,7 @@ this.workbox.core = (function () {
   } = {}) => {
     if (!response) {
       {
-        defaultExport.error(`Cannot cache non-existent response for ` + `'${getFriendlyURL(request.url)}'.`);
+        logger.error(`Cannot cache non-existent response for ` + `'${getFriendlyURL(request.url)}'.`);
       }
 
       throw new WorkboxError('cache-put-with-no-response', {
@@ -1148,7 +1113,7 @@ this.workbox.core = (function () {
 
     if (!responseToCache) {
       {
-        defaultExport.debug(`Response '${getFriendlyURL(request.url)}' will not be ` + `cached.`, responseToCache);
+        logger.debug(`Response '${getFriendlyURL(request.url)}' will not be ` + `cached.`, responseToCache);
       }
 
       return;
@@ -1171,7 +1136,7 @@ this.workbox.core = (function () {
     }) : null;
 
     {
-      defaultExport.debug(`Updating the '${cacheName}' cache with a new Response for ` + `${getFriendlyURL(request.url)}.`);
+      logger.debug(`Updating the '${cacheName}' cache with a new Response for ` + `${getFriendlyURL(request.url)}.`);
     }
 
     try {
@@ -1224,13 +1189,13 @@ this.workbox.core = (function () {
 
     {
       if (cachedResponse) {
-        defaultExport.debug(`Found a cached response in '${cacheName}'.`);
+        logger.debug(`Found a cached response in '${cacheName}'.`);
       } else {
-        defaultExport.debug(`No cached response found in '${cacheName}'.`);
+        logger.debug(`No cached response found in '${cacheName}'.`);
       }
     }
 
-    for (let plugin of plugins) {
+    for (const plugin of plugins) {
       if (pluginEvents.CACHED_RESPONSE_WILL_BE_USED in plugin) {
         cachedResponse = await plugin[pluginEvents.CACHED_RESPONSE_WILL_BE_USED].call(plugin, {
           cacheName,
@@ -1256,7 +1221,7 @@ this.workbox.core = (function () {
   };
   /**
    * This method will call cacheWillUpdate on the available plugins (or use
-   * response.ok) to determine if the Response is safe and valid to cache.
+   * status === 200) to determine if the Response is safe and valid to cache.
    *
    * @param {Object} options
    * @param {Request} options.request
@@ -1306,16 +1271,16 @@ this.workbox.core = (function () {
 
     if (!pluginsUsed) {
       {
-        if (!responseToCache.ok) {
+        if (!responseToCache.status === 200) {
           if (responseToCache.status === 0) {
-            defaultExport.warn(`The response for '${request.url}' is an opaque ` + `response. The caching strategy that you're using will not ` + `cache opaque responses by default.`);
+            logger.warn(`The response for '${request.url}' is an opaque ` + `response. The caching strategy that you're using will not ` + `cache opaque responses by default.`);
           } else {
-            defaultExport.debug(`The response for '${request.url}' returned ` + `a status code of '${response.status}' and won't be cached as a ` + `result.`);
+            logger.debug(`The response for '${request.url}' returned ` + `a status code of '${response.status}' and won't be cached as a ` + `result.`);
           }
         }
       }
 
-      responseToCache = responseToCache.ok ? responseToCache : null;
+      responseToCache = responseToCache.status === 200 ? responseToCache : null;
     }
 
     return responseToCache ? responseToCache : null;
@@ -1363,7 +1328,7 @@ this.workbox.core = (function () {
 
       if (possiblePreloadResponse) {
         {
-          defaultExport.log(`Using a preloaded navigation response for ` + `'${getFriendlyURL(request.url)}'`);
+          logger.log(`Using a preloaded navigation response for ` + `'${getFriendlyURL(request.url)}'`);
         }
 
         return possiblePreloadResponse;
@@ -1418,22 +1383,48 @@ this.workbox.core = (function () {
     // to the Request we make. Pass both to `fetchDidFail` to aid debugging.
 
 
-    const pluginFilteredRequest = request.clone();
+    let pluginFilteredRequest = request.clone();
 
     try {
-      const fetchResponse = await fetch(request, fetchOptions);
+      let fetchResponse; // See https://github.com/GoogleChrome/workbox/issues/1796
+
+      if (request.mode === 'navigate') {
+        fetchResponse = await fetch(request);
+      } else {
+        fetchResponse = await fetch(request, fetchOptions);
+      }
 
       {
-        defaultExport.debug(`Network request for ` + `'${getFriendlyURL(request.url)}' returned a response with ` + `status '${fetchResponse.status}'.`);
+        logger.debug(`Network request for ` + `'${getFriendlyURL(request.url)}' returned a response with ` + `status '${fetchResponse.status}'.`);
+      }
+
+      for (const plugin of plugins) {
+        if (pluginEvents.FETCH_DID_SUCCEED in plugin) {
+          fetchResponse = await plugin[pluginEvents.FETCH_DID_SUCCEED].call(plugin, {
+            event,
+            request: pluginFilteredRequest,
+            response: fetchResponse
+          });
+
+          {
+            if (fetchResponse) {
+              finalAssertExports.isInstance(fetchResponse, Response, {
+                moduleName: 'Plugin',
+                funcName: pluginEvents.FETCH_DID_SUCCEED,
+                isReturnValueProblem: true
+              });
+            }
+          }
+        }
       }
 
       return fetchResponse;
     } catch (error) {
       {
-        defaultExport.error(`Network request for ` + `'${getFriendlyURL(request.url)}' threw an error.`, error);
+        logger.error(`Network request for ` + `'${getFriendlyURL(request.url)}' threw an error.`, error);
       }
 
-      for (let plugin of failedFetchPlugins) {
+      for (const plugin of failedFetchPlugins) {
         await plugin[pluginEvents.FETCH_DID_FAIL].call(plugin, {
           error,
           event,
@@ -1468,249 +1459,141 @@ this.workbox.core = (function () {
     cacheWrapper: cacheWrapper,
     fetchWrapper: fetchWrapper,
     getFriendlyURL: getFriendlyURL,
-    logger: defaultExport
+    logger: logger
   });
 
   /*
-    Copyright 2018 Google LLC
+    Copyright 2019 Google LLC
 
     Use of this source code is governed by an MIT-style
     license that can be found in the LICENSE file or at
     https://opensource.org/licenses/MIT.
   */
   /**
-   * Logs a warning to the user recommending changing
-   * to max-age=0 or no-cache.
+   * Claim any currently available clients once the service worker
+   * becomes active. This is normally used in conjunction with `skipWaiting()`.
    *
-   * @param {string} cacheControlHeader
-   *
-   * @private
+   * @alias workbox.core.clientsClaim
    */
 
-  function showWarning(cacheControlHeader) {
-    const docsUrl = 'https://developers.google.com/web/tools/workbox/guides/service-worker-checklist#cache-control_of_your_service_worker_file';
-    defaultExport.warn(`You are setting a 'cache-control' header of ` + `'${cacheControlHeader}' on your service worker file. This should be ` + `set to 'max-age=0' or 'no-cache' to ensure the latest service worker ` + `is served to your users. Learn more here: ${docsUrl}`);
-  }
-  /**
-   * Checks for cache-control header on SW file and
-   * warns the developer if it exists with a value
-   * other than max-age=0 or no-cache.
-   *
-   * @return {Promise}
-   * @private
-   */
-
-
-  function checkSWFileCacheHeaders() {
-    // This is wrapped as an iife to allow async/await while making
-    //  rollup exclude it in builds.
-    return (async () => {
-      try {
-        const swFile = self.location.href;
-        const response = await fetch(swFile);
-
-        if (!response.ok) {
-          // Response failed so nothing we can check;
-          return;
-        }
-
-        if (!response.headers.has('cache-control')) {
-          // No cache control header.
-          return;
-        }
-
-        const cacheControlHeader = response.headers.get('cache-control');
-        const maxAgeResult = /max-age\s*=\s*(\d*)/g.exec(cacheControlHeader);
-
-        if (maxAgeResult) {
-          if (parseInt(maxAgeResult[1], 10) === 0) {
-            return;
-          }
-        }
-
-        if (cacheControlHeader.indexOf('no-cache') !== -1) {
-          return;
-        }
-
-        if (cacheControlHeader.indexOf('no-store') !== -1) {
-          return;
-        }
-
-        showWarning(cacheControlHeader);
-      } catch (err) {// NOOP
-      }
-    })();
-  }
-
-  const finalCheckSWFileCacheHeaders = checkSWFileCacheHeaders;
+  const clientsClaim = () => {
+    addEventListener('activate', () => clients.claim());
+  };
 
   /*
-    Copyright 2018 Google LLC
+    Copyright 2019 Google LLC
 
     Use of this source code is governed by an MIT-style
     license that can be found in the LICENSE file or at
     https://opensource.org/licenses/MIT.
   */
   /**
-   * This class is never exposed publicly. Inidividual methods are exposed
-   * using jsdoc alias commands.
+   * Get the current cache names used by Workbox.
    *
-   * @memberof workbox.core
-   * @private
+   * `cacheNames.precache` is used for precached assets,
+   * `cacheNames.googleAnalytics` is used by `workbox-google-analytics` to
+   * store `analytics.js`, and `cacheNames.runtime` is used for everything else.
+   *
+   * @return {Object} An object with `precache`, `runtime`, and
+   *     `googleAnalytics` cache names.
+   *
+   * @alias workbox.core.cacheNames
    */
 
-  class WorkboxCore {
-    /**
-     * You should not instantiate this object directly.
-     *
-     * @private
-     */
-    constructor() {
-      // Give our version strings something to hang off of.
-      try {
-        self.workbox.v = self.workbox.v || {};
-      } catch (err) {} // NOOP
-      // A WorkboxCore instance must be exported before we can use the logger.
-      // This is so it can get the current log level.
+  const cacheNames$1 = {
+    get googleAnalytics() {
+      return cacheNames.getGoogleAnalyticsName();
+    },
 
+    get precache() {
+      return cacheNames.getPrecacheName();
+    },
 
-      {
-        const padding = '   ';
-        defaultExport.groupCollapsed('Welcome to Workbox!');
-        defaultExport.unprefixed.log(`You are currently using a development build. ` + `By default this will switch to prod builds when not on localhost. ` + `You can force this with workbox.setConfig({debug: true|false}).`);
-        defaultExport.unprefixed.log(`📖 Read the guides and documentation\n` + `${padding}https://developers.google.com/web/tools/workbox/`);
-        defaultExport.unprefixed.log(`❓ Use the [workbox] tag on Stack Overflow to ask questions\n` + `${padding}https://stackoverflow.com/questions/ask?tags=workbox`);
-        defaultExport.unprefixed.log(`🐛 Found a bug? Report it on GitHub\n` + `${padding}https://github.com/GoogleChrome/workbox/issues/new`);
-        defaultExport.groupEnd();
-
-        if (typeof finalCheckSWFileCacheHeaders === 'function') {
-          finalCheckSWFileCacheHeaders();
-        }
-      }
+    get runtime() {
+      return cacheNames.getRuntimeName();
     }
-    /**
-     * Get the current cache names used by Workbox.
-     *
-     * `cacheNames.precache` is used for precached assets,
-     * `cacheNames.googleAnalytics` is used by `workbox-google-analytics` to
-     * store `analytics.js`,
-     * and `cacheNames.runtime` is used for everything else.
-     *
-     * @return {Object} An object with `precache` and `runtime` cache names.
-     *
-     * @alias workbox.core.cacheNames
-     */
 
+  };
 
-    get cacheNames() {
-      return {
-        googleAnalytics: cacheNames.getGoogleAnalyticsName(),
-        precache: cacheNames.getPrecacheName(),
-        runtime: cacheNames.getRuntimeName()
-      };
-    }
-    /**
-     * You can alter the default cache names used by the Workbox modules by
-     * changing the cache name details.
-     *
-     * Cache names are generated as `<prefix>-<Cache Name>-<suffix>`.
-     *
-     * @param {Object} details
-     * @param {Object} details.prefix The string to add to the beginning of
-     * the precache and runtime cache names.
-     * @param {Object} details.suffix The string to add to the end of
-     * the precache and runtime cache names.
-     * @param {Object} details.precache The cache name to use for precache
-     * caching.
-     * @param {Object} details.runtime The cache name to use for runtime caching.
-     * @param {Object} details.googleAnalytics The cache name to use for
-     * `workbox-google-analytics` caching.
-     *
-     * @alias workbox.core.setCacheNameDetails
-     */
+  /*
+    Copyright 2019 Google LLC
 
+    Use of this source code is governed by an MIT-style
+    license that can be found in the LICENSE file or at
+    https://opensource.org/licenses/MIT.
+  */
+  /**
+   * Modifies the default cache names used by the Workbox packages.
+   * Cache names are generated as `<prefix>-<Cache Name>-<suffix>`.
+   *
+   * @param {Object} details
+   * @param {Object} [details.prefix] The string to add to the beginning of
+   *     the precache and runtime cache names.
+   * @param {Object} [details.suffix] The string to add to the end of
+   *     the precache and runtime cache names.
+   * @param {Object} [details.precache] The cache name to use for precache
+   *     caching.
+   * @param {Object} [details.runtime] The cache name to use for runtime caching.
+   * @param {Object} [details.googleAnalytics] The cache name to use for
+   *     `workbox-google-analytics` caching.
+   *
+   * @alias workbox.core.setCacheNameDetails
+   */
 
-    setCacheNameDetails(details) {
-      {
-        Object.keys(details).forEach(key => {
-          finalAssertExports.isType(details[key], 'string', {
-            moduleName: 'workbox-core',
-            className: 'WorkboxCore',
-            funcName: 'setCacheNameDetails',
-            paramName: `details.${key}`
-          });
-        });
-
-        if ('precache' in details && details.precache.length === 0) {
-          throw new WorkboxError('invalid-cache-name', {
-            cacheNameId: 'precache',
-            value: details.precache
-          });
-        }
-
-        if ('runtime' in details && details.runtime.length === 0) {
-          throw new WorkboxError('invalid-cache-name', {
-            cacheNameId: 'runtime',
-            value: details.runtime
-          });
-        }
-
-        if ('googleAnalytics' in details && details.googleAnalytics.length === 0) {
-          throw new WorkboxError('invalid-cache-name', {
-            cacheNameId: 'googleAnalytics',
-            value: details.googleAnalytics
-          });
-        }
-      }
-
-      cacheNames.updateDetails(details);
-    }
-    /**
-     * Get the current log level.
-     *
-     * @return {number}.
-     *
-     * @alias workbox.core.logLevel
-     */
-
-
-    get logLevel() {
-      return getLoggerLevel();
-    }
-    /**
-     * Set the current log level passing in one of the values from
-     * [LOG_LEVELS]{@link module:workbox-core.LOG_LEVELS}.
-     *
-     * @param {number} newLevel The new log level to use.
-     *
-     * @alias workbox.core.setLogLevel
-     */
-
-
-    setLogLevel(newLevel) {
-      {
-        finalAssertExports.isType(newLevel, 'number', {
+  const setCacheNameDetails = details => {
+    {
+      Object.keys(details).forEach(key => {
+        finalAssertExports.isType(details[key], 'string', {
           moduleName: 'workbox-core',
-          className: 'WorkboxCore',
-          funcName: 'logLevel [setter]',
-          paramName: `logLevel`
+          funcName: 'setCacheNameDetails',
+          paramName: `details.${key}`
+        });
+      });
+
+      if ('precache' in details && details.precache.length === 0) {
+        throw new WorkboxError('invalid-cache-name', {
+          cacheNameId: 'precache',
+          value: details.precache
         });
       }
 
-      if (newLevel > LOG_LEVELS.silent || newLevel < LOG_LEVELS.debug) {
-        throw new WorkboxError('invalid-value', {
-          paramName: 'logLevel',
-          validValueDescription: `Please use a value from LOG_LEVELS, i.e ` + `'logLevel = workbox.core.LOG_LEVELS.debug'.`,
-          value: newLevel
+      if ('runtime' in details && details.runtime.length === 0) {
+        throw new WorkboxError('invalid-cache-name', {
+          cacheNameId: 'runtime',
+          value: details.runtime
         });
       }
 
-      setLoggerLevel(newLevel);
+      if ('googleAnalytics' in details && details.googleAnalytics.length === 0) {
+        throw new WorkboxError('invalid-cache-name', {
+          cacheNameId: 'googleAnalytics',
+          value: details.googleAnalytics
+        });
+      }
     }
 
-  }
+    cacheNames.updateDetails(details);
+  };
 
-  var defaultExport$1 = new WorkboxCore();
+  /*
+    Copyright 2019 Google LLC
+
+    Use of this source code is governed by an MIT-style
+    license that can be found in the LICENSE file or at
+    https://opensource.org/licenses/MIT.
+  */
+  /**
+   * Force a service worker to become active, instead of waiting. This is
+   * normally used in conjunction with `clientsClaim()`.
+   *
+   * @alias workbox.core.skipWaiting
+   */
+
+  const skipWaiting = () => {
+    // We need to explicitly call `self.skipWaiting()` here because we're
+    // shadowing `skipWaiting` with this local function.
+    addEventListener('install', () => self.skipWaiting());
+  };
 
   /*
     Copyright 2018 Google LLC
@@ -1719,14 +1602,20 @@ this.workbox.core = (function () {
     license that can be found in the LICENSE file or at
     https://opensource.org/licenses/MIT.
   */
-  const finalExports = Object.assign(defaultExport$1, {
-    _private,
-    LOG_LEVELS,
-    registerQuotaErrorCallback
-  });
 
-  return finalExports;
+  try {
+    self.workbox.v = self.workbox.v || {};
+  } catch (errer) {} // NOOP
 
-}());
+  exports._private = _private;
+  exports.clientsClaim = clientsClaim;
+  exports.cacheNames = cacheNames$1;
+  exports.registerQuotaErrorCallback = registerQuotaErrorCallback;
+  exports.setCacheNameDetails = setCacheNameDetails;
+  exports.skipWaiting = skipWaiting;
+
+  return exports;
+
+}({}));
 
 //# sourceMappingURL=workbox-core.dev.js.map

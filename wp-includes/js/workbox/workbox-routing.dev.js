@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.routing = (function (assert_mjs,logger_mjs,WorkboxError_mjs,getFriendlyURL_mjs,cacheNames_mjs) {
+this.workbox.routing = (function (exports,assert_mjs,logger_mjs,WorkboxError_mjs,getFriendlyURL_mjs,cacheNames_mjs) {
   'use strict';
 
   try {
-    self.workbox.v['workbox:routing:4.0.0-beta.0'] = 1;
+    self['workbox:routing:4.0.0-beta.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -48,7 +48,7 @@ this.workbox.routing = (function (assert_mjs,logger_mjs,WorkboxError_mjs,getFrie
    * @private
    */
 
-  var normalizeHandler = (handler => {
+  const normalizeHandler = handler => {
     if (handler && typeof handler === 'object') {
       {
         assert_mjs.assert.hasMethod(handler, 'handle', {
@@ -74,7 +74,7 @@ this.workbox.routing = (function (assert_mjs,logger_mjs,WorkboxError_mjs,getFrie
         handle: handler
       };
     }
-  });
+  };
 
   /*
     Copyright 2018 Google LLC
@@ -388,24 +388,48 @@ this.workbox.routing = (function (assert_mjs,logger_mjs,WorkboxError_mjs,getFrie
     }
     /**
      * Adds a message event listener for URLs to cache from the window.
-     * This is useful to cache resources loaded prior to when the service worker
-     * started controlling the page.
+     * This is useful to cache resources loaded on the page prior to when the
+     * service worker started controlling it.
+     *
+     * The format of the message data sent from the window should be as follows.
+     * Where the `urlsToCache` array may consist of URL strings or an array of
+     * URL string + `requestInit` object (the same as you'd pass to `fetch()`).
+     *
+     * ```
+     * {
+     *   type: 'CACHE_URLS',
+     *   meta: 'workbox-window',
+     *   payload: {
+     *     urlsToCache: [
+     *       './script1.js',
+     *       './script2.js',
+     *       ['./script3.js', {mode: 'no-cors'}],
+     *     ],
+     *   },
+     * }
+     * ```
      */
 
 
     addCacheListener() {
       self.addEventListener('message', event => {
-        if (event.data.type === 'CACHE_URLS' && event.data.meta === 'workbox-window') {
-          const {
-            urlsToCache
-          } = event.data.payload;
+        const {
+          type,
+          meta,
+          payload
+        } = event.data;
 
+        if (type === 'CACHE_URLS' && meta === 'workbox-window') {
           {
-            logger_mjs.logger.debug(`Caching URLs from the window`, urlsToCache);
+            logger_mjs.logger.debug(`Caching URLs from the window`, payload.urlsToCache);
           }
 
-          for (const url of urlsToCache) {
-            const request = new Request(url);
+          for (let entry of payload.urlsToCache) {
+            if (typeof entry === 'string') {
+              entry = [entry];
+            }
+
+            const request = new Request(...entry);
             this.handleRequest({
               request,
               event
@@ -509,7 +533,7 @@ this.workbox.routing = (function (assert_mjs,logger_mjs,WorkboxError_mjs,getFrie
         // hide it under a group in case developers want to see it.
 
         logger_mjs.logger.groupCollapsed(`View request details here.`);
-        logger_mjs.logger.unprefixed.log(request);
+        logger_mjs.logger.log(request);
         logger_mjs.logger.groupEnd();
         logger_mjs.logger.groupEnd();
       } // Wrap in try and catch in case the handle method throws a synchronous
@@ -535,8 +559,8 @@ this.workbox.routing = (function (assert_mjs,logger_mjs,WorkboxError_mjs,getFrie
             // Still include URL here as it will be async from the console group
             // and may not make sense without the URL
             logger_mjs.logger.groupCollapsed(`Error thrown when responding to: ` + ` ${getFriendlyURL_mjs.getFriendlyURL(url)}. Falling back to Catch Handler.`);
-            logger_mjs.logger.unprefixed.error(`Error thrown by:`, route);
-            logger_mjs.logger.unprefixed.error(err);
+            logger_mjs.logger.error(`Error thrown by:`, route);
+            logger_mjs.logger.error(err);
             logger_mjs.logger.groupEnd();
           }
 
@@ -717,155 +741,84 @@ this.workbox.routing = (function (assert_mjs,logger_mjs,WorkboxError_mjs,getFrie
   }
 
   /*
-    Copyright 2018 Google LLC
+    Copyright 2019 Google LLC
+
+    Use of this source code is governed by an MIT-style
+    license that can be found in the LICENSE file or at
+    https://opensource.org/licenses/MIT.
+  */
+  let defaultRouter;
+  /**
+   * Creates a new, singleton Router instance if one does not exist. If one
+   * does already exist, that instance is returned.
+   *
+   * @private
+   * @return {Router}
+   */
+
+  const getOrCreateDefaultRouter = () => {
+    if (!defaultRouter) {
+      defaultRouter = new Router(); // The helpers that use the default Router assume these listeners exist.
+
+      defaultRouter.addFetchListener();
+      defaultRouter.addCacheListener();
+    }
+
+    return defaultRouter;
+  };
+
+  /*
+    Copyright 2019 Google LLC
 
     Use of this source code is governed by an MIT-style
     license that can be found in the LICENSE file or at
     https://opensource.org/licenses/MIT.
   */
   /**
-   * The router class exposed on the routing namespace.
-   * A single instance of this class is exposed because most users will only
-   * need one router, and this version offers the most features and flexibility.
+   * Registers a route that will return a precached file for a navigation
+   * request. This is useful for the
+   * [application shell pattern]{@link https://developers.google.com/web/fundamentals/architecture/app-shell}.
+   *
+   * This method will generate a
+   * [NavigationRoute]{@link workbox.routing.NavigationRoute}
+   * and call
+   * [Router.registerRoute()]{@link workbox.routing.Router#registerRoute} on a
+   * singleton Router instance.
+   *
+   * @param {string} cachedAssetUrl
+   * @param {Object} [options]
+   * @param {string} [options.cacheName] Cache name to store and retrieve
+   * requests. Defaults to precache cache name provided by
+   * [workbox-core.cacheNames]{@link workbox.core.cacheNames}.
+   * @param {Array<RegExp>} [options.blacklist=[]] If any of these patterns
+   * match, the route will not handle the request (even if a whitelist entry
+   * matches).
+   * @param {Array<RegExp>} [options.whitelist=[/./]] If any of these patterns
+   * match the URL's pathname and search parameter, the route will handle the
+   * request (assuming the blacklist doesn't match).
+   * @return {workbox.routing.NavigationRoute} Returns the generated
+   * Route.
+   *
+   * @alias workbox.routing.registerNavigationRoute
    */
 
-  class DefaultRouter extends Router {
-    /**
-     * The default router automatically adds fetch and cache message listeners.
-     */
-    constructor() {
-      super();
-      this.addFetchListener();
-      this.addCacheListener();
+  const registerNavigationRoute = (cachedAssetUrl, options = {}) => {
+    {
+      assert_mjs.assert.isType(cachedAssetUrl, 'string', {
+        moduleName: 'workbox-routing',
+        funcName: 'registerNavigationRoute',
+        paramName: 'cachedAssetUrl'
+      });
     }
-    /**
-     * Easily register a RegExp, string, or function with a caching
-     * strategy to the Router.
-     *
-     * This method will generate a Route for you if needed and
-     * call [Router.registerRoute()]{@link
-     * workbox.routing.Router#registerRoute}.
-     *
-     * @param {
-     * RegExp|
-     * string|
-     * workbox.routing.Route~matchCallback|
-     * workbox.routing.Route
-     * } capture
-     * If the capture param is a `Route`, all other arguments will be ignored.
-     * @param {workbox.routing.Route~handlerCallback} handler A callback
-     * function that returns a Promise resulting in a Response.
-     * @param {string} [method='GET'] The HTTP method to match the Route
-     * against.
-     * @return {workbox.routing.Route} The generated `Route`(Useful for
-     * unregistering).
-     *
-     * @alias workbox.routing.registerRoute
-     */
 
+    const cacheName = cacheNames_mjs.cacheNames.getPrecacheName(options.cacheName);
 
-    registerRoute(capture, handler, method = 'GET') {
-      let route;
-
-      if (typeof capture === 'string') {
-        const captureUrl = new URL(capture, location);
-
-        {
-          if (!(capture.startsWith('/') || capture.startsWith('http'))) {
-            throw new WorkboxError_mjs.WorkboxError('invalid-string', {
-              moduleName: 'workbox-routing',
-              className: 'DefaultRouter',
-              funcName: 'registerRoute',
-              paramName: 'capture'
-            });
-          } // We want to check if Express-style wildcards are in the pathname only.
-          // TODO: Remove this log message in v4.
-
-
-          const valueToCheck = capture.startsWith('http') ? captureUrl.pathname : capture; // See https://github.com/pillarjs/path-to-regexp#parameters
-
-          const wildcards = '[*:?+]';
-
-          if (valueToCheck.match(new RegExp(`${wildcards}`))) {
-            logger_mjs.logger.debug(`The '$capture' parameter contains an Express-style wildcard ` + `character (${wildcards}). Strings are now always interpreted as ` + `exact matches; use a RegExp for partial or wildcard matches.`);
-          }
-        }
-
-        const matchCallback = ({
-          url
-        }) => {
-          {
-            if (url.pathname === captureUrl.pathname && url.origin !== captureUrl.origin) {
-              logger_mjs.logger.debug(`${capture} only partially matches the cross-origin URL ` + `${url}. This route will only handle cross-origin requests ` + `if they match the entire URL.`);
-            }
-          }
-
-          return url.href === captureUrl.href;
-        };
-
-        route = new Route(matchCallback, handler, method);
-      } else if (capture instanceof RegExp) {
-        route = new RegExpRoute(capture, handler, method);
-      } else if (typeof capture === 'function') {
-        route = new Route(capture, handler, method);
-      } else if (capture instanceof Route) {
-        route = capture;
-      } else {
-        throw new WorkboxError_mjs.WorkboxError('unsupported-route-type', {
-          moduleName: 'workbox-routing',
-          className: 'DefaultRouter',
-          funcName: 'registerRoute',
-          paramName: 'capture'
+    const handler = async () => {
+      try {
+        const response = await caches.match(cachedAssetUrl, {
+          cacheName
         });
-      }
 
-      super.registerRoute(route);
-      return route;
-    }
-    /**
-     * Register a route that will return a precached file for a navigation
-     * request. This is useful for the
-     * [application shell pattern]{@link https://developers.google.com/web/fundamentals/architecture/app-shell}.
-     *
-     * This method will generate a
-     * [NavigationRoute]{@link workbox.routing.NavigationRoute}
-     * and call
-     * [Router.registerRoute()]{@link workbox.routing.Router#registerRoute}
-     * .
-     *
-     * @param {string} cachedAssetUrl
-     * @param {Object} [options]
-     * @param {string} [options.cacheName] Cache name to store and retrieve
-     * requests. Defaults to precache cache name provided by
-     * [workbox-core.cacheNames]{@link workbox.core.cacheNames}.
-     * @param {Array<RegExp>} [options.blacklist=[]] If any of these patterns
-     * match, the route will not handle the request (even if a whitelist entry
-     * matches).
-     * @param {Array<RegExp>} [options.whitelist=[/./]] If any of these patterns
-     * match the URL's pathname and search parameter, the route will handle the
-     * request (assuming the blacklist doesn't match).
-     * @return {workbox.routing.NavigationRoute} Returns the generated
-     * Route.
-     *
-     * @alias workbox.routing.registerNavigationRoute
-     */
-
-
-    registerNavigationRoute(cachedAssetUrl, options = {}) {
-      {
-        assert_mjs.assert.isType(cachedAssetUrl, 'string', {
-          moduleName: 'workbox-routing',
-          className: '[default export]',
-          funcName: 'registerNavigationRoute',
-          paramName: 'cachedAssetUrl'
-        });
-      }
-
-      const cacheName = cacheNames_mjs.cacheNames.getPrecacheName(options.cacheName);
-
-      const handler = () => caches.match(cachedAssetUrl, {
-        cacheName
-      }).then(response => {
         if (response) {
           return response;
         } // This shouldn't normally happen, but there are edge cases:
@@ -873,44 +826,118 @@ this.workbox.routing = (function (assert_mjs,logger_mjs,WorkboxError_mjs,getFrie
 
 
         throw new Error(`The cache ${cacheName} did not have an entry for ` + `${cachedAssetUrl}.`);
-      }).catch(error => {
+      } catch (error) {
         // If there's either a cache miss, or the caches.match() call threw
         // an exception, then attempt to fulfill the navigation request with
         // a response from the network rather than leaving the user with a
         // failed navigation.
         {
-          logger_mjs.logger.debug(`Unable to respond to navigation request with ` + `cached response: ${error.message}. Falling back to network.`);
+          logger_mjs.logger.debug(`Unable to respond to navigation request with ` + `cached response. Falling back to network.`, error);
         } // This might still fail if the browser is offline...
 
 
         return fetch(cachedAssetUrl);
-      });
+      }
+    };
 
-      const route = new NavigationRoute(handler, {
-        whitelist: options.whitelist,
-        blacklist: options.blacklist
-      });
-      super.registerRoute(route);
-      return route;
-    }
-
-  }
+    const route = new NavigationRoute(handler, {
+      whitelist: options.whitelist,
+      blacklist: options.blacklist
+    });
+    const defaultRouter = getOrCreateDefaultRouter();
+    defaultRouter.registerRoute(route);
+    return route;
+  };
 
   /*
-    Copyright 2018 Google LLC
+    Copyright 2019 Google LLC
 
     Use of this source code is governed by an MIT-style
     license that can be found in the LICENSE file or at
     https://opensource.org/licenses/MIT.
   */
+  /**
+   * Easily register a RegExp, string, or function with a caching
+   * strategy to a singleton Router instance.
+   *
+   * This method will generate a Route for you if needed and
+   * call [Router.registerRoute()]{@link
+   * workbox.routing.Router#registerRoute}.
+   *
+   * @param {
+   * RegExp|
+   * string|
+   * workbox.routing.Route~matchCallback|
+   * workbox.routing.Route
+   * } capture
+   * If the capture param is a `Route`, all other arguments will be ignored.
+   * @param {workbox.routing.Route~handlerCallback} handler A callback
+   * function that returns a Promise resulting in a Response.
+   * @param {string} [method='GET'] The HTTP method to match the Route
+   * against.
+   * @return {workbox.routing.Route} The generated `Route`(Useful for
+   * unregistering).
+   *
+   * @alias workbox.routing.registerRoute
+   */
 
-  var publicAPI = /*#__PURE__*/Object.freeze({
-    DefaultRouter: DefaultRouter,
-    RegExpRoute: RegExpRoute,
-    Route: Route,
-    Router: Router,
-    NavigationRoute: NavigationRoute
-  });
+  const registerRoute = (capture, handler, method = 'GET') => {
+    let route;
+
+    if (typeof capture === 'string') {
+      const captureUrl = new URL(capture, location);
+
+      {
+        if (!(capture.startsWith('/') || capture.startsWith('http'))) {
+          throw new WorkboxError_mjs.WorkboxError('invalid-string', {
+            moduleName: 'workbox-routing',
+            funcName: 'registerRoute',
+            paramName: 'capture'
+          });
+        } // We want to check if Express-style wildcards are in the pathname only.
+        // TODO: Remove this log message in v4.
+
+
+        const valueToCheck = capture.startsWith('http') ? captureUrl.pathname : capture; // See https://github.com/pillarjs/path-to-regexp#parameters
+
+        const wildcards = '[*:?+]';
+
+        if (valueToCheck.match(new RegExp(`${wildcards}`))) {
+          logger_mjs.logger.debug(`The '$capture' parameter contains an Express-style wildcard ` + `character (${wildcards}). Strings are now always interpreted as ` + `exact matches; use a RegExp for partial or wildcard matches.`);
+        }
+      }
+
+      const matchCallback = ({
+        url
+      }) => {
+        {
+          if (url.pathname === captureUrl.pathname && url.origin !== captureUrl.origin) {
+            logger_mjs.logger.debug(`${capture} only partially matches the cross-origin URL ` + `${url}. This route will only handle cross-origin requests ` + `if they match the entire URL.`);
+          }
+        }
+
+        return url.href === captureUrl.href;
+      };
+
+      route = new Route(matchCallback, handler, method);
+    } else if (capture instanceof RegExp) {
+      route = new RegExpRoute(capture, handler, method);
+    } else if (typeof capture === 'function') {
+      route = new Route(capture, handler, method);
+    } else if (capture instanceof Route) {
+      route = capture;
+    } else {
+      throw new WorkboxError_mjs.WorkboxError('unsupported-route-type', {
+        moduleName: 'workbox-routing',
+        funcName: 'registerRoute',
+        paramName: 'capture'
+      });
+    }
+
+    const defaultRouter = getOrCreateDefaultRouter();
+    defaultRouter.registerRoute(route);
+    return route;
+  };
 
   /*
     Copyright 2018 Google LLC
@@ -921,22 +948,18 @@ this.workbox.routing = (function (assert_mjs,logger_mjs,WorkboxError_mjs,getFrie
   */
 
   {
-    assert_mjs.assert.isSwEnv('workbox-routing');
+    assert_mjs.assert.isSWEnv('workbox-routing');
   }
 
-  var defaultExport = new DefaultRouter();
+  exports.NavigationRoute = NavigationRoute;
+  exports.RegExpRoute = RegExpRoute;
+  exports.registerNavigationRoute = registerNavigationRoute;
+  exports.registerRoute = registerRoute;
+  exports.Route = Route;
+  exports.Router = Router;
 
-  /*
-    Copyright 2018 Google LLC
+  return exports;
 
-    Use of this source code is governed by an MIT-style
-    license that can be found in the LICENSE file or at
-    https://opensource.org/licenses/MIT.
-  */
-  const finalExport = Object.assign(defaultExport, publicAPI);
-
-  return finalExport;
-
-}(workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private));
+}({},workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private));
 
 //# sourceMappingURL=workbox-routing.dev.js.map
