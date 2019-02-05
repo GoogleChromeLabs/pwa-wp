@@ -200,7 +200,7 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 	public function test_get_icons() {
 
 		// There's no site icon yet, so this should return null.
-		$this->assertEquals( null, $this->instance->get_icons() );
+		$this->assertEquals( array(), $this->instance->get_icons() );
 
 		$this->mock_site_icon();
 		$expected_icons = array();

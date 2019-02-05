@@ -86,22 +86,6 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-p
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-caching-routes-component.php';
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-caching-routes.php';
 
-/** WP_Service_Worker_Integration Interface */
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/interface-wp-service-worker-integration.php';
-
-/** WP_Service_Worker_Base_Integration Class */
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-base-integration.php';
-
-/** WP_Service_Worker_Integration Implementation Classes */
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-site-icon-integration.php';
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-custom-logo-integration.php';
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-custom-header-integration.php';
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-custom-background-integration.php';
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-scripts-integration.php';
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-styles-integration.php';
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-fonts-integration.php';
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-admin-assets-integration.php';
-
 /** WordPress Service Worker Functions */
 require_once PWA_PLUGIN_DIR . '/wp-includes/service-workers.php';
 
@@ -131,6 +115,47 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-query.php';
 
 /** Hooks to add for when accessing admin. */
 require_once PWA_PLUGIN_DIR . '/wp-admin/admin.php';
+
+/**
+ * Load service worker integrations.
+ *
+ * @since 0.2.0
+ */
+function pwa_load_service_worker_integrations() {
+	/**
+	 * Filters whether service worker integrations should be enabled.
+	 *
+	 * As these are experimental, they are kept separate from the service worker core code and hidden behind a feature flag.
+	 *
+	 * Instead of using this filter, you can also use a constant `WP_SERVICE_WORKER_INTEGRATIONS_ENABLED`.
+	 *
+	 * @since 0.2
+	 *
+	 * @param bool $enabled Whether or not service worker integrations are enabled.
+	 */
+	if ( ! apply_filters( 'wp_service_worker_integrations_enabled', defined( 'WP_SERVICE_WORKER_INTEGRATIONS_ENABLED' ) && WP_SERVICE_WORKER_INTEGRATIONS_ENABLED ) ) {
+		return;
+	}
+	/** WP_Service_Worker_Integration Interface */
+	require_once PWA_PLUGIN_DIR . '/integrations/interface-wp-service-worker-integration.php';
+
+	/** WP_Service_Worker_Base_Integration Class */
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-base-integration.php';
+
+	/** WP_Service_Worker_Integration Implementation Classes */
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-site-icon-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-custom-logo-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-custom-header-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-custom-background-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-scripts-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-styles-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-fonts-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-admin-assets-integration.php';
+
+	/** WordPress Service Worker Integration Functions */
+	require_once PWA_PLUGIN_DIR . '/integrations/functions.php';
+}
+add_action( 'plugins_loaded', 'pwa_load_service_worker_integrations' );
 
 $wp_web_app_manifest = new WP_Web_App_Manifest();
 $wp_web_app_manifest->init();
