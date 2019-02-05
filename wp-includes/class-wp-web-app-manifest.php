@@ -93,6 +93,9 @@ class WP_Web_App_Manifest {
 		if ( current_theme_supports( 'theme-color' ) ) {
 			$theme_color = get_theme_support( 'theme-color' );
 			if ( $theme_color ) {
+				if ( is_array( $theme_color ) && ! empty( $theme_color[0] ) ) {
+					return $theme_color[0];
+				}
 				return $theme_color;
 			}
 		}
