@@ -136,11 +136,11 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 			}
 		}
 
-		const navigationCacheStrategy = wp.serviceWorker.strategies[ CACHING_STRATEGY ]( CACHING_STRATEGY_ARGS );
+		const navigationCacheStrategy = new wp.serviceWorker.strategies[ CACHING_STRATEGY ]( CACHING_STRATEGY_ARGS );
 
 		if ( canStreamResponse() ) {
 			const streamHeaderFragmentURL = STREAM_HEADER_FRAGMENT_URL;
-			const precacheStrategy = wp.serviceWorker.strategies.cacheFirst({
+			const precacheStrategy = new wp.serviceWorker.strategies.cacheFirst({
 				cacheName: wp.serviceWorker.core.cacheNames.precache,
 			});
 
