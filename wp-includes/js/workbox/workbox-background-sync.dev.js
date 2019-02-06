@@ -3,7 +3,7 @@ this.workbox.backgroundSync = (function (exports,assert_mjs,DBWrapper_mjs,migrat
   'use strict';
 
   try {
-    self['workbox:background-sync:4.0.0-beta.2'] && _();
+    self['workbox:background-sync:4.0.0-rc.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -105,7 +105,9 @@ this.workbox.backgroundSync = (function (exports,assert_mjs,DBWrapper_mjs,migrat
         });
       }
 
-      const firstEntry = await this._db.get(OBJECT_STORE_NAME);
+      const [firstEntry] = await this._db.getAllMatching(OBJECT_STORE_NAME, {
+        count: 1
+      });
 
       if (firstEntry) {
         // Pick an ID one less than the lowest ID in the object store.

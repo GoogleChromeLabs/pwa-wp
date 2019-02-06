@@ -3,7 +3,7 @@ this.workbox.rangeRequests = (function (exports,WorkboxError_mjs,assert_mjs,logg
   'use strict';
 
   try {
-    self['workbox:range-requests:4.0.0-beta.2'] && _();
+    self['workbox:range-requests:4.0.0-rc.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*

@@ -3,7 +3,7 @@ this.workbox.cacheableResponse = (function (exports,WorkboxError_mjs,assert_mjs,
   'use strict';
 
   try {
-    self['workbox:cacheable-response:4.0.0-beta.2'] && _();
+    self['workbox:cacheable-response:4.0.0-rc.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*

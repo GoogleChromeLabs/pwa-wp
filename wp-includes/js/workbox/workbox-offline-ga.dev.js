@@ -3,7 +3,7 @@ this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,getF
   'use strict';
 
   try {
-    self['workbox:google-analytics:4.0.0-beta.2'] && _();
+    self['workbox:google-analytics:4.0.0-rc.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -20,6 +20,7 @@ this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,getF
   const GTM_HOST = 'www.googletagmanager.com';
   const ANALYTICS_JS_PATH = '/analytics.js';
   const GTAG_JS_PATH = '/gtag/js';
+  const GTM_JS_PATH = '/gtm.js';
   // endpoints. Most of the time the default path (/collect) is used, but
   // occasionally an experimental endpoint is used when testing new features,
   // (e.g. /r/collect or /j/collect)
@@ -61,7 +62,7 @@ this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,getF
         try {
           // Measurement protocol requests can set their payload parameters in
           // either the URL query string (for GET requests) or the POST body.
-          const params = request.method === 'POST' ? new URLSearchParams((await request.text())) : url.searchParams; // Calculate the qt param, accounting for the fact that an existing
+          const params = request.method === 'POST' ? new URLSearchParams((await request.clone().text())) : url.searchParams; // Calculate the qt param, accounting for the fact that an existing
           // qt param may be present and should be updated rather than replaced.
 
           const originalHitTime = timestamp - (Number(params.get('qt')) || 0);
@@ -79,7 +80,7 @@ this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,getF
 
           if (typeof config.hitFilter === 'function') {
             config.hitFilter.call(null, params);
-          } // Retry the fetch. Ignore URL search params form the URL as they're
+          } // Retry the fetch. Ignore URL search params from the URL as they're
           // now in the post body.
 
 
@@ -173,6 +174,26 @@ this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,getF
     return new Route_mjs.Route(match, handler, 'GET');
   };
   /**
+   * Creates a route with a network first strategy for the gtm.js script.
+   *
+   * @param {string} cacheName
+   * @return {Route} The created route.
+   *
+   * @private
+   */
+
+
+  const createGtmJsRoute = cacheName => {
+    const match = ({
+      url
+    }) => url.hostname === GTM_HOST && url.pathname === GTM_JS_PATH;
+
+    const handler = new NetworkFirst_mjs.NetworkFirst({
+      cacheName
+    });
+    return new Route_mjs.Route(match, handler, 'GET');
+  };
+  /**
    * @param {Object=} [options]
    * @param {Object} [options.cacheName] The cache name to store and retrieve
    *     analytics.js. Defaults to the cache names provided by `workbox-core`.
@@ -196,7 +217,7 @@ this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,getF
       maxRetentionTime: MAX_RETENTION_TIME,
       onSync: createOnSyncCallback(options)
     });
-    const routes = [createAnalyticsJsRoute(cacheName), createGtagJsRoute(cacheName), ...createCollectRoutes(queuePlugin)];
+    const routes = [createGtmJsRoute(cacheName), createAnalyticsJsRoute(cacheName), createGtagJsRoute(cacheName), ...createCollectRoutes(queuePlugin)];
     const router = new Router_mjs.Router();
 
     for (const route of routes) {

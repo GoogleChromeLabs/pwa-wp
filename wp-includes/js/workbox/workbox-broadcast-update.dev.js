@@ -3,7 +3,7 @@ this.workbox.broadcastUpdate = (function (exports,WorkboxError_mjs,logger_mjs,as
   'use strict';
 
   try {
-    self['workbox:broadcast-cache-update:4.0.0-beta.2'] && _();
+    self['workbox:broadcast-update:4.0.0-rc.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -63,7 +63,7 @@ this.workbox.broadcastUpdate = (function (exports,WorkboxError_mjs,logger_mjs,as
     https://opensource.org/licenses/MIT.
   */
   const CACHE_UPDATED_MESSAGE_TYPE = 'CACHE_UPDATED';
-  const CACHE_UPDATED_MESSAGE_META = 'workbox-broadcast-cache-update';
+  const CACHE_UPDATED_MESSAGE_META = 'workbox-broadcast-update';
   const DEFAULT_BROADCAST_CHANNEL_NAME = 'workbox';
   const DEFAULT_DEFER_NOTIFICATION_TIMEOUT = 10000;
   const DEFAULT_HEADERS_TO_CHECK = ['content-length', 'etag', 'last-modified'];
@@ -92,7 +92,7 @@ this.workbox.broadcastUpdate = (function (exports,WorkboxError_mjs,logger_mjs,as
    * ```
    * {
    *   type: 'CACHE_UPDATED',
-   *   meta: 'workbox-broadcast-cache-update',
+   *   meta: 'workbox-broadcast-update',
    *   payload: {
    *     cacheName: 'the-cache-name',
    *     updatedURL: 'https://example.com/'
@@ -121,13 +121,13 @@ this.workbox.broadcastUpdate = (function (exports,WorkboxError_mjs,logger_mjs,as
   }) => {
     {
       assert_mjs.assert.isType(cacheName, 'string', {
-        moduleName: 'workbox-broadcast-cache-update',
+        moduleName: 'workbox-broadcast-update',
         className: '~',
         funcName: 'broadcastUpdate',
         paramName: 'cacheName'
       });
       assert_mjs.assert.isType(url, 'string', {
-        moduleName: 'workbox-broadcast-cache-update',
+        moduleName: 'workbox-broadcast-update',
         className: '~',
         funcName: 'broadcastUpdate',
         paramName: 'url'
@@ -203,13 +203,13 @@ this.workbox.broadcastUpdate = (function (exports,WorkboxError_mjs,logger_mjs,as
 
       {
         assert_mjs.assert.isType(this._channelName, 'string', {
-          moduleName: 'workbox-broadcast-cache-update',
+          moduleName: 'workbox-broadcast-update',
           className: 'BroadcastCacheUpdate',
           funcName: 'constructor',
           paramName: 'channelName'
         });
         assert_mjs.assert.isArray(this._headersToCheck, {
-          moduleName: 'workbox-broadcast-cache-update',
+          moduleName: 'workbox-broadcast-update',
           className: 'BroadcastCacheUpdate',
           funcName: 'constructor',
           paramName: 'headersToCheck'
@@ -428,19 +428,19 @@ this.workbox.broadcastUpdate = (function (exports,WorkboxError_mjs,logger_mjs,as
     }) {
       {
         assert_mjs.assert.isType(cacheName, 'string', {
-          moduleName: 'workbox-broadcast-cache-update',
+          moduleName: 'workbox-broadcast-update',
           className: 'Plugin',
           funcName: 'cacheDidUpdate',
           paramName: 'cacheName'
         });
         assert_mjs.assert.isInstance(newResponse, Response, {
-          moduleName: 'workbox-broadcast-cache-update',
+          moduleName: 'workbox-broadcast-update',
           className: 'Plugin',
           funcName: 'cacheDidUpdate',
           paramName: 'newResponse'
         });
         assert_mjs.assert.isInstance(request, Request, {
-          moduleName: 'workbox-broadcast-cache-update',
+          moduleName: 'workbox-broadcast-update',
           className: 'Plugin',
           funcName: 'cacheDidUpdate',
           paramName: 'request'
@@ -480,4 +480,4 @@ this.workbox.broadcastUpdate = (function (exports,WorkboxError_mjs,logger_mjs,as
 
 }({},workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private));
 
-//# sourceMappingURL=workbox-broadcast-cache-update.dev.js.map
+//# sourceMappingURL=workbox-broadcast-update.dev.js.map

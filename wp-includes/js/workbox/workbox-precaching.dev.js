@@ -3,7 +3,7 @@ this.workbox.precaching = (function (exports,WorkboxError_mjs,logger_mjs,assert_
   'use strict';
 
   try {
-    self['workbox:precaching:4.0.0-beta.2'] && _();
+    self['workbox:precaching:4.0.0-rc.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -433,6 +433,8 @@ this.workbox.precaching = (function (exports,WorkboxError_mjs,logger_mjs,assert_
 
       const isValidResponse = cacheWillUpdateCallback ? // Use a callback if provided. It returns a truthy value if valid.
       cacheWillUpdateCallback({
+        event,
+        request,
         response
       }) : // Otherwise, default to considering any response status under 400 valid.
       // This includes, by default, considering opaque responses valid.
