@@ -41,7 +41,7 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 			}
 
 			if ( canStreamResponse() ) {
-				return caches.match( ERROR_500_BODY_FRAGMENT_URL );
+				return caches.match( wp.serviceWorker.precaching.getCacheKeyForURL( ERROR_500_BODY_FRAGMENT_URL ) );
 			}
 
 			const originalResponse = response.clone();
@@ -52,7 +52,7 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 					return originalResponse;
 				}
 
-				return caches.match( ERROR_500_URL ).then( function( errorResponse ) {
+				return caches.match( wp.serviceWorker.precaching.getCacheKeyForURL( ERROR_500_URL ) ).then( function( errorResponse ) {
 
 					if ( ! errorResponse ) {
 						return response;
@@ -100,11 +100,10 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 
 		const sendOfflineResponse = () => {
 			if ( canStreamResponse() ) {
-				return caches.match( ERROR_OFFLINE_BODY_FRAGMENT_URL );
+				return caches.match( wp.serviceWorker.precaching.getCacheKeyForURL( ERROR_OFFLINE_BODY_FRAGMENT_URL ) );
 			}
 
-			return caches.match( ERROR_OFFLINE_URL ).then( function( response ) {
-
+			return caches.match( wp.serviceWorker.precaching.getCacheKeyForURL( ERROR_OFFLINE_URL ) ).then( function( response ) {
 				return response.text().then( function( text ) {
 					let init = {
 						status: response.status,
