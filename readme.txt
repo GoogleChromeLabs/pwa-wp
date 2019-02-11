@@ -44,7 +44,7 @@ As noted in a [Google guide](https://developers.google.com/web/fundamentals/web-
 
 The plugin exposes the web app manifest via the REST API at `/wp-json/wp/v2/web-app-manifest`. A response looks like:
 
-<pre lang=json>
+<pre lang="json">
 {
     "name": "WordPress Develop",
     "short_name": "WordPress",
@@ -110,7 +110,7 @@ Service worker scripts should be registered on the `wp_front_service_worker` and
 
 Here are some examples:
 
-<pre lang=php>
+<pre lang="php">
 function register_foo_service_worker_script( $scripts ) {
 	// $scripts->register() is the same as wp_register_service_worker_script().
 	$scripts->register(
@@ -154,7 +154,7 @@ The plugin bundles several experimental integrations that are kept separate from
 
 All these integrations are hidden behind a feature flag. To enable them, you can either set a constant `WP_SERVICE_WORKER_INTEGRATIONS_ENABLED` in your `wp-config.php` and set it to true, or add a one-liner must-use plugin:
 
-<pre lang=php>
+<pre lang="php">
 <?php
 /*
 Plugin Name: Enable Service Worker Integrations
@@ -186,7 +186,7 @@ The API abstraction allows registering routes for caching and urls for precachin
 
 Examples of using the API:
 
-<pre lang=php>
+<pre lang="php">
 wp_register_service_worker_caching_route(
 	'/wp-content/.*\.(?:png|gif|jpg|jpeg|svg|webp)(\?.*)?$',
 		array(
@@ -202,7 +202,7 @@ wp_register_service_worker_caching_route(
 );
 </pre>
 
-<pre lang=php>
+<pre lang="php">
 wp_register_service_worker_precaching_route(
 		'https://example.com/wp-content/themes/my-theme/my-theme-image.png',
 		array(
@@ -214,7 +214,7 @@ wp_register_service_worker_precaching_route(
 
 If you would like to opt-in to a caching strategy for navigation requests, you can do:
 
-<pre lang=php>
+<pre lang="php">
 add_filter( 'wp_service_worker_navigation_preload', '__return_false' );
 
 add_filter( 'wp_service_worker_navigation_caching_strategy', function() {
@@ -246,7 +246,7 @@ In case of using the `<iframe>` within the template `{{{iframe_src}}}` and `{{{i
 
 For example this could be done:
 
-<pre lang=php>
+<pre lang="php">
 wp_service_worker_error_details_template(
     '<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary><iframe style="width:100%" src="{{{iframe_src}}}" data-srcdoc="{{{iframe_srcdoc}}}"></iframe></details>'
 );
@@ -305,7 +305,7 @@ At the moment the plugin provides an API to detection of whether a site supports
 
 You can optionally add an [HSTS header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security) (HTTP `Strict-Transport-Security`). This indicates to the browser to only load the site with HTTPS, not HTTP.
 
-<pre lang=php>
+<pre lang="php">
 /**
  * Adds an HSTS header to the response.
  *
