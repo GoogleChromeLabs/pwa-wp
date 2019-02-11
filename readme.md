@@ -155,7 +155,7 @@ The plugin bundles several experimental integrations that are kept separate from
 
 All these integrations are hidden behind a feature flag. To enable them, you can either set a constant `WP_SERVICE_WORKER_INTEGRATIONS_ENABLED` in your `wp-config.php` and set it to true, or add a one-liner must-use plugin:
 
-<pre lang=php>
+```php
 <?php
 /*
 Plugin Name: Enable Service Worker Integrations
@@ -167,7 +167,7 @@ Author URI:  https://github.com/xwp/pwa-wp
 */
 
 add_filter( 'wp_service_worker_integrations_enabled', '__return_true' );
-</pre>
+```
 
 ### Caching ###
 Service Workers in the feature plugin are using [Workbox](https://developers.google.com/web/tools/workbox/) to power a higher-level PHP abstraction for themes and plugins to indicate the routes and the caching strategies in a declarative way. Since only one handler can be used per one route then conflicts are also detected and reported in console when using debug mode.
