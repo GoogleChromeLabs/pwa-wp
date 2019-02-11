@@ -20,17 +20,29 @@ class WP_Service_Worker_Fonts_Integration extends WP_Service_Worker_Base_Integra
 	 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
 	 */
 	public function register( WP_Service_Worker_Scripts $scripts ) {
+
+		// Cache the Google Fonts stylesheets with a stale while revalidate strategy.
 		$scripts->caching_routes()->register(
-			'^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/(.*)',
+			'^https:\/\/fonts\.googleapis\.com',
+			array(
+				'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE,
+				'cacheName' => 'google-fonts-stylesheets',
+			)
+		);
+
+		// Cache the Google Fonts webfont files with a cache first strategy for 1 year.
+		$scripts->caching_routes()->register(
+			'^https:\/\/fonts\.gstatic\.com',
 			array(
 				'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
-				'cacheName' => 'googleapis', // @todo This needs to get the proper prefix in JS.
+				'cacheName' => 'google-fonts-webfonts',
 				'plugins'   => array(
 					'cacheableResponse' => array(
 						'statuses' => array( 0, 200 ),
 					),
 					'expiration'        => array(
-						'maxEntries' => 30,
+						'maxAgeSeconds' => YEAR_IN_SECONDS,
+						'maxEntries'    => 30,
 					),
 				),
 			)
