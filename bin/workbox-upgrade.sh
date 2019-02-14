@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-if [ ! -z "$(git status --porcelain -uno)" ]; then
+if [[ ! -z "$(git status --porcelain -uno)" ]]; then
 	echo "Your working tree is dirty. Please commit or stash changes."
 	exit 1
 fi
@@ -15,11 +15,10 @@ npx workbox copyLibraries wp-includes/js/
 mv wp-includes/js/workbox-v* wp-includes/js/workbox
 git add wp-includes/js/workbox
 
-if [ -z "$(git status --porcelain -uno)" ]; then
+if [[ -z "$(git status --porcelain -uno)" ]]; then
 	echo "Already up to date"
 else
 	git status
-	git commit -m "Upgrade Workbox to v$(npm list workbox-cli --depth=0 | grep workbox-cli | sed 's/.*@//')" --edit
+	echo "Please commit:"
+	echo "Upgrade Workbox to v$(npm list workbox-cli --depth=0 | grep workbox-cli | sed 's/.*@//')"
 fi
-
-
