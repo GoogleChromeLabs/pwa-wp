@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.routing = (function (exports,assert_mjs,logger_mjs,WorkboxError_mjs,getFriendlyURL_mjs,cacheNames_mjs) {
+this.workbox.routing = (function (exports, assert_mjs, logger_mjs, cacheNames_mjs, WorkboxError_mjs, getFriendlyURL_mjs) {
   'use strict';
 
   try {
-    self['workbox:routing:4.0.0-rc.0'] && _();
+    self['workbox:routing:4.0.0-rc.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -945,6 +945,53 @@ this.workbox.routing = (function (exports,assert_mjs,logger_mjs,WorkboxError_mjs
   };
 
   /*
+    Copyright 2019 Google LLC
+
+    Use of this source code is governed by an MIT-style
+    license that can be found in the LICENSE file or at
+    https://opensource.org/licenses/MIT.
+  */
+  /**
+   * If a Route throws an error while handling a request, this `handler`
+   * will be called and given a chance to provide a response.
+   *
+   * @param {workbox.routing.Route~handlerCallback} handler A callback
+   * function that returns a Promise resulting in a Response.
+   *
+   * @alias workbox.routing.setCatchHandler
+   */
+
+  const setCatchHandler = handler => {
+    const defaultRouter = getOrCreateDefaultRouter();
+    defaultRouter.setCatchHandler(handler);
+  };
+
+  /*
+    Copyright 2019 Google LLC
+
+    Use of this source code is governed by an MIT-style
+    license that can be found in the LICENSE file or at
+    https://opensource.org/licenses/MIT.
+  */
+  /**
+   * Define a default `handler` that's called when no routes explicitly
+   * match the incoming request.
+   *
+   * Without a default handler, unmatched requests will go against the
+   * network as if there were no service worker present.
+   *
+   * @param {workbox.routing.Route~handlerCallback} handler A callback
+   * function that returns a Promise resulting in a Response.
+   *
+   * @alias workbox.routing.setDefaultHandler
+   */
+
+  const setDefaultHandler = handler => {
+    const defaultRouter = getOrCreateDefaultRouter();
+    defaultRouter.setDefaultHandler(handler);
+  };
+
+  /*
     Copyright 2018 Google LLC
 
     Use of this source code is governed by an MIT-style
@@ -962,9 +1009,10 @@ this.workbox.routing = (function (exports,assert_mjs,logger_mjs,WorkboxError_mjs
   exports.registerRoute = registerRoute;
   exports.Route = Route;
   exports.Router = Router;
+  exports.setCatchHandler = setCatchHandler;
+  exports.setDefaultHandler = setDefaultHandler;
 
   return exports;
 
-}({},workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private));
-
+}({}, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private));
 //# sourceMappingURL=workbox-routing.dev.js.map

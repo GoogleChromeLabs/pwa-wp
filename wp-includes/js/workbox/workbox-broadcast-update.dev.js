@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.broadcastUpdate = (function (exports,WorkboxError_mjs,logger_mjs,assert_mjs,getFriendlyURL_mjs,Deferred_mjs) {
+this.workbox.broadcastUpdate = (function (exports, assert_mjs, getFriendlyURL_mjs, logger_mjs, Deferred_mjs, WorkboxError_mjs) {
   'use strict';
 
   try {
-    self['workbox:broadcast-update:4.0.0-rc.0'] && _();
+    self['workbox:broadcast-update:4.0.0-rc.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -478,6 +478,5 @@ this.workbox.broadcastUpdate = (function (exports,WorkboxError_mjs,logger_mjs,as
 
   return exports;
 
-}({},workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private));
-
+}({}, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private));
 //# sourceMappingURL=workbox-broadcast-update.dev.js.map

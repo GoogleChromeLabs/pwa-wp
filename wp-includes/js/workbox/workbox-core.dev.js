@@ -3,7 +3,7 @@ this.workbox.core = (function (exports) {
   'use strict';
 
   try {
-    self['workbox:core:4.0.0-rc.0'] && _();
+    self['workbox:core:4.0.0-rc.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -1617,5 +1617,4 @@ this.workbox.core = (function (exports) {
   return exports;
 
 }({}));
-
 //# sourceMappingURL=workbox-core.dev.js.map

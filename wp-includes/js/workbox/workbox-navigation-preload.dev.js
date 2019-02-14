@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.navigationPreload = (function (exports,logger_mjs) {
+this.workbox.navigationPreload = (function (exports, logger_mjs) {
   'use strict';
 
   try {
-    self['workbox:navigation-preload:4.0.0-rc.0'] && _();
+    self['workbox:navigation-preload:4.0.0-rc.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -106,6 +106,5 @@ this.workbox.navigationPreload = (function (exports,logger_mjs) {
 
   return exports;
 
-}({},workbox.core._private));
-
+}({}, workbox.core._private));
 //# sourceMappingURL=workbox-navigation-preload.dev.js.map

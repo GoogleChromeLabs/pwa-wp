@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.cacheableResponse = (function (exports,WorkboxError_mjs,assert_mjs,getFriendlyURL_mjs,logger_mjs) {
+this.workbox.cacheableResponse = (function (exports, WorkboxError_mjs, assert_mjs, getFriendlyURL_mjs, logger_mjs) {
   'use strict';
 
   try {
-    self['workbox:cacheable-response:4.0.0-rc.0'] && _();
+    self['workbox:cacheable-response:4.0.0-rc.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -196,6 +196,5 @@ this.workbox.cacheableResponse = (function (exports,WorkboxError_mjs,assert_mjs,
 
   return exports;
 
-}({},workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private));
-
+}({}, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private));
 //# sourceMappingURL=workbox-cacheable-response.dev.js.map

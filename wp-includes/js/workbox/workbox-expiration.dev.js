@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.expiration = (function (exports,DBWrapper_mjs,deleteDatabase_mjs,WorkboxError_mjs,assert_mjs,logger_mjs,cacheNames_mjs,getFriendlyURL_mjs,registerQuotaErrorCallback_mjs) {
+this.workbox.expiration = (function (exports, DBWrapper_mjs, deleteDatabase_mjs, WorkboxError_mjs, assert_mjs, logger_mjs, cacheNames_mjs, getFriendlyURL_mjs, registerQuotaErrorCallback_mjs) {
   'use strict';
 
   try {
-    self['workbox:expiration:4.0.0-rc.0'] && _();
+    self['workbox:expiration:4.0.0-rc.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -629,6 +629,5 @@ this.workbox.expiration = (function (exports,DBWrapper_mjs,deleteDatabase_mjs,Wo
 
   return exports;
 
-}({},workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core));
-
+}({}, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core));
 //# sourceMappingURL=workbox-expiration.dev.js.map

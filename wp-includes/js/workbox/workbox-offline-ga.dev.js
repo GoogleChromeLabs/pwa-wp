@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,getFriendlyURL_mjs,logger_mjs,Route_mjs,Router_mjs,NetworkFirst_mjs,NetworkOnly_mjs) {
+this.workbox.googleAnalytics = (function (exports, Plugin_mjs, cacheNames_mjs, getFriendlyURL_mjs, logger_mjs, Route_mjs, Router_mjs, NetworkFirst_mjs, NetworkOnly_mjs) {
   'use strict';
 
   try {
-    self['workbox:google-analytics:4.0.0-rc.0'] && _();
+    self['workbox:google-analytics:4.0.0-rc.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -239,6 +239,5 @@ this.workbox.googleAnalytics = (function (exports,Plugin_mjs,cacheNames_mjs,getF
 
   return exports;
 
-}({},workbox.backgroundSync,workbox.core._private,workbox.core._private,workbox.core._private,workbox.routing,workbox.routing,workbox.strategies,workbox.strategies));
-
+}({}, workbox.backgroundSync, workbox.core._private, workbox.core._private, workbox.core._private, workbox.routing, workbox.routing, workbox.strategies, workbox.strategies));
 //# sourceMappingURL=workbox-offline-ga.dev.js.map

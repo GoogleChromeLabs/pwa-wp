@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.precaching = (function (exports,WorkboxError_mjs,logger_mjs,assert_mjs,cacheNames_mjs,cacheWrapper_mjs,fetchWrapper_mjs,getFriendlyURL_mjs) {
+this.workbox.precaching = (function (exports, assert_mjs, cacheNames_mjs, getFriendlyURL_mjs, logger_mjs, cacheWrapper_mjs, fetchWrapper_mjs, WorkboxError_mjs) {
   'use strict';
 
   try {
-    self['workbox:precaching:4.0.0-rc.0'] && _();
+    self['workbox:precaching:4.0.0-rc.2'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -935,6 +935,5 @@ this.workbox.precaching = (function (exports,WorkboxError_mjs,logger_mjs,assert_
 
   return exports;
 
-}({},workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private));
-
+}({}, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private));
 //# sourceMappingURL=workbox-precaching.dev.js.map
