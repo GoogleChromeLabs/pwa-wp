@@ -3,7 +3,7 @@ this.workbox.routing = (function (exports, assert_mjs, logger_mjs, cacheNames_mj
   'use strict';
 
   try {
-    self['workbox:routing:4.0.0-rc.2'] && _();
+    self['workbox:routing:4.0.0-rc.3'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -398,7 +398,6 @@ this.workbox.routing = (function (exports, assert_mjs, logger_mjs, cacheNames_mj
      * ```
      * {
      *   type: 'CACHE_URLS',
-     *   meta: 'workbox-window',
      *   payload: {
      *     urlsToCache: [
      *       './script1.js',
@@ -412,28 +411,32 @@ this.workbox.routing = (function (exports, assert_mjs, logger_mjs, cacheNames_mj
 
 
     addCacheListener() {
-      self.addEventListener('message', event => {
+      self.addEventListener('message', async event => {
         const {
           type,
-          meta,
           payload
         } = event.data;
 
-        if (type === 'CACHE_URLS' && meta === 'workbox-window') {
+        if (type === 'CACHE_URLS') {
           {
             logger_mjs.logger.debug(`Caching URLs from the window`, payload.urlsToCache);
           }
 
-          for (let entry of payload.urlsToCache) {
+          const requestPromises = payload.urlsToCache.map(entry => {
             if (typeof entry === 'string') {
               entry = [entry];
             }
 
             const request = new Request(...entry);
-            this.handleRequest({
+            return this.handleRequest({
               request,
               event
             });
+          }); // If a MessageChannel was used, reply to the message on success.
+
+          if (event.ports) {
+            await requestPromises;
+            event.ports[0].postMessage(true);
           }
         }
       });

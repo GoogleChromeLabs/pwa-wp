@@ -3,7 +3,7 @@ this.workbox.streams = (function (exports, logger_mjs, assert_mjs) {
   'use strict';
 
   try {
-    self['workbox:streams:4.0.0-rc.2'] && _();
+    self['workbox:streams:4.0.0-rc.3'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*

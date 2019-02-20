@@ -5,7 +5,7 @@
 }(this, function (exports) { 'use strict';
 
   try {
-    self['workbox:window:4.0.0-rc.2'] && _();
+    self['workbox:window:4.0.0-rc.3'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -74,7 +74,7 @@
   }
 
   try {
-    self['workbox:core:4.0.0-rc.2'] && _();
+    self['workbox:core:4.0.0-rc.3'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -368,6 +368,16 @@
    * A class to aid in handling service worker registration, updates, and
    * reacting to service worker lifecycle events.
    *
+   * @fires [message]{@link module:workbox-window.Workbox#message}
+   * @fires [installed]{@link module:workbox-window.Workbox#installed}
+   * @fires [waiting]{@link module:workbox-window.Workbox#waiting}
+   * @fires [controlling]{@link module:workbox-window.Workbox#controlling}
+   * @fires [activated]{@link module:workbox-window.Workbox#activated}
+   * @fires [redundant]{@link module:workbox-window.Workbox#redundant}
+   * @fires [externalinstalled]{@link module:workbox-window.Workbox#externalinstalled}
+   * @fires [externalwaiting]{@link module:workbox-window.Workbox#externalwaiting}
+   * @fires [externalactivated]{@link module:workbox-window.Workbox#externalactivated}
+   *
    * @memberof module:workbox-window
    */
 
@@ -443,9 +453,12 @@
           }));
         }
       }, function () {
-        // Before registering, attempt to determine if a SW is already controlling
+        // Set this flag to true if any service worker was controlling the page
+        // at registration time.
+        _this2._isUpdate = Boolean(navigator.serviceWorker.controller); // Before registering, attempt to determine if a SW is already controlling
         // the page, and if that SW script (and version, if specified) matches this
         // instance's script.
+
         _this2._compatibleControllingSW = _this2._getControllingSWIfCompatible();
         return _await(_this2._registerScript(), function (_this2$_registerScrip) {
           _this2._registration = _this2$_registerScrip;
@@ -465,6 +478,26 @@
             _this2._compatibleControllingSW.addEventListener('statechange', _this2._onStateChange, {
               once: true
             });
+          } // If there's a waiting service worker with a matching URL before the
+          // `updatefound` event fires, it likely means the this site is open
+          // in another tab, or the user refreshed the page without unloading it
+          // first.
+          // https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle#waiting
+
+
+          if (_this2._registration.waiting && urlsMatch(_this2._registration.waiting.scriptURL, _this2._scriptURL)) {
+            // Run this in the next microtask, so any code that adds an event
+            // listener after awaiting `register()` will get this event.
+            Promise.resolve().then(function () {
+              _this2.dispatchEvent(new WorkboxEvent('waiting', {
+                sw: _this2._registration.waiting,
+                wasWaitingBeforeRegister: true
+              }));
+
+              {
+                logger.warn('A service worker was already waiting to activate ' + 'before this script was registered...');
+              }
+            });
           }
 
           {
@@ -476,13 +509,6 @@
               } else {
                 logger.debug('A service worker with a different script URL is ' + 'currently controlling the page. The browser is now fetching ' + 'the new script now...');
               }
-            } // If there's an active and waiting service worker before the
-            // `updatefound` event fires, it means there was a waiting service worker
-            // in the queue before this one was registered.
-
-
-            if (_this2._registration.waiting && _this2._registration.active) {
-              logger.warn('A service worker was already waiting to activate ' + 'before this script was registered...');
             }
 
             var currentPageIsOutOfScope = function currentPageIsOutOfScope() {
@@ -706,10 +732,16 @@
       var state = sw.state;
       var isExternal = sw === this._externalSW;
       var eventPrefix = isExternal ? 'external' : '';
-      this.dispatchEvent(new WorkboxEvent(eventPrefix + state, {
+      var eventProps = {
         sw: sw,
         originalEvent: originalEvent
-      }));
+      };
+
+      if (!isExternal && this._isUpdate) {
+        eventProps.isUpdate = true;
+      }
+
+      this.dispatchEvent(new WorkboxEvent(eventPrefix + state, eventProps));
 
       if (state === 'installed') {
         // This timeout is used to ignore cases where the service worker calls
@@ -723,16 +755,13 @@
         this._waitingTimeout = setTimeout(function () {
           // Ensure the SW is still waiting (it may now be redundant).
           if (state === 'installed' && _this6._registration.waiting === sw) {
-            _this6.dispatchEvent(new WorkboxEvent(eventPrefix + 'waiting', {
-              sw: sw,
-              originalEvent: originalEvent
-            }));
+            _this6.dispatchEvent(new WorkboxEvent(eventPrefix + 'waiting', eventProps));
 
             {
               if (isExternal) {
                 logger.warn('An external service worker has installed but is ' + 'waiting for this client to close before activating...');
               } else {
-                logger.warn('The service worker has installed but is waiting ' + ' for existing clients to close before activating...');
+                logger.warn('The service worker has installed but is waiting ' + 'for existing clients to close before activating...');
               }
             }
           }
@@ -788,14 +817,14 @@
       var sw = this._sw;
 
       if (sw === navigator.serviceWorker.controller) {
-        {
-          logger.log('Registered service worker now controlling this page.');
-        }
-
         this.dispatchEvent(new WorkboxEvent('controlling', {
           sw: sw,
           originalEvent: originalEvent
         }));
+
+        {
+          logger.log('Registered service worker now controlling this page.');
+        }
 
         this._controllingDeferred.resolve(sw);
       }
@@ -840,7 +869,7 @@
     }]);
 
     return Workbox;
-  }(EventTargetShim);
+  }(EventTargetShim); // The jsdoc comments below outline the events this instance may dispatch:
 
   /*
     Copyright 2019 Google LLC
