@@ -3,7 +3,7 @@ this.workbox.precaching = (function (exports, assert_mjs, cacheNames_mjs, getFri
   'use strict';
 
   try {
-    self['workbox:precaching:4.0.0-rc.3'] && _();
+    self['workbox:precaching:4.0.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -457,7 +457,10 @@ this.workbox.precaching = (function (exports, assert_mjs, cacheNames_mjs, getFri
         plugins,
         request,
         response,
-        cacheName: this._cacheName
+        cacheName: this._cacheName,
+        matchOptions: {
+          ignoreSearch: true
+        }
       });
     }
     /**

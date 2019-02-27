@@ -3,7 +3,7 @@ this.workbox.routing = (function (exports, assert_mjs, logger_mjs, cacheNames_mj
   'use strict';
 
   try {
-    self['workbox:routing:4.0.0-rc.3'] && _();
+    self['workbox:routing:4.0.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -412,27 +412,26 @@ this.workbox.routing = (function (exports, assert_mjs, logger_mjs, cacheNames_mj
 
     addCacheListener() {
       self.addEventListener('message', async event => {
-        const {
-          type,
-          payload
-        } = event.data;
+        if (event.data && event.data.type === 'CACHE_URLS') {
+          const {
+            payload
+          } = event.data;
 
-        if (type === 'CACHE_URLS') {
           {
             logger_mjs.logger.debug(`Caching URLs from the window`, payload.urlsToCache);
           }
 
-          const requestPromises = payload.urlsToCache.map(entry => {
+          const requestPromises = Promise.all(payload.urlsToCache.map(entry => {
             if (typeof entry === 'string') {
               entry = [entry];
             }
 
             const request = new Request(...entry);
             return this.handleRequest({
-              request,
-              event
+              request
             });
-          }); // If a MessageChannel was used, reply to the message on success.
+          }));
+          event.waitUntil(requestPromises); // If a MessageChannel was used, reply to the message on success.
 
           if (event.ports) {
             await requestPromises;

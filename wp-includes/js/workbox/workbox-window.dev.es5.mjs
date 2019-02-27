@@ -1,5 +1,5 @@
 try {
-  self['workbox:window:4.0.0-rc.3'] && _();
+  self['workbox:window:4.0.0'] && _();
 } catch (e) {} // eslint-disable-line
 
 /*
@@ -68,7 +68,7 @@ function _assertThisInitialized(self) {
 }
 
 try {
-  self['workbox:core:4.0.0-rc.3'] && _();
+  self['workbox:core:4.0.0'] && _();
 } catch (e) {} // eslint-disable-line
 
 /*
@@ -793,7 +793,9 @@ function (_EventTargetShim) {
           break;
 
         case 'redundant':
-          if (!isExternal) {
+          if (sw === this._compatibleControllingSW) {
+            logger.log('Previously controlling service worker now redundant!');
+          } else if (!isExternal) {
             logger.log('Registered service worker now redundant!');
           }
 

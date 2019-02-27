@@ -3,7 +3,7 @@ this.workbox.strategies = (function (exports, logger_mjs, assert_mjs, cacheNames
   'use strict';
 
   try {
-    self['workbox:strategies:4.0.0-rc.3'] && _();
+    self['workbox:strategies:4.0.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -218,7 +218,7 @@ this.workbox.strategies = (function (exports, logger_mjs, assert_mjs, cacheNames
           event.waitUntil(cachePutPromise);
         } catch (error) {
           {
-            logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(event.request.url)}'.`);
+            logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(request.url)}'.`);
           }
         }
       }
@@ -671,7 +671,7 @@ this.workbox.strategies = (function (exports, logger_mjs, assert_mjs, cacheNames
             event.waitUntil(cachePut);
           } catch (err) {
             {
-              logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(event.request.url)}'.`);
+              logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(request.url)}'.`);
             }
           }
         }
@@ -974,7 +974,7 @@ this.workbox.strategies = (function (exports, logger_mjs, assert_mjs, cacheNames
             event.waitUntil(fetchAndCachePromise);
           } catch (error) {
             {
-              logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(event.request.url)}'.`);
+              logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(request.url)}'.`);
             }
           }
         }
@@ -1043,7 +1043,7 @@ this.workbox.strategies = (function (exports, logger_mjs, assert_mjs, cacheNames
           event.waitUntil(cachePutPromise);
         } catch (error) {
           {
-            logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(event.request.url)}'.`);
+            logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(request.url)}'.`);
           }
         }
       }
