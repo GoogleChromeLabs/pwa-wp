@@ -17,12 +17,12 @@
   "grunt-shell": "^2.1.0",
   "grunt-wp-deploy": "^1.3.0",
   "husky": "^0.14.3",
-  "workbox-cli": "4.0.0-beta.2",
+  "workbox-cli": "4.0.0",
   "wp-dev-lib": "github:xwp/wp-dev-lib#1.0.0"
  },
  "scripts": {
   "install": "composer install",
-  "precommit": "./node_modules/wp-dev-lib/scripts/pre-commit",
+  "precommit": "if command -v lando >/dev/null 2>&1; then lando ssh -c 'bash ./node_modules/wp-dev-lib/scripts/pre-commit'; else ./node_modules/wp-dev-lib/scripts/pre-commit; fi",
   "generate-readme": "./node_modules/wp-dev-lib/scripts/generate-markdown-readme",
   "build": "grunt build; grunt create-build-zip",
   "deploy": "grunt deploy",

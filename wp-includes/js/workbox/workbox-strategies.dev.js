@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.strategies = (function (exports,logger_mjs,assert_mjs,cacheNames_mjs,cacheWrapper_mjs,fetchWrapper_mjs,getFriendlyURL_mjs,WorkboxError_mjs) {
+this.workbox.strategies = (function (exports, logger_mjs, assert_mjs, cacheNames_mjs, cacheWrapper_mjs, fetchWrapper_mjs, getFriendlyURL_mjs, WorkboxError_mjs) {
   'use strict';
 
   try {
-    self['workbox:strategies:4.0.0-beta.2'] && _();
+    self['workbox:strategies:4.0.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -218,7 +218,7 @@ this.workbox.strategies = (function (exports,logger_mjs,assert_mjs,cacheNames_mj
           event.waitUntil(cachePutPromise);
         } catch (error) {
           {
-            logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(event.request.url)}'.`);
+            logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(request.url)}'.`);
           }
         }
       }
@@ -671,7 +671,7 @@ this.workbox.strategies = (function (exports,logger_mjs,assert_mjs,cacheNames_mj
             event.waitUntil(cachePut);
           } catch (err) {
             {
-              logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(event.request.url)}'.`);
+              logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(request.url)}'.`);
             }
           }
         }
@@ -974,7 +974,7 @@ this.workbox.strategies = (function (exports,logger_mjs,assert_mjs,cacheNames_mj
             event.waitUntil(fetchAndCachePromise);
           } catch (error) {
             {
-              logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(event.request.url)}'.`);
+              logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(request.url)}'.`);
             }
           }
         }
@@ -1043,7 +1043,7 @@ this.workbox.strategies = (function (exports,logger_mjs,assert_mjs,cacheNames_mj
           event.waitUntil(cachePutPromise);
         } catch (error) {
           {
-            logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(event.request.url)}'.`);
+            logger_mjs.logger.warn(`Unable to ensure service worker stays alive when ` + `updating cache for '${getFriendlyURL_mjs.getFriendlyURL(request.url)}'.`);
           }
         }
       }
@@ -1073,7 +1073,7 @@ this.workbox.strategies = (function (exports,logger_mjs,assert_mjs,cacheNames_mj
     return options => {
       {
         const strategyCtrName = strategy[0].toUpperCase() + strategy.slice(1);
-        logger_mjs.logger.warn(`The 'workbox.strategies.${strategy}()' function has been` + `deprecated and will be removed in a future version of Workbox.\n` + `Please use 'new workbox.strategies.${strategyCtrName}()'' instead.`);
+        logger_mjs.logger.warn(`The 'workbox.strategies.${strategy}()' function has been ` + `deprecated and will be removed in a future version of Workbox.\n` + `Please use 'new workbox.strategies.${strategyCtrName}()' instead.`);
       }
 
       return new StrategyCtr(options);
@@ -1134,6 +1134,5 @@ this.workbox.strategies = (function (exports,logger_mjs,assert_mjs,cacheNames_mj
 
   return exports;
 
-}({},workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private));
-
+}({}, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private));
 //# sourceMappingURL=workbox-strategies.dev.js.map

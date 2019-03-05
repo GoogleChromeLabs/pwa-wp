@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.precaching = (function (exports,WorkboxError_mjs,logger_mjs,assert_mjs,cacheNames_mjs,cacheWrapper_mjs,fetchWrapper_mjs,getFriendlyURL_mjs) {
+this.workbox.precaching = (function (exports, assert_mjs, cacheNames_mjs, getFriendlyURL_mjs, logger_mjs, cacheWrapper_mjs, fetchWrapper_mjs, WorkboxError_mjs) {
   'use strict';
 
   try {
-    self['workbox:precaching:4.0.0-beta.2'] && _();
+    self['workbox:precaching:4.0.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -433,6 +433,8 @@ this.workbox.precaching = (function (exports,WorkboxError_mjs,logger_mjs,assert_
 
       const isValidResponse = cacheWillUpdateCallback ? // Use a callback if provided. It returns a truthy value if valid.
       cacheWillUpdateCallback({
+        event,
+        request,
         response
       }) : // Otherwise, default to considering any response status under 400 valid.
       // This includes, by default, considering opaque responses valid.
@@ -455,7 +457,10 @@ this.workbox.precaching = (function (exports,WorkboxError_mjs,logger_mjs,assert_
         plugins,
         request,
         response,
-        cacheName: this._cacheName
+        cacheName: this._cacheName,
+        matchOptions: {
+          ignoreSearch: true
+        }
       });
     }
     /**
@@ -933,6 +938,5 @@ this.workbox.precaching = (function (exports,WorkboxError_mjs,logger_mjs,assert_
 
   return exports;
 
-}({},workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private));
-
+}({}, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private));
 //# sourceMappingURL=workbox-precaching.dev.js.map
