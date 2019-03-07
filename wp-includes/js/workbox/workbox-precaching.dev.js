@@ -3,7 +3,7 @@ this.workbox.precaching = (function (exports, assert_mjs, cacheNames_mjs, getFri
   'use strict';
 
   try {
-    self['workbox:precaching:4.0.0'] && _();
+    self['workbox:precaching:4.1.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -427,7 +427,7 @@ this.workbox.precaching = (function (exports, assert_mjs, cacheNames_mjs, getFri
 
       for (const plugin of plugins || []) {
         if ('cacheWillUpdate' in plugin) {
-          cacheWillUpdateCallback = plugin.cacheWillUpdate;
+          cacheWillUpdateCallback = plugin.cacheWillUpdate.bind(plugin);
         }
       }
 

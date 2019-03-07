@@ -5,7 +5,7 @@
 }(this, function (exports) { 'use strict';
 
   try {
-    self['workbox:window:4.0.0'] && _();
+    self['workbox:window:4.1.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -74,7 +74,7 @@
   }
 
   try {
-    self['workbox:core:4.0.0'] && _();
+    self['workbox:core:4.1.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -564,7 +564,9 @@
     _proto.getSW = _async(function () {
       var _this3 = this;
 
-      return _this3._swDeferred.promise;
+      // If `this._sw` is set, resolve with that as we want `getSW()` to
+      // return the correct (new) service worker if an update is found.
+      return _this3._sw || _this3._swDeferred.promise;
     });
     /**
      * Sends the passed data object to the service worker registered by this
