@@ -3,7 +3,7 @@ this.workbox.precaching = (function (exports, assert_mjs, cacheNames_mjs, getFri
   'use strict';
 
   try {
-    self['workbox:precaching:4.1.0'] && _();
+    self['workbox:precaching:4.1.1'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*

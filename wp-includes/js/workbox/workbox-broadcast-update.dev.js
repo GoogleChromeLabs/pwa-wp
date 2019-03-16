@@ -3,7 +3,7 @@ this.workbox.broadcastUpdate = (function (exports, assert_mjs, getFriendlyURL_mj
   'use strict';
 
   try {
-    self['workbox:broadcast-update:4.1.0'] && _();
+    self['workbox:broadcast-update:4.1.1'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*

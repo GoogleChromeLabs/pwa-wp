@@ -3,7 +3,7 @@ this.workbox.backgroundSync = (function (exports, WorkboxError_mjs, logger_mjs, 
   'use strict';
 
   try {
-    self['workbox:background-sync:4.1.0'] && _();
+    self['workbox:background-sync:4.1.1'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*

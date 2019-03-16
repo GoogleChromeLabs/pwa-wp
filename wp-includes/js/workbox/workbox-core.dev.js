@@ -3,7 +3,7 @@ this.workbox.core = (function (exports) {
   'use strict';
 
   try {
-    self['workbox:core:4.1.0'] && _();
+    self['workbox:core:4.1.1'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*

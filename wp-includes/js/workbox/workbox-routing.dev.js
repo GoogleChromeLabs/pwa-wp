@@ -3,7 +3,7 @@ this.workbox.routing = (function (exports, assert_mjs, logger_mjs, cacheNames_mj
   'use strict';
 
   try {
-    self['workbox:routing:4.1.0'] && _();
+    self['workbox:routing:4.1.1'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
