@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.routing = (function (exports,assert_mjs,logger_mjs,WorkboxError_mjs,getFriendlyURL_mjs,cacheNames_mjs) {
+this.workbox.routing = (function (exports, assert_mjs, logger_mjs, cacheNames_mjs, WorkboxError_mjs, getFriendlyURL_mjs) {
   'use strict';
 
   try {
-    self['workbox:routing:4.0.0-beta.2'] && _();
+    self['workbox:routing:4.0.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -398,7 +398,6 @@ this.workbox.routing = (function (exports,assert_mjs,logger_mjs,WorkboxError_mjs
      * ```
      * {
      *   type: 'CACHE_URLS',
-     *   meta: 'workbox-window',
      *   payload: {
      *     urlsToCache: [
      *       './script1.js',
@@ -412,28 +411,31 @@ this.workbox.routing = (function (exports,assert_mjs,logger_mjs,WorkboxError_mjs
 
 
     addCacheListener() {
-      self.addEventListener('message', event => {
-        const {
-          type,
-          meta,
-          payload
-        } = event.data;
+      self.addEventListener('message', async event => {
+        if (event.data && event.data.type === 'CACHE_URLS') {
+          const {
+            payload
+          } = event.data;
 
-        if (type === 'CACHE_URLS' && meta === 'workbox-window') {
           {
             logger_mjs.logger.debug(`Caching URLs from the window`, payload.urlsToCache);
           }
 
-          for (let entry of payload.urlsToCache) {
+          const requestPromises = Promise.all(payload.urlsToCache.map(entry => {
             if (typeof entry === 'string') {
               entry = [entry];
             }
 
             const request = new Request(...entry);
-            this.handleRequest({
-              request,
-              event
+            return this.handleRequest({
+              request
             });
+          }));
+          event.waitUntil(requestPromises); // If a MessageChannel was used, reply to the message on success.
+
+          if (event.ports) {
+            await requestPromises;
+            event.ports[0].postMessage(true);
           }
         }
       });
@@ -779,13 +781,18 @@ this.workbox.routing = (function (exports,assert_mjs,logger_mjs,WorkboxError_mjs
    * request. This is useful for the
    * [application shell pattern]{@link https://developers.google.com/web/fundamentals/architecture/app-shell}.
    *
+   * When determining the URL of the precached HTML document, you will likely need
+   * to call `workbox.precaching.getCacheKeyForURL(originalUrl)`, to account for
+   * the fact that Workbox's precaching naming conventions often results in URL
+   * cache keys that contain extra revisioning info.
+   *
    * This method will generate a
    * [NavigationRoute]{@link workbox.routing.NavigationRoute}
    * and call
    * [Router.registerRoute()]{@link workbox.routing.Router#registerRoute} on a
    * singleton Router instance.
    *
-   * @param {string} cachedAssetUrl
+   * @param {string} cachedAssetUrl The cache key to use for the HTML file.
    * @param {Object} [options]
    * @param {string} [options.cacheName] Cache name to store and retrieve
    * requests. Defaults to precache cache name provided by
@@ -940,6 +947,53 @@ this.workbox.routing = (function (exports,assert_mjs,logger_mjs,WorkboxError_mjs
   };
 
   /*
+    Copyright 2019 Google LLC
+
+    Use of this source code is governed by an MIT-style
+    license that can be found in the LICENSE file or at
+    https://opensource.org/licenses/MIT.
+  */
+  /**
+   * If a Route throws an error while handling a request, this `handler`
+   * will be called and given a chance to provide a response.
+   *
+   * @param {workbox.routing.Route~handlerCallback} handler A callback
+   * function that returns a Promise resulting in a Response.
+   *
+   * @alias workbox.routing.setCatchHandler
+   */
+
+  const setCatchHandler = handler => {
+    const defaultRouter = getOrCreateDefaultRouter();
+    defaultRouter.setCatchHandler(handler);
+  };
+
+  /*
+    Copyright 2019 Google LLC
+
+    Use of this source code is governed by an MIT-style
+    license that can be found in the LICENSE file or at
+    https://opensource.org/licenses/MIT.
+  */
+  /**
+   * Define a default `handler` that's called when no routes explicitly
+   * match the incoming request.
+   *
+   * Without a default handler, unmatched requests will go against the
+   * network as if there were no service worker present.
+   *
+   * @param {workbox.routing.Route~handlerCallback} handler A callback
+   * function that returns a Promise resulting in a Response.
+   *
+   * @alias workbox.routing.setDefaultHandler
+   */
+
+  const setDefaultHandler = handler => {
+    const defaultRouter = getOrCreateDefaultRouter();
+    defaultRouter.setDefaultHandler(handler);
+  };
+
+  /*
     Copyright 2018 Google LLC
 
     Use of this source code is governed by an MIT-style
@@ -957,9 +1011,10 @@ this.workbox.routing = (function (exports,assert_mjs,logger_mjs,WorkboxError_mjs
   exports.registerRoute = registerRoute;
   exports.Route = Route;
   exports.Router = Router;
+  exports.setCatchHandler = setCatchHandler;
+  exports.setDefaultHandler = setDefaultHandler;
 
   return exports;
 
-}({},workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private,workbox.core._private));
-
+}({}, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private, workbox.core._private));
 //# sourceMappingURL=workbox-routing.dev.js.map

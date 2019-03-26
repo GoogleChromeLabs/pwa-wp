@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.rangeRequests = (function (exports,WorkboxError_mjs,assert_mjs,logger_mjs) {
+this.workbox.rangeRequests = (function (exports, WorkboxError_mjs, assert_mjs, logger_mjs) {
   'use strict';
 
   try {
-    self['workbox:range-requests:4.0.0-beta.2'] && _();
+    self['workbox:range-requests:4.0.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -264,6 +264,5 @@ this.workbox.rangeRequests = (function (exports,WorkboxError_mjs,assert_mjs,logg
 
   return exports;
 
-}({},workbox.core._private,workbox.core._private,workbox.core._private));
-
+}({}, workbox.core._private, workbox.core._private, workbox.core._private));
 //# sourceMappingURL=workbox-range-requests.dev.js.map

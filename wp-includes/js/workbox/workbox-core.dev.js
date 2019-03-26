@@ -3,7 +3,7 @@ this.workbox.core = (function (exports) {
   'use strict';
 
   try {
-    self['workbox:core:4.0.0-beta.2'] && _();
+    self['workbox:core:4.0.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -1074,7 +1074,8 @@ this.workbox.core = (function (exports) {
   /**
    * Wrapper around cache.put().
    *
-   * Will call `cacheDidUpdate` on plugins if the cache was updated.
+   * Will call `cacheDidUpdate` on plugins if the cache was updated, using
+   * `matchOptions` when determining what the old entry is.
    *
    * @param {Object} options
    * @param {string} options.cacheName
@@ -1082,6 +1083,7 @@ this.workbox.core = (function (exports) {
    * @param {Response} options.response
    * @param {Event} [options.event]
    * @param {Array<Object>} [options.plugins=[]]
+   * @param {Object} [options.matchOptions]
    *
    * @private
    * @memberof module:workbox-core
@@ -1092,7 +1094,8 @@ this.workbox.core = (function (exports) {
     request,
     response,
     event,
-    plugins = []
+    plugins = [],
+    matchOptions
   } = {}) => {
     if (!response) {
       {
@@ -1132,7 +1135,8 @@ this.workbox.core = (function (exports) {
     const updatePlugins = pluginUtils.filter(plugins, pluginEvents.CACHE_DID_UPDATE);
     let oldResponse = updatePlugins.length > 0 ? await matchWrapper({
       cacheName,
-      request
+      request,
+      matchOptions
     }) : null;
 
     {
@@ -1617,5 +1621,4 @@ this.workbox.core = (function (exports) {
   return exports;
 
 }({}));
-
 //# sourceMappingURL=workbox-core.dev.js.map

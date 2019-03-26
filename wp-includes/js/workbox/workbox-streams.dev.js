@@ -1,9 +1,9 @@
 this.workbox = this.workbox || {};
-this.workbox.streams = (function (exports,logger_mjs,assert_mjs) {
+this.workbox.streams = (function (exports, logger_mjs, assert_mjs) {
   'use strict';
 
   try {
-    self['workbox:streams:4.0.0-beta.2'] && _();
+    self['workbox:streams:4.0.0'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -333,6 +333,5 @@ this.workbox.streams = (function (exports,logger_mjs,assert_mjs) {
 
   return exports;
 
-}({},workbox.core._private,workbox.core._private));
-
+}({}, workbox.core._private, workbox.core._private));
 //# sourceMappingURL=workbox-streams.dev.js.map
