@@ -16,7 +16,7 @@
  *
  * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
  */
-function wp_default_service_workers( $scripts ) {
+function pwa_register_service_worker_integrations( $scripts ) {
 	$scripts->base_url        = site_url();
 	$scripts->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
 	$scripts->default_version = get_bloginfo( 'version' );
@@ -88,4 +88,3 @@ function wp_default_service_workers( $scripts ) {
 		}
 	}
 }
-add_action( 'wp_default_service_workers', 'wp_default_service_workers' );

@@ -152,21 +152,14 @@ See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Aservi
 = Integrations =
 The plugin bundles several experimental integrations that are kept separate from the service worker core code. These integrations act as examples and proof-of-concept to achieve certain goals. While all of them are generally applicable and recommended to truly benefit from service workers, they are not crucial for the core API.
 
-All these integrations are hidden behind a feature flag. To enable them, you can either set a constant `WP_SERVICE_WORKER_INTEGRATIONS_ENABLED` in your `wp-config.php` and set it to true, or add a one-liner must-use plugin:
+All these integrations are hidden behind a feature flag. To enable them, you can add `service_worker` theme support:
 
 <pre lang="php">
 <?php
-/*
-Plugin Name: Enable Service Worker Integrations
-Plugin URI:  https://github.com/xwp/pwa-wp
-Description: Enables the experimental service worker integrations in the PWA plugin.
-Version:     1.0.0
-Author:      XWP, Google, and contributors
-Author URI:  https://github.com/xwp/pwa-wp
-*/
-
-add_filter( 'wp_service_worker_integrations_enabled', '__return_true' );
+add_theme_support( 'service_worker', true );
 </pre>
+
+Note there is also a `wp_service_worker_integrations` filter to determine which experimental integrations specifically should be used.
 
 = Caching =
 Service Workers in the feature plugin are using [Workbox](https://developers.google.com/web/tools/workbox/) to power a higher-level PHP abstraction for themes and plugins to indicate the routes and the caching strategies in a declarative way. Since only one handler can be used per one route then conflicts are also detected and reported in console when using debug mode.
@@ -262,7 +255,6 @@ In case of submitting a comment and being offline (failing to fetch) the request
 Here is a list of all available actions and filters added by the feature plugin.
 
 **Filters:**
-- `wp_service_worker_integrations_enabled`: Filters whether the experimental integrations should be enabled.
 - `wp_service_worker_integrations`: Filters the service worker integrations to initialize.
   - Has one argument: `$integrations` which is an array of `$slug` => `$integration pairs, where $integration is an instance of a class that implements the WP_Service_Worker_Integration interface.`
 - `wp_service_worker_skip_waiting`: Filters whether the service worker should update automatically when a new version is available.

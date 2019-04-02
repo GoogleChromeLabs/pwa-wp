@@ -120,22 +120,15 @@ require_once PWA_PLUGIN_DIR . '/wp-admin/admin.php';
  * Load service worker integrations.
  *
  * @since 0.2.0
+ *
+ * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
  */
-function pwa_load_service_worker_integrations() {
-	/**
-	 * Filters whether service worker integrations should be enabled.
-	 *
-	 * As these are experimental, they are kept separate from the service worker core code and hidden behind a feature flag.
-	 *
-	 * Instead of using this filter, you can also use a constant `WP_SERVICE_WORKER_INTEGRATIONS_ENABLED`.
-	 *
-	 * @since 0.2
-	 *
-	 * @param bool $enabled Whether or not service worker integrations are enabled.
-	 */
-	if ( ! apply_filters( 'wp_service_worker_integrations_enabled', defined( 'WP_SERVICE_WORKER_INTEGRATIONS_ENABLED' ) && WP_SERVICE_WORKER_INTEGRATIONS_ENABLED ) ) {
+function pwa_load_service_worker_integrations( $scripts ) {
+
+	if ( ! current_theme_supports( 'service_worker' ) ) {
 		return;
 	}
+
 	/** WP_Service_Worker_Integration Interface */
 	require_once PWA_PLUGIN_DIR . '/integrations/interface-wp-service-worker-integration.php';
 
@@ -154,8 +147,11 @@ function pwa_load_service_worker_integrations() {
 
 	/** WordPress Service Worker Integration Functions */
 	require_once PWA_PLUGIN_DIR . '/integrations/functions.php';
+
+	pwa_register_service_worker_integrations( $scripts );
 }
-add_action( 'plugins_loaded', 'pwa_load_service_worker_integrations' );
+
+add_action( 'wp_default_service_workers', 'pwa_load_service_worker_integrations', -1 );
 
 $wp_web_app_manifest = new WP_Web_App_Manifest();
 $wp_web_app_manifest->init();
