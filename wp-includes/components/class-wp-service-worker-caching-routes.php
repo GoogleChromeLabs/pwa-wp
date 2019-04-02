@@ -165,6 +165,9 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 
 		$exported .= sprintf( 'const strategyArgs = %s;', empty( $exported_strategy_args ) ? '{}' : wp_service_worker_json_encode( $exported_strategy_args ) );
 
+		// Prefix the cache to prevent collision with other subdirectory installs.
+		$exported .= 'if ( strategyArgs.cacheName && typeof WP_SERVICE_WORKER_CACHE_PREFIX !== "undefined" ) { strategyArgs.cacheName = `${WP_SERVICE_WORKER_CACHE_PREFIX}-${strategyArgs.cacheName}`; }';
+
 		if ( is_array( $plugins ) ) {
 
 			$recognized_plugins = array(

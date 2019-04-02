@@ -72,18 +72,23 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 		);
 		$script .= sprintf( "workbox.setConfig( %s );\n", wp_service_worker_json_encode( $options ) );
 
+		// Vary the prefix by the root directory of the site to ensure multisite subdirectory installs don't pollute each other's caches.
+		$prefix = sprintf(
+			'wp-%s',
+			wp_parse_url( WP_Service_Workers::SCOPE_FRONT === $current_scope ? home_url( '/' ) : site_url( '/' ), PHP_URL_PATH )
+		);
+
 		$cache_name_details = array(
-			// Vary the prefix by the root directory of the site to ensure multisite subdirectory installs don't pollute each other's caches.
-			'prefix'   => sprintf(
-				'wp-%s',
-				wp_parse_url( WP_Service_Workers::SCOPE_FRONT === $current_scope ? home_url( '/' ) : site_url( '/' ), PHP_URL_PATH )
-			),
+			'prefix'   => $prefix,
 			// Also precache name by scope (front vs admin) so that different assets can be precached in each respective application.
 			'precache' => sprintf( 'precache-%s', WP_Service_Workers::SCOPE_FRONT === $current_scope ? 'front' : 'admin' ),
 			'suffix'   => 'v1',
 		);
 
 		$script .= sprintf( "workbox.core.setCacheNameDetails( %s );\n", wp_service_worker_json_encode( $cache_name_details ) );
+
+		// Export the prefix as a constant since it is not accessible via workbox.core.cacheNames, unfortunately (yet).
+		$script .= sprintf( 'const WP_SERVICE_WORKER_CACHE_PREFIX = %s;', wp_service_worker_json_encode( $prefix ) );
 
 		$skip_waiting = wp_service_worker_skip_waiting();
 
