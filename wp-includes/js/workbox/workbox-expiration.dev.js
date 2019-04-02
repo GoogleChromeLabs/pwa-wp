@@ -3,7 +3,7 @@ this.workbox.expiration = (function (exports, DBWrapper_mjs, deleteDatabase_mjs,
   'use strict';
 
   try {
-    self['workbox:expiration:4.0.0'] && _();
+    self['workbox:expiration:4.1.1'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*

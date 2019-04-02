@@ -3,7 +3,7 @@ this.workbox.googleAnalytics = (function (exports, Plugin_mjs, cacheNames_mjs, g
   'use strict';
 
   try {
-    self['workbox:google-analytics:4.0.0'] && _();
+    self['workbox:google-analytics:4.1.1'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -104,7 +104,7 @@ this.workbox.googleAnalytics = (function (exports, Plugin_mjs, cacheNames_mjs, g
             logger_mjs.logger.log(`Request for '${getFriendlyURL_mjs.getFriendlyURL(url.href)}'` + `failed to replay, putting it back in the queue.`);
           }
 
-          return;
+          throw err;
         }
       }
 

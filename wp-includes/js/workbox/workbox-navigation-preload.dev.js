@@ -3,7 +3,7 @@ this.workbox.navigationPreload = (function (exports, logger_mjs) {
   'use strict';
 
   try {
-    self['workbox:navigation-preload:4.0.0'] && _();
+    self['workbox:navigation-preload:4.1.1'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*

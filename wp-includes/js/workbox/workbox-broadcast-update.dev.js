@@ -3,7 +3,7 @@ this.workbox.broadcastUpdate = (function (exports, assert_mjs, getFriendlyURL_mj
   'use strict';
 
   try {
-    self['workbox:broadcast-update:4.0.0'] && _();
+    self['workbox:broadcast-update:4.1.1'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -254,7 +254,7 @@ this.workbox.broadcastUpdate = (function (exports, assert_mjs, getFriendlyURL_mj
           // In the case of a navigation request, the requesting page will likely
           // not have loaded its JavaScript in time to recevied the update
           // notification, so we defer it until ready (or we timeout waiting).
-          if (event && event.request.mode === 'navigate') {
+          if (event && event.request && event.request.mode === 'navigate') {
             {
               logger_mjs.logger.debug(`Original request was a navigation request, ` + `waiting for a ready message from the window`, event.request);
             }

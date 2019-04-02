@@ -3,7 +3,7 @@ this.workbox.core = (function (exports) {
   'use strict';
 
   try {
-    self['workbox:core:4.0.0'] && _();
+    self['workbox:core:4.1.1'] && _();
   } catch (e) {} // eslint-disable-line
 
   /*
@@ -682,7 +682,7 @@ this.workbox.core = (function (exports) {
           if (openRequestTimedOut) {
             db.close();
           } else {
-            db.onversionchange = this._onversionchange;
+            db.onversionchange = this._onversionchange.bind(this);
             resolve(db);
           }
         };
@@ -875,7 +875,11 @@ this.workbox.core = (function (exports) {
 
 
     close() {
-      if (this._db) this._db.close();
+      if (this._db) {
+        this._db.close();
+
+        this._db = null;
+      }
     }
 
   } // Exposed to let users modify the default timeout on a per-instance
@@ -934,49 +938,6 @@ this.workbox.core = (function (exports) {
         resolve();
       };
     });
-  };
-
-  /*
-    Copyright 2018 Google LLC
-
-    Use of this source code is governed by an MIT-style
-    license that can be found in the LICENSE file or at
-    https://opensource.org/licenses/MIT.
-  */
-  /**
-   * Handles running a series of migration functions to upgrade an IndexedDB
-   * database in a `versionchange` event.
-   *
-   * @private
-   * @param {IDBVersionChangeEvent} event
-   * @param {Object<string, Function>} migrationFunctions
-   */
-
-  const migrateDb = (event, migrationFunctions) => {
-    let {
-      oldVersion,
-      newVersion
-    } = event; // Call all `migrationFunctions` values between oldVersion and newVersion.
-
-    const migrate = oldVersion => {
-      const next = () => {
-        ++oldVersion;
-
-        if (oldVersion <= newVersion) {
-          migrate(oldVersion);
-        }
-      };
-
-      const migrationFunction = migrationFunctions[`v${oldVersion}`];
-
-      if (typeof migrationFunction === 'function') {
-        migrationFunction(next);
-      } else {
-        next();
-      }
-    };
-
-    migrate(oldVersion);
   };
 
   /*
@@ -1456,7 +1417,6 @@ this.workbox.core = (function (exports) {
   var _private = /*#__PURE__*/Object.freeze({
     DBWrapper: DBWrapper,
     deleteDatabase: deleteDatabase,
-    migrateDb: migrateDb,
     WorkboxError: WorkboxError,
     assert: finalAssertExports,
     cacheNames: cacheNames,

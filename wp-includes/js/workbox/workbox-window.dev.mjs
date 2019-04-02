@@ -1,5 +1,5 @@
 try {
-  self['workbox:window:4.0.0'] && _();
+  self['workbox:window:4.1.1'] && _();
 } catch (e) {} // eslint-disable-line
 
 /*
@@ -10,8 +10,8 @@ try {
   https://opensource.org/licenses/MIT.
 */
 /**
- * Sends a data object to a service worker via `postMessage` and resolves
- * and resolves with a response (if any).
+ * Sends a data object to a service worker via `postMessage` and resolves with
+ * a response (if any).
  *
  * A response can be set in a message handler in the service worker by
  * calling `event.ports[0].postMessage(...)`, which will resolve the promise
@@ -36,7 +36,7 @@ const messageSW = (sw, data) => {
 };
 
 try {
-  self['workbox:core:4.0.0'] && _();
+  self['workbox:core:4.1.1'] && _();
 } catch (e) {} // eslint-disable-line
 
 /*
@@ -164,7 +164,7 @@ class EventTargetShim {
 
 
   removeEventListener(type, listener) {
-    this._getEventListenersByType(type).remove(listener);
+    this._getEventListenersByType(type).delete(listener);
   }
   /**
    * @param {Event} event
@@ -330,12 +330,11 @@ class Workbox extends EventTargetShim {
     // instance's script.
 
     this._compatibleControllingSW = this._getControllingSWIfCompatible();
-    this._registration = await this._registerScript(); // Only resolve deferreds now if we know we have a compatible controller.
+    this._registration = await this._registerScript(); // If we have a compatible controller, store the controller as the "own"
+    // SW, resolve active/controlling deferreds and add necessary listeners.
 
     if (this._compatibleControllingSW) {
       this._sw = this._compatibleControllingSW;
-
-      this._swDeferred.resolve(this._compatibleControllingSW);
 
       this._activeDeferred.resolve(this._compatibleControllingSW);
 
@@ -347,18 +346,23 @@ class Workbox extends EventTargetShim {
         once: true
       });
     } // If there's a waiting service worker with a matching URL before the
-    // `updatefound` event fires, it likely means the this site is open
-    // in another tab, or the user refreshed the page without unloading it
-    // first.
+    // `updatefound` event fires, it likely means that this site is open
+    // in another tab, or the user refreshed the page (and thus the prevoius
+    // page wasn't fully unloaded before this page started loading).
     // https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle#waiting
 
 
-    if (this._registration.waiting && urlsMatch(this._registration.waiting.scriptURL, this._scriptURL)) {
-      // Run this in the next microtask, so any code that adds an event
+    const waitingSW = this._registration.waiting;
+
+    if (waitingSW && urlsMatch(waitingSW.scriptURL, this._scriptURL)) {
+      // Store the waiting SW as the "own" Sw, even if it means overwriting
+      // a compatible controller.
+      this._sw = waitingSW; // Run this in the next microtask, so any code that adds an event
       // listener after awaiting `register()` will get this event.
+
       Promise.resolve().then(() => {
         this.dispatchEvent(new WorkboxEvent('waiting', {
-          sw: this._registration.waiting,
+          sw: waitingSW,
           wasWaitingBeforeRegister: true
         }));
 
@@ -366,6 +370,11 @@ class Workbox extends EventTargetShim {
           logger.warn('A service worker was already waiting to activate ' + 'before this script was registered...');
         }
       });
+    } // If an "own" SW is already set, resolve the deferred.
+
+
+    if (this._sw) {
+      this._swDeferred.resolve(this._sw);
     }
 
     {
@@ -440,22 +449,28 @@ class Workbox extends EventTargetShim {
    * Resolves with a reference to a service worker that matches the script URL
    * of this instance, as soon as it's available.
    *
-   * If, at registration time, there’s already an active service worker with a
-   * matching script URL, that will be what is resolved. If there’s no active
-   * and matching service worker at registration time then the promise will
-   * not resolve until an update is found and starts installing, at which
-   * point the installing service worker is resolved.
+   * If, at registration time, there's already an active or waiting service
+   * worker with a matching script URL, it will be used (with the waiting
+   * service worker taking precedence over the active service worker if both
+   * match, since the waiting service worker would have been registered more
+   * recently).
+   * If there's no matching active or waiting service worker at registration
+   * time then the promise will not resolve until an update is found and starts
+   * installing, at which point the installing service worker is used.
    *
    * @return {Promise<ServiceWorker>}
    */
 
 
   async getSW() {
-    return this._swDeferred.promise;
+    // If `this._sw` is set, resolve with that as we want `getSW()` to
+    // return the correct (new) service worker if an update is found.
+    return this._sw || this._swDeferred.promise;
   }
   /**
    * Sends the passed data object to the service worker registered by this
-   * instance and resolves with a response (if any).
+   * instance (via [`getSW()`]{@link module:workbox-window.Workbox#getSW}) and resolves
+   * with a response (if any).
    *
    * A response can be set in a message handler in the service worker by
    * calling `event.ports[0].postMessage(...)`, which will resolve the promise
@@ -469,20 +484,11 @@ class Workbox extends EventTargetShim {
 
   async messageSW(data) {
     const sw = await this.getSW();
-    return new Promise(resolve => {
-      let messageChannel = new MessageChannel();
-
-      messageChannel.port1.onmessage = evt => resolve(evt.data);
-
-      sw.postMessage(data, [messageChannel.port2]);
-    });
+    return messageSW(sw, data);
   }
   /**
    * Checks for a service worker already controlling the page and returns
-   * it if its script URL (and optionally script version) match. The
-   * script version is determined by sending a message to the controlling
-   * service worker and waiting for a response. If no response is returned
-   * the service worker is assumed to not have a version.
+   * it if its script URL matchs.
    *
    * @private
    * @return {ServiceWorker|undefined}
@@ -493,10 +499,6 @@ class Workbox extends EventTargetShim {
     const controller = navigator.serviceWorker.controller;
 
     if (controller && urlsMatch(controller.scriptURL, this._scriptURL)) {
-      // If the URLs match and no script version is specified, assume the
-      // SW is the same. NOTE: without a script version, this isn't a
-      // particularly good test. Using a script version is encouraged if
-      // you need to send messages to your service worker on all page loads.
       return controller;
     }
   }
