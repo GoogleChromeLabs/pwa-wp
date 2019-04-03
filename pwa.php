@@ -123,7 +123,7 @@ require_once PWA_PLUGIN_DIR . '/wp-admin/admin.php';
  *
  * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
  */
-function pwa_load_service_worker_integrations( $scripts ) {
+function pwa_load_service_worker_integrations( WP_Service_Worker_Scripts $scripts ) {
 	if ( ! current_theme_supports( 'service_worker' ) ) {
 		return;
 	}

@@ -32,7 +32,7 @@
  *
  * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
  */
-function pwa_register_service_worker_integrations( $scripts ) {
+function pwa_register_service_worker_integrations( WP_Service_Worker_Scripts $scripts ) {
 	// Bail if not supported by theme.
 	$theme_support = get_theme_support( 'service_worker' );
 	if ( ! $theme_support ) {
