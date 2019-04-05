@@ -31,6 +31,9 @@ module.exports = function( grunt ) {
 			verify_matching_versions: {
 				command: 'php bin/verify-version-consistency.php'
 			},
+			install_workbox: {
+				command: 'if [ -e wp-includes/js/workbox* ]; then rm -r wp-includes/js/workbox*; fi; npx workbox copyLibraries wp-includes/js/ && mv wp-includes/js/workbox-v* wp-includes/js/workbox'
+			},
 			create_build_zip: {
 				command: 'if [ ! -e build ]; then echo "Run grunt build first."; exit 1; fi; if [ -e pwa.zip ]; then rm pwa.zip; fi; cd build; zip -r ../pwa.zip .; cd ..; echo; echo "ZIP of build: $(pwd)/pwa.zip"'
 			}
@@ -70,6 +73,8 @@ module.exports = function( grunt ) {
 		spawnQueue = [];
 		stdout = [];
 
+		grunt.task.run( 'shell:install_workbox' );
+
 		spawnQueue.push(
 			{
 				cmd: 'git',
@@ -90,6 +95,7 @@ module.exports = function( grunt ) {
 			paths = lsOutput.trim().split( /\n/ ).filter( function( file ) {
 				return ! /^(\.|bin|([^/]+)+\.(md|json|xml)|Gruntfile\.js|tests|wp-assets|readme\.md|composer\..*|webpack.*)/.test( file );
 			} );
+			paths.push( 'wp-includes/js/workbox/*' );
 
 			grunt.task.run( 'clean' );
 			grunt.config.set( 'copy', {
