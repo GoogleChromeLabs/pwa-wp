@@ -5,3 +5,4 @@
 /phpcs.xml
 /.phpcs.xml
 *.zip
+/wp-includes/js/workbox/
