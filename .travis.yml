@@ -19,13 +19,11 @@ cache:
     - $HOME/deployment-targets
 
 install:
-  - if [[ $TRAVIS_PHP_VERSION == "5.2" ]]; then phpenv local 5.6.13; composer install --no-dev; fi # Temporarily switch PHP version so Composer can be invoked.
   - nvm install 6 && nvm use 6
   - npm install
   - npm run build
   - export DEV_LIB_PATH=vendor/xwp/wp-dev-lib/scripts
   - source "$DEV_LIB_PATH/travis.install.sh"
-  - if [[ $TRAVIS_PHP_VERSION == "5.2" ]]; then phpenv local --unset; fi # Reset original PHP.
 
 script:
   - source "$DEV_LIB_PATH/travis.script.sh"
