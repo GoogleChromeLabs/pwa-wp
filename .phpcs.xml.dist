@@ -33,7 +33,7 @@
 
 	<!-- For help in understanding this testVersion:
 		https://github.com/PHPCompatibility/PHPCompatibility#sniffing-your-code-for-compatibility-with-specific-php-versions -->
-	<config name="testVersion" value="5.2-"/>
+	<config name="testVersion" value="5.6-"/>
 
 	<!-- Rules: WordPress Coding Standards - see
 			https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards -->
