@@ -54,6 +54,31 @@ if ( 'pwa' !== basename( PWA_PLUGIN_DIR ) ) {
 	add_action( 'admin_notices', '_pwa_incorrect_plugin_slug_admin_notice' );
 }
 
+/**
+ * Print admin notice when a build has not been been performed.
+ *
+ * @since 0.2
+ */
+function _pwa_print_build_needed_notice() {
+	?>
+	<div class="notice notice-error">
+		<p>
+			<?php
+			printf(
+				/* translators: %s: composer install && npm install && npm run build */
+				__( 'You appear to be running the PWA plugin from source. Please do %s to finish installation.', 'pwa' ), // phpcs:ignore WordPress.Security.EscapeOutput
+				'<code>composer install && npm install && npm run build</code>'
+			);
+			?>
+		</p>
+	</div>
+	<?php
+}
+if ( ! file_exists( __DIR__ . '/wp-includes/js/workbox/' ) || ! file_exists( __DIR__ . '/wp-includes/js/workbox/workbox-sw.js' ) ) {
+	add_action( 'admin_notices', '_pwa_print_build_needed_notice' );
+	return;
+}
+
 /** WP_Web_App_Manifest Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-web-app-manifest.php';
 
