@@ -1,5 +1,11 @@
 language: php
 
+addons:
+  apt:
+    packages:
+      # Needed for `xmllint`.
+      - libxml2-utils
+
 notifications:
   email:
     on_success: never
