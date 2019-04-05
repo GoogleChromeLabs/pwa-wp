@@ -14,7 +14,7 @@ cache:
     - $HOME/deployment-targets
 
 install:
-  - nvm install 6 && nvm use 6
+  - nvm install 8.15.1 && nvm use 8.15.1
   - npm install
   - npm run build
   - export DEV_LIB_PATH=vendor/xwp/wp-dev-lib/scripts
