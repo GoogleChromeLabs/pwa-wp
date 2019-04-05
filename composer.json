@@ -10,6 +10,7 @@
   "require-dev": {
     "dealerdirect/phpcodesniffer-composer-installer": "^0.4.4",
     "phpcompatibility/phpcompatibility-wp": "^1",
-    "wp-coding-standards/wpcs": "^1"
+    "wp-coding-standards/wpcs": "^1",
+    "xwp/wp-dev-lib": "1.1.0"
   }
 }
