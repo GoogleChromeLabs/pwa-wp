@@ -17,8 +17,6 @@
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * GitHub Plugin URI: https://github.com/xwp/pwa-wp
- * Requires PHP:      5.6
- * Requires WP:       4.9
  */
 
 define( 'PWA_VERSION', '0.2-alpha1' );
