@@ -164,13 +164,13 @@ Alternatively, you can selectively enable specific integrations by providing an 
 <pre lang="php">
 <?php
 add_theme_support(
-    'service_worker',
-    array(
-    		'wp-site-icon'         => false,
-    		'wp-custom-logo'       => true,
-    		'wp-custom-background' => true,
-    		'wp-fonts'             => true,
-    )
+	'service_worker',
+	array(
+		'wp-site-icon'         => false,
+		'wp-custom-logo'       => true,
+		'wp-custom-background' => true,
+		'wp-fonts'             => true,
+	)
 );
 </pre>
 
