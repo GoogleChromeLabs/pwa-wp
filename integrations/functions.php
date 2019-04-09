@@ -10,42 +10,71 @@
  */
 
 /**
- * Registers all default service workers.
+ * Registers service worker integrations.
+ *
+ * These integrations are separate from the service worker core and need to be opted in via theme support.
+ * To enable all integrations, use the following:
+ *
+ *     add_theme_support( 'service_worker', true );
+ *
+ * Alternatively, you can also pass an array of integration slugs as keys and a boolean indicating that
+ * integration's status as values, for example:
+ *
+ *     add_theme_support(
+ *         'service_worker',
+ *         array(
+ *             'wp-custom-logo'   => true,
+ *             'wp-custom-header' => true,
+ *         )
+ *     );
  *
  * @since 0.2
  *
  * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
  */
-function wp_default_service_workers( $scripts ) {
+function pwa_register_service_worker_integrations( WP_Service_Worker_Scripts $scripts ) {
+	// Bail if not supported by theme.
+	$theme_support = get_theme_support( 'service_worker' );
+	if ( ! $theme_support ) {
+		return;
+	}
+
+	// Set script default parameters.
 	$scripts->base_url        = site_url();
 	$scripts->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
 	$scripts->default_version = get_bloginfo( 'version' );
 
+	// Load integration base.
+	require_once PWA_PLUGIN_DIR . '/integrations/interface-wp-service-worker-integration.php';
+	require_once PWA_PLUGIN_DIR . '/integrations/class-wp-service-worker-base-integration.php';
+
 	$integrations = array(
-		'wp-site-icon'         => new WP_Service_Worker_Site_Icon_Integration(),
-		'wp-custom-logo'       => new WP_Service_Worker_Custom_Logo_Integration(),
-		'wp-custom-header'     => new WP_Service_Worker_Custom_Header_Integration(),
-		'wp-custom-background' => new WP_Service_Worker_Custom_Background_Integration(),
-		'wp-scripts'           => new WP_Service_Worker_Scripts_Integration(),
-		'wp-styles'            => new WP_Service_Worker_Styles_Integration(),
-		'wp-fonts'             => new WP_Service_Worker_Fonts_Integration(),
+		'wp-site-icon'         => 'WP_Service_Worker_Site_Icon_Integration',
+		'wp-custom-logo'       => 'WP_Service_Worker_Custom_Logo_Integration',
+		'wp-custom-header'     => 'WP_Service_Worker_Custom_Header_Integration',
+		'wp-custom-background' => 'WP_Service_Worker_Custom_Background_Integration',
+		'wp-scripts'           => 'WP_Service_Worker_Scripts_Integration',
+		'wp-styles'            => 'WP_Service_Worker_Styles_Integration',
+		'wp-fonts'             => 'WP_Service_Worker_Fonts_Integration',
 	);
 
 	if ( ! SCRIPT_DEBUG ) {
-		$integrations['wp-admin-assets'] = new WP_Service_Worker_Admin_Assets_Integration();
+		$integrations['wp-admin-assets'] = 'WP_Service_Worker_Admin_Assets_Integration';
 	}
 
-	/**
-	 * Filters the service worker integrations to initialize.
-	 *
-	 * @since 0.2
-	 *
-	 * @param array $integrations Array of $slug => $integration pairs, where $integration is an instance
-	 *                            of a class that implements the WP_Service_Worker_Integration interface.
-	 */
-	$integrations = apply_filters( 'wp_service_worker_integrations', $integrations );
+	// Filter active integrations if granular theme support array is provided.
+	if ( is_array( $theme_support ) && isset( $theme_support[0] ) && is_array( $theme_support[0] ) ) {
+		$integrations = array_intersect_key(
+			$integrations,
+			array_filter( $theme_support[0] )
+		);
+	}
 
-	foreach ( $integrations as $slug => $integration ) {
+	// Load, instantiate and register each integration supported by the theme.
+	foreach ( $integrations as $slug => $integration_class ) {
+		require_once PWA_PLUGIN_DIR . '/integrations/class-' . str_replace( '_', '-', strtolower( $integration_class ) ) . '.php';
+
+		$integration = new $integration_class();
 		if ( ! $integration instanceof WP_Service_Worker_Integration ) {
 			_doing_it_wrong(
 				__FUNCTION__,
@@ -88,4 +117,3 @@ function wp_default_service_workers( $scripts ) {
 		}
 	}
 }
-add_action( 'wp_default_service_workers', 'wp_default_service_workers' );
