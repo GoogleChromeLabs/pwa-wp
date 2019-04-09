@@ -17,14 +17,37 @@
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * GitHub Plugin URI: https://github.com/xwp/pwa-wp
- * Requires PHP:      5.2
- * Requires WP:       4.9
  */
 
 define( 'PWA_VERSION', '0.2-alpha1' );
 define( 'PWA_PLUGIN_FILE', __FILE__ );
 define( 'PWA_PLUGIN_DIR', dirname( __FILE__ ) );
 define( 'PWA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+
+/**
+ * Print admin notice regarding having an old version of PHP.
+ *
+ * @since 0.2
+ */
+function _pwa_print_php_version_admin_notice() {
+	?>
+	<div class="notice notice-error">
+		<p>
+			<?php
+			printf(
+				/* translators: %s: required PHP version */
+				esc_html__( 'The pwa plugin requires PHP %s. Please contact your host to update your PHP version.', 'pwa' ),
+				'5.6+'
+			);
+			?>
+		</p>
+	</div>
+	<?php
+}
+if ( version_compare( phpversion(), '5.6', '<' ) ) {
+	add_action( 'admin_notices', '_pwa_print_php_version_admin_notice' );
+	return;
+}
 
 /**
  * Print admin notice if plugin installed with incorrect slug (which impacts WordPress's auto-update system).
@@ -52,6 +75,31 @@ function _pwa_incorrect_plugin_slug_admin_notice() {
 }
 if ( 'pwa' !== basename( PWA_PLUGIN_DIR ) ) {
 	add_action( 'admin_notices', '_pwa_incorrect_plugin_slug_admin_notice' );
+}
+
+/**
+ * Print admin notice when a build has not been been performed.
+ *
+ * @since 0.2
+ */
+function _pwa_print_build_needed_notice() {
+	?>
+	<div class="notice notice-error">
+		<p>
+			<?php
+			printf(
+				/* translators: %s: composer install && npm install && npm run build */
+				__( 'You appear to be running the PWA plugin from source. Please do %s to finish installation.', 'pwa' ), // phpcs:ignore WordPress.Security.EscapeOutput
+				'<code>composer install && npm install && npm run build</code>'
+			);
+			?>
+		</p>
+	</div>
+	<?php
+}
+if ( ! file_exists( __DIR__ . '/wp-includes/js/workbox/' ) || ! file_exists( __DIR__ . '/wp-includes/js/workbox/workbox-sw.js' ) ) {
+	add_action( 'admin_notices', '_pwa_print_build_needed_notice' );
+	return;
 }
 
 /** WP_Web_App_Manifest Class */

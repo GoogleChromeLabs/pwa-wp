@@ -1,12 +1,12 @@
 === PWA ===
 Contributors:      xwp, google, automattic
 Tags:              pwa, progressive web apps, service workers, web app manifest, https
-Requires at least: 4.9
-Tested up to:      4.9
+Requires at least: 5.1
+Tested up to:      5.2
 Stable tag:        0.1.0
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
-Requires PHP:      5.2
+Requires PHP:      5.6
 
 WordPress feature plugin to bring Progressive Web App (PWA) capabilities to Core
 
