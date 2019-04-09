@@ -1,7 +1,6 @@
 /build/
 /node_modules
 /vendor
-/composer.lock
 /phpcs.xml
 /.phpcs.xml
 *.zip
