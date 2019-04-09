@@ -87,9 +87,6 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 
 		$script .= sprintf( "workbox.core.setCacheNameDetails( %s );\n", wp_service_worker_json_encode( $cache_name_details ) );
 
-		// Export the prefix as a constant since it is not accessible via workbox.core.cacheNames, unfortunately (yet).
-		$script .= sprintf( 'const WP_SERVICE_WORKER_CACHE_PREFIX = %s;', wp_service_worker_json_encode( $prefix ) );
-
 		$skip_waiting = wp_service_worker_skip_waiting();
 
 		/**
