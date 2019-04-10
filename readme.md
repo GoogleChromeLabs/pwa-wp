@@ -12,7 +12,7 @@ WordPress feature plugin to bring Progressive Web App (PWA) capabilities to Core
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 **Requires PHP:** 5.6  
 
-[![Build Status](https://travis-ci.org/xwp/pwa-wp.svg?branch=master)](https://travis-ci.org/xwp/pwa-wp) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) 
+[![Build Status](https://travis-ci.org/xwp/pwa-wp.svg?branch=master)](https://travis-ci.org/xwp/pwa-wp) [![Built with Grunt](https://gruntjs.com/cdn/builtwith.svg)](http://gruntjs.com) 
 
 ## Description ##
 
@@ -160,7 +160,20 @@ All these integrations are hidden behind a feature flag. To enable them, you can
 add_theme_support( 'service_worker', true );
 ```
 
-Note there is also a `wp_service_worker_integrations` filter to determine which experimental integrations specifically should be used.
+Alternatively, you can selectively enable specific integrations by providing an array when adding theme support:
+
+```php
+<?php
+add_theme_support(
+	'service_worker',
+	array(
+		'wp-site-icon'         => false,
+		'wp-custom-logo'       => true,
+		'wp-custom-background' => true,
+		'wp-fonts'             => true,
+	)
+);
+```
 
 ### Caching ###
 Service Workers in the feature plugin are using [Workbox](https://developers.google.com/web/tools/workbox/) to power a higher-level PHP abstraction for themes and plugins to indicate the routes and the caching strategies in a declarative way. Since only one handler can be used per one route then conflicts are also detected and reported in console when using debug mode.
@@ -255,8 +268,6 @@ In case of submitting a comment and being offline (failing to fetch) the request
 Here is a list of all available actions and filters added by the feature plugin.
 
 **Filters:**
-- `wp_service_worker_integrations`: Filters the service worker integrations to initialize.
-  - Has one argument: `$integrations` which is an array of `$slug` => `$integration pairs, where $integration is an instance of a class that implements the WP_Service_Worker_Integration interface.`
 - `wp_service_worker_skip_waiting`: Filters whether the service worker should update automatically when a new version is available.
   - Has one boolean argument which defaults to `true`.
 - `wp_service_worker_clients_claim`: Filters whether the service worker should use `clientsClaim()` after `skipWaiting()`.
