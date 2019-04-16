@@ -11,7 +11,7 @@
  "devDependencies": {
   "eslint": "5.15.1",
   "eslint-config-wordpress": "2.0.0",
-  "grunt": "1.0.3",
+  "grunt": "^1.0.4",
   "grunt-contrib-clean": "2.0.0",
   "grunt-contrib-copy": "1.0.0",
   "grunt-shell": "3.0.1",
