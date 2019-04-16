@@ -68,11 +68,16 @@ class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base_Integ
 
 			$url = $dependency->src;
 
+			if ( is_string( $url ) && ! preg_match( '|^(https?:)?//|', $url ) && ! ( wp_scripts()->content_url && 0 === strpos( $url, wp_scripts()->content_url ) ) ) {
+				$url = wp_scripts()->base_url . $url;
+			}
+
 			$revision = false === $dependency->ver ? get_bloginfo( 'version' ) : $dependency->ver;
 
 			/** This filter is documented in wp-includes/class.wp-scripts.php */
 			$url = apply_filters( 'script_loader_src', $url, $handle );
 
+			// @todo Issue a warning when it is not a local file?
 			if ( $url && $this->is_local_file_url( $url ) ) {
 				$scripts->precaching_routes()->register( $url, $revision );
 			}

@@ -17,14 +17,37 @@
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * GitHub Plugin URI: https://github.com/xwp/pwa-wp
- * Requires PHP:      5.2
- * Requires WP:       4.9
  */
 
 define( 'PWA_VERSION', '0.2-alpha1' );
 define( 'PWA_PLUGIN_FILE', __FILE__ );
 define( 'PWA_PLUGIN_DIR', dirname( __FILE__ ) );
 define( 'PWA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+
+/**
+ * Print admin notice regarding having an old version of PHP.
+ *
+ * @since 0.2
+ */
+function _pwa_print_php_version_admin_notice() {
+	?>
+	<div class="notice notice-error">
+		<p>
+			<?php
+			printf(
+				/* translators: %s: required PHP version */
+				esc_html__( 'The pwa plugin requires PHP %s. Please contact your host to update your PHP version.', 'pwa' ),
+				'5.6+'
+			);
+			?>
+		</p>
+	</div>
+	<?php
+}
+if ( version_compare( phpversion(), '5.6', '<' ) ) {
+	add_action( 'admin_notices', '_pwa_print_php_version_admin_notice' );
+	return;
+}
 
 /**
  * Print admin notice if plugin installed with incorrect slug (which impacts WordPress's auto-update system).
@@ -52,6 +75,31 @@ function _pwa_incorrect_plugin_slug_admin_notice() {
 }
 if ( 'pwa' !== basename( PWA_PLUGIN_DIR ) ) {
 	add_action( 'admin_notices', '_pwa_incorrect_plugin_slug_admin_notice' );
+}
+
+/**
+ * Print admin notice when a build has not been been performed.
+ *
+ * @since 0.2
+ */
+function _pwa_print_build_needed_notice() {
+	?>
+	<div class="notice notice-error">
+		<p>
+			<?php
+			printf(
+				/* translators: %s: composer install && npm install && npm run build */
+				__( 'You appear to be running the PWA plugin from source. Please do %s to finish installation.', 'pwa' ), // phpcs:ignore WordPress.Security.EscapeOutput
+				'<code>composer install && npm install && npm run build</code>'
+			);
+			?>
+		</p>
+	</div>
+	<?php
+}
+if ( ! file_exists( __DIR__ . '/wp-includes/js/workbox/' ) || ! file_exists( __DIR__ . '/wp-includes/js/workbox/workbox-sw.js' ) ) {
+	add_action( 'admin_notices', '_pwa_print_build_needed_notice' );
+	return;
 }
 
 /** WP_Web_App_Manifest Class */
@@ -86,22 +134,6 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-p
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-caching-routes-component.php';
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-caching-routes.php';
 
-/** WP_Service_Worker_Integration Interface */
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/interface-wp-service-worker-integration.php';
-
-/** WP_Service_Worker_Base_Integration Class */
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-base-integration.php';
-
-/** WP_Service_Worker_Integration Implementation Classes */
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-site-icon-integration.php';
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-custom-logo-integration.php';
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-custom-header-integration.php';
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-custom-background-integration.php';
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-scripts-integration.php';
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-styles-integration.php';
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-fonts-integration.php';
-require_once PWA_PLUGIN_DIR . '/wp-includes/integrations/class-wp-service-worker-admin-assets-integration.php';
-
 /** WordPress Service Worker Functions */
 require_once PWA_PLUGIN_DIR . '/wp-includes/service-workers.php';
 
@@ -131,6 +163,25 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-query.php';
 
 /** Hooks to add for when accessing admin. */
 require_once PWA_PLUGIN_DIR . '/wp-admin/admin.php';
+
+/**
+ * Load service worker integrations.
+ *
+ * @since 0.2.0
+ *
+ * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
+ */
+function pwa_load_service_worker_integrations( WP_Service_Worker_Scripts $scripts ) {
+	if ( ! current_theme_supports( 'service_worker' ) ) {
+		return;
+	}
+
+	/** WordPress Service Worker Integration Functions */
+	require_once PWA_PLUGIN_DIR . '/integrations/functions.php';
+
+	pwa_register_service_worker_integrations( $scripts );
+}
+add_action( 'wp_default_service_workers', 'pwa_load_service_worker_integrations', -1 );
 
 $wp_web_app_manifest = new WP_Web_App_Manifest();
 $wp_web_app_manifest->init();

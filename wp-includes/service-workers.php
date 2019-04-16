@@ -94,7 +94,7 @@ function wp_get_service_worker_url( $scope = WP_Service_Workers::SCOPE_FRONT ) {
 	if ( WP_Service_Workers::SCOPE_FRONT === $scope ) {
 		return add_query_arg(
 			array( WP_Service_Workers::QUERY_VAR => $scope ),
-			home_url( '/', 'https' )
+			home_url( '/' )
 		);
 	} else {
 		return add_query_arg(
@@ -113,8 +113,17 @@ function wp_print_service_workers() {
 	global $pagenow;
 	$scopes = array();
 
-	$on_front_domain = isset( $_SERVER['HTTP_HOST'] ) && wp_parse_url( home_url(), PHP_URL_HOST ) === $_SERVER['HTTP_HOST'];
-	$on_admin_domain = isset( $_SERVER['HTTP_HOST'] ) && wp_parse_url( admin_url(), PHP_URL_HOST ) === $_SERVER['HTTP_HOST'];
+	$home_port  = wp_parse_url( home_url(), PHP_URL_PORT );
+	$admin_port = wp_parse_url( admin_url(), PHP_URL_PORT );
+
+	$home_host  = wp_parse_url( home_url(), PHP_URL_HOST );
+	$admin_host = wp_parse_url( admin_url(), PHP_URL_HOST );
+
+	$home_url  = ( $home_port ) ? "$home_host:$home_port" : $home_host;
+	$admin_url = ( $admin_port ) ? "$admin_host:$admin_port" : $admin_host;
+
+	$on_front_domain = isset( $_SERVER['HTTP_HOST'] ) && $home_url === $_SERVER['HTTP_HOST'];
+	$on_admin_domain = isset( $_SERVER['HTTP_HOST'] ) && $admin_url === $_SERVER['HTTP_HOST'];
 
 	// Install the front service worker if currently on the home domain.
 	if ( $on_front_domain ) {
@@ -232,86 +241,6 @@ function wp_service_worker_json_encode( $data ) {
 }
 
 /**
- * Registers all default service workers.
- *
- * @since 0.2
- *
- * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
- */
-function wp_default_service_workers( $scripts ) {
-	$scripts->base_url        = site_url();
-	$scripts->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
-	$scripts->default_version = get_bloginfo( 'version' );
-
-	$integrations = array(
-		'wp-site-icon'         => new WP_Service_Worker_Site_Icon_Integration(),
-		'wp-custom-logo'       => new WP_Service_Worker_Custom_Logo_Integration(),
-		'wp-custom-header'     => new WP_Service_Worker_Custom_Header_Integration(),
-		'wp-custom-background' => new WP_Service_Worker_Custom_Background_Integration(),
-		'wp-scripts'           => new WP_Service_Worker_Scripts_Integration(),
-		'wp-styles'            => new WP_Service_Worker_Styles_Integration(),
-		'wp-fonts'             => new WP_Service_Worker_Fonts_Integration(),
-	);
-
-	if ( ! SCRIPT_DEBUG ) {
-		$integrations['wp-admin-assets'] = new WP_Service_Worker_Admin_Assets_Integration();
-	}
-
-	/**
-	 * Filters the service worker integrations to initialize.
-	 *
-	 * @since 0.2
-	 *
-	 * @param array $integrations Array of $slug => $integration pairs, where $integration is an instance
-	 *                            of a class that implements the WP_Service_Worker_Integration interface.
-	 */
-	$integrations = apply_filters( 'wp_service_worker_integrations', $integrations );
-
-	foreach ( $integrations as $slug => $integration ) {
-		if ( ! $integration instanceof WP_Service_Worker_Integration ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: 1: integration slug, 2: interface name */
-					esc_html__( 'The integration with slug %1$s does not implement the %2$s interface.', 'pwa' ),
-					esc_html( $slug ),
-					'WP_Service_Worker_Integration'
-				),
-				'0.2'
-			);
-			continue;
-		}
-
-		$scope    = $integration->get_scope();
-		$priority = $integration->get_priority();
-		switch ( $scope ) {
-			case WP_Service_Workers::SCOPE_FRONT:
-				add_action( 'wp_front_service_worker', array( $integration, 'register' ), $priority, 1 );
-				break;
-			case WP_Service_Workers::SCOPE_ADMIN:
-				add_action( 'wp_admin_service_worker', array( $integration, 'register' ), $priority, 1 );
-				break;
-			case WP_Service_Workers::SCOPE_ALL:
-				add_action( 'wp_front_service_worker', array( $integration, 'register' ), $priority, 1 );
-				add_action( 'wp_admin_service_worker', array( $integration, 'register' ), $priority, 1 );
-				break;
-			default:
-				$valid_scopes = array( WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, WP_Service_Workers::SCOPE_ALL );
-				_doing_it_wrong(
-					__FUNCTION__,
-					sprintf(
-						/* translators: 1: integration slug, 2: a comma-separated list of valid scopes */
-						esc_html__( 'Scope for integration %1$s must be one out of %2$s.', 'pwa' ),
-						esc_html( $slug ),
-						esc_html( implode( ', ', $valid_scopes ) )
-					),
-					'0.1'
-				);
-		}
-	}
-}
-
-/**
  * Disables concatenating scripts to leverage caching the assets via Service Worker instead.
  */
 function wp_disable_script_concatenation() {
@@ -398,41 +327,4 @@ function wp_service_worker_skip_waiting() {
 	 * @param bool $skip_waiting Whether to skip waiting for the Service Worker and update when an update is available.
 	 */
 	return (bool) apply_filters( 'wp_service_worker_skip_waiting', true );
-}
-
-/**
- * Get service worker error messages.
- *
- * @return array Array of error messages: default, comment.
- */
-function wp_service_worker_get_error_messages() {
-	return apply_filters(
-		'wp_service_worker_error_messages',
-		array(
-			'default' => __( 'Please check your internet connection, and try again.', 'pwa' ),
-			'error'   => __( 'Something prevented the page from being rendered. Please try again.', 'pwa' ),
-			'comment' => __( 'Your comment will be submitted once you are back online!', 'pwa' ),
-		)
-	);
-}
-
-/**
- * Display service worker error details template.
- *
- * @param string $output Error details template output.
- */
-function wp_service_worker_error_details_template( $output = '' ) {
-	if ( empty( $output ) ) {
-		$output = '<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary>{{{error_details_iframe}}}</details>';
-	}
-	echo '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->'; // WPCS: XSS OK.
-	echo wp_kses_post( $output );
-	echo '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->'; // WPCS: XSS OK.
-}
-
-/**
- * Display service worker error message template tag.
- */
-function wp_service_worker_error_message_placeholder() {
-	echo '<p><!--WP_SERVICE_WORKER_ERROR_MESSAGE--></p>'; // WPCS: XSS OK.
 }

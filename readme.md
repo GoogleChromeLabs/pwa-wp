@@ -6,13 +6,13 @@ WordPress feature plugin to bring Progressive Web App (PWA) capabilities to Core
 
 **Contributors:** [xwp](https://profiles.wordpress.org/xwp), [google](https://profiles.wordpress.org/google), [automattic](https://profiles.wordpress.org/automattic)  
 **Tags:** [pwa](https://wordpress.org/plugins/tags/pwa), [progressive web apps](https://wordpress.org/plugins/tags/progressive-web-apps), [service workers](https://wordpress.org/plugins/tags/service-workers), [web app manifest](https://wordpress.org/plugins/tags/web-app-manifest), [https](https://wordpress.org/plugins/tags/https)  
-**Requires at least:** 4.9  
-**Tested up to:** 4.9  
+**Requires at least:** 5.1  
+**Tested up to:** 5.2  
 **Stable tag:** 0.1.0  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
-**Requires PHP:** 5.2  
+**Requires PHP:** 5.6  
 
-[![Build Status](https://travis-ci.org/xwp/pwa-wp.svg?branch=master)](https://travis-ci.org/xwp/pwa-wp) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) 
+[![Build Status](https://travis-ci.org/xwp/pwa-wp.svg?branch=master)](https://travis-ci.org/xwp/pwa-wp) [![Built with Grunt](https://gruntjs.com/cdn/builtwith.svg)](http://gruntjs.com) 
 
 ## Description ##
 
@@ -48,7 +48,7 @@ As noted in a [Google guide](https://developers.google.com/web/fundamentals/web-
 
 The plugin exposes the web app manifest via the REST API at `/wp-json/wp/v2/web-app-manifest`. A response looks like:
 
-<pre lang=json>
+```json
 {
     "name": "WordPress Develop",
     "short_name": "WordPress",
@@ -72,7 +72,7 @@ The plugin exposes the web app manifest via the REST API at `/wp-json/wp/v2/web-
         }
     ]
 }
-</pre>
+```
 
 A `rel=manifest` link to this endpoint is added at `wp_head`.
 
@@ -113,7 +113,7 @@ Service worker scripts should be registered on the `wp_front_service_worker` and
 
 Here are some examples:
 
-<pre lang=php>
+```php
 function register_foo_service_worker_script( $scripts ) {
 	// $scripts->register() is the same as wp_register_service_worker_script().
 	$scripts->register(
@@ -148,9 +148,34 @@ function register_baz_service_worker_script( $scripts ) {
 // Register for both the frontend and admin service worker.
 add_action( 'wp_front_service_worker', 'register_baz_service_worker_script' );
 add_action( 'wp_admin_service_worker', 'register_baz_service_worker_script' );
-</pre>
+```
 
 See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Aservice-workers) and see WordPress core tracking ticket [#36995](https://core.trac.wordpress.org/ticket/36995).
+
+### Integrations ###
+The plugin bundles several experimental integrations that are kept separate from the service worker core code. These integrations act as examples and proof-of-concept to achieve certain goals. While all of them are generally applicable and recommended to truly benefit from service workers, they are not crucial for the core API.
+
+All these integrations are hidden behind a feature flag. To enable them, you can add `service_worker` theme support:
+
+```php
+<?php
+add_theme_support( 'service_worker', true );
+```
+
+Alternatively, you can selectively enable specific integrations by providing an array when adding theme support:
+
+```php
+<?php
+add_theme_support(
+	'service_worker',
+	array(
+		'wp-site-icon'         => false,
+		'wp-custom-logo'       => true,
+		'wp-custom-background' => true,
+		'wp-fonts'             => true,
+	)
+);
+```
 
 ### Caching ###
 Service Workers in the feature plugin are using [Workbox](https://developers.google.com/web/tools/workbox/) to power a higher-level PHP abstraction for themes and plugins to indicate the routes and the caching strategies in a declarative way. Since only one handler can be used per one route then conflicts are also detected and reported in console when using debug mode.
@@ -170,7 +195,7 @@ The API abstraction allows registering routes for caching and urls for precachin
 
 Examples of using the API:
 
-<pre lang=php>
+```php
 wp_register_service_worker_caching_route(
 	'/wp-content/.*\.(?:png|gif|jpg|jpeg|svg|webp)(\?.*)?$',
 		array(
@@ -184,9 +209,9 @@ wp_register_service_worker_caching_route(
 		),
 	)
 );
-</pre>
+```
 
-<pre lang=php>
+```php
 wp_register_service_worker_precaching_route(
 		'https://example.com/wp-content/themes/my-theme/my-theme-image.png',
 		array(
@@ -194,11 +219,11 @@ wp_register_service_worker_precaching_route(
 		),
 	)
 );
-</pre>
+```
 
 If you would like to opt-in to a caching strategy for navigation requests, you can do:
 
-<pre lang=php>
+```php
 add_filter( 'wp_service_worker_navigation_preload', '__return_false' );
 
 add_filter( 'wp_service_worker_navigation_caching_strategy', function() {
@@ -210,7 +235,7 @@ add_filter( 'wp_service_worker_navigation_caching_strategy_args', function( $arg
 	$args['plugins']['expiration']['maxEntries'] = 50;
 	return $args;
 } );
-</pre>
+```
 
 ### Offline / 500 error handling ###
 The feature plugins offers improved offline experience by displaying a custom template when user is offline instead of the default message in browser. Same goes for 500 errors -- a template is displayed together with error details.
@@ -230,11 +255,11 @@ In case of using the `<iframe>` within the template `{{{iframe_src}}}` and `{{{i
 
 For example this could be done:
 
-<pre lang=php>
+```php
 wp_service_worker_error_details_template(
     '<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary><iframe style="width:100%" src="{{{iframe_src}}}" data-srcdoc="{{{iframe_srcdoc}}}"></iframe></details>'
 );
-</pre>
+```
 
 ### Offline Commenting ###
 Another feature improving the offline experience is Offline Commenting implemented leveraging [Workbox Background Sync API](https://developers.google.com/web/tools/workbox/modules/workbox-background-sync).
@@ -245,8 +270,6 @@ In case of submitting a comment and being offline (failing to fetch) the request
 Here is a list of all available actions and filters added by the feature plugin.
 
 **Filters:**
-- `wp_service_worker_integrations`: Filters the service worker integrations to initialize.
-  - Has one argument: `$integrations` which is an array of `$slug` => `$integration pairs, where $integration is an instance of a class that implements the WP_Service_Worker_Integration interface.`
 - `wp_service_worker_skip_waiting`: Filters whether the service worker should update automatically when a new version is available.
   - Has one boolean argument which defaults to `true`.
 - `wp_service_worker_clients_claim`: Filters whether the service worker should use `clientsClaim()` after `skipWaiting()`.
@@ -286,7 +309,7 @@ At the moment the plugin provides an API to detection of whether a site supports
 
 You can optionally add an [HSTS header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security) (HTTP `Strict-Transport-Security`). This indicates to the browser to only load the site with HTTPS, not HTTP.
 
-<pre lang=php>
+```php
 /**
  * Adds an HSTS header to the response.
  *
@@ -297,7 +320,7 @@ add_filter( 'wp_headers', function( $headers ) {
 	$headers['Strict-Transport-Security'] = 'max-age=3600'; // Or another max-age.
 	return $headers;
 } );
-</pre>
+```
 
 This can prevent a case where users initially visit the HTTP version of the site, and are redirected to a malicious site before a redirect to the proper HTTPS version.
 
