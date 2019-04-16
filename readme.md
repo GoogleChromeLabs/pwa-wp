@@ -329,9 +329,10 @@ Please see the [documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP
 
 ## Changelog ##
 
+### 0.2.0 (2019-04-16) ###
+
+[View 0.2.0 Changelog](https://github.com/xwp/pwa-wp/milestone/1).
+
 ### 0.1.0 (2018-07-12) ###
-* Adds support for web app manifests which can be customized via a `web_app_manifest` filter.
-* Adds initial support for service workers via `wp_register_service_worker()`.
-* Adds an API for detecting whether HTTPS is available for a given site.
 
-
+[View 0.1.0 Changelog](https://github.com/xwp/pwa-wp/milestone/3).
