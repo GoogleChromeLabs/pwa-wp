@@ -6,7 +6,7 @@ WordPress feature plugin to bring Progressive Web App (PWA) capabilities to Core
 
 **Contributors:** [xwp](https://profiles.wordpress.org/xwp), [google](https://profiles.wordpress.org/google), [automattic](https://profiles.wordpress.org/automattic)  
 **Tags:** [pwa](https://wordpress.org/plugins/tags/pwa), [progressive web apps](https://wordpress.org/plugins/tags/progressive-web-apps), [service workers](https://wordpress.org/plugins/tags/service-workers), [web app manifest](https://wordpress.org/plugins/tags/web-app-manifest), [https](https://wordpress.org/plugins/tags/https)  
-**Requires at least:** 5.1  
+**Requires at least:** 5.2  
 **Tested up to:** 5.2  
 **Stable tag:** 0.2.0  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
