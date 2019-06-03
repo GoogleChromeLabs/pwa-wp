@@ -232,6 +232,6 @@ class WP_Web_App_Manifest {
 	 * @return int
 	 */
 	public function sort_icons_callback( $a, $b ) {
-		return intval( strtok( $a['sizes'], 'x' ) ) - intval( strtok( $b['sizes'], 'x' ) );
+		return (int) strtok( $a['sizes'], 'x' ) - (int) strtok( $b['sizes'], 'x' );
 	}
 }
