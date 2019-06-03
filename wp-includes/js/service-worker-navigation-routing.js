@@ -65,9 +65,9 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 							headers: errorResponse.headers
 						};
 
-						let body = text.replace( /<!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/, errorMessages.error );
+						let body = text.replace( /[<]!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/, errorMessages.error );
 						body = body.replace(
-							/(<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->)((?:.|\n)+?)(<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->)/,
+							/([<]!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->)((?:.|\n)+?)([<]!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->)/,
 							( details ) => {
 								if ( ! responseBody ) {
 									return ''; // Remove the details from the document entirely.
@@ -86,8 +86,8 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 								details = details.replace( '{{{iframe_srcdoc}}}', srcdoc );
 
 								// Replace the comments.
-								details = details.replace( '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->', '' );
-								details = details.replace( '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->', '' );
+								details = details.replace( '<' + '!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->', '' );
+								details = details.replace( '<' + '!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->', '' );
 								return details;
 							}
 						);
@@ -111,7 +111,7 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 						headers: response.headers
 					};
 
-					const body = text.replace( /<!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/, errorMessages.default );
+					const body = text.replace( /[<]!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/, errorMessages.default );
 
 					return new Response( body, init );
 				} );
