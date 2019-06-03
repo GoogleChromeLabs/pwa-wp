@@ -109,7 +109,6 @@ class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker_Base_
 		$tinymce_files  = list_files( ABSPATH . WPINC . '/js/tinymce/' );
 
 		foreach ( $tinymce_files as $tinymce_file ) {
-			$basename = basename( $tinymce_file );
 			if ( preg_match( '#\.min\.(css|js)$#', $tinymce_file ) ) {
 				$url = includes_url( preg_replace( '/.*' . WPINC . '/', '', $tinymce_file ) );
 
