@@ -213,10 +213,9 @@ wp_register_service_worker_caching_route(
 
 ```php
 wp_register_service_worker_precaching_route(
-		'https://example.com/wp-content/themes/my-theme/my-theme-image.png',
-		array(
-			'revision' => get_bloginfo( 'version' ),
-		),
+	'https://example.com/wp-content/themes/my-theme/my-theme-image.png',
+	array(
+		'revision' => get_bloginfo( 'version' ),
 	)
 );
 ```
