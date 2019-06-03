@@ -88,7 +88,7 @@ function _pwa_print_build_needed_notice() {
 			printf(
 				/* translators: %s: composer install && npm install && npm run build */
 				__( 'You appear to be running the PWA plugin from source. Please do %s to finish installation.', 'pwa' ), // phpcs:ignore WordPress.Security.EscapeOutput
-				'<code>composer install && npm install && npm run build</code>'
+				'<code>composer install &amp;&amp; npm install &amp;&amp; npm run build</code>'
 			);
 			?>
 		</p>
