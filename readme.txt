@@ -239,7 +239,7 @@ add_filter( 'wp_service_worker_navigation_caching_strategy_args', function( $arg
 = Offline / 500 error handling =
 The feature plugins offers improved offline experience by displaying a custom template when user is offline instead of the default message in browser. Same goes for 500 errors -- a template is displayed together with error details.
 
-Themes can override the default template by using `error.php`, `offline.php`, and `500.php` in you theme folder. `error.php` is a general template for both offline and 500 error pages and it is overriden by `offline.php` and `500.php` if they exist.
+Themes can override the default template by using `error.php`, `offline.php`, and `500.php` in you theme folder. `error.php` is a general template for both offline and 500 error pages and it is overridden by `offline.php` and `500.php` if they exist.
 
 Note that the templates should use `wp_service_worker_error_message_placeholder()` for displaying the offline / error messages. Additionally, on the 500 error template the details of the error can be displayed using the function `wp_service_worker_error_details_template( $output )`.
 
