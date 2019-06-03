@@ -259,16 +259,16 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 				esc_attr( self::STREAM_COMBINE_INVOKE_SCRIPT_ID ),
 				wp_json_encode( $data, JSON_PRETTY_PRINT ) // phpcs:ignore PHPCompatibility.PHP.NewConstants.json_pretty_printFound -- Defined in core.
 			);
-		} else {
-			$script = $dom->createElement( 'script' );
-			$script->setAttribute( 'id', self::STREAM_COMBINE_INVOKE_SCRIPT_ID );
-			$script->appendChild(
-				$dom->createTextNode(
-					sprintf( 'wpStreamCombine( %s )', wp_json_encode( $data, JSON_PRETTY_PRINT ) ) // phpcs:ignore PHPCompatibility.PHP.NewConstants.json_pretty_printFound -- Defined in core.
-				)
-			);
-			return $script;
 		}
+
+		$script = $dom->createElement( 'script' );
+		$script->setAttribute( 'id', self::STREAM_COMBINE_INVOKE_SCRIPT_ID );
+		$script->appendChild(
+			$dom->createTextNode(
+				sprintf( 'wpStreamCombine( %s )', wp_json_encode( $data, JSON_PRETTY_PRINT ) ) // phpcs:ignore PHPCompatibility.PHP.NewConstants.json_pretty_printFound -- Defined in core.
+			)
+		);
+		return $script;
 	}
 
 	/**

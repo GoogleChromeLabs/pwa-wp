@@ -96,12 +96,12 @@ function wp_get_service_worker_url( $scope = WP_Service_Workers::SCOPE_FRONT ) {
 			array( WP_Service_Workers::QUERY_VAR => $scope ),
 			home_url( '/' )
 		);
-	} else {
-		return add_query_arg(
-			array( 'action' => WP_Service_Workers::QUERY_VAR ),
-			admin_url( 'admin-ajax.php' )
-		);
 	}
+
+	return add_query_arg(
+		array( 'action' => WP_Service_Workers::QUERY_VAR ),
+		admin_url( 'admin-ajax.php' )
+	);
 }
 
 /**
