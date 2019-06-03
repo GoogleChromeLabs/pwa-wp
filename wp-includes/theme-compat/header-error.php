@@ -41,8 +41,7 @@
 		color: #666;
 		font-size: 24px;
 		margin: 30px 0 0 0;
-		padding: 0;
-		padding-bottom: 7px;
+		padding: 0 0 7px;
 	}
 	#error-page {
 		margin-top: 50px;
