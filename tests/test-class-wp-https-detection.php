@@ -213,7 +213,7 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 	/**
 	 * Test is_currently_https.
 	 *
-	 * @covers WP_HTTPS_UI::is_currently_https()
+	 * @covers WP_HTTPS_Detection::is_currently_https()
 	 */
 	public function test_is_currently_https() {
 		// If both of these options have an HTTP URL, the method should return false.
