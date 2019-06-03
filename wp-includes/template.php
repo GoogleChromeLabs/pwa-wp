@@ -34,21 +34,22 @@ function pwa_locate_template( $template_names, $load = false, $require_once = tr
 		if ( ! $template_name ) {
 			continue;
 		}
-		if ( file_exists( STYLESHEETPATH . '/' . $template_name ) ) {
-			$located = STYLESHEETPATH . '/' . $template_name;
-			break;
-		} elseif ( file_exists( TEMPLATEPATH . '/' . $template_name ) ) {
-			$located = TEMPLATEPATH . '/' . $template_name;
-			break;
-		} elseif ( file_exists( PWA_PLUGIN_DIR . '/' . WPINC . '/theme-compat/' . $template_name ) ) {
-			$located = PWA_PLUGIN_DIR . '/' . WPINC . '/theme-compat/' . $template_name;
-			break;
+
+		$locations = array(
+			STYLESHEETPATH . '/' . $template_name,
+			TEMPLATEPATH . '/' . $template_name,
+			PWA_PLUGIN_DIR . '/' . WPINC . '/theme-compat/' . $template_name,
 			// Begin core patch.
-		} elseif ( file_exists( ABSPATH . WPINC . '/theme-compat/' . $template_name ) ) {
-			$located = ABSPATH . WPINC . '/theme-compat/' . $template_name;
-			break;
+			ABSPATH . WPINC . '/theme-compat/' . $template_name,
+			// End core patch.
+		);
+
+		foreach ( $locations as $location ) {
+			if ( file_exists( $location ) ) {
+				$located = $location;
+				break;
+			}
 		}
-		// End core patch.
 	}
 
 	if ( $load && $located ) {
