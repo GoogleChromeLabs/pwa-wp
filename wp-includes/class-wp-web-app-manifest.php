@@ -74,8 +74,10 @@ class WP_Web_App_Manifest {
 		<?php if ( ! empty( $icon ) ) : ?>
 			<link rel="apple-touch-startup-image" href="<?php echo esc_url( $icon['src'] ); ?>">
 		<?php endif; ?>
-		<meta name="apple-mobile-web-app-title" content="<?php echo esc_attr( $manifest['short_name'] ); ?>">
-		<meta name="application-name" content="<?php echo esc_attr( $manifest['short_name'] ); ?>">
+
+		<?php $name = isset( $manifest['short_name'] ) ? $manifest['short_name'] : $manifest['name']; ?>
+		<meta name="apple-mobile-web-app-title" content="<?php echo esc_attr( $name ); ?>">
+		<meta name="application-name" content="<?php echo esc_attr( $name ); ?>">
 		<?php
 	}
 
