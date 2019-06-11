@@ -54,7 +54,7 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 		$current_scope = wp_service_workers()->get_current_scope();
 		$workbox_dir   = 'wp-includes/js/workbox/';
 
-		if ( WP_DEBUG ) {
+		if ( SCRIPT_DEBUG ) {
 			// Load with importScripts() so that source map is available.
 			$script = sprintf(
 				"importScripts( %s );\n",
@@ -67,7 +67,7 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 		}
 
 		$options = array(
-			'debug'            => WP_DEBUG,
+			'debug'            => SCRIPT_DEBUG, // When true, the dev builds are loaded. Otherwise, the prod builds are used.
 			'modulePathPrefix' => PWA_PLUGIN_URL . $workbox_dir,
 		);
 		$script .= sprintf( "workbox.setConfig( %s );\n", wp_service_worker_json_encode( $options ) );
