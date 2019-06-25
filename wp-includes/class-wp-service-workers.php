@@ -91,6 +91,9 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 	 * @see wp_service_worker_loaded()
 	 */
 	public function serve_request() {
+		// See wp_debug_mode() for how this is also done for REST API responses.
+		@ini_set( 'display_errors', 0 ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_ini_set
+
 		/*
 		 * Per Workbox <https://developers.google.com/web/tools/workbox/guides/service-worker-checklist#cache-control_of_your_service_worker_file>:
 		 * "Generally, most developers will want to set the Cache-Control header to no-cache,

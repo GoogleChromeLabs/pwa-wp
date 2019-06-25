@@ -1,12 +1,24 @@
-/* global CACHING_STRATEGY, CACHING_STRATEGY_ARGS, NAVIGATION_ROUTE_ENTRY,
+/* global NAVIGATION_PRELOAD, CACHING_STRATEGY, CACHING_STRATEGY_ARGS, NAVIGATION_ROUTE_ENTRY,
 ERROR_OFFLINE_URL, ERROR_500_URL, SHOULD_STREAM_RESPONSE, STREAM_HEADER_FRAGMENT_URL, ERROR_500_BODY_FRAGMENT_URL,
 ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BLACKLIST_PATTERNS, ERROR_MESSAGES */
 
 // IIFE is used for lexical scoping instead of just a braces block due to bug with const in Safari.
 ( () => {
+	const navigationPreload = NAVIGATION_PRELOAD;
 	const isStreamingResponses = SHOULD_STREAM_RESPONSE && wp.serviceWorker.streams.isSupported();
 	const errorMessages = ERROR_MESSAGES;
 	const navigationRouteEntry = NAVIGATION_ROUTE_ENTRY;
+
+	// Configure navigation preload.
+	if ( false !== navigationPreload ) {
+		if ( typeof navigationPreload === 'string' ) {
+			wp.serviceWorker.navigationPreload.enable( navigationPreload );
+		} else {
+			wp.serviceWorker.navigationPreload.enable();
+		}
+	} else {
+		wp.serviceWorker.navigationPreload.disable();
+	}
 
 	/**
 	 * Handle navigation request.
