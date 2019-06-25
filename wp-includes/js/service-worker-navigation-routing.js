@@ -118,23 +118,6 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 			} );
 		};
 
-		/*
-		 * If navigation preload is enabled, use the preload request instead of doing another fetch.
-		 * This prevents requests from being duplicated. See <https://github.com/xwp/pwa-wp/issues/67>.
-		 */
-		if ( event.preloadResponse ) {
-			try {
-				const response = await event.preloadResponse;
-				if ( response ) {
-					responsePreloaded = true;
-					return handleResponse( response );
-				}
-			} catch ( error ) {
-				responsePreloaded = true;
-				return sendOfflineResponse();
-			}
-		}
-
 		const navigationCacheStrategy = new wp.serviceWorker.strategies[ CACHING_STRATEGY ]( CACHING_STRATEGY_ARGS );
 
 		if ( canStreamResponse() ) {
@@ -170,7 +153,7 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 
 			return stream.response;
 		} else {
-			return navigationCacheStrategy.makeRequest( { request: event.request } )
+			return navigationCacheStrategy.handle( { event, request: event.request } )
 				.then( handleResponse )
 				.catch( sendOfflineResponse );
 		}
