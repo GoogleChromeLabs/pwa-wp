@@ -100,6 +100,39 @@ if ( ! file_exists( __DIR__ . '/wp-includes/js/workbox/' ) || ! file_exists( __D
 	return;
 }
 
+/**
+ * Print admin notice when a build has not been been performed.
+ *
+ * This is temporary measure to correct a mistake in the example for how navigation request caching strategies.
+ *
+ * @since 0.3
+ */
+function _pwa_print_disabled_navigation_preload_notice() {
+	/** This filter is documented in wp-includes/components/class-wp-service-worker-navigation-routing-component.php */
+	$caching_strategy = apply_filters( 'wp_service_worker_navigation_caching_strategy', WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY );
+	if ( WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY === $caching_strategy ) {
+		return;
+	}
+	/** This filter is documented in wp-includes/components/class-wp-service-worker-navigation-routing-component.php */
+	if ( true === apply_filters( 'wp_service_worker_navigation_preload', true, WP_Service_Workers::SCOPE_FRONT ) ) {
+		return;
+	}
+	?>
+	<div class="notice notice-warning">
+		<p>
+			<?php
+			printf(
+				/* translators: %s: the wp_service_worker_navigation_preload filter call */
+				__( '<strong>PWA:</strong> Your theme or a plugin appears to have disabled navigation preload in order to enable a navigation caching stragegy. This was a workaround that is now no longer needed. Remove the following code from your theme/plugin to improve performance: <code>%s</code>.', 'pwa' ), // phpcs:ignore WordPress.Security.EscapeOutput
+				'add_filter( \'wp_service_worker_navigation_preload\', \'__return_false\' )'
+			);
+			?>
+		</p>
+	</div>
+	<?php
+}
+add_action( 'admin_notices', '_pwa_print_disabled_navigation_preload_notice' );
+
 /** WP_Web_App_Manifest Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-web-app-manifest.php';
 

@@ -237,7 +237,8 @@ add_filter( 'wp_service_worker_navigation_caching_strategy_args', function( $arg
 👉 If you previously added a `wp_service_worker_navigation_preload` filter to disable navigation preload,
 you should probably remove it. This was originally needed to work around an issue with ensuring the offline
 page would work when using a navigation caching strategy, but it is no longer needed and it should be removed
-improved performance. Disabling navigation preload is only relevant when you are developing an app shell.
+[improved performance](https://developers.google.com/web/updates/2017/02/navigation-preload). Disabling navigation
+preload is only relevant when you are developing an app shell.
 
 ### Offline / 500 error handling ###
 The feature plugins offers improved offline experience by displaying a custom template when user is offline instead of the default message in browser. Same goes for 500 errors -- a template is displayed together with error details.
