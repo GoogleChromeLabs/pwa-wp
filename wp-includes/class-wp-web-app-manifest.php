@@ -119,7 +119,7 @@ class WP_Web_App_Manifest {
 	public function get_manifest() {
 		$manifest = array(
 			'name'      => wp_kses_decode_entities( get_bloginfo( 'name' ) ),
-			'start_url' => get_home_url(),
+			'start_url' => user_trailingslashit( get_home_url() ),
 			'display'   => 'minimal-ui',
 			'dir'       => is_rtl() ? 'rtl' : 'ltr',
 		);
