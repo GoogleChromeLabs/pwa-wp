@@ -20,6 +20,15 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 		wp.serviceWorker.navigationPreload.disable();
 	}
 
+	/*
+	 * Define strategy up front so that Workbox modules will import at install time.
+	 * If this is not done, then an error will happen like:
+	 * > Unable to import module 'workbox-expiration'
+	 * Along with an exception:
+	 * > workbox-sw.js:1 Uncaught (in promise) DOMException: Failed to execute 'importScripts' on 'WorkerGlobalScope'
+	 */
+	const navigationCacheStrategy = new wp.serviceWorker.strategies[ CACHING_STRATEGY ]( CACHING_STRATEGY_ARGS );
+
 	/**
 	 * Handle navigation request.
 	 *
@@ -129,8 +138,6 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 				} );
 			} );
 		};
-
-		const navigationCacheStrategy = new wp.serviceWorker.strategies[ CACHING_STRATEGY ]( CACHING_STRATEGY_ARGS );
 
 		if ( canStreamResponse() ) {
 			const streamHeaderFragmentURL = STREAM_HEADER_FRAGMENT_URL;
