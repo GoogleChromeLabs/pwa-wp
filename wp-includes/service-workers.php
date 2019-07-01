@@ -110,6 +110,18 @@ function wp_get_service_worker_url( $scope = WP_Service_Workers::SCOPE_FRONT ) {
  * @since 0.1
  */
 function wp_print_service_workers() {
+	/*
+	 * Skip installing service worker from context of post embed iframe, as the post embed iframe does not need the
+	 * service worker. Also, installation via post embed iframe could be seen to be somewhat sneaky. Lastly, if the
+	 * post embed is on the same site and contained iframe is sandbox without allow-same-origin, then the service
+	 * worker will fail to install with an exception:
+	 * > Uncaught DOMException: Failed to read the 'serviceWorker' property from 'Navigator': Service worker is
+	 * > disabled because the context is sandboxed and lacks the 'allow-same-origin' flag.
+	 */
+	if ( is_embed() ) {
+		return;
+	}
+
 	global $pagenow;
 	$scopes = array();
 
