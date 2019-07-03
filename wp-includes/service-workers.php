@@ -163,7 +163,7 @@ function wp_print_service_workers() {
 							<?php echo wp_json_encode( compact( 'scope' ) ); ?>
 						).then( reg => {
 							<?php if ( WP_Service_Workers::SCOPE_ADMIN === $name ) : ?>
-								document.cookie = 'wordpress_sw_installed=1; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; secure; samesite=strict';
+								document.cookie = <?php echo wp_json_encode( sprintf( 'wordpress_sw_installed=1; path=%s; expires=Fri, 31 Dec 9999 23:59:59 GMT; secure; samesite=strict', $scope ) ); ?>;
 							<?php endif; ?>
 							<?php if ( ! wp_service_worker_skip_waiting() ) : ?>
 								reg.addEventListener( 'updatefound', () => {
