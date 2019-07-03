@@ -162,7 +162,9 @@ function wp_print_service_workers() {
 							<?php echo wp_json_encode( wp_get_service_worker_url( $name ) ); ?>,
 							<?php echo wp_json_encode( compact( 'scope' ) ); ?>
 						).then( reg => {
-							document.cookie = 'wordpress_sw_installed=1; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; secure; samesite=strict';
+							<?php if ( WP_Service_Workers::SCOPE_ADMIN === $name ) : ?>
+								document.cookie = 'wordpress_sw_installed=1; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; secure; samesite=strict';
+							<?php endif; ?>
 							<?php if ( ! wp_service_worker_skip_waiting() ) : ?>
 								reg.addEventListener( 'updatefound', () => {
 									if ( ! reg.installing ) {
