@@ -334,19 +334,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			$revision .= ';nav=' . $this->get_nav_menu_locations_hash();
 
 			// Include all scripts and styles in revision.
-			$enqueued_scripts = array();
-			foreach ( wp_scripts()->queue as $handle ) {
-				if ( isset( wp_scripts()->registered[ $handle ] ) ) {
-					$enqueued_scripts[ $handle ] = wp_scripts()->registered[ $handle ];
-				}
-			}
-			$enqueued_styles = array();
-			foreach ( wp_styles()->queue as $handle ) {
-				if ( isset( wp_styles()->registered[ $handle ] ) ) {
-					$enqueued_styles[ $handle ] = wp_styles()->registered[ $handle ];
-				}
-			}
-			$revision .= ';deps=' . md5( wp_json_encode( compact( 'enqueued_scripts', 'enqueued_styles' ) ) );
+			$revision .= ';deps=' . md5( wp_json_encode( array( wp_scripts()->queue, wp_styles()->queue ) ) );
 
 			// @todo Allow different routes to have varying caching strategies?
 
