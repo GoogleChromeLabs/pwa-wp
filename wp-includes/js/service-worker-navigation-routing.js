@@ -112,7 +112,6 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 								return details;
 							}
 						);
-
 						return new Response( body, init );
 					} );
 				} );
@@ -132,7 +131,7 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 						headers: response.headers
 					};
 
-					const body = text.replace( /[<]!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/, errorMessages.default );
+					const body = text.replace( /[<]!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/, navigator.onLine ? errorMessages.serverOffline : errorMessages.clientOffline );
 
 					return new Response( body, init );
 				} );

@@ -14,7 +14,7 @@ pwa_get_header( 'error' );
 
 ?>
 <main>
-	<h1><?php esc_html_e( 'Oops! It looks like you&#8217;re offline.', 'pwa' ); ?></h1>
+	<h1><?php esc_html_e( 'Offline', 'pwa' ); ?></h1>
 	<?php wp_service_worker_error_message_placeholder(); ?>
 </main>
 <?php
