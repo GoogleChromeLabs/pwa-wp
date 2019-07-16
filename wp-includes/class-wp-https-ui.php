@@ -171,7 +171,7 @@ class WP_HTTPS_UI {
 		<script>
 			( function ( $ ) {
 				// Move this UI under the Site Address (URL) <tr> on the General Settings page.
-				$( 'input[name=<?php echo self::UPGRADE_HTTPS_OPTION; // WPCS: XSS OK. ?>]' ).parents( 'tr' ).insertAfter( $( 'label[for=home]' ).parents( 'tr') );
+				$( 'input[name=<?php echo self::UPGRADE_HTTPS_OPTION; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>]' ).parents( 'tr' ).insertAfter( $( 'label[for=home]' ).parents( 'tr') );
 			} )( jQuery );
 		</script>
 		<?php

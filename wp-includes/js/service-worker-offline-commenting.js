@@ -6,7 +6,6 @@
 	const errorMessages = ERROR_MESSAGES;
 
 	const commentHandler = ( { event } ) => {
-
 		const clone = event.request.clone();
 		return fetch( event.request )
 			.then( ( response ) => {
@@ -17,16 +16,15 @@
 				// @todo This is duplicated with code in service-worker-navigation-routing.js.
 				return response.text().then( function( errorText ) {
 					return caches.match( wp.serviceWorker.precaching.getCacheKeyForURL( ERROR_500_URL ) ).then( function( errorResponse ) {
-
 						if ( ! errorResponse ) {
 							return response;
 						}
 
 						return errorResponse.text().then( function( text ) {
-							let init = {
+							const init = {
 								status: errorResponse.status,
 								statusText: errorResponse.statusText,
-								headers: errorResponse.headers
+								headers: errorResponse.headers,
 							};
 
 							let body = text.replace( /[<]!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/, errorMessages.error );
@@ -43,7 +41,7 @@
 										.replace( /"/g, '&quot;' )
 										.replace( /</g, '&lt;' )
 										.replace( />/g, '&gt;' );
-									const iframe = `<iframe style="width:100%" src="${src}"  srcdoc="${srcdoc}"></iframe>`;
+									const iframe = `<iframe style="width:100%" src="${ src }"  srcdoc="${ srcdoc }"></iframe>`;
 									details = details.replace( '{{{error_details_iframe}}}', iframe );
 									// The following are in case the user wants to include the <iframe> in the template.
 									details = details.replace( '{{{iframe_src}}}', src );
@@ -73,24 +71,23 @@
 							credentials: request.credentials,
 							referrer: request.referrer,
 							redirect: 'manual',
-							body: body
+							body,
 						} );
 
 						// Add request to queue.
 						queue.pushRequest( {
-							request: req 
+							request: req,
 						} );
 					}
 				);
 
 				// @todo This is duplicated with code in service-worker-navigation-routing.js.
 				return caches.match( wp.serviceWorker.precaching.getCacheKeyForURL( ERROR_OFFLINE_URL ) ).then( function( response ) {
-
 					return response.text().then( function( text ) {
-						let init = {
+						const init = {
 							status: response.status,
 							statusText: response.statusText,
-							headers: response.headers
+							headers: response.headers,
 						};
 
 						const body = text.replace( /[<]!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/, errorMessages.comment );

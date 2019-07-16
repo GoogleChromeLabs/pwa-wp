@@ -266,13 +266,15 @@ function wp_disable_script_concatenation() {
 	 * for authenticated users without full-page caching.
 	*/
 	if ( isset( $_COOKIE['wordpress_sw_installed'] ) ) {
-		$concatenate_scripts = false; // WPCS: Override OK.
+		$concatenate_scripts = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 	}
 
+	// phpcs:disable
 	// @todo This is just here for debugging purposes.
-	if ( isset( $_GET['wp_concatenate_scripts'] ) ) { // WPCS: csrf ok.
-		$concatenate_scripts = rest_sanitize_boolean( $_GET['wp_concatenate_scripts'] ); // WPCS: csrf ok, override ok.
+	if ( isset( $_GET['wp_concatenate_scripts'] ) ) {
+		$concatenate_scripts = rest_sanitize_boolean( $_GET['wp_concatenate_scripts'] );
 	}
+	// phpcs:enable
 }
 
 /**

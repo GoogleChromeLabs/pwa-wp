@@ -12,31 +12,31 @@ module.exports = function( grunt ) {
 		// Clean up the build.
 		clean: {
 			build: {
-				src: [ 'build' ]
-			}
+				src: [ 'build' ],
+			},
 		},
 
 		// Shell actions.
 		shell: {
 			options: {
 				stdout: true,
-				stderr: true
+				stderr: true,
 			},
 			readme: {
-				command: 'npm run generate-readme' // Generate the readme.md.
+				command: 'npm run generate-readme', // Generate the readme.md.
 			},
 			phpunit: {
-				command: 'phpunit'
+				command: 'phpunit',
 			},
 			verify_matching_versions: {
-				command: 'php bin/verify-version-consistency.php'
+				command: 'php bin/verify-version-consistency.php',
 			},
 			install_workbox: {
-				command: 'if [ -e wp-includes/js/workbox* ]; then rm -r wp-includes/js/workbox*; fi; npx workbox copyLibraries wp-includes/js/ && mv wp-includes/js/workbox-v* wp-includes/js/workbox'
+				command: 'if [ -e wp-includes/js/workbox* ]; then rm -r wp-includes/js/workbox*; fi; npx workbox copyLibraries wp-includes/js/ && mv wp-includes/js/workbox-v* wp-includes/js/workbox',
 			},
 			create_build_zip: {
-				command: 'if [ ! -e build ]; then echo "Run grunt build first."; exit 1; fi; if [ -e pwa.zip ]; then rm pwa.zip; fi; cd build; zip -r ../pwa.zip .; cd ..; echo; echo "ZIP of build: $(pwd)/pwa.zip"'
-			}
+				command: 'if [ ! -e build ]; then echo "Run grunt build first."; exit 1; fi; if [ -e pwa.zip ]; then rm pwa.zip; fi; cd build; zip -r ../pwa.zip .; cd ..; echo; echo "ZIP of build: $(pwd)/pwa.zip"',
+			},
 		},
 
 		// Deploys a git Repo to the WordPress SVN repo.
@@ -45,10 +45,10 @@ module.exports = function( grunt ) {
 				options: {
 					plugin_slug: 'pwa',
 					build_dir: 'build',
-					assets_dir: 'wp-assets'
-				}
-			}
-		}
+					assets_dir: 'wp-assets',
+				},
+			},
+		},
 
 	} );
 
@@ -60,39 +60,37 @@ module.exports = function( grunt ) {
 
 	// Register tasks.
 	grunt.registerTask( 'default', [
-		'build'
+		'build',
 	] );
 
 	grunt.registerTask( 'readme', [
-		'shell:readme'
+		'shell:readme',
 	] );
 
 	grunt.registerTask( 'build', function() {
-		var done, spawnQueue, stdout;
-		done = this.async();
-		spawnQueue = [];
-		stdout = [];
+		const done = this.async();
+		const spawnQueue = [];
+		const stdout = [];
 
 		grunt.task.run( 'shell:install_workbox' );
 
 		spawnQueue.push(
 			{
 				cmd: 'git',
-				args: [ '--no-pager', 'log', '-1', '--format=%h', '--date=short' ]
+				args: [ '--no-pager', 'log', '-1', '--format=%h', '--date=short' ],
 			},
 			{
 				cmd: 'git',
-				args: [ 'ls-files' ]
+				args: [ 'ls-files' ],
 			}
 		);
 
 		function finalize() {
-			var commitHash, lsOutput, versionAppend, paths;
-			commitHash = stdout.shift();
-			lsOutput = stdout.shift();
-			versionAppend = commitHash + '-' + new Date().toISOString().replace( /\.\d+/, '' ).replace( /-|:/g, '' );
+			const commitHash = stdout.shift();
+			const lsOutput = stdout.shift();
+			const versionAppend = commitHash + '-' + new Date().toISOString().replace( /\.\d+/, '' ).replace( /-|:/g, '' );
 
-			paths = lsOutput.trim().split( /\n/ ).filter( function( file ) {
+			const paths = lsOutput.trim().split( /\n/ ).filter( function( file ) {
 				return ! /^(\.|bin|([^/]+)+\.(md|json|xml)|Gruntfile\.js|tests|wp-assets|readme\.md|composer\..*|webpack.*)/.test( file );
 			} );
 			paths.push( 'wp-includes/js/workbox/*' );
@@ -105,8 +103,8 @@ module.exports = function( grunt ) {
 					expand: true,
 					options: {
 						noProcess: [ '*/**', 'LICENSE' ], // That is, only process pwa.php and readme.txt.
-						process: function( content, srcpath ) {
-							var matches, version, versionRegex;
+						process( content, srcpath ) {
+							let matches, version, versionRegex;
 							if ( /pwa\.php$/.test( srcpath ) ) {
 								versionRegex = /(\*\s+Version:\s+)(\d+(\.\d+)+-\w+)/;
 
@@ -120,9 +118,9 @@ module.exports = function( grunt ) {
 								}
 							}
 							return content;
-						}
-					}
-				}
+						},
+					},
+				},
 			} );
 			grunt.task.run( 'readme' );
 			grunt.task.run( 'copy' );
@@ -131,7 +129,7 @@ module.exports = function( grunt ) {
 		}
 
 		function doNext() {
-			var nextSpawnArgs = spawnQueue.shift();
+			const nextSpawnArgs = spawnQueue.shift();
 			if ( ! nextSpawnArgs ) {
 				finalize();
 			} else {
@@ -152,13 +150,13 @@ module.exports = function( grunt ) {
 	} );
 
 	grunt.registerTask( 'create-build-zip', [
-		'shell:create_build_zip'
+		'shell:create_build_zip',
 	] );
 
 	grunt.registerTask( 'deploy', [
 		'shell:verify_matching_versions',
 		'shell:phpunit',
 		'build',
-		'wp_deploy'
+		'wp_deploy',
 	] );
 };

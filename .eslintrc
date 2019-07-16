@@ -1,13 +1,13 @@
 {
 	"root": true,
-	"extends": [
-		"wordpress",
-		"eslint:recommended"
-	],
+  "extends": [ "plugin:@wordpress/eslint-plugin/recommended" ],
 	"env": {
 		"browser": true,
 		"es6": true
 	},
+  "globals": {
+    "wp": true
+  },
 	"parserOptions": {
 		"ecmaVersion": 2018
 	}
