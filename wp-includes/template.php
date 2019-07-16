@@ -12,7 +12,7 @@
  * @since 0.2.0
  */
 
-// phpcs:disable WordPress.WP.DiscouragedConstants.UsageFound
+// phpcs:disable WordPress.WP.DiscouragedConstants
 
 /**
  * Retrieve the name of the highest priority template file that exists.
@@ -155,14 +155,14 @@ function wp_service_worker_error_details_template( $output = '' ) {
 	if ( empty( $output ) ) {
 		$output = '<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary>{{{error_details_iframe}}}</details>';
 	}
-	echo '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->'; // WPCS: XSS OK.
+	echo '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->';
 	echo wp_kses_post( $output );
-	echo '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->'; // WPCS: XSS OK.
+	echo '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->';
 }
 
 /**
  * Display service worker error message template tag.
  */
 function wp_service_worker_error_message_placeholder() {
-	echo '<p><!--WP_SERVICE_WORKER_ERROR_MESSAGE--></p>'; // WPCS: XSS OK.
+	echo '<p><!--WP_SERVICE_WORKER_ERROR_MESSAGE--></p>';
 }

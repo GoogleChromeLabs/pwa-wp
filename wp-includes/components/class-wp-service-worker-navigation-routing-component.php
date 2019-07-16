@@ -69,10 +69,10 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 	 * @return string|null Stream fragment name or null if not requested.
 	 */
 	public static function get_stream_fragment_query_var() {
-		if ( ! isset( $_GET[ self::STREAM_FRAGMENT_QUERY_VAR ] ) ) { // WPCS: CSRF OK.
+		if ( ! isset( $_GET[ self::STREAM_FRAGMENT_QUERY_VAR ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return null;
 		}
-		$stream_fragment = wp_unslash( $_GET[ self::STREAM_FRAGMENT_QUERY_VAR ] ); // WPCS: CSRF OK.
+		$stream_fragment = wp_unslash( $_GET[ self::STREAM_FRAGMENT_QUERY_VAR ] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( in_array( $stream_fragment, array( 'header', 'body' ), true ) ) {
 			return $stream_fragment;
 		}
@@ -150,7 +150,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			if ( ! $loading_content ) {
 				$loading_content = esc_html__( 'Loading&hellip;', 'pwa' );
 			}
-			echo $loading_content; // WPCS: XSS OK.
+			echo $loading_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 		echo '</div>';
 
@@ -170,8 +170,8 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			printf(
 				'<script id="%s">%s</script>',
 				esc_attr( self::STREAM_COMBINE_DEFINE_SCRIPT_ID ),
-				$script
-			); // WPCS: XSS OK.
+				$script // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			);
 		}
 
 		// Short-circuit the response when requesting the header since there is nothing left to stream.
@@ -197,7 +197,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 				wp_die( esc_html__( 'Failed to turn header into document.', 'pwa' ) );
 			}
 			$response = self::get_header_combine_invoke_script( $dom, true );
-			echo $response; // WPCS: XSS OK.
+			echo $response; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 	}
 
@@ -218,29 +218,29 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		);
 		$head = $dom->getElementsByTagName( 'head' )->item( 0 );
 		if ( $head ) {
-			foreach ( $head->childNodes as $node ) {
+			foreach ( $head->childNodes as $node ) { // phpcs:ignore  WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				if ( $node instanceof DOMElement ) {
-					if ( 'noscript' === $node->nodeName ) {
+					if ( 'noscript' === $node->nodeName ) { // phpcs:ignore  WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 						continue; // Obviously noscript will never be relevant to synchronize since it will never be evaluated.
 					}
 					$element = array(
-						$node->nodeName,
+						$node->nodeName, // phpcs:ignore  WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 						null,
 					);
 					if ( $node->hasAttributes() ) {
 						$element[1] = array();
 						foreach ( $node->attributes as $attribute ) {
-							$element[1][ $attribute->nodeName ] = $attribute->nodeValue;
+							$element[1][ $attribute->nodeName ] = $attribute->nodeValue; // phpcs:ignore  WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 						}
 					}
-					if ( $node->firstChild instanceof DOMText ) {
-						$element[] = $node->firstChild->nodeValue;
+					if ( $node->firstChild instanceof DOMText ) { // phpcs:ignore  WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						$element[] = $node->firstChild->nodeValue; // phpcs:ignore  WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					}
 					$data['head_nodes'][] = $element;
 				} elseif ( $node instanceof DOMComment ) {
 					$data['head_nodes'][] = array(
 						'#comment',
-						$node->nodeValue,
+						$node->nodeValue, // phpcs:ignore  WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					);
 				}
 			}
@@ -249,7 +249,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 		$body = $dom->getElementsByTagName( 'body' )->item( 0 );
 		if ( $body ) {
 			foreach ( $body->attributes as $attribute ) {
-				$data['body_attributes'][ $attribute->nodeName ] = $attribute->nodeValue;
+				$data['body_attributes'][ $attribute->nodeName ] = $attribute->nodeValue; // phpcs:ignore  WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			}
 		}
 
