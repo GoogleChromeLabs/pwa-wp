@@ -8,9 +8,9 @@
     "php": "^5.6.0 || ^7.0"
   },
   "require-dev": {
-    "dealerdirect/phpcodesniffer-composer-installer": "^0.4.4",
-    "phpcompatibility/phpcompatibility-wp": "^1",
-    "wp-coding-standards/wpcs": "^1",
-    "xwp/wp-dev-lib": "1.1.1"
+    "dealerdirect/phpcodesniffer-composer-installer": "0.5.0",
+    "phpcompatibility/phpcompatibility-wp": "2.0.0",
+    "wp-coding-standards/wpcs": "2.1.1",
+    "xwp/wp-dev-lib": "1.2.2"
   }
 }
