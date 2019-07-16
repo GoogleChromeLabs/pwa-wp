@@ -6,25 +6,25 @@
   "type": "git",
   "url": "https://github.com/xwp/pwa-wp.git"
  },
- "license": "GPL-2.0+",
+ "license": "GPL-2.0-or-later",
  "private": true,
  "devDependencies": {
-  "eslint": "5.15.1",
-  "eslint-config-wordpress": "2.0.0",
-  "grunt": "^1.0.4",
+  "@wordpress/eslint-plugin": "2.3.0",
+  "eslint": "6.0.1",
+  "grunt": "1.0.4",
   "grunt-contrib-clean": "2.0.0",
   "grunt-contrib-copy": "1.0.0",
   "grunt-shell": "3.0.1",
   "grunt-wp-deploy": "2.0.0",
-  "husky": "^0.14.3",
-  "workbox-cli": "4.3.1",
-  "wp-dev-lib": "github:xwp/wp-dev-lib#1.0.0"
+  "husky": "3.0.0",
+  "workbox-cli": "4.3.1"
  },
  "scripts": {
-  "precommit": "if command -v lando >/dev/null 2>&1; then lando ssh -c 'bash ./vendor/xwp/wp-dev-lib/scripts/pre-commit'; else ./vendor/xwp/wp-dev-lib/scripts/pre-commit; fi",
+  "pre-commit": "if command -v lando >/dev/null 2>&1; then lando ssh -c 'bash ./vendor/xwp/wp-dev-lib/scripts/pre-commit'; else ./vendor/xwp/wp-dev-lib/scripts/pre-commit; fi",
   "generate-readme": "./vendor/xwp/wp-dev-lib/scripts/generate-markdown-readme",
   "build": "grunt build; grunt create-build-zip",
-  "deploy": "grunt deploy"
+  "deploy": "grunt deploy",
+   "lint": "eslint ."
  },
  "dependencies": {}
 }
