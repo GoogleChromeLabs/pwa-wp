@@ -11,7 +11,7 @@ if ( ! self.wp ) {
 wp.serviceWorker = workbox;
 
 // Skip the waiting phase for the Service Worker.
-self.addEventListener( 'message', function ( event ) {
+self.addEventListener( 'message', function( event ) {
 	if ( 'skipWaiting' === event.data.action ) {
 		self.skipWaiting();
 	}
