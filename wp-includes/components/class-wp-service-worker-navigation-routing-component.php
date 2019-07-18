@@ -521,13 +521,13 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			}
 		}
 
-		if ( ! empty( $streaming_header_precache_entry['url'] ) || ! empty( $navigation_route_precache_entry['url'] ) ) {
-			/*
-			 * App shell is mutually exclusive with navigation preload.
-			 * Likewise, navigation preload doesn't mix with streaming.
-			 */
-			$navigation_preload = false;
-		} else {
+		/*
+		 * App shell is mutually exclusive with navigation preload.
+		 * Likewise, navigation preload doesn't mix with streaming.
+		 */
+		$navigation_preload = empty( $streaming_header_precache_entry['url'] ) && empty( $navigation_route_precache_entry['url'] );
+
+		if ( $navigation_preload ) {
 			/**
 			 * Filters whether navigation preload is enabled.
 			 *
@@ -553,17 +553,17 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 *     }, 10, 2 );
 			 *
 			 * @param bool|string $navigation_preload Whether to use navigation preload. Returning a string will cause it it to populate the Service-Worker-Navigation-Preload header.
-			 * @param int         $current_scope      The current scope. Either 1 (WP_Service_Workers::SCOPE_FRONT) or 2 (WP_Service_Workers::SCOPE_ADMIN).
+			 * @param int $current_scope The current scope. Either 1 (WP_Service_Workers::SCOPE_FRONT) or 2 (WP_Service_Workers::SCOPE_ADMIN).
 			 */
-			$navigation_preload = apply_filters( 'wp_service_worker_navigation_preload', true, wp_service_workers()->get_current_scope() );
+			$navigation_preload = apply_filters( 'wp_service_worker_navigation_preload', $navigation_preload, wp_service_workers()->get_current_scope() );
 
-			if ( WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY !== $caching_strategy && false === $navigation_preload ) {
+			if ( false === $navigation_preload && WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY !== $caching_strategy ) {
 				$navigation_preload = true;
 				_doing_it_wrong(
 					'add_filter',
 					sprintf(
 						/* translators: %s is the wp_service_worker_navigation_preload filter name */
-						esc_html__( 'PWA: Navigation preload should not be disabled via the %s filter when using a navigation caching strategy.', 'pwa' ),
+						esc_html__( 'PWA: Navigation preload should not be disabled (via the %s filter) when using a navigation caching strategy (and app shell is not being used). It is being forcibly re-enabled.', 'pwa' ),
 						'wp_service_worker_navigation_preload'
 					),
 					'0.3'
