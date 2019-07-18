@@ -11,8 +11,8 @@
 		ignoreUrlParametersMatching: [
 			/^utm_/,
 			/^wp-mce-/,
-			/^ver$/
-		]
+			/^ver$/,
+		],
 		// @todo Add urlManipulation which allows for the list of ignoreUrlParametersMatching to be supplied with each entry.
 	} );
 } )();

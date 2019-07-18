@@ -1,6 +1,6 @@
 /*global STREAM_COMBINE_INVOKE_SCRIPT_ID, STREAM_COMBINE_DEFINE_SCRIPT_ID, STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID */
 
-"use strict";
+'use strict';
 /* This JS file will be added as an inline script in a stream header fragment response. */
 /* This file currently uses JS features which are compatible with Chrome 40 (Googlebot). */
 
@@ -22,10 +22,10 @@ function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 	 *
 	 * @param {Element} element        - Element in head to compare.
 	 * @param {Object}  newElementData - Head node data to compare with.
-	 * @returns {boolean} Matching.
+	 * @return {boolean} Matching.
 	 */
 	const isElementMatchingData = ( element, newElementData ) => {
-		if ( element.nodeName.toLowerCase() !== newElementData[0] ) {
+		if ( element.nodeName.toLowerCase() !== newElementData[ 0 ] ) {
 			return false;
 		}
 
@@ -49,7 +49,7 @@ function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 		.filter( ( headNodeData ) => '#comment' !== headNodeData[ 0 ] )
 		.forEach( ( headNodeData ) => {
 			const headChildElement = Array.from( document.head.getElementsByTagName( headNodeData[ 0 ] ) ).find( ( element ) => {
-				return ! processedHeadElements.has( element ) && isElementMatchingData( element, headNodeData )
+				return ! processedHeadElements.has( element ) && isElementMatchingData( element, headNodeData );
 			} );
 			if ( ! headChildElement ) {
 				return;
@@ -88,7 +88,7 @@ function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 		'preload',
 		'profile',
 		'stylesheet',
-		'wlwmanifest'
+		'wlwmanifest',
 	] );
 	Array.from( document.head.querySelectorAll( 'link[rel]' ) ).forEach( ( link ) => {
 		if ( ! processedHeadElements.has( link ) && ! preservedLinkRels.has( link.rel ) ) {
@@ -130,7 +130,7 @@ function wpStreamCombine( data ) { /* eslint-disable-line no-unused-vars */
 	const removedElements = [
 		STREAM_COMBINE_INVOKE_SCRIPT_ID,
 		STREAM_COMBINE_DEFINE_SCRIPT_ID,
-		STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID
+		STREAM_FRAGMENT_BOUNDARY_ELEMENT_ID,
 	];
 	for ( const elementId of removedElements ) {
 		const element = document.getElementById( elementId );
