@@ -36,10 +36,8 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 	 * @return {Promise<Response>} Response.
 	 */
 	async function handleNavigationRequest( { event } ) {
-		let responsePreloaded = false;
-
 		const canStreamResponse = () => {
-			return isStreamingResponses && ! responsePreloaded;
+			return isStreamingResponses && ! navigationPreload;
 		};
 
 		const handleResponse = ( response ) => {
