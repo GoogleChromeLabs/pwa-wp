@@ -109,7 +109,7 @@ if ( ! file_exists( __DIR__ . '/wp-includes/js/workbox/' ) || ! file_exists( __D
  * @return array Tests.
  */
 function _pwa_add_disabled_navigation_preload_site_status_test( $tests ) {
-	$tests['direct']['caching_plugin'] = array(
+	$tests['direct']['navigation_preload_enabled'] = array(
 		'label' => __( 'Navigation Preload Enabled', 'pwa' ),
 		'test'  => '_pwa_check_disabled_navigation_preload',
 	);
