@@ -100,6 +100,93 @@ if ( ! file_exists( __DIR__ . '/wp-includes/js/workbox/' ) || ! file_exists( __D
 	return;
 }
 
+/**
+ * Register test for navigation preload being erroneously disabled.
+ *
+ * @since 0.3
+ *
+ * @param array $tests Tests.
+ * @return array Tests.
+ */
+function _pwa_add_disabled_navigation_preload_site_status_test( $tests ) {
+	$tests['direct']['navigation_preload_enabled'] = array(
+		'label' => __( 'Navigation Preload Enabled', 'pwa' ),
+		'test'  => '_pwa_check_disabled_navigation_preload',
+	);
+	return $tests;
+}
+add_filter( 'site_status_tests', '_pwa_add_disabled_navigation_preload_site_status_test' );
+
+/**
+ * Print admin notice when a build has not been been performed.
+ *
+ * This is temporary measure to correct a mistake in the example for how navigation request caching strategies.
+ *
+ * @todo Eventually add a test for enabling a navigation caching strategy.
+ * @since 0.3
+ *
+ * @return array|null Test results.
+ */
+function _pwa_check_disabled_navigation_preload() {
+
+	/** This filter is documented in wp-includes/components/class-wp-service-worker-navigation-routing-component.php */
+	$navigation_route_precache_entry = apply_filters(
+		'wp_service_worker_navigation_route',
+		array(
+			'url'      => null,
+			'revision' => '',
+		)
+	);
+
+	// Skip adding the navigation-preload test when using app shell since navigation preload is forcibly-disabled.
+	if ( ! empty( $navigation_route_precache_entry['url'] ) ) {
+		return null;
+	}
+
+	/** This filter is documented in wp-includes/components/class-wp-service-worker-navigation-routing-component.php */
+	$navigation_preload_enabled = apply_filters( 'wp_service_worker_navigation_preload', true, WP_Service_Workers::SCOPE_FRONT );
+
+	if ( $navigation_preload_enabled ) {
+		$result = array(
+			'label'       => __( 'Navigation preload is enabled in service worker', 'pwa' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance', 'pwa' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				esc_html__( 'Navigation preload speeds up performance for return visitors when the service worker has been suspended.', 'pwa' )
+			),
+		);
+	} else {
+		$result = array(
+			'label'       => __( 'Navigation preload is being disabled in service worker', 'pwa' ),
+			'status'      => 'recommended',
+			'badge'       => array(
+				'label' => __( 'Performance', 'pwa' ),
+				'color' => 'orange',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: %s: the wp_service_worker_navigation_preload filter call */
+					esc_html__( 'A theme or a plugin appears to have disabled navigation preload in order to enable a navigation caching strategy. This was a workaround that is now no longer needed, and it is actually being ignored. Remove the following code from your theme/plugin to improve performance: %s.', 'pwa' ),
+					'<code>add_filter( \'wp_service_worker_navigation_preload\', \'__return_false\' </code>'
+				)
+			),
+			'actions'     => sprintf(
+				'<a href="https://developers.google.com/web/tools/workbox/modules/workbox-navigation-preload#who_should_enable_navigation_preloads">%s</a>',
+				esc_html__( 'Learn about enabling navigation preload.', 'pwa' )
+			),
+		);
+	}
+
+	$result['test'] = 'navigation_preload_enabled';
+
+	return $result;
+}
+
 /** WP_Web_App_Manifest Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-web-app-manifest.php';
 

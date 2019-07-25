@@ -1,12 +1,24 @@
-/* global CACHING_STRATEGY, CACHING_STRATEGY_ARGS, NAVIGATION_ROUTE_ENTRY,
+/* global NAVIGATION_PRELOAD, CACHING_STRATEGY, CACHING_STRATEGY_ARGS, NAVIGATION_ROUTE_ENTRY,
 ERROR_OFFLINE_URL, ERROR_500_URL, SHOULD_STREAM_RESPONSE, STREAM_HEADER_FRAGMENT_URL, ERROR_500_BODY_FRAGMENT_URL,
 ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BLACKLIST_PATTERNS, ERROR_MESSAGES */
 
 // IIFE is used for lexical scoping instead of just a braces block due to bug with const in Safari.
 ( () => {
+	const navigationPreload = NAVIGATION_PRELOAD;
 	const isStreamingResponses = SHOULD_STREAM_RESPONSE && wp.serviceWorker.streams.isSupported();
 	const errorMessages = ERROR_MESSAGES;
 	const navigationRouteEntry = NAVIGATION_ROUTE_ENTRY;
+
+	// Configure navigation preload.
+	if ( false !== navigationPreload ) {
+		if ( typeof navigationPreload === 'string' ) {
+			wp.serviceWorker.navigationPreload.enable( navigationPreload );
+		} else {
+			wp.serviceWorker.navigationPreload.enable();
+		}
+	} else {
+		wp.serviceWorker.navigationPreload.disable();
+	}
 
 	/*
 	 * Define strategy up front so that Workbox modules will import at install time.
@@ -24,10 +36,8 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 	 * @return {Promise<Response>} Response.
 	 */
 	async function handleNavigationRequest( { event } ) {
-		let responsePreloaded = false;
-
 		const canStreamResponse = () => {
-			return isStreamingResponses && ! responsePreloaded;
+			return isStreamingResponses && ! navigationPreload;
 		};
 
 		const handleResponse = ( response ) => {
@@ -123,23 +133,6 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 			} );
 		};
 
-		/*
-		 * If navigation preload is enabled, use the preload request instead of doing another fetch.
-		 * This prevents requests from being duplicated. See <https://github.com/xwp/pwa-wp/issues/67>.
-		 */
-		if ( event.preloadResponse ) {
-			try {
-				const response = await event.preloadResponse;
-				if ( response ) {
-					responsePreloaded = true;
-					return handleResponse( response );
-				}
-			} catch ( error ) {
-				responsePreloaded = true;
-				return sendOfflineResponse();
-			}
-		}
-
 		if ( canStreamResponse() ) {
 			const streamHeaderFragmentURL = STREAM_HEADER_FRAGMENT_URL;
 			const precacheStrategy = new wp.serviceWorker.strategies.cacheFirst( {
@@ -173,7 +166,7 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 
 			return stream.response;
 		}
-		return navigationCacheStrategy.makeRequest( { request: event.request } )
+		return navigationCacheStrategy.handle( { event, request: event.request } )
 			.then( handleResponse )
 			.catch( sendOfflineResponse );
 	}
