@@ -134,13 +134,11 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 		update_option( 'blogname', $blogname );
 		$actual_manifest = $this->instance->get_manifest();
 
-		preg_match( '/^.{0,12}(?= |$)/', $blogname, $short_name_matches );
 		$expected_manifest = array(
 			'background_color' => WP_Web_App_Manifest::FALLBACK_THEME_COLOR,
 			'description'      => get_bloginfo( 'description' ),
 			'display'          => 'minimal-ui',
 			'name'             => $blogname,
-			'short_name'       => $short_name_matches[0],
 			'lang'             => get_bloginfo( 'language' ),
 			'dir'              => is_rtl() ? 'rtl' : 'ltr',
 			'start_url'        => get_home_url(),

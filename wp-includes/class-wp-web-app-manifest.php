@@ -128,19 +128,6 @@ class WP_Web_App_Manifest {
 			$manifest['lang'] = $language;
 		}
 
-		/**
-		 * Gets the 'short_name' by limiting the blog name to 12 characters.
-		 * And if this cuts off a word, it omits the word entirely by using a positive look-ahead in the regex.
-		 * For example, the first 12 characters of 'My PWA WordPress Site' are 'My PWA WordP'.
-		 * Because this cuts off the last word, this removes 'WordP' entirely: 'My PWA'.
-		 *
-		 * @link https://stackoverflow.com/questions/12646197/cut-the-string-to-be-80-characters-and-must-keep-the-words-without-cutting-th#answer-12646400
-		 */
-		preg_match( '/^.{0,12}(?= |$)/', $manifest['name'], $short_name_matches );
-		if ( $short_name_matches ) {
-			$manifest['short_name'] = $short_name_matches[0];
-		}
-
 		$theme_color = $this->get_theme_color();
 		if ( $theme_color ) {
 			$manifest['background_color'] = $theme_color;

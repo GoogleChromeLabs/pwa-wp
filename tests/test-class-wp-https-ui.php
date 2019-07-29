@@ -182,27 +182,33 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_UI::filter_site_url_and_home()
 	 */
 	public function test_filter_site_url_and_home() {
-		$initial_url = 'http://foo.com';
-
-		// Set the siteurl and home values to HTTP, to test that this method converts them to HTTPS.
-		add_filter( 'option_home', array( $this, 'convert_to_http' ), 11 );
-		add_filter( 'option_siteurl', array( $this, 'convert_to_http' ), 11 );
+		$initial_home_url = 'http://example.net';
+		$initial_site_url = 'http://example.org';
+		update_option( 'home', $initial_home_url );
+		update_option( 'siteurl', $initial_site_url );
+		remove_filter( 'option_home', '_config_wp_home' );
+		remove_filter( 'option_siteurl', '_config_wp_siteurl' );
 
 		// Simulate 'HTTPS Upgrade' not being selected in the UI, where the filters shouldn't convert the URLs to HTTPS.
 		$this->instance->filter_site_url_and_home();
 		$this->assertNotEquals( 11, has_filter( 'option_home', array( $this->instance, 'convert_to_https' ) ) );
 		$this->assertNotEquals( 11, has_filter( 'option_siteurl', array( $this->instance, 'convert_to_https' ) ) );
-		$this->assertEquals( $initial_url, apply_filters( 'option_home', $initial_url ) );
-		$this->assertEquals( $initial_url, apply_filters( 'option_siteurl', $initial_url ) );
+		$this->assertSame( $initial_home_url, get_option( 'home' ) );
+		$this->assertSame( $initial_site_url, get_option( 'siteurl' ) );
+		$this->assertSame( $initial_home_url, home_url() );
+		$this->assertSame( $initial_site_url, site_url() );
 
 		// Simulate 'HTTPS Upgrade' being selected, where the filters should convert the URLs to HTTPS.
 		update_option( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, WP_HTTPS_UI::OPTION_CHECKED_VALUE );
 		$this->instance->filter_site_url_and_home();
+		$_SERVER['HTTPS'] = 'on';
 
-		$this->assertEquals( 11, has_filter( 'option_home', array( $this->instance, 'convert_to_https' ) ) );
-		$this->assertEquals( 11, has_filter( 'option_siteurl', array( $this->instance, 'convert_to_https' ) ) );
-		$this->assertContains( 'https', apply_filters( 'option_home', $initial_url ) );
-		$this->assertContains( 'https', apply_filters( 'option_siteurl', $initial_url ) );
+		$this->assertSame( 11, has_filter( 'option_home', array( $this->instance, 'convert_to_https' ) ) );
+		$this->assertSame( 11, has_filter( 'option_siteurl', array( $this->instance, 'convert_to_https' ) ) );
+		$this->assertSame( set_url_scheme( $initial_home_url, 'https' ), get_option( 'home' ) );
+		$this->assertSame( set_url_scheme( $initial_site_url, 'https' ), get_option( 'siteurl' ) );
+		$this->assertSame( set_url_scheme( $initial_home_url, 'https' ), home_url() );
+		$this->assertSame( set_url_scheme( $initial_site_url, 'https' ), site_url() );
 	}
 
 	/**
