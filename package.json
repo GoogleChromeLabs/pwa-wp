@@ -24,8 +24,8 @@
   "generate-readme": "./vendor/xwp/wp-dev-lib/scripts/generate-markdown-readme",
   "build": "grunt build; grunt create-build-zip",
   "deploy": "grunt deploy",
-   "lint:js": "eslint .",
-   "lint:php": "vendor/bin/phpcs"
+  "lint:js": "eslint .",
+  "lint:php": "vendor/bin/phpcs"
  },
  "dependencies": {}
 }
