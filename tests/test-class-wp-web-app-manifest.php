@@ -143,7 +143,7 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 			'short_name'       => $short_name_matches[0],
 			'lang'             => get_bloginfo( 'language' ),
 			'dir'              => is_rtl() ? 'rtl' : 'ltr',
-			'start_url'        => get_home_url(),
+			'start_url'        => home_url( '/' ),
 			'theme_color'      => WP_Web_App_Manifest::FALLBACK_THEME_COLOR,
 			'icons'            => $this->instance->get_icons(),
 		);
