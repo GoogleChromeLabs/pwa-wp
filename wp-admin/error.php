@@ -41,8 +41,9 @@ $admin_title = get_bloginfo( 'name' );
 /* translators: Admin screen title. 1: Admin screen name, 2: Network or site name */
 $admin_title = sprintf( __( '%1$s &lsaquo; %2$s &#8212; WordPress', 'default' ), $title_prefix, $admin_title );
 
-// Ensure that $current_screen is set for admin_title to apply.
-global $current_screen;
+// Ensure globals are set for admin_title filter to apply.
+global $current_screen, $hook_suffix;
+$hook_suffix = ''; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 if ( empty( $current_screen ) ) {
 	set_current_screen();
 }
