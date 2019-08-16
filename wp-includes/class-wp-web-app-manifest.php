@@ -36,6 +36,7 @@ class WP_Web_App_Manifest {
 	/**
 	 * Maximum length for short_name.
 	 *
+	 * @since 0.4
 	 * @link https://developers.google.com/web/tools/lighthouse/audits/manifest-contains-short_name
 	 * @link https://developer.chrome.com/apps/manifest/name#short_name
 	 * @var int
@@ -181,7 +182,7 @@ class WP_Web_App_Manifest {
 	/**
 	 * Register test for lacking short_name in web app manifest.
 	 *
-	 * @since 0.3.1
+	 * @since 0.4
 	 *
 	 * @param array $tests Tests.
 	 * @return array Tests.
@@ -197,7 +198,7 @@ class WP_Web_App_Manifest {
 	/**
 	 * Test that web app manifest contains a short_name.
 	 *
-	 * @since 0.3.1
+	 * @since 0.4
 	 * @todo Add test for PNG site icon.
 	 *
 	 * @return array Test results.
