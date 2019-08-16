@@ -34,6 +34,15 @@ class WP_Web_App_Manifest {
 	const REST_ROUTE = '/web-app-manifest';
 
 	/**
+	 * Maximum length for short_name.
+	 *
+	 * @link https://developers.google.com/web/tools/lighthouse/audits/manifest-contains-short_name
+	 * @link https://developer.chrome.com/apps/manifest/name#short_name
+	 * @var int
+	 */
+	const SHORT_NAME_MAX_LENGTH = 12;
+
+	/**
 	 * The default manifest icon sizes.
 	 *
 	 * Copied from Jetpack_PWA_Helpers::get_default_manifest_icon_sizes().
@@ -51,6 +60,7 @@ class WP_Web_App_Manifest {
 	public function init() {
 		add_action( 'wp_head', array( $this, 'manifest_link_and_meta' ) );
 		add_action( 'rest_api_init', array( $this, 'register_manifest_rest_route' ) );
+		add_filter( 'site_status_tests', array( $this, 'add_short_name_site_status_test' ) );
 	}
 
 	/**
@@ -132,7 +142,7 @@ class WP_Web_App_Manifest {
 		 * https://developers.google.com/web/tools/lighthouse/audits/manifest-contains-short_name
 		 * https://developer.chrome.com/apps/manifest/name#short_name
 		 */
-		if ( strlen( $manifest['name'] ) <= 12 ) {
+		if ( strlen( $manifest['name'] ) <= self::SHORT_NAME_MAX_LENGTH ) {
 			$manifest['short_name'] = $manifest['name'];
 		}
 
@@ -166,6 +176,87 @@ class WP_Web_App_Manifest {
 		 * @param array $manifest The manifest to send in the REST API response.
 		 */
 		return apply_filters( 'web_app_manifest', $manifest );
+	}
+
+	/**
+	 * Register test for lacking short_name in web app manifest.
+	 *
+	 * @since 0.3.1
+	 *
+	 * @param array $tests Tests.
+	 * @return array Tests.
+	 */
+	public function add_short_name_site_status_test( $tests ) {
+		$tests['direct']['web_app_manifest_short_name'] = array(
+			'label' => __( 'Short Name in Web App Manifest', 'pwa' ),
+			'test'  => array( $this, 'test_short_name_present_in_manifest' ),
+		);
+		return $tests;
+	}
+
+	/**
+	 * Test that web app manifest contains a short_name.
+	 *
+	 * @since 0.3.1
+	 * @todo Add test for PNG site icon.
+	 *
+	 * @return array Test results.
+	 */
+	public function test_short_name_present_in_manifest() {
+		$manifest = $this->get_manifest();
+
+		/* translators: %d is the max length as a number */
+		$description = sprintf( __( 'The <code>short_name</code> is a short version of your website&#8217;s name which is displayed when there is not enough space for the full name, for example with the site icon on a phone&#8217;s homescreen. It should be a maximum of %d characters long.', 'pwa' ), self::SHORT_NAME_MAX_LENGTH );
+
+		$actions = __( 'You currently may use <code>web_app_manifest</code> filter to set the short name, for example in your theme&#8217;s <code>functions.php</code>.', 'pwa' );
+
+		if ( empty( $manifest['short_name'] ) ) {
+			$result = array(
+				'label'       => __( 'Web App Manifest lacks a short_name entry', 'pwa' ),
+				'status'      => 'recommended',
+				'badge'       => array(
+					'label' => __( 'Progressive Web App', 'pwa' ),
+					'color' => 'orange',
+				),
+				'description' => wp_kses_post( sprintf( '<p>%s</p>', $description ) ),
+				'actions'     => wp_kses_post( $actions ),
+			);
+		} elseif ( strlen( $manifest['short_name'] ) > self::SHORT_NAME_MAX_LENGTH ) {
+			$result = array(
+				'label'       =>
+					sprintf(
+						/* translators: %1$s is the short name */
+						__( 'Web App Manifest has a short_name (%s) that is too long', 'pwa' ),
+						esc_html( $manifest['short_name'] )
+					),
+				'status'      => 'recommended',
+				'badge'       => array(
+					'label' => __( 'Progressive Web App', 'pwa' ),
+					'color' => 'orange',
+				),
+				'description' => wp_kses_post( sprintf( '<p>%s</p>', $description ) ),
+				'actions'     => wp_kses_post( $actions ),
+			);
+		} else {
+			$result = array(
+				'label'       =>
+					sprintf(
+						/* translators: %1$s is the short name */
+						__( 'Web App Manifest has a short_name (%s)', 'pwa' ),
+						esc_html( $manifest['short_name'] )
+					),
+				'status'      => 'good',
+				'badge'       => array(
+					'label' => __( 'Progressive Web App', 'pwa' ),
+					'color' => 'green',
+				),
+				'description' => wp_kses_post( sprintf( '<p>%s</p>', $description ) ),
+			);
+		}
+
+		$result['test'] = 'web_app_manifest_short_name';
+
+		return $result;
 	}
 
 	/**
