@@ -123,6 +123,19 @@ class WP_Web_App_Manifest {
 			'display'   => 'minimal-ui',
 			'dir'       => is_rtl() ? 'rtl' : 'ltr',
 		);
+
+		/*
+		 * If the name is 12 characters or less, use it as the short_name. Lighthouse complains when the short_name
+		 * is absent, even when the name is 12 characters or less. Chrome's max recommended short_name length is 12
+		 * characters.
+		 *
+		 * https://developers.google.com/web/tools/lighthouse/audits/manifest-contains-short_name
+		 * https://developer.chrome.com/apps/manifest/name#short_name
+		 */
+		if ( strlen( $manifest['name'] ) <= 12 ) {
+			$manifest['short_name'] = $manifest['name'];
+		}
+
 		$language = get_bloginfo( 'language' );
 		if ( $language ) {
 			$manifest['lang'] = $language;
