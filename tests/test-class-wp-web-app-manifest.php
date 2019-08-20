@@ -130,7 +130,7 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 	 */
 	public function test_get_manifest() {
 		$this->mock_site_icon();
-		$blogname = "PWA's Domain Is Here";
+		$blogname = 'PWA Test';
 		update_option( 'blogname', $blogname );
 		$actual_manifest = $this->instance->get_manifest();
 
@@ -139,6 +139,7 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 			'description'      => get_bloginfo( 'description' ),
 			'display'          => 'minimal-ui',
 			'name'             => $blogname,
+			'short_name'       => $blogname,
 			'lang'             => get_bloginfo( 'language' ),
 			'dir'              => is_rtl() ? 'rtl' : 'ltr',
 			'start_url'        => home_url( '/' ),
@@ -146,6 +147,13 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 			'icons'            => $this->instance->get_icons(),
 		);
 		$this->assertEquals( $expected_manifest, $actual_manifest );
+
+		// Check that long names do not automatically copy to short name.
+		$blogname = str_repeat( 'x', 13 );
+		update_option( 'blogname', $blogname );
+		$actual_manifest = $this->instance->get_manifest();
+		$this->assertEquals( $blogname, $actual_manifest['name'] );
+		$this->assertArrayNotHasKey( 'short_name', $actual_manifest );
 
 		// Test that the filter at the end of the method overrides the value.
 		add_filter( 'web_app_manifest', array( $this, 'mock_manifest' ) );

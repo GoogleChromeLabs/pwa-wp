@@ -118,7 +118,7 @@ function _pwa_add_disabled_navigation_preload_site_status_test( $tests ) {
 add_filter( 'site_status_tests', '_pwa_add_disabled_navigation_preload_site_status_test' );
 
 /**
- * Print admin notice when a build has not been been performed.
+ * Flag navigation preload incorrectly being disabled.
  *
  * This is temporary measure to correct a mistake in the example for how navigation request caching strategies.
  *
