@@ -206,14 +206,23 @@ class WP_Web_App_Manifest {
 	public function test_short_name_present_in_manifest() {
 		$manifest = $this->get_manifest();
 
-		/* translators: %d is the max length as a number */
-		$description = sprintf( __( 'The <code>short_name</code> is a short version of your website&#8217;s name which is displayed when there is not enough space for the full name, for example with the site icon on a phone&#8217;s homescreen. It should be a maximum of %d characters long.', 'pwa' ), self::SHORT_NAME_MAX_LENGTH );
+		$description = sprintf(
+			/* translators: %1$s is `short_name`, %2$d is the max length as a number */
+			__( 'The %1$s is a short version of your website&#8217;s name. It is displayed when there is not enough space for the full name, for example with the site icon on a phone&#8217;s homescreen. It should be a maximum of %2$d characters long.', 'pwa' ),
+			'<code>short_name</code>',
+			self::SHORT_NAME_MAX_LENGTH
+		);
 
-		$actions = __( 'You currently may use <code>web_app_manifest</code> filter to set the short name, for example in your theme&#8217;s <code>functions.php</code>.', 'pwa' );
+		$actions = sprintf(
+			/* translators: %1$s is `web_app_manifest`, %2$s is `functions.php` */
+			__( 'You currently may use %1$s filter to set the short name, for example in your theme&#8217;s %2$s.', 'pwa' ),
+			'<code>web_app_manifest</code>',
+			'<code>functions.php</code>'
+		);
 
 		if ( empty( $manifest['short_name'] ) ) {
 			$result = array(
-				'label'       => __( 'Web App Manifest lacks a short_name entry', 'pwa' ),
+				'label'       => __( 'Web App Manifest lacks a short name entry', 'pwa' ),
 				'status'      => 'recommended',
 				'badge'       => array(
 					'label' => __( 'Progressive Web App', 'pwa' ),
@@ -227,7 +236,7 @@ class WP_Web_App_Manifest {
 				'label'       =>
 					sprintf(
 						/* translators: %1$s is the short name */
-						__( 'Web App Manifest has a short_name (%s) that is too long', 'pwa' ),
+						__( 'Web App Manifest has a short name (%s) that is too long', 'pwa' ),
 						esc_html( $manifest['short_name'] )
 					),
 				'status'      => 'recommended',
@@ -243,7 +252,7 @@ class WP_Web_App_Manifest {
 				'label'       =>
 					sprintf(
 						/* translators: %1$s is the short name */
-						__( 'Web App Manifest has a short_name (%s)', 'pwa' ),
+						__( 'Web App Manifest has a short name (%s)', 'pwa' ),
 						esc_html( $manifest['short_name'] )
 					),
 				'status'      => 'good',
