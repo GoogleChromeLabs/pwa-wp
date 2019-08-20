@@ -73,6 +73,7 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	 *                              WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
 	 *                              WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY.
 	 *     @type string $cache_name Name to use for the cache.
+	 *     @type string $method     HTTP method to cache. Defaults to 'GET'.
 	 *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
 	 *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
 	 * }
@@ -119,10 +120,17 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 		$strategy = $args['strategy'];
 		unset( $args['strategy'] );
 
+		$method = 'GET';
+		if ( isset( $args['method'] ) ) {
+			$method = strtoupper( $args['method'] );
+			unset( $args['method'] );
+		}
+
 		$this->routes[] = array(
 			'route'         => $route,
 			'strategy'      => $strategy,
 			'strategy_args' => $args,
+			'method'        => $method,
 		);
 	}
 

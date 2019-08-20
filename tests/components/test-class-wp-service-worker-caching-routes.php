@@ -49,11 +49,18 @@ class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
 			unset( $args['strategy'] );
 		}
 
+		$method = 'GET';
+		if ( isset( $args['method'] ) ) {
+			$method = $args['method'];
+			unset( $args['method'] );
+		}
+
 		$this->assertEqualSetsWithIndex(
 			array(
 				'route'         => $route,
 				'strategy'      => $strategy,
 				'strategy_args' => $args,
+				'method'        => $method,
 			),
 			array_pop( $routes )
 		);
@@ -98,6 +105,19 @@ class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
 				'/.*(?:gstatic)\.com.*$/',
 				array(
 					'strategy' => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
+				),
+			),
+			array(
+				'/api/.*\.json',
+				array(
+					'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST,
+					'cacheName' => 'my-api',
+					'method'    => 'POST',
+					'plugins'   => [
+						'expiration' => [
+							'maxAgeSeconds' => 60 * 60 * 24,
+						],
+					],
 				),
 			),
 		);

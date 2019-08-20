@@ -83,11 +83,14 @@ class WP_Service_Worker_Caching_Routes_Component implements WP_Service_Worker_Co
 			// Ensure Workbox<=3 strategy factory names like "networkFirst" are converted to class names like "NetworkFirst".
 			$strategy = ucfirst( $route_data['strategy'] );
 
+			$method = isset( $route_data['method'] ) ? $route_data['method'] : 'GET';
+
 			$script .= sprintf(
-				'wp.serviceWorker.routing.registerRoute( new RegExp( %s ), new wp.serviceWorker.strategies[ %s ]( %s ) );',
+				"wp.serviceWorker.routing.registerRoute( new RegExp( %s ), new wp.serviceWorker.strategies[ %s ]( %s ), %s );\n",
 				wp_service_worker_json_encode( $route_data['route'] ),
 				wp_service_worker_json_encode( $strategy ),
-				WP_Service_Worker_Caching_Routes::prepare_strategy_args_for_js_export( $route_data['strategy_args'] )
+				WP_Service_Worker_Caching_Routes::prepare_strategy_args_for_js_export( $route_data['strategy_args'] ),
+				wp_service_worker_json_encode( $method )
 			);
 		}
 
