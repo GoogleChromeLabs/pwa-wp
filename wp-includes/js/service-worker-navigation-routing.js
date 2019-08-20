@@ -1,11 +1,9 @@
 /* global NAVIGATION_PRELOAD, CACHING_STRATEGY, CACHING_STRATEGY_ARGS, NAVIGATION_ROUTE_ENTRY,
-ERROR_OFFLINE_URL, ERROR_500_URL, SHOULD_STREAM_RESPONSE, STREAM_HEADER_FRAGMENT_URL, ERROR_500_BODY_FRAGMENT_URL,
-ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BLACKLIST_PATTERNS, ERROR_MESSAGES */
+ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_BLACKLIST_PATTERNS, ERROR_MESSAGES */
 
 // IIFE is used for lexical scoping instead of just a braces block due to bug with const in Safari.
 ( () => {
 	const navigationPreload = NAVIGATION_PRELOAD;
-	const isStreamingResponses = SHOULD_STREAM_RESPONSE && wp.serviceWorker.streams.isSupported();
 	const errorMessages = ERROR_MESSAGES;
 	const navigationRouteEntry = NAVIGATION_ROUTE_ENTRY;
 
@@ -36,30 +34,9 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 	 * @return {Promise<Response>} Response.
 	 */
 	async function handleNavigationRequest( { event } ) {
-		const canStreamResponse = () => {
-			return isStreamingResponses && ! navigationPreload;
-		};
-
 		const handleResponse = ( response ) => {
 			if ( response.status < 500 ) {
-				if ( response.redirected && canStreamResponse() ) {
-					const redirectedUrl = new URL( response.url );
-					redirectedUrl.searchParams.delete( STREAM_HEADER_FRAGMENT_QUERY_VAR );
-					const script = `
-						<script id="wp-stream-fragment-replace-state">
-						history.replaceState( {}, '', ${ JSON.stringify( redirectedUrl.toString() ) } );
-						document.getElementById( 'wp-stream-fragment-replace-state' ).remove();
-						</script>
-					`;
-					return response.text().then( ( body ) => {
-						return new Response( script + body );
-					} );
-				}
 				return response;
-			}
-
-			if ( canStreamResponse() ) {
-				return caches.match( wp.serviceWorker.precaching.getCacheKeyForURL( ERROR_500_BODY_FRAGMENT_URL ) );
 			}
 
 			const originalResponse = response.clone();
@@ -114,10 +91,6 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 		};
 
 		const sendOfflineResponse = () => {
-			if ( canStreamResponse() ) {
-				return caches.match( wp.serviceWorker.precaching.getCacheKeyForURL( ERROR_OFFLINE_BODY_FRAGMENT_URL ) );
-			}
-
 			return caches.match( wp.serviceWorker.precaching.getCacheKeyForURL( ERROR_OFFLINE_URL ) ).then( function( response ) {
 				return response.text().then( function( text ) {
 					const init = {
@@ -133,39 +106,6 @@ ERROR_OFFLINE_BODY_FRAGMENT_URL, STREAM_HEADER_FRAGMENT_QUERY_VAR, NAVIGATION_BL
 			} );
 		};
 
-		if ( canStreamResponse() ) {
-			const streamHeaderFragmentURL = STREAM_HEADER_FRAGMENT_URL;
-			const precacheStrategy = new wp.serviceWorker.strategies.cacheFirst( {
-				cacheName: wp.serviceWorker.core.cacheNames.precache,
-			} );
-
-			const url = new URL( event.request.url );
-			url.searchParams.append( STREAM_HEADER_FRAGMENT_QUERY_VAR, 'body' );
-			const init = {
-				mode: 'same-origin',
-			};
-			const copiedProps = [
-				'method',
-				'headers',
-				'credentials',
-				'cache',
-				'redirect',
-				'referrer',
-				'integrity',
-			];
-			for ( const initProp of copiedProps ) {
-				init[ initProp ] = event.request[ initProp ];
-			}
-			const request = new Request( url.toString(), init );
-			const stream = wp.serviceWorker.streams.concatenateToResponse( [
-				precacheStrategy.makeRequest( { request: streamHeaderFragmentURL } ),
-				navigationCacheStrategy.makeRequest( { request } )
-					.then( handleResponse )
-					.catch( sendOfflineResponse ),
-			] );
-
-			return stream.response;
-		}
 		return navigationCacheStrategy.handle( { event, request: event.request } )
 			.then( handleResponse )
 			.catch( sendOfflineResponse );

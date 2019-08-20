@@ -292,10 +292,6 @@ Here is a list of all available actions and filters added by the feature plugin.
   - Has one argument with array of messages:
     - `$default` The message to display on the default offline template;
     - `$comment` The message to display on the offline template in case of commenting;
-- `wp_streaming_header_precache_entry`: Filters what is precached to serve as the streaming header.
-  - Has one `$entry` param which is an array with the following arguments:
-    - `$url` URL to streaming header fragment.
-    - `$revision` Revision for the entry. Care must be taken to keep this updated based on the content that is output before the stream boundary.
 
 **Actions:**
 - `wp_front_service_worker`: Fires before serving the frontend service worker, when its scripts should be registered, caching routes established, and assets precached.
