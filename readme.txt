@@ -195,28 +195,32 @@ The API abstraction allows registering routes for caching and urls for precachin
 Examples of using the API:
 
 <pre lang="php">
-wp_register_service_worker_caching_route(
-	'/wp-content/.*\.(?:png|gif|jpg|jpeg|svg|webp)(\?.*)?$',
+add_action( 'wp_front_service_worker', function( \WP_Service_Worker_Scripts $scripts ) {
+	$scripts->caching_routes()->register(
+		'/wp-content/.*\.(?:png|gif|jpg|jpeg|svg|webp)(\?.*)?$',
 		array(
 			'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
 			'cacheName' => 'images',
 			'plugins'   => array(
-				'expiration'        => array(
+				'expiration' => array(
 					'maxEntries'    => 60,
 					'maxAgeSeconds' => 60 * 60 * 24,
+				),
 			),
-		),
-	)
-);
+		)
+	);
+} );
 </pre>
 
 <pre lang="php">
-wp_register_service_worker_precaching_route(
-	'https://example.com/wp-content/themes/my-theme/my-theme-image.png',
-	array(
-		'revision' => get_bloginfo( 'version' ),
-	)
-);
+add_action( 'wp_front_service_worker', function( \WP_Service_Worker_Scripts $scripts ) {
+	$scripts->precaching_routes()->register(
+		'https://example.com/wp-content/themes/my-theme/my-theme-image.png',
+		array(
+			'revision' => get_bloginfo( 'version' ),
+		)
+	);
+} );
 </pre>
 
 If you would like to opt-in to a caching strategy for navigation requests, you can do:
