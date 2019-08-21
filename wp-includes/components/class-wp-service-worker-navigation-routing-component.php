@@ -14,6 +14,16 @@
 class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worker_Component {
 
 	/**
+	 * Slug used to identify whether a theme supports service worker streaming.
+	 *
+	 * @since 0.2
+	 * @since 0.4 Obsolete.
+	 * @var string
+	 * @deprecated Since 0.4 all streaming support was removed. See <https://github.com/xwp/pwa-wp/issues/191>. Constant is left in place for the time to prevent fatal error if referenced.
+	 */
+	const STREAM_THEME_SUPPORT = 'service_worker_streaming';
+
+	/**
 	 * Internal storage for replacements to make in the error response handling script.
 	 *
 	 * @since 0.2
