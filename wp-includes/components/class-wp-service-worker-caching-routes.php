@@ -189,8 +189,9 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 					_doing_it_wrong( 'WP_Service_Workers::register_cached_route', esc_html( sprintf( __( 'Unrecognized plugin: %s', 'pwa' ), $plugin_name ) ), '0.2' );
 				} else {
 					$plugins_js[] = sprintf(
-						'new wp.serviceWorker[ %s ].Plugin( %s )',
+						'new wp.serviceWorker[ %s ][ %s ]( %s )',
 						wp_service_worker_json_encode( $plugin_name ),
+						wp_service_worker_json_encode( ucfirst( $plugin_name ) . 'Plugin' ),
 						empty( $plugin_args ) ? '{}' : wp_service_worker_json_encode( $plugin_args )
 					);
 				}
