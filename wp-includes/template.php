@@ -34,12 +34,17 @@ function pwa_locate_template( $template_names, $load = false, $require_once = tr
 		if ( ! $template_name ) {
 			continue;
 		}
+		$theme_slug = get_template();
 		if ( file_exists( STYLESHEETPATH . '/' . $template_name ) ) {
 			$located = STYLESHEETPATH . '/' . $template_name;
 			break;
 		} elseif ( file_exists( TEMPLATEPATH . '/' . $template_name ) ) {
 			$located = TEMPLATEPATH . '/' . $template_name;
 			break;
+		} elseif ( preg_match( '/^twenty\w+$/', $theme_slug ) && file_exists( PWA_PLUGIN_DIR . '/bundled-theme-support/' . $theme_slug . '/offline.php' ) ) {
+			$located = PWA_PLUGIN_DIR . '/bundled-theme-support/' . $theme_slug . '/offline.php';
+			break;
+			// Begin core patch.
 		} elseif ( file_exists( PWA_PLUGIN_DIR . '/' . WPINC . '/theme-compat/' . $template_name ) ) {
 			$located = PWA_PLUGIN_DIR . '/' . WPINC . '/theme-compat/' . $template_name;
 			break;
