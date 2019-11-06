@@ -130,16 +130,18 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 	 */
 	public function test_get_manifest() {
 		$this->mock_site_icon();
-		$blogname = 'PWA Test';
+		$blogname = 'PWA & Test "First" and \'second\'';
 		update_option( 'blogname', $blogname );
 		$actual_manifest = $this->instance->get_manifest();
+
+		// Verify that there are now entities.
+		$this->assertEquals( 'PWA &amp; Test &quot;First&quot; and &#039;second&#039;', get_option( 'blogname' ) );
 
 		$expected_manifest = array(
 			'background_color' => WP_Web_App_Manifest::FALLBACK_THEME_COLOR,
 			'description'      => get_bloginfo( 'description' ),
 			'display'          => 'minimal-ui',
-			'name'             => $blogname,
-			'short_name'       => $blogname,
+			'name'             => $blogname, // No HTML entities should be in the manifest.
 			'lang'             => get_bloginfo( 'language' ),
 			'dir'              => is_rtl() ? 'rtl' : 'ltr',
 			'start_url'        => home_url( '/' ),
