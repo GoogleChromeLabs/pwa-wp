@@ -130,12 +130,12 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 	 */
 	public function test_get_manifest() {
 		$this->mock_site_icon();
-		$blogname = 'PWA & Test "First" and \'second\'';
+		$blogname = 'PWA & Test "First" and \'second\' and “third”';
 		update_option( 'blogname', $blogname );
 		$actual_manifest = $this->instance->get_manifest();
 
 		// Verify that there are now entities.
-		$this->assertEquals( 'PWA &amp; Test &quot;First&quot; and &#039;second&#039;', get_option( 'blogname' ) );
+		$this->assertEquals( 'PWA &amp; Test &quot;First&quot; and &#039;second&#039; and “third”', get_option( 'blogname' ) );
 
 		$expected_manifest = array(
 			'background_color' => WP_Web_App_Manifest::FALLBACK_THEME_COLOR,
