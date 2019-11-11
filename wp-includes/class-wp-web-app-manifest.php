@@ -129,7 +129,7 @@ class WP_Web_App_Manifest {
 	 */
 	public function get_manifest() {
 		$manifest = array(
-			'name'      => wp_kses_decode_entities( get_bloginfo( 'name' ) ),
+			'name'      => html_entity_decode( get_bloginfo( 'name' ), ENT_QUOTES, 'utf-8' ),
 			'start_url' => home_url( '/' ),
 			'display'   => 'minimal-ui',
 			'dir'       => is_rtl() ? 'rtl' : 'ltr',
@@ -158,7 +158,7 @@ class WP_Web_App_Manifest {
 			$manifest['theme_color']      = $theme_color;
 		}
 
-		$description = wp_kses_decode_entities( get_bloginfo( 'description' ) );
+		$description = html_entity_decode( get_bloginfo( 'description' ), ENT_QUOTES, 'utf-8' );
 		if ( $description ) {
 			$manifest['description'] = $description;
 		}
