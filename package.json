@@ -17,7 +17,7 @@
   "grunt-shell": "3.0.1",
   "grunt-wp-deploy": "2.0.0",
   "husky": "3.0.0",
-  "workbox-cli": "5.0.0-rc.0"
+  "workbox-cli": "5.0.0-rc.1"
  },
  "scripts": {
   "pre-commit": "if command -v lando >/dev/null 2>&1; then lando ssh -c 'bash ./vendor/xwp/wp-dev-lib/scripts/pre-commit'; else ./vendor/xwp/wp-dev-lib/scripts/pre-commit; fi",
