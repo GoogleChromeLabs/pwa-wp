@@ -1,5 +1,5 @@
 /* global NAVIGATION_PRELOAD, CACHING_STRATEGY, CACHING_STRATEGY_ARGS, NAVIGATION_ROUTE_ENTRY,
-ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_BLACKLIST_PATTERNS, ERROR_MESSAGES */
+ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES */
 
 // IIFE is used for lexical scoping instead of just a braces block due to bug with const in Safari.
 ( () => {
@@ -111,27 +111,27 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_BLACKLIST_PATTERNS, ERROR_MESSAGES 
 			.catch( sendOfflineResponse );
 	}
 
-	const blacklist = NAVIGATION_BLACKLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) );
+	const denylist = NAVIGATION_DENYLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) );
 	if ( navigationRouteEntry && navigationRouteEntry.url ) {
 		wp.serviceWorker.routing.registerNavigationRoute(
 			navigationRouteEntry.url,
-			{ blacklist }
+			{ denylist }
 		);
 
 		class FetchNavigationRoute extends wp.serviceWorker.routing.Route {
 			/**
-			 * If both `blacklist` and `whitelist` are provided, the `blacklist` will
+			 * If both `denylist` and `allowlist` are provided, the `denylist` will
 			 * take precedence and the request will not match this route.
 			 *
 			 * @inheritDoc
 			 */
 			constructor( handler, {
-				whitelist: _whitelist = [ /./ ],
-				blacklist: _blacklist = [],
+				allowlist: _allowlist = [ /./ ],
+				denylist: _denylist = [],
 			} = {} ) {
 				super( ( options ) => this._match( options ), handler );
-				this._whitelist = _whitelist;
-				this._blacklist = _blacklist;
+				this._allowlist = _allowlist;
+				this._denylist = _denylist;
 			}
 
 			/**
@@ -151,26 +151,26 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_BLACKLIST_PATTERNS, ERROR_MESSAGES 
 				}
 
 				const pathnameAndSearch = url.pathname + url.search;
-				for ( const regExp of this._blacklist ) {
+				for ( const regExp of this._denylist ) {
 					if ( regExp.test( pathnameAndSearch ) ) {
 						return false;
 					}
 				}
 
-				return this._whitelist.some( ( regExp ) => regExp.test( pathnameAndSearch ) );
+				return this._allowlist.some( ( regExp ) => regExp.test( pathnameAndSearch ) );
 			}
 		}
 
 		wp.serviceWorker.routing.registerRoute(
 			new FetchNavigationRoute(
 				handleNavigationRequest,
-				{ blacklist }
+				{ denylist }
 			)
 		);
 	} else {
 		wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
 			handleNavigationRequest,
-			{ blacklist }
+			{ denylist }
 		) );
 	}
 } )();
@@ -179,6 +179,6 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_BLACKLIST_PATTERNS, ERROR_MESSAGES 
 wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
 	new wp.serviceWorker.strategies.NetworkOnly(),
 	{
-		whitelist: NAVIGATION_BLACKLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) ),
+		allowlist: NAVIGATION_DENYLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) ),
 	}
 ) );
