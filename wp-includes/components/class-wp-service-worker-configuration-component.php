@@ -54,16 +54,22 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 		$current_scope = wp_service_workers()->get_current_scope();
 		$workbox_dir   = 'wp-includes/js/workbox/';
 
+		$script = '';
 		if ( SCRIPT_DEBUG ) {
+			$enable_debug_log = defined( 'WP_SERVICE_WORKER_DEBUG_LOG' ) && WP_SERVICE_WORKER_DEBUG_LOG;
+			if ( ! $enable_debug_log ) {
+				$script .= "self.__WB_DISABLE_DEV_LOGS = true;\n";
+			}
+
 			// Load with importScripts() so that source map is available.
-			$script = sprintf(
+			$script .= sprintf(
 				"importScripts( %s );\n",
 				wp_service_worker_json_encode( PWA_PLUGIN_URL . $workbox_dir . 'workbox-sw.js' )
 			);
 		} else {
 			// Inline the workbox-sw.js to avoid an additional HTTP request.
-			$script = file_get_contents( PWA_PLUGIN_DIR . '/' . $workbox_dir . 'workbox-sw.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-			$script = preg_replace( '://# sourceMappingURL=.+?\.map:', '', $script );
+			$script .= file_get_contents( PWA_PLUGIN_DIR . '/' . $workbox_dir . 'workbox-sw.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			$script .= preg_replace( '://# sourceMappingURL=.+?\.map:', '', $script );
 		}
 
 		$options = array(
