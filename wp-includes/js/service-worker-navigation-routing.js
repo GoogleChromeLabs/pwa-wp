@@ -36,6 +36,15 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 	async function handleNavigationRequest( { event } ) {
 		const handleResponse = ( response ) => {
 			if ( response.status < 500 ) {
+				/**
+				 * Fires when service worker detected a request resulted in a successful response.
+				 *
+				 * @param {object} args
+				 * @param {Event} args.event
+				 * @param {Response} args.response
+				 */
+				wp.hooks.doAction( 'navigation_response_success', { event, response, navigationCacheStrategy } );
+
 				return response;
 			}
 
