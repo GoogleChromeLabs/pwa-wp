@@ -189,7 +189,9 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			$caching_strategy = WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY;
 
 			$revision = PWA_VERSION;
-			if ( WP_DEBUG ) {
+
+			// Force revision to be extra fresh during development (e.g. when PWA_VERSION is x.y-alpha).
+			if ( false !== strpos( PWA_VERSION, '-' ) ) {
 				$revision .= filemtime( PWA_PLUGIN_DIR . '/wp-admin/error.php' );
 				$revision .= filemtime( PWA_PLUGIN_DIR . '/wp-includes/service-workers.php' );
 			}
