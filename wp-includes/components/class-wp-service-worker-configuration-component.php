@@ -68,8 +68,8 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 			);
 		} else {
 			// Inline the workbox-sw.js to avoid an additional HTTP request.
-			$script .= file_get_contents( PWA_PLUGIN_DIR . '/' . $workbox_dir . 'workbox-sw.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-			$script .= preg_replace( '://# sourceMappingURL=.+?\.map:', '', $script );
+			$wbjs    = file_get_contents( PWA_PLUGIN_DIR . '/' . $workbox_dir . 'workbox-sw.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			$script .= preg_replace( '://# sourceMappingURL=.+?\.map\s*$:s', '', $wbjs );
 		}
 
 		$options = array(
