@@ -4,15 +4,15 @@
 ![Banner](wp-assets/banner-1544x500.png)
 WordPress feature plugin to bring Progressive Web App (PWA) capabilities to Core
 
-**Contributors:** [xwp](https://profiles.wordpress.org/xwp), [google](https://profiles.wordpress.org/google), [automattic](https://profiles.wordpress.org/automattic)
-**Tags:** [pwa](https://wordpress.org/plugins/tags/pwa), [progressive web apps](https://wordpress.org/plugins/tags/progressive-web-apps), [service workers](https://wordpress.org/plugins/tags/service-workers), [web app manifest](https://wordpress.org/plugins/tags/web-app-manifest), [https](https://wordpress.org/plugins/tags/https)
-**Requires at least:** 5.2
-**Tested up to:** 5.3
-**Stable tag:** 0.3.0
-**License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)
-**Requires PHP:** 5.6
+**Contributors:** [google](https://profiles.wordpress.org/google), [xwp](https://profiles.wordpress.org/xwp)  
+**Tags:** [pwa](https://wordpress.org/plugins/tags/pwa), [progressive web apps](https://wordpress.org/plugins/tags/progressive-web-apps), [service workers](https://wordpress.org/plugins/tags/service-workers), [web app manifest](https://wordpress.org/plugins/tags/web-app-manifest), [https](https://wordpress.org/plugins/tags/https)  
+**Requires at least:** 5.2  
+**Tested up to:** 5.3  
+**Stable tag:** 0.3.0  
+**License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
+**Requires PHP:** 5.6  
 
-[![Build Status](https://travis-ci.org/GoogleChromeLabs/pwa-wp.svg?branch=master)](https://travis-ci.org/GoogleChromeLabs/pwa-wp) [![Built with Grunt](https://gruntjs.com/cdn/builtwith.svg)](http://gruntjs.com)
+[![Build Status](https://travis-ci.org/GoogleChromeLabs/pwa-wp.svg?branch=master)](https://travis-ci.org/GoogleChromeLabs/pwa-wp) [![Built with Grunt](https://gruntjs.com/cdn/builtwith.svg)](http://gruntjs.com) 
 
 ## Description ##
 

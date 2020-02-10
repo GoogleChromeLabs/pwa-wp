@@ -1,5 +1,5 @@
 === PWA ===
-Contributors:      xwp, google, automattic
+Contributors:      google, xwp
 Tags:              pwa, progressive web apps, service workers, web app manifest, https
 Requires at least: 5.2
 Tested up to:      5.3
