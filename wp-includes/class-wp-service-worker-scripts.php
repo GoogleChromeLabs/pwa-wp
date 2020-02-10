@@ -148,7 +148,7 @@ class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_
 	 *
 	 * @param string $handle Handle.
 	 * @param bool   $group Group. Unused.
-	 * @return bool
+	 * @return bool True on success, false on failure.
 	 */
 	public function do_item( $handle, $group = false ) {
 		$registered = $this->registered[ $handle ];
@@ -177,7 +177,7 @@ class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_
 			printf( "console.warn( %s );\n", wp_service_worker_json_encode( $error ) ); // phpcs:ignore WordPress.XSS.EscapeOutput, WordPress.Security.EscapeOutput
 		}
 
-		return $invalid;
+		return ! $invalid;
 	}
 
 	/**
