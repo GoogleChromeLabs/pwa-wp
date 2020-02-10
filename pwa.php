@@ -7,11 +7,11 @@
  *
  * @wordpress-plugin
  * Plugin Name: PWA
- * Plugin URI:  https://github.com/xwp/pwa-wp
+ * Plugin URI:  https://github.com/GoogleChromeLabs/pwa-wp
  * Description: Feature plugin to bring Progressive Web App (PWA) capabilities to Core
  * Version:     0.4.0-alpha
  * Author:      PWA Plugin Contributors
- * Author URI:  https://github.com/xwp/pwa-wp/graphs/contributors
+ * Author URI:  https://github.com/GoogleChromeLabs/pwa-wp/graphs/contributors
  * Text Domain: pwa
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
