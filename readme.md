@@ -4,15 +4,15 @@
 ![Banner](wp-assets/banner-1544x500.png)
 WordPress feature plugin to bring Progressive Web App (PWA) capabilities to Core
 
-**Contributors:** [xwp](https://profiles.wordpress.org/xwp), [google](https://profiles.wordpress.org/google), [automattic](https://profiles.wordpress.org/automattic)  
-**Tags:** [pwa](https://wordpress.org/plugins/tags/pwa), [progressive web apps](https://wordpress.org/plugins/tags/progressive-web-apps), [service workers](https://wordpress.org/plugins/tags/service-workers), [web app manifest](https://wordpress.org/plugins/tags/web-app-manifest), [https](https://wordpress.org/plugins/tags/https)  
-**Requires at least:** 5.2  
-**Tested up to:** 5.3  
-**Stable tag:** 0.3.0  
-**License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
-**Requires PHP:** 5.6  
+**Contributors:** [xwp](https://profiles.wordpress.org/xwp), [google](https://profiles.wordpress.org/google), [automattic](https://profiles.wordpress.org/automattic)
+**Tags:** [pwa](https://wordpress.org/plugins/tags/pwa), [progressive web apps](https://wordpress.org/plugins/tags/progressive-web-apps), [service workers](https://wordpress.org/plugins/tags/service-workers), [web app manifest](https://wordpress.org/plugins/tags/web-app-manifest), [https](https://wordpress.org/plugins/tags/https)
+**Requires at least:** 5.2
+**Tested up to:** 5.3
+**Stable tag:** 0.3.0
+**License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)
+**Requires PHP:** 5.6
 
-[![Build Status](https://travis-ci.org/GoogleChromeLabs/pwa-wp.svg?branch=master)](https://travis-ci.org/GoogleChromeLabs/pwa-wp) [![Built with Grunt](https://gruntjs.com/cdn/builtwith.svg)](http://gruntjs.com) 
+[![Build Status](https://travis-ci.org/GoogleChromeLabs/pwa-wp.svg?branch=master)](https://travis-ci.org/GoogleChromeLabs/pwa-wp) [![Built with Grunt](https://gruntjs.com/cdn/builtwith.svg)](http://gruntjs.com)
 
 ## Description ##
 
@@ -40,7 +40,7 @@ This plugin serves as a place to implement support for these in WordPress with t
 
 ☞ Please note that this feature plugin is _not_ intended to obsolete the other plugins and themes which turn WordPress sites into PWAs. Rather, this plugin is intended to provide the PWA building blocks and coordination mechanism for these themes and plugins to not reinvent the wheel and also to not conflict with each other. For example, a theme that implements the app shell model should be able to extend the core service worker while a plugin that provides push notifications should be able to do the same. Themes and plugins no longer should have to each create a service worker on their own, something which is inherently problematic because only one service worker can be active at a time: only one service worker can win. If you are developing a plugin or theme that includes a service worker, consider relying on this PWA plugin, or at least only use the built-in implementation as a fallback for when the PWA plugin is not available.
 
-**Development of this plugin is done [on GitHub](https://github.com/xwp/pwa-wp). Pull requests welcome. Please see [issues](https://github.com/xwp/pwa-wp/issues) reported there before going to the [plugin forum](https://wordpress.org/support/plugin/pwa).**
+**Development of this plugin is done [on GitHub](https://github.com/GoogleChromeLabs/pwa-wp). Pull requests welcome. Please see [issues](https://github.com/GoogleChromeLabs/pwa-wp/issues) reported there before going to the [plugin forum](https://wordpress.org/support/plugin/pwa).**
 ### Web App Manifest ###
 As noted in a [Google guide](https://developers.google.com/web/fundamentals/web-app-manifest/):
 
@@ -91,7 +91,7 @@ The manifest is populated with default values including:
 
 There is a `web_app_manifest` filter which is passed the above array so that plugins and themes can customize the manifest.
 
-See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Aweb-app-manifest) and see WordPress core tracking ticket [#43328](https://core.trac.wordpress.org/ticket/43328).
+See [labeled GitHub issues](https://github.com/GoogleChromeLabs/pwa-wp/issues?q=label%3Aweb-app-manifest) and see WordPress core tracking ticket [#43328](https://core.trac.wordpress.org/ticket/43328).
 
 ### Service Workers ###
 As noted in a [Google primer](https://developers.google.com/web/fundamentals/primers/service-workers/):
@@ -150,7 +150,7 @@ add_action( 'wp_front_service_worker', 'register_baz_service_worker_script' );
 add_action( 'wp_admin_service_worker', 'register_baz_service_worker_script' );
 ```
 
-See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Aservice-workers) and see WordPress core tracking ticket [#36995](https://core.trac.wordpress.org/ticket/36995).
+See [labeled GitHub issues](https://github.com/GoogleChromeLabs/pwa-wp/issues?q=label%3Aservice-workers) and see WordPress core tracking ticket [#36995](https://core.trac.wordpress.org/ticket/36995).
 
 ### Integrations ###
 The plugin bundles several experimental integrations that are kept separate from the service worker core code. These integrations act as examples and proof-of-concept to achieve certain goals. While all of them are generally applicable and recommended to truly benefit from service workers, they are not crucial for the core API.
@@ -308,7 +308,7 @@ Here is a list of all available actions and filters added by the feature plugin.
 ### HTTPS ###
 HTTPS is a prerequisite for progressive web apps. A service worker is only able to be installed on sites that are served as HTTPS. For this reason core's support for HTTPS needs to be further improved, continuing the great progress made over the past few years.
 
-At the moment the plugin provides an API to detection of whether a site supports HTTPS. Building on that it's intended that this can then be used to present a user with an opt-in to switch over to HTTPS, which will also then need to include support for rewriting URLs from HTTP to HTTPS. See [labeled GitHub issues](https://github.com/xwp/pwa-wp/issues?q=label%3Ahttps) and see WordPress core tracking ticket [#28521](https://core.trac.wordpress.org/ticket/28521).
+At the moment the plugin provides an API to detection of whether a site supports HTTPS. Building on that it's intended that this can then be used to present a user with an opt-in to switch over to HTTPS, which will also then need to include support for rewriting URLs from HTTP to HTTPS. See [labeled GitHub issues](https://github.com/GoogleChromeLabs/pwa-wp/issues?q=label%3Ahttps) and see WordPress core tracking ticket [#28521](https://core.trac.wordpress.org/ticket/28521).
 
 You can optionally add an [HSTS header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security) (HTTP `Strict-Transport-Security`). This indicates to the browser to only load the site with HTTPS, not HTTP.
 
@@ -334,5 +334,5 @@ Please see the [documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP
 
 ## Changelog ##
 
-For the plugin’s changelog, please see [the Releases page on GitHub](https://github.com/xwp/pwa-wp/releases).
+For the plugin’s changelog, please see [the Releases page on GitHub](https://github.com/GoogleChromeLabs/pwa-wp/releases).
 

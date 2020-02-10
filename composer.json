@@ -1,7 +1,7 @@
 {
   "name": "xwp/pwa-wp",
   "description": "WordPress plugin for adding PWA support.",
-  "homepage": "https://github.com/xwp/pwa-wp",
+  "homepage": "https://github.com/GoogleChromeLabs/pwa-wp",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
   "require": {
