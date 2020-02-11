@@ -120,8 +120,11 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 			}
 		}
 
+		// Include wp.hooks for extensions to modify behavior of service worker with JS.
+		$script .= "\n// Include wp-includes/js/dist/hooks.js.\n" . file_get_contents( ABSPATH . WPINC . '/js/dist/hooks.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+
 		// Note: This includes the aliasing of `workbox` to `wp.serviceWorker`.
-		$script .= file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$script .= "\n// Include wp-includes/js/js/service-worker.js.\n" . file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 
 		return $script;
 	}
