@@ -8,7 +8,7 @@ just a few small guidelines you need to follow.
 To start, clone this repository into any WordPress install being used for development:
 
 ```bash
-git clone git@github.com:xwp/pwa-wp.git wp-content/plugins/pwa
+git clone git@github.com:GoogleChromeLabs/pwa-wp.git wp-content/plugins/pwa
 cd wp-content/plugins/pwa
 npm install
 ```
@@ -61,7 +61,7 @@ Contributors who want to make a new release, follow these steps:
 2. Bump plugin versions in `pwa.php` (×2: the metadata block in the header and also the `PWA_VERSION` constant), and the `Stable tag` in `readme.txt`.
 3. Add changelog entry to readme.
 4. Draft blog post about the new release, presumably on Make/Core.
-5. [Draft new release](https://github.com/xwp/pwa-wp/releases/new) on GitHub targeting the release branch, with the new plugin version as the tag and release title. Attaching the `pwa.zip` build to the release. Include link to changelog in release tag.
+5. [Draft new release](https://github.com/GoogleChromeLabs/pwa-wp/releases/new) on GitHub targeting the release branch, with the new plugin version as the tag and release title. Attaching the `pwa.zip` build to the release. Include link to changelog in release tag.
 6. Run `npm run deploy` to to commit the plugin to WordPress.org.
 7. Confirm the release is available on WordPress.org; try installing it on a WordPress install and confirm it works.
 8. Publish GitHub release.

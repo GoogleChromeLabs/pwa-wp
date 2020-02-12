@@ -1,10 +1,10 @@
 {
  "name": "pwa-wp",
  "title": "PWA feature plugin for WordPress Core",
- "homepage": "https://github.com/xwp/pwa-wp",
+ "homepage": "https://github.com/GoogleChromeLabs/pwa-wp",
  "repository": {
   "type": "git",
-  "url": "https://github.com/xwp/pwa-wp.git"
+  "url": "https://github.com/GoogleChromeLabs/pwa-wp.git"
  },
  "license": "GPL-2.0-or-later",
  "private": true,
