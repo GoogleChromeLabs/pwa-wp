@@ -63,9 +63,9 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 
 		$revision = PWA_VERSION;
 
-		$revision .= sprintf( ';%s=%s', $template, wp_get_theme( $template )->Version );
+		$revision .= sprintf( ';%s=%s', $template, wp_get_theme( $template )->version );
 		if ( $template !== $stylesheet ) {
-			$revision .= sprintf( ';%s=%s', $stylesheet, wp_get_theme( $stylesheet )->Version );
+			$revision .= sprintf( ';%s=%s', $stylesheet, wp_get_theme( $stylesheet )->version );
 		}
 
 		// Ensure the user-specific offline/500 pages are precached, and that they update when user logs out or switches to another user.
