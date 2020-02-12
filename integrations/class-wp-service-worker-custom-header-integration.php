@@ -54,21 +54,21 @@ class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worker_Base
 			return;
 		}
 
-		$header     = get_custom_header();
-		$attachment = ! empty( $header->attachment_id ) ? get_post( get_custom_header()->attachment_id ) : null;
+		$header       = get_custom_header();
+		$attachment   = ! empty( $header->attachment_id ) ? get_post( get_custom_header()->attachment_id ) : null;
+		$header_image = get_header_image();
 
 		if ( $attachment ) {
 			foreach ( $this->get_attachment_image_urls( $attachment->ID, array( $header->width, $header->height ) ) as $image_url ) {
 				$scripts->precaching_routes()->register( $image_url, $attachment->post_modified );
 			}
-		} elseif ( get_header_image() ) {
-			$url      = get_header_image();
-			$file     = $scripts->get_validated_file_path( get_header_image() );
+		} elseif ( is_string( $header_image ) ) {
+			$file     = $scripts->get_validated_file_path( $header_image );
 			$revision = null;
 			if ( is_string( $file ) ) {
 				$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			}
-			$scripts->precaching_routes()->register( $url, $revision );
+			$scripts->precaching_routes()->register( $header_image, $revision );
 		}
 	}
 
