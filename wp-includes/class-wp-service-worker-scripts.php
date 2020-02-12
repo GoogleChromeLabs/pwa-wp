@@ -181,7 +181,7 @@ class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_
 	/**
 	 * Get validated path to file.
 	 *
-	 * @param string|false $url Relative path or false.
+	 * @param string $url Relative path or false.
 	 * @return string|WP_Error
 	 */
 	public function get_validated_file_path( $url ) {
