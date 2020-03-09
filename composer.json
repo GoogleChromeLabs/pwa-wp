@@ -1,7 +1,7 @@
 {
-  "name": "xwp/pwa-wp",
+  "name": "GoogleChromeLabs/pwa-wp",
   "description": "WordPress plugin for adding PWA support.",
-  "homepage": "https://github.com/xwp/pwa-wp",
+  "homepage": "https://github.com/GoogleChromeLabs/pwa-wp",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
   "require": {
@@ -11,6 +11,6 @@
     "dealerdirect/phpcodesniffer-composer-installer": "0.5.0",
     "phpcompatibility/phpcompatibility-wp": "2.0.0",
     "wp-coding-standards/wpcs": "2.1.1",
-    "xwp/wp-dev-lib": "1.4.0"
+    "xwp/wp-dev-lib": "1.5.0"
   }
 }
