@@ -1,6 +1,7 @@
 version: 1
 update_configs:
   - package_manager: "javascript"
+    version_requirement_updates: "increase_versions"
     directory: "/"
     update_schedule: "live"
     default_reviewers:
@@ -8,6 +9,7 @@ update_configs:
     default_labels:
       - "dependencies"
   - package_manager: "php:composer"
+    version_requirement_updates: "increase_versions"
     directory: "/"
     update_schedule: "live"
     default_reviewers:
