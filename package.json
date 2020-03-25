@@ -17,6 +17,7 @@
   "grunt-shell": "3.0.1",
   "grunt-wp-deploy": "2.0.0",
   "husky": "3.0.0",
+  "npm-run-all": "4.1.5",
   "workbox-cli": "5.1.1"
  },
  "scripts": {
@@ -24,8 +25,11 @@
   "generate-readme": "./vendor/xwp/wp-dev-lib/scripts/generate-markdown-readme",
   "build": "grunt build; grunt create-build-zip",
   "deploy": "grunt deploy",
+  "lint": "npm-run-all --parallel lint:*",
   "lint:js": "eslint .",
-  "lint:php": "vendor/bin/phpcs"
+  "lint:php": "vendor/bin/phpcs",
+  "test": "npm-run-all --parallel test:*",
+  "test:php": "phpunit"
  },
  "dependencies": {}
 }
