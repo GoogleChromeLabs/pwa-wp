@@ -28,7 +28,7 @@ install:
   - if [[ $WP_TRAVISCI == *"test"* ]]; then composer global require phpunit/phpunit "^$PHPUNIT_VERSION"; fi
   - nvm install 8.15.1 && nvm use 8.15.1
   - npm install
-  - npm run build
+  - npm run build && rm -r build
 
 script:
   - if [[ $WP_TRAVISCI == *"lint"* ]]; then npm run lint; fi
