@@ -148,7 +148,7 @@ class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_
 	 *
 	 * @param string $handle Handle.
 	 * @param bool   $group Group. Unused.
-	 * @return void
+	 * @return bool True on success, false on failure.
 	 */
 	public function do_item( $handle, $group = false ) {
 		$registered = $this->registered[ $handle ];
@@ -176,6 +176,8 @@ class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_
 			@_doing_it_wrong( 'WP_Service_Worker_Scripts::register', esc_html( $error ), '0.1' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged -- We want the error in the PHP log, but not in the JS output.
 			printf( "console.warn( %s );\n", wp_service_worker_json_encode( $error ) ); // phpcs:ignore WordPress.XSS.EscapeOutput, WordPress.Security.EscapeOutput
 		}
+
+		return ! $invalid;
 	}
 
 	/**
