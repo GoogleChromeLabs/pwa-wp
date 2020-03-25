@@ -10,9 +10,9 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = tab
 
-[{.babelrc,.eslintrc,.jshintrc,*.json,*.yml}]
+[{.eslintrc,*.json,*.yml}]
 indent_style = space
 indent_size = 2
 
-[{*.md}]
+[*.md]
 trim_trailing_whitespace = false
