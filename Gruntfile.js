@@ -91,18 +91,19 @@ module.exports = function( grunt ) {
 			const versionAppend = commitHash + '-' + new Date().toISOString().replace( /\.\d+/, '' ).replace( /-|:/g, '' );
 
 			const paths = lsOutput.trim().split( /\n/ ).filter( function( file ) {
-				return ! /^(\.|bin|([^/]+)+\.(md|json|xml)|Gruntfile\.js|tests|wp-assets|readme\.md|composer\..*|webpack.*)/.test( file );
+				return ! /^(\.|bin|([^/]+)+\.(json|xml)|Gruntfile\.js|tests|CONTRIBUTING\.md|wp-assets|composer\..*|webpack.*)/.test( file );
 			} );
 			paths.push( 'wp-includes/js/workbox/*' );
 
 			grunt.task.run( 'clean' );
+			grunt.task.run( 'readme' );
 			grunt.config.set( 'copy', {
 				build: {
 					src: paths,
 					dest: 'build',
 					expand: true,
 					options: {
-						noProcess: [ '*/**', 'LICENSE' ], // That is, only process pwa.php and readme.txt.
+						noProcess: [ '*/**', 'LICENSE' ], // We only want to process pwa.php, readme.txt, and readme.md.
 						process( content, srcpath ) {
 							let matches, version, versionRegex;
 							if ( /pwa\.php$/.test( srcpath ) ) {
@@ -122,7 +123,6 @@ module.exports = function( grunt ) {
 					},
 				},
 			} );
-			grunt.task.run( 'readme' );
 			grunt.task.run( 'copy' );
 
 			done();

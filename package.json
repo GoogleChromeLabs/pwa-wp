@@ -22,7 +22,7 @@
  },
  "scripts": {
   "pre-commit": "if command -v lando >/dev/null 2>&1; then lando ssh -c 'bash ./vendor/xwp/wp-dev-lib/scripts/pre-commit'; else ./vendor/xwp/wp-dev-lib/scripts/pre-commit; fi",
-  "generate-readme": "./vendor/xwp/wp-dev-lib/scripts/generate-markdown-readme",
+  "generate-readme": "./vendor/xwp/wp-dev-lib/scripts/generate-markdown-readme && sed -i.bak 's/travis-ci\\.org/travis-ci.com/g' readme.md && rm readme.md.bak",
   "build": "grunt build; grunt create-build-zip",
   "deploy": "grunt deploy",
   "lint": "npm-run-all --parallel lint:*",
