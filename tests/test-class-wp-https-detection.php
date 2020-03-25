@@ -134,15 +134,22 @@ class Test_WP_HTTPS_Detection extends WP_UnitTestCase {
 		$this->instance->schedule_cron();
 		$this->assertEquals( WP_HTTPS_Detection::CRON_INTERVAL, wp_get_schedule( WP_HTTPS_Detection::CRON_HOOK ) );
 
-		$cron_array       = _get_cron_array();
-		$https_check_cron = end( $cron_array );
+		$cron_array = array_filter(
+			_get_cron_array(),
+			static function ( $entries ) {
+				return array_key_exists( WP_HTTPS_Detection::CRON_HOOK, $entries );
+			}
+		);
+		$this->assertNotEmpty( $cron_array );
+		$cron_entries = array_shift( $cron_array );
+
 		$this->assertEquals(
 			array(
 				'args'     => array(),
 				'interval' => DAY_IN_SECONDS / 2,
 				'schedule' => WP_HTTPS_Detection::CRON_INTERVAL,
 			),
-			reset( $https_check_cron[ WP_HTTPS_Detection::CRON_HOOK ] )
+			reset( $cron_entries[ WP_HTTPS_Detection::CRON_HOOK ] )
 		);
 	}
 
