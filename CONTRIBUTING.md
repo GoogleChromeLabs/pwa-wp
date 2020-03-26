@@ -11,9 +11,9 @@ To start, clone this repository into any WordPress install being used for develo
 git clone git@github.com:GoogleChromeLabs/pwa-wp.git wp-content/plugins/pwa
 cd wp-content/plugins/pwa
 npm install
+composer install
+npm run build
 ```
-
-Running `npm install` will also automatically run `composer install`; a `pre-commit` hook will also automatically be installed for you via [husky](https://www.npmjs.com/package/husky).
 
 You may then just activate the plugin in the admin or via [WP-CLI](https://wp-cli.org/): `wp plugin activate pwa`.
 
