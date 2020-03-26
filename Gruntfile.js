@@ -82,7 +82,7 @@ module.exports = function( grunt ) {
 			{
 				cmd: 'git',
 				args: [ 'ls-files' ],
-			}
+			},
 		);
 
 		function finalize() {
@@ -141,7 +141,7 @@ module.exports = function( grunt ) {
 						}
 						stdout.push( res.stdout );
 						doNext();
-					}
+					},
 				);
 			}
 		}

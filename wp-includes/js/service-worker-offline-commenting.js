@@ -51,7 +51,7 @@
 									details = details.replace( '<' + '!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->', '' );
 									details = details.replace( '<' + '!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->', '' );
 									return details;
-								}
+								},
 							);
 
 							return new Response( body, init );
@@ -78,7 +78,7 @@
 						queue.pushRequest( {
 							request: req,
 						} );
-					}
+					},
 				);
 
 				// @todo This is duplicated with code in service-worker-navigation-routing.js.
@@ -101,6 +101,6 @@
 	wp.serviceWorker.routing.registerRoute(
 		/\/wp-comments-post\.php$/,
 		commentHandler,
-		'POST'
+		'POST',
 	);
 } )();
