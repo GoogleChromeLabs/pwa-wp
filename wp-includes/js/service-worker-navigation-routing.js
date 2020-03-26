@@ -82,7 +82,7 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 								details = details.replace( '<' + '!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->', '' );
 								details = details.replace( '<' + '!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->', '' );
 								return details;
-							}
+							},
 						);
 						return new Response( body, init );
 					} );
@@ -115,7 +115,7 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 	if ( navigationRouteEntry && navigationRouteEntry.url ) {
 		wp.serviceWorker.routing.registerNavigationRoute(
 			navigationRouteEntry.url,
-			{ denylist }
+			{ denylist },
 		);
 
 		class FetchNavigationRoute extends wp.serviceWorker.routing.Route {
@@ -151,6 +151,7 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 				}
 
 				const pathnameAndSearch = url.pathname + url.search;
+				// eslint-disable-next-line no-unused-vars
 				for ( const regExp of this._denylist ) {
 					if ( regExp.test( pathnameAndSearch ) ) {
 						return false;
@@ -164,13 +165,13 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 		wp.serviceWorker.routing.registerRoute(
 			new FetchNavigationRoute(
 				handleNavigationRequest,
-				{ denylist }
-			)
+				{ denylist },
+			),
 		);
 	} else {
 		wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationRoute(
 			handleNavigationRequest,
-			{ denylist }
+			{ denylist },
 		) );
 	}
 } )();
@@ -180,5 +181,5 @@ wp.serviceWorker.routing.registerRoute( new wp.serviceWorker.routing.NavigationR
 	new wp.serviceWorker.strategies.NetworkOnly(),
 	{
 		allowlist: NAVIGATION_DENYLIST_PATTERNS.map( ( pattern ) => new RegExp( pattern ) ),
-	}
+	},
 ) );
