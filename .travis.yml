@@ -26,7 +26,7 @@ branches:
 install:
   - composer install
   - if [[ $WP_TRAVISCI == *"test"* ]]; then composer global require phpunit/phpunit "^$PHPUNIT_VERSION"; fi
-  - nvm install 8.15.1 && nvm use 8.15.1
+  - nvm install --lts && nvm use --lts
   - npm install
   - npm run build && rm -r build
 
