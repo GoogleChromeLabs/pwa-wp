@@ -140,6 +140,7 @@ class WP_Web_App_Manifest {
 		 * is absent, even when the name is 12 characters or less. Chrome's max recommended short_name length is 12
 		 * characters.
 		 *
+		 * @todo This should probably use mb_strlen().
 		 * https://developers.google.com/web/tools/lighthouse/audits/manifest-contains-short_name
 		 * https://developer.chrome.com/apps/manifest/name#short_name
 		 */
