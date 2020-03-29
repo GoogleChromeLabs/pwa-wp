@@ -94,7 +94,7 @@ function wp_get_service_worker_url( $scope = WP_Service_Workers::SCOPE_FRONT ) {
 	if ( WP_Service_Workers::SCOPE_FRONT === $scope ) {
 		return add_query_arg(
 			array( WP_Service_Workers::QUERY_VAR => $scope ),
-			home_url( '/' )
+			home_url( '/', 'relative' )
 		);
 	}
 
