@@ -1,5 +1,5 @@
 === PWA ===
-Contributors:      google, xwp
+Contributors:      google, xwp, westonruter
 Tags:              pwa, progressive web apps, service workers, web app manifest, https
 Requires at least: 5.3
 Tested up to:      5.4
