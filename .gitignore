@@ -4,4 +4,4 @@
 /phpcs.xml
 /.phpcs.xml
 *.zip
-/wp-includes/js/workbox/
+/wp-includes/js/workbox*

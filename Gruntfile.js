@@ -32,7 +32,7 @@ module.exports = function (grunt) {
 			},
 			install_workbox: {
 				command:
-					"if [ -e wp-includes/js/workbox* ]; then rm -r wp-includes/js/workbox*; fi; npx workbox copyLibraries wp-includes/js/ && mv wp-includes/js/workbox-v* wp-includes/js/workbox",
+					"if [ -e wp-includes/js/workbox* ]; then rm -r wp-includes/js/workbox*; fi; npx workbox copyLibraries wp-includes/js/",
 			},
 			create_build_zip: {
 				command:
@@ -97,7 +97,7 @@ module.exports = function (grunt) {
 						file
 					);
 				});
-			paths.push("wp-includes/js/workbox/*");
+			paths.push("wp-includes/js/workbox*/**");
 
 			grunt.task.run("clean");
 			grunt.task.run("readme");
@@ -124,6 +124,13 @@ module.exports = function (grunt) {
 										"$1" + version
 									);
 								}
+
+								const workboxVersion = grunt.file.readJSON("package.json")
+									.devDependencies["workbox-cli"];
+								content = content.replace(
+									/define\(.+?PWA_WORKBOX_VERSION.+/,
+									`define( 'PWA_WORKBOX_VERSION', '${workboxVersion}' );`
+								);
 							}
 							return content;
 						},
