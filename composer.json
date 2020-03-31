@@ -1,5 +1,5 @@
 {
-  "name": "GoogleChromeLabs/pwa-wp",
+  "name": "google/pwa-wp",
   "description": "WordPress plugin for adding PWA support.",
   "homepage": "https://github.com/GoogleChromeLabs/pwa-wp",
   "type": "wordpress-plugin",
