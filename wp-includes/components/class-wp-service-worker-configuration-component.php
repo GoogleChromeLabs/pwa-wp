@@ -52,7 +52,7 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 	 */
 	public function get_script() {
 		$current_scope = wp_service_workers()->get_current_scope();
-		$workbox_dir   = 'wp-includes/js/workbox/';
+		$workbox_dir   = sprintf( 'wp-includes/js/workbox-v%s/', PWA_WORKBOX_VERSION );
 
 		$script = '';
 		if ( SCRIPT_DEBUG ) {
