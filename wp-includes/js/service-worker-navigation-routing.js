@@ -36,13 +36,13 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 	 * @return {Promise<Response>} Response.
 	 */
 	async function handleNavigationRequest({ event }) {
-		const handleResponse = response => {
+		const handleResponse = (response) => {
 			if (response.status < 500) {
 				return response;
 			}
 
 			const originalResponse = response.clone();
-			return response.text().then(function(responseBody) {
+			return response.text().then(function (responseBody) {
 				// Prevent serving custom error template if WordPress is already responding with a valid error page (e.g. via wp_die()).
 				if (-1 !== responseBody.indexOf("</html>")) {
 					return originalResponse;
@@ -50,16 +50,16 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 
 				return caches
 					.match(wp.serviceWorker.precaching.getCacheKeyForURL(ERROR_500_URL))
-					.then(function(errorResponse) {
+					.then(function (errorResponse) {
 						if (!errorResponse) {
 							return response;
 						}
 
-						return errorResponse.text().then(function(text) {
+						return errorResponse.text().then(function (text) {
 							const init = {
 								status: errorResponse.status,
 								statusText: errorResponse.statusText,
-								headers: errorResponse.headers
+								headers: errorResponse.headers,
 							};
 
 							let body = text.replace(
@@ -68,7 +68,7 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 							);
 							body = body.replace(
 								/([<]!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->)((?:.|\n)+?)([<]!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->)/,
-								details => {
+								(details) => {
 									if (!responseBody) {
 										return ""; // Remove the details from the document entirely.
 									}
@@ -109,12 +109,12 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 		const sendOfflineResponse = () => {
 			return caches
 				.match(wp.serviceWorker.precaching.getCacheKeyForURL(ERROR_OFFLINE_URL))
-				.then(function(response) {
-					return response.text().then(function(text) {
+				.then(function (response) {
+					return response.text().then(function (text) {
 						const init = {
 							status: response.status,
 							statusText: response.statusText,
-							headers: response.headers
+							headers: response.headers,
 						};
 
 						const body = text.replace(
@@ -136,11 +136,11 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 	}
 
 	const denylist = NAVIGATION_DENYLIST_PATTERNS.map(
-		pattern => new RegExp(pattern)
+		(pattern) => new RegExp(pattern)
 	);
 	if (navigationRouteEntry && navigationRouteEntry.url) {
 		wp.serviceWorker.routing.registerNavigationRoute(navigationRouteEntry.url, {
-			denylist
+			denylist,
 		});
 
 		class FetchNavigationRoute extends wp.serviceWorker.routing.Route {
@@ -154,7 +154,7 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 				handler,
 				{ allowlist: _allowlist = [/./], denylist: _denylist = [] } = {}
 			) {
-				super(options => this._match(options), handler);
+				super((options) => this._match(options), handler);
 				this._allowlist = _allowlist;
 				this._denylist = _denylist;
 			}
@@ -183,7 +183,7 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 					}
 				}
 
-				return this._allowlist.some(regExp => regExp.test(pathnameAndSearch));
+				return this._allowlist.some((regExp) => regExp.test(pathnameAndSearch));
 			}
 		}
 
@@ -193,7 +193,7 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 	} else {
 		wp.serviceWorker.routing.registerRoute(
 			new wp.serviceWorker.routing.NavigationRoute(handleNavigationRequest, {
-				denylist
+				denylist,
 			})
 		);
 	}
@@ -205,8 +205,8 @@ wp.serviceWorker.routing.registerRoute(
 		new wp.serviceWorker.strategies.NetworkOnly(),
 		{
 			allowlist: NAVIGATION_DENYLIST_PATTERNS.map(
-				pattern => new RegExp(pattern)
-			)
+				(pattern) => new RegExp(pattern)
+			),
 		}
 	)
 );

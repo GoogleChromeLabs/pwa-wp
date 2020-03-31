@@ -8,25 +8,25 @@
 	const commentHandler = ({ event }) => {
 		const clone = event.request.clone();
 		return fetch(event.request)
-			.then(response => {
+			.then((response) => {
 				if (response.status < 500) {
 					return response;
 				}
 
 				// @todo This is duplicated with code in service-worker-navigation-routing.js.
-				return response.text().then(function(errorText) {
+				return response.text().then(function (errorText) {
 					return caches
 						.match(wp.serviceWorker.precaching.getCacheKeyForURL(ERROR_500_URL))
-						.then(function(errorResponse) {
+						.then(function (errorResponse) {
 							if (!errorResponse) {
 								return response;
 							}
 
-							return errorResponse.text().then(function(text) {
+							return errorResponse.text().then(function (text) {
 								const init = {
 									status: errorResponse.status,
 									statusText: errorResponse.statusText,
-									headers: errorResponse.headers
+									headers: errorResponse.headers,
 								};
 
 								let body = text.replace(
@@ -35,7 +35,7 @@
 								);
 								body = body.replace(
 									/([<]!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->)((?:.|\n)+?)([<]!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->)/,
-									details => {
+									(details) => {
 										if (!errorText) {
 											return ""; // Remove the details from the document entirely.
 										}
@@ -75,7 +75,7 @@
 			})
 			.catch(() => {
 				const bodyPromise = clone.blob();
-				bodyPromise.then(function(body) {
+				bodyPromise.then(function (body) {
 					const request = event.request;
 					const req = new Request(request.url, {
 						method: request.method,
@@ -84,12 +84,12 @@
 						credentials: request.credentials,
 						referrer: request.referrer,
 						redirect: "manual",
-						body
+						body,
 					});
 
 					// Add request to queue.
 					queue.pushRequest({
-						request: req
+						request: req,
 					});
 				});
 
@@ -98,12 +98,12 @@
 					.match(
 						wp.serviceWorker.precaching.getCacheKeyForURL(ERROR_OFFLINE_URL)
 					)
-					.then(function(response) {
-						return response.text().then(function(text) {
+					.then(function (response) {
+						return response.text().then(function (text) {
 							const init = {
 								status: response.status,
 								statusText: response.statusText,
-								headers: response.headers
+								headers: response.headers,
 							};
 
 							const body = text.replace(
