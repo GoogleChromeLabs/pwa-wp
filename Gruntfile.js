@@ -2,7 +2,7 @@
 /* jshint node:true */
 /* eslint-disable camelcase, no-console, no-param-reassign */
 
-module.exports = function(grunt) {
+module.exports = function (grunt) {
 	"use strict";
 
 	grunt.initConfig({
@@ -11,33 +11,33 @@ module.exports = function(grunt) {
 		// Clean up the build.
 		clean: {
 			build: {
-				src: ["build"]
-			}
+				src: ["build"],
+			},
 		},
 
 		// Shell actions.
 		shell: {
 			options: {
 				stdout: true,
-				stderr: true
+				stderr: true,
 			},
 			readme: {
-				command: "npm run generate-readme" // Generate the readme.md.
+				command: "npm run generate-readme", // Generate the readme.md.
 			},
 			phpunit: {
-				command: "phpunit"
+				command: "phpunit",
 			},
 			verify_matching_versions: {
-				command: "php bin/verify-version-consistency.php"
+				command: "php bin/verify-version-consistency.php",
 			},
 			install_workbox: {
 				command:
-					"if [ -e wp-includes/js/workbox* ]; then rm -r wp-includes/js/workbox*; fi; npx workbox copyLibraries wp-includes/js/ && mv wp-includes/js/workbox-v* wp-includes/js/workbox"
+					"if [ -e wp-includes/js/workbox* ]; then rm -r wp-includes/js/workbox*; fi; npx workbox copyLibraries wp-includes/js/ && mv wp-includes/js/workbox-v* wp-includes/js/workbox",
 			},
 			create_build_zip: {
 				command:
-					'if [ ! -e build ]; then echo "Run grunt build first."; exit 1; fi; if [ -e pwa.zip ]; then rm pwa.zip; fi; cd build; zip -r ../pwa.zip .; cd ..; echo; echo "ZIP of build: $(pwd)/pwa.zip"'
-			}
+					'if [ ! -e build ]; then echo "Run grunt build first."; exit 1; fi; if [ -e pwa.zip ]; then rm pwa.zip; fi; cd build; zip -r ../pwa.zip .; cd ..; echo; echo "ZIP of build: $(pwd)/pwa.zip"',
+			},
 		},
 
 		// Deploys a git Repo to the WordPress SVN repo.
@@ -46,10 +46,10 @@ module.exports = function(grunt) {
 				options: {
 					plugin_slug: "pwa",
 					build_dir: "build",
-					assets_dir: "wp-assets"
-				}
-			}
-		}
+					assets_dir: "wp-assets",
+				},
+			},
+		},
 	});
 
 	// Load tasks.
@@ -63,7 +63,7 @@ module.exports = function(grunt) {
 
 	grunt.registerTask("readme", ["shell:readme"]);
 
-	grunt.registerTask("build", function() {
+	grunt.registerTask("build", function () {
 		const done = this.async();
 		const spawnQueue = [];
 		const stdout = [];
@@ -73,11 +73,11 @@ module.exports = function(grunt) {
 		spawnQueue.push(
 			{
 				cmd: "git",
-				args: ["--no-pager", "log", "-1", "--format=%h", "--date=short"]
+				args: ["--no-pager", "log", "-1", "--format=%h", "--date=short"],
 			},
 			{
 				cmd: "git",
-				args: ["ls-files"]
+				args: ["ls-files"],
 			}
 		);
 
@@ -87,15 +87,12 @@ module.exports = function(grunt) {
 			const versionAppend =
 				commitHash +
 				"-" +
-				new Date()
-					.toISOString()
-					.replace(/\.\d+/, "")
-					.replace(/-|:/g, "");
+				new Date().toISOString().replace(/\.\d+/, "").replace(/-|:/g, "");
 
 			const paths = lsOutput
 				.trim()
 				.split(/\n/)
-				.filter(function(file) {
+				.filter(function (file) {
 					return !/^(\.|bin|([^/]+)+\.(json|xml)|Gruntfile\.js|tests|CONTRIBUTING\.md|wp-assets|composer\..*|webpack.*)/.test(
 						file
 					);
@@ -129,9 +126,9 @@ module.exports = function(grunt) {
 								}
 							}
 							return content;
-						}
-					}
-				}
+						},
+					},
+				},
 			});
 			grunt.task.run("copy");
 
@@ -143,7 +140,7 @@ module.exports = function(grunt) {
 			if (!nextSpawnArgs) {
 				finalize();
 			} else {
-				grunt.util.spawn(nextSpawnArgs, function(err, res) {
+				grunt.util.spawn(nextSpawnArgs, function (err, res) {
 					if (err) {
 						throw new Error(err.message);
 					}
@@ -162,6 +159,6 @@ module.exports = function(grunt) {
 		"shell:verify_matching_versions",
 		"shell:phpunit",
 		"build",
-		"wp_deploy"
+		"wp_deploy",
 	]);
 };
