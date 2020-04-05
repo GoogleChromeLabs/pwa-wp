@@ -83,4 +83,17 @@ class Test_WP_Service_Worker_Precaching_Routes extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Test registering a route that is empty.
+	 *
+	 * @covers WP_Service_Worker_Precaching_Routes::register()
+	 */
+	public function test_register_empty_url() {
+		$this->setExpectedIncorrectUsage( 'WP_Service_Worker_Precaching_Routes::register' );
+		$this->instance->register( '' );
+
+		$routes = $this->instance->get_all();
+		$this->assertEmpty( $routes );
+	}
 }
