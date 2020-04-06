@@ -33,6 +33,11 @@ class WP_Service_Worker_Precaching_Routes implements WP_Service_Worker_Registry 
 	 * }
 	 */
 	public function register( $url, $args = array() ) {
+		if ( empty( $url ) || false === wp_parse_url( $url ) ) {
+			_doing_it_wrong( __METHOD__, esc_html__( 'Invalid URL provided for precaching.', 'pwa' ), '0.4.1' );
+			return;
+		}
+
 		if ( ! is_array( $args ) ) {
 			$args = array(
 				'revision' => $args,
