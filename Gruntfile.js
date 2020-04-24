@@ -3,15 +3,15 @@
 /* eslint-disable camelcase, no-console, no-param-reassign */
 
 module.exports = function (grunt) {
-	"use strict";
+	'use strict';
 
 	grunt.initConfig({
-		pkg: grunt.file.readJSON("package.json"),
+		pkg: grunt.file.readJSON('package.json'),
 
 		// Clean up the build.
 		clean: {
 			build: {
-				src: ["build"],
+				src: ['build'],
 			},
 		},
 
@@ -22,17 +22,17 @@ module.exports = function (grunt) {
 				stderr: true,
 			},
 			readme: {
-				command: "npm run generate-readme", // Generate the readme.md.
+				command: 'npm run generate-readme', // Generate the readme.md.
 			},
 			phpunit: {
-				command: "phpunit",
+				command: 'phpunit',
 			},
 			verify_matching_versions: {
-				command: "php bin/verify-version-consistency.php",
+				command: 'php bin/verify-version-consistency.php',
 			},
 			install_workbox: {
 				command:
-					"if [ -e wp-includes/js/workbox* ]; then rm -r wp-includes/js/workbox*; fi; npx workbox copyLibraries wp-includes/js/",
+					'if [ -e wp-includes/js/workbox* ]; then rm -r wp-includes/js/workbox*; fi; npx workbox copyLibraries wp-includes/js/',
 			},
 			create_build_zip: {
 				command:
@@ -44,40 +44,46 @@ module.exports = function (grunt) {
 		wp_deploy: {
 			deploy: {
 				options: {
-					plugin_slug: "pwa",
-					build_dir: "build",
-					assets_dir: "wp-assets",
+					plugin_slug: 'pwa',
+					build_dir: 'build',
+					assets_dir: 'wp-assets',
 				},
 			},
 		},
 	});
 
 	// Load tasks.
-	grunt.loadNpmTasks("grunt-contrib-clean");
-	grunt.loadNpmTasks("grunt-contrib-copy");
-	grunt.loadNpmTasks("grunt-shell");
-	grunt.loadNpmTasks("grunt-wp-deploy");
+	grunt.loadNpmTasks('grunt-contrib-clean');
+	grunt.loadNpmTasks('grunt-contrib-copy');
+	grunt.loadNpmTasks('grunt-shell');
+	grunt.loadNpmTasks('grunt-wp-deploy');
 
 	// Register tasks.
-	grunt.registerTask("default", ["build"]);
+	grunt.registerTask('default', ['build']);
 
-	grunt.registerTask("readme", ["shell:readme"]);
+	grunt.registerTask('readme', ['shell:readme']);
 
-	grunt.registerTask("build", function () {
+	grunt.registerTask('build', function () {
 		const done = this.async();
 		const spawnQueue = [];
 		const stdout = [];
 
-		grunt.task.run("shell:install_workbox");
+		grunt.task.run('shell:install_workbox');
 
 		spawnQueue.push(
 			{
-				cmd: "git",
-				args: ["--no-pager", "log", "-1", "--format=%h", "--date=short"],
+				cmd: 'git',
+				args: [
+					'--no-pager',
+					'log',
+					'-1',
+					'--format=%h',
+					'--date=short',
+				],
 			},
 			{
-				cmd: "git",
-				args: ["ls-files"],
+				cmd: 'git',
+				args: ['ls-files'],
 			}
 		);
 
@@ -86,8 +92,11 @@ module.exports = function (grunt) {
 			const lsOutput = stdout.shift();
 			const versionAppend =
 				commitHash +
-				"-" +
-				new Date().toISOString().replace(/\.\d+/, "").replace(/-|:/g, "");
+				'-' +
+				new Date()
+					.toISOString()
+					.replace(/\.\d+/, '')
+					.replace(/-|:/g, '');
 
 			const paths = lsOutput
 				.trim()
@@ -97,17 +106,17 @@ module.exports = function (grunt) {
 						file
 					);
 				});
-			paths.push("wp-includes/js/workbox*/**");
+			paths.push('wp-includes/js/workbox*/**');
 
-			grunt.task.run("clean");
-			grunt.task.run("readme");
-			grunt.config.set("copy", {
+			grunt.task.run('clean');
+			grunt.task.run('readme');
+			grunt.config.set('copy', {
 				build: {
 					src: paths,
-					dest: "build",
+					dest: 'build',
 					expand: true,
 					options: {
-						noProcess: ["*/**", "LICENSE"], // We only want to process pwa.php, readme.txt, and readme.md.
+						noProcess: ['*/**', 'LICENSE'], // We only want to process pwa.php, readme.txt, and readme.md.
 						process(content, srcpath) {
 							let matches, version, versionRegex;
 							if (/pwa\.php$/.test(srcpath)) {
@@ -116,17 +125,24 @@ module.exports = function (grunt) {
 								// If not a stable build (e.g. 0.7.0-beta), amend the version with the git commit and current timestamp.
 								matches = content.match(versionRegex);
 								if (matches) {
-									version = matches[2] + "-" + versionAppend;
-									console.log("Updating version in pwa.php to " + version);
-									content = content.replace(versionRegex, "$1" + version);
+									version = matches[2] + '-' + versionAppend;
+									console.log(
+										'Updating version in pwa.php to ' +
+											version
+									);
+									content = content.replace(
+										versionRegex,
+										'$1' + version
+									);
 									content = content.replace(
 										/(define\(\s*'PWA_VERSION',\s*')(.+?)(?=')/,
-										"$1" + version
+										'$1' + version
 									);
 								}
 
-								const workboxVersion = grunt.file.readJSON("package.json")
-									.devDependencies["workbox-cli"];
+								const workboxVersion = grunt.file.readJSON(
+									'package.json'
+								).devDependencies['workbox-cli'];
 								content = content.replace(
 									/define\(.+?PWA_WORKBOX_VERSION.+/,
 									`define( 'PWA_WORKBOX_VERSION', '${workboxVersion}' );`
@@ -137,7 +153,7 @@ module.exports = function (grunt) {
 					},
 				},
 			});
-			grunt.task.run("copy");
+			grunt.task.run('copy');
 
 			done();
 		}
@@ -160,12 +176,12 @@ module.exports = function (grunt) {
 		doNext();
 	});
 
-	grunt.registerTask("create-build-zip", ["shell:create_build_zip"]);
+	grunt.registerTask('create-build-zip', ['shell:create_build_zip']);
 
-	grunt.registerTask("deploy", [
-		"shell:verify_matching_versions",
-		"shell:phpunit",
-		"build",
-		"wp_deploy",
+	grunt.registerTask('deploy', [
+		'shell:verify_matching_versions',
+		'shell:phpunit',
+		'build',
+		'wp_deploy',
 	]);
 };
