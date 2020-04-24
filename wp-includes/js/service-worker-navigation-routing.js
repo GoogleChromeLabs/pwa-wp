@@ -9,7 +9,7 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 
 	// Configure navigation preload.
 	if (false !== navigationPreload) {
-		if (typeof navigationPreload === "string") {
+		if (typeof navigationPreload === 'string') {
 			wp.serviceWorker.navigationPreload.enable(navigationPreload);
 		} else {
 			wp.serviceWorker.navigationPreload.enable();
@@ -44,12 +44,16 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 			const originalResponse = response.clone();
 			return response.text().then(function (responseBody) {
 				// Prevent serving custom error template if WordPress is already responding with a valid error page (e.g. via wp_die()).
-				if (-1 !== responseBody.indexOf("</html>")) {
+				if (-1 !== responseBody.indexOf('</html>')) {
 					return originalResponse;
 				}
 
 				return caches
-					.match(wp.serviceWorker.precaching.getCacheKeyForURL(ERROR_500_URL))
+					.match(
+						wp.serviceWorker.precaching.getCacheKeyForURL(
+							ERROR_500_URL
+						)
+					)
 					.then(function (errorResponse) {
 						if (!errorResponse) {
 							return response;
@@ -70,32 +74,42 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 								/([<]!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->)((?:.|\n)+?)([<]!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->)/,
 								(details) => {
 									if (!responseBody) {
-										return ""; // Remove the details from the document entirely.
+										return ''; // Remove the details from the document entirely.
 									}
-									const src = "data:text/html;base64," + btoa(responseBody); // The errorText encoded as a text/html data URL.
+									const src =
+										'data:text/html;base64,' +
+										btoa(responseBody); // The errorText encoded as a text/html data URL.
 									const srcdoc = responseBody
-										.replace(/&/g, "&amp;")
-										.replace(/'/g, "&#39;")
-										.replace(/"/g, "&quot;")
-										.replace(/</g, "&lt;")
-										.replace(/>/g, "&gt;");
+										.replace(/&/g, '&amp;')
+										.replace(/'/g, '&#39;')
+										.replace(/"/g, '&quot;')
+										.replace(/</g, '&lt;')
+										.replace(/>/g, '&gt;');
 									const iframe = `<iframe style="width:100%" src="${src}" data-srcdoc="${srcdoc}"></iframe>`;
 									details = details.replace(
-										"{{{error_details_iframe}}}",
+										'{{{error_details_iframe}}}',
 										iframe
 									);
 									// The following are in case the user wants to include the <iframe> in the template.
-									details = details.replace("{{{iframe_src}}}", src);
-									details = details.replace("{{{iframe_srcdoc}}}", srcdoc);
+									details = details.replace(
+										'{{{iframe_src}}}',
+										src
+									);
+									details = details.replace(
+										'{{{iframe_srcdoc}}}',
+										srcdoc
+									);
 
 									// Replace the comments.
 									details = details.replace(
-										"<" + "!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->",
-										""
+										'<' +
+											'!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->',
+										''
 									);
 									details = details.replace(
-										"<" + "!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->",
-										""
+										'<' +
+											'!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->',
+										''
 									);
 									return details;
 								}
@@ -108,7 +122,11 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 
 		const sendOfflineResponse = () => {
 			return caches
-				.match(wp.serviceWorker.precaching.getCacheKeyForURL(ERROR_OFFLINE_URL))
+				.match(
+					wp.serviceWorker.precaching.getCacheKeyForURL(
+						ERROR_OFFLINE_URL
+					)
+				)
 				.then(function (response) {
 					return response.text().then(function (text) {
 						const init = {
@@ -139,16 +157,19 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 		(pattern) => new RegExp(pattern)
 	);
 	if (navigationRouteEntry && navigationRouteEntry.url) {
-		wp.serviceWorker.routing.registerNavigationRoute(navigationRouteEntry.url, {
-			denylist,
-		});
+		wp.serviceWorker.routing.registerNavigationRoute(
+			navigationRouteEntry.url,
+			{
+				denylist,
+			}
+		);
 
 		class FetchNavigationRoute extends wp.serviceWorker.routing.Route {
 			/**
 			 * If both `denylist` and `allowlist` are provided, the `denylist` will
 			 * take precedence and the request will not match this route.
 			 *
-			 * @inheritDoc
+			 * @inheritdoc
 			 */
 			constructor(
 				handler,
@@ -171,7 +192,7 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 			 */
 			_match({ url, request }) {
 				// This replaces checking for navigate in NavigationRoute, which looks for 'navigate' instead.
-				if (request.mode !== "same-origin") {
+				if (request.mode !== 'same-origin') {
 					return false;
 				}
 
@@ -183,7 +204,9 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 					}
 				}
 
-				return this._allowlist.some((regExp) => regExp.test(pathnameAndSearch));
+				return this._allowlist.some((regExp) =>
+					regExp.test(pathnameAndSearch)
+				);
 			}
 		}
 
@@ -192,9 +215,12 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 		);
 	} else {
 		wp.serviceWorker.routing.registerRoute(
-			new wp.serviceWorker.routing.NavigationRoute(handleNavigationRequest, {
-				denylist,
-			})
+			new wp.serviceWorker.routing.NavigationRoute(
+				handleNavigationRequest,
+				{
+					denylist,
+				}
+			)
 		);
 	}
 })();
