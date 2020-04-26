@@ -223,6 +223,9 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-c
 /** WordPress Service Worker Functions */
 require_once PWA_PLUGIN_DIR . '/wp-includes/service-workers.php';
 
+/** WordPress Service Worker Deprecated */
+require_once PWA_PLUGIN_DIR . '/wp-includes/deprecated.php';
+
 /** Amend default filters */
 require_once PWA_PLUGIN_DIR . '/wp-includes/default-filters.php';
 
