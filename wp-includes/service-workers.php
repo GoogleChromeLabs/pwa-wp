@@ -199,14 +199,6 @@ function wp_print_service_workers() {
 						<?php endif; ?>
 					}
 				<?php endforeach; ?>
-
-				let refreshedPage = false;
-				navigator.serviceWorker.addEventListener( 'controllerchange', () => {
-					if ( ! refreshedPage ) {
-						refreshedPage = true;
-						window.location.reload();
-					}
-				} );
 			} );
 		}
 	</script>
