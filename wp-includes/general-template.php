@@ -106,7 +106,7 @@ function wp_add_error_template_no_robots() {
  * This is important so that what the service worker initially precaches for the user when first accessing the site
  * will persist even after they have authenticated.
  *
- * @since 0.4.1
+ * @since 0.5
  */
 function wp_unset_current_user_error_template() {
 	if ( is_offline() || is_500() ) {

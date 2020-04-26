@@ -2,7 +2,7 @@
 /**
  * Service Worker deprecated.
  *
- * @since 0.4.1
+ * @since 0.5
  *
  * @package PWA
  */
@@ -12,10 +12,10 @@
  *
  * @deprecated No longer used.
  * @since 0.2
- * @since 0.4.1 Deprecated.
+ * @since 0.5 Deprecated.
  */
 function wp_service_worker_styles() {
-	_deprecated_function( __FUNCTION__, '0.4.1' );
+	_deprecated_function( __FUNCTION__, '0.5' );
 }
 
 /**
@@ -23,10 +23,10 @@ function wp_service_worker_styles() {
  *
  * @deprecated No longer used.
  * @since 0.2
- * @since 0.4.1 Deprecated.
+ * @since 0.5 Deprecated.
  */
 function wp_service_worker_update_node() {
-	_deprecated_function( __FUNCTION__, '0.4.1' );
+	_deprecated_function( __FUNCTION__, '0.5' );
 }
 
 /**
@@ -34,8 +34,8 @@ function wp_service_worker_update_node() {
  *
  * @deprecated No longer used.
  * @since 0.2
- * @since 0.4.1 Deprecated.
+ * @since 0.5 Deprecated.
  */
 function wp_hide_admin_bar_offline() {
-	_deprecated_function( __FUNCTION__, '0.4.1' );
+	_deprecated_function( __FUNCTION__, '0.5' );
 }
