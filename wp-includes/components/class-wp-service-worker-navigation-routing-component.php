@@ -68,9 +68,6 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			$revision .= sprintf( ';%s=%s', $stylesheet, wp_get_theme( $stylesheet )->version );
 		}
 
-		// Ensure the user-specific offline/500 pages are precached, and that they update when user logs out or switches to another user.
-		$revision .= sprintf( ';user=%d', get_current_user_id() );
-
 		if ( ! is_admin() ) {
 			// Note that themes will need to vary the revision further by whatever is contained in the app shell.
 			$revision .= ';options=' . md5(

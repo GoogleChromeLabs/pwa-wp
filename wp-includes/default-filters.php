@@ -15,7 +15,7 @@ foreach ( array( 'wp_print_footer_scripts', 'admin_print_scripts', 'customize_co
 add_action( 'parse_query', 'wp_service_worker_loaded' );
 add_action( 'wp_ajax_wp_service_worker', 'wp_ajax_wp_service_worker' );
 add_action( 'wp_ajax_nopriv_wp_service_worker', 'wp_ajax_wp_service_worker' );
-add_action( 'parse_query', 'wp_hide_admin_bar_offline' );
+add_action( 'parse_query', 'wp_unset_current_user_error_template' );
 
 add_action( 'wp_head', 'wp_add_error_template_no_robots' );
 add_action( 'error_head', 'wp_add_error_template_no_robots' );
