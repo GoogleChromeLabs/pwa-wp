@@ -58,10 +58,6 @@ function pwa_register_service_worker_integrations( WP_Service_Worker_Scripts $sc
 		'wp-fonts'             => 'WP_Service_Worker_Fonts_Integration',
 	);
 
-	if ( ! SCRIPT_DEBUG ) {
-		$integrations['wp-admin-assets'] = 'WP_Service_Worker_Admin_Assets_Integration';
-	}
-
 	// Filter active integrations if granular theme support array is provided.
 	if ( is_array( $theme_support ) && isset( $theme_support[0] ) && is_array( $theme_support[0] ) ) {
 		$integrations = array_intersect_key(

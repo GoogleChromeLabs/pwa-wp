@@ -19,5 +19,3 @@ add_action( 'parse_query', 'wp_unset_current_user_error_template' );
 
 add_action( 'wp_head', 'wp_add_error_template_no_robots' );
 add_action( 'error_head', 'wp_add_error_template_no_robots' );
-
-add_action( 'admin_init', 'wp_disable_script_concatenation' );

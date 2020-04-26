@@ -39,3 +39,13 @@ function wp_service_worker_update_node() {
 function wp_hide_admin_bar_offline() {
 	_deprecated_function( __FUNCTION__, '0.5' );
 }
+
+/**
+ * Disables concatenating scripts to leverage caching the assets via Service Worker instead.
+ *
+ * @deprecated No longer used.
+ * @since 0.5 Deprecated.
+ */
+function wp_disable_script_concatenation() {
+	_deprecated_function( __FUNCTION__, '0.5' );
+}

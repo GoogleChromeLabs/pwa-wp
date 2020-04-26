@@ -160,11 +160,7 @@ function wp_print_service_workers() {
 						navigator.serviceWorker.register(
 							<?php echo wp_json_encode( wp_get_service_worker_url( $name ) ); ?>,
 							<?php echo wp_json_encode( compact( 'scope' ) ); ?>
-						).then( reg => {
-							<?php if ( WP_Service_Workers::SCOPE_ADMIN === $name ) : ?>
-								document.cookie = <?php echo wp_json_encode( sprintf( 'wordpress_sw_installed=1; path=%s; expires=Fri, 31 Dec 9999 23:59:59 GMT; secure; samesite=strict', $scope ) ); ?>;
-							<?php endif; ?>
-						} );
+						);
 					}
 				<?php endforeach; ?>
 			} );
@@ -212,29 +208,6 @@ function wp_ajax_wp_service_worker() {
  */
 function wp_service_worker_json_encode( $data ) {
 	return wp_json_encode( $data, 128 | 64 /* JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES */ );
-}
-
-/**
- * Disables concatenating scripts to leverage caching the assets via Service Worker instead.
- */
-function wp_disable_script_concatenation() {
-	global $concatenate_scripts;
-
-	/*
-	 * This cookie is set when the service worker registers successfully, avoiding unnecessary result
-	 * for browsers that don't support service workers. Note that concatenation only applies in the admin,
-	 * for authenticated users without full-page caching.
-	*/
-	if ( isset( $_COOKIE['wordpress_sw_installed'] ) ) {
-		$concatenate_scripts = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-	}
-
-	// phpcs:disable
-	// @todo This is just here for debugging purposes.
-	if ( isset( $_GET['wp_concatenate_scripts'] ) ) {
-		$concatenate_scripts = rest_sanitize_boolean( $_GET['wp_concatenate_scripts'] );
-	}
-	// phpcs:enable
 }
 
 /**
