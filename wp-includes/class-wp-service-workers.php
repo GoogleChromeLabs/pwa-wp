@@ -91,6 +91,10 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 	 * @see wp_service_worker_loaded()
 	 */
 	public function serve_request() {
+		// Clear the currently-authenticated user to ensure that the service worker doesn't vary between users.
+		// @todo Would it be better to use the determine_current_user filter for this?
+		wp_set_current_user( 0 );
+
 		// See wp_debug_mode() for how this is also done for REST API responses.
 		@ini_set( 'display_errors', 0 ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_ini_set, WordPress.PHP.IniSet.display_errors_Blacklisted
 
