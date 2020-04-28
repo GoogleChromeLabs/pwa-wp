@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1c738bd42cbfb097922a9fdfdf822fb2",
+    "content-hash": "c167f5e561db5fa496f28cbea470b3da",
     "packages": [],
     "packages-dev": [
         {
@@ -331,16 +331,16 @@
         },
         {
             "name": "xwp/wp-dev-lib",
-            "version": "1.5.0",
+            "version": "1.6.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/xwp/wp-dev-lib.git",
-                "reference": "3e3ced3fdc5c47bbb59cde2f693ce115f2865f82"
+                "reference": "a0e93ff45b3ff1a5488195d935edaf31af49eaf5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/xwp/wp-dev-lib/zipball/3e3ced3fdc5c47bbb59cde2f693ce115f2865f82",
-                "reference": "3e3ced3fdc5c47bbb59cde2f693ce115f2865f82",
+                "url": "https://api.github.com/repos/xwp/wp-dev-lib/zipball/a0e93ff45b3ff1a5488195d935edaf31af49eaf5",
+                "reference": "a0e93ff45b3ff1a5488195d935edaf31af49eaf5",
                 "shasum": ""
             },
             "type": "library",
@@ -350,22 +350,21 @@
             ],
             "authors": [
                 {
-                    "name": "Weston Ruter",
-                    "email": "weston@xwp.co",
-                    "homepage": "https://weston.ruter.net"
-                },
-                {
                     "name": "XWP",
-                    "email": "engage@xwp.co",
+                    "email": "technology@xwp.co",
                     "homepage": "https://xwp.co"
                 }
             ],
             "description": "Common code used during development of WordPress plugins and themes",
             "homepage": "https://github.com/xwp/wp-dev-lib",
             "keywords": [
+                "development",
+                "plugins",
+                "themes",
+                "tools",
                 "wordpress"
             ],
-            "time": "2020-02-10T09:35:25+00:00"
+            "time": "2020-04-28T02:24:13+00:00"
         }
     ],
     "aliases": [],
