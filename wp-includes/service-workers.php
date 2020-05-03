@@ -185,7 +185,7 @@ function wp_print_service_workers() {
 function wp_service_worker_loaded( WP_Query $query ) {
 	if ( $query->is_main_query() && $query->get( WP_Service_Workers::QUERY_VAR ) ) {
 		wp_service_workers()->serve_request();
-		exit;
+		die();
 	}
 }
 
@@ -199,7 +199,7 @@ function wp_service_worker_loaded( WP_Query $query ) {
  */
 function wp_ajax_wp_service_worker() {
 	wp_service_workers()->serve_request();
-	exit;
+	die();
 }
 
 /**
