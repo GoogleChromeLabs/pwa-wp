@@ -11,14 +11,15 @@
  *
  * Upon core merge the query vars here could be added straight to `WP::$public_query_vars`.
  *
- * @global WP $wp
+ * @param string[] $query_vars Query vars.
+ * @return string[] Query vars.
  */
-function pwa_add_error_template_query_var() {
-	global $wp;
-	$wp->add_query_var( 'wp_error_template' );
-	$wp->add_query_var( WP_Service_Workers::QUERY_VAR );
+function pwa_add_public_query_vars( $query_vars ) {
+	$query_vars[] = 'wp_error_template';
+	$query_vars[] = WP_Service_Workers::QUERY_VAR;
+	return $query_vars;
 }
-add_action( 'init', 'pwa_add_error_template_query_var' );
+add_filter( 'query_vars', 'pwa_add_public_query_vars' );
 
 /**
  * Prevent handling an offline template request as a 404 when there are no posts published.

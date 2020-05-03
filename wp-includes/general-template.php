@@ -108,7 +108,7 @@ function wp_add_error_template_no_robots() {
  *
  * @since 0.5
  */
-function wp_unset_current_user_error_template() {
+function wp_unauthenticate_error_template_requests() {
 	if ( is_offline() || is_500() ) {
 		wp_set_current_user( 0 );
 	}
