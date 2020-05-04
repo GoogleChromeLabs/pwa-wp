@@ -102,15 +102,16 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 		 * within scope will be controlled by a service worker immediately after that service worker activates.
 		 * Without enabling it, they won't be controlled until the next navigation.
 		 *
-		 * For optioning in for .clientsClaim(), you could do:
+		 * For opting-out of client claiming, the following code may be used:
 		 *
-		 *     add_filter( 'wp_service_worker_clients_claim', '__return_true' );
+		 *     add_filter( 'wp_service_worker_clients_claim', '__return_false' );
 		 *
 		 * @since 0.2
+		 * @since 0.4.1 Enabled by default.
 		 *
-		 * @param bool $clients_claim Whether to run clientsClaim() after skipWaiting().
+		 * @param bool $clients_claim Whether to run clientsClaim() after skipWaiting(). Defaults to true.
 		 */
-		$clients_claim = apply_filters( 'wp_service_worker_clients_claim', false );
+		$clients_claim = apply_filters( 'wp_service_worker_clients_claim', true );
 
 		if ( true === $skip_waiting ) {
 			$script .= "workbox.core.skipWaiting();\n";

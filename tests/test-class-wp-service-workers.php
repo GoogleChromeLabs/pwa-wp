@@ -63,9 +63,12 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		add_action( 'wp_front_service_worker', array( $this, 'register_foo_sw' ) );
 		add_action( 'wp_admin_service_worker', array( $this, 'register_foo_sw' ) );
 
+		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'subscriber' ) ) );
 		ob_start();
 		wp_service_workers()->serve_request();
 		$output = ob_get_clean();
+
+		$this->assertSame( 0, get_current_user_id() );
 		$this->assertContains( $this->return_foo_sw(), $output );
 		$this->assertContains( $this->return_bar_sw(), $output );
 		$this->assertNotContains( $this->return_baz_sw(), $output );
@@ -86,11 +89,13 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		add_action( 'wp_front_service_worker', array( $this, 'register_foo_sw' ) );
 		add_action( 'wp_admin_service_worker', array( $this, 'register_foo_sw' ) );
 
+		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
 		ob_start();
 		set_current_screen( 'admin-ajax' );
 		wp_service_workers()->serve_request();
 		$output = ob_get_clean();
 
+		$this->assertSame( 0, get_current_user_id() );
 		$this->assertContains( $this->return_foo_sw(), $output );
 		$this->assertNotContains( $this->return_bar_sw(), $output );
 		$this->assertContains( $this->return_baz_sw(), $output );

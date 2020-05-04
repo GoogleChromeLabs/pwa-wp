@@ -91,6 +91,16 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 	 * @see wp_service_worker_loaded()
 	 */
 	public function serve_request() {
+		/*
+		 * Clear the currently-authenticated user to ensure that the service worker doesn't vary between users.
+		 * Note that clearing the authenticated user in this way is in keeping with REST API requests wherein the
+		 * WP_REST_Server::serve_request() method calls WP_REST_Server::check_authentication() which in turn applies
+		 * the rest_authentication_errors filter which runs rest_cookie_check_errors() which is then responsible for
+		 * calling wp_set_current_user( 0 ) if it was previously-determined a user was logged-in with the required
+		 * nonce cookie set when wp_validate_auth_cookie() triggers one of the auth_cookie_* actions.
+		 */
+		wp_set_current_user( 0 );
+
 		// See wp_debug_mode() for how this is also done for REST API responses.
 		@ini_set( 'display_errors', 0 ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_ini_set, WordPress.PHP.IniSet.display_errors_Blacklisted
 

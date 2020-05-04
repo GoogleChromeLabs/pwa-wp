@@ -157,7 +157,6 @@ function wp_print_service_workers() {
 			window.addEventListener( 'load', function() {
 				<?php foreach ( $scopes as $name => $scope ) : ?>
 					{
-						let updatedSw;
 						navigator.serviceWorker.register(
 							<?php echo wp_json_encode( wp_get_service_worker_url( $name ) ); ?>,
 							<?php echo wp_json_encode( compact( 'scope' ) ); ?>
@@ -165,48 +164,9 @@ function wp_print_service_workers() {
 							<?php if ( WP_Service_Workers::SCOPE_ADMIN === $name ) : ?>
 								document.cookie = <?php echo wp_json_encode( sprintf( 'wordpress_sw_installed=1; path=%s; expires=Fri, 31 Dec 9999 23:59:59 GMT; secure; samesite=strict', $scope ) ); ?>;
 							<?php endif; ?>
-							<?php if ( ! wp_service_worker_skip_waiting() ) : ?>
-								reg.addEventListener( 'updatefound', () => {
-									if ( ! reg.installing ) {
-										return;
-									}
-									updatedSw = reg.installing;
-
-									/* If new service worker is available, show notification. */
-									updatedSw.addEventListener( 'statechange', () => {
-										if ( 'installed' === updatedSw.state && navigator.serviceWorker.controller ) {
-											const notification = document.getElementById( 'wp-admin-bar-pwa-sw-update-notice' );
-											if ( notification ) {
-												notification.style.display = 'block';
-											}
-										}
-									} );
-								} );
-							<?php endif; ?>
 						} );
-
-						<?php if ( is_admin_bar_showing() && ! wp_service_worker_skip_waiting() ) : ?>
-							/* Post message to Service Worker for skipping the waiting phase. */
-							const reloadBtn = document.getElementById( 'wp-admin-bar-pwa-sw-update-notice' );
-							if ( reloadBtn ) {
-								reloadBtn.addEventListener( 'click', ( event ) => {
-									event.preventDefault();
-									if ( updatedSw ) {
-										updatedSw.postMessage( { action: 'skipWaiting' } );
-									}
-								} );
-							}
-						<?php endif; ?>
 					}
 				<?php endforeach; ?>
-
-				let refreshedPage = false;
-				navigator.serviceWorker.addEventListener( 'controllerchange', () => {
-					if ( ! refreshedPage ) {
-						refreshedPage = true;
-						window.location.reload();
-					}
-				} );
 			} );
 		}
 	</script>
@@ -225,7 +185,7 @@ function wp_print_service_workers() {
 function wp_service_worker_loaded( WP_Query $query ) {
 	if ( $query->is_main_query() && $query->get( WP_Service_Workers::QUERY_VAR ) ) {
 		wp_service_workers()->serve_request();
-		exit;
+		die();
 	}
 }
 
@@ -239,7 +199,7 @@ function wp_service_worker_loaded( WP_Query $query ) {
  */
 function wp_ajax_wp_service_worker() {
 	wp_service_workers()->serve_request();
-	exit;
+	die();
 }
 
 /**
@@ -275,35 +235,6 @@ function wp_disable_script_concatenation() {
 		$concatenate_scripts = rest_sanitize_boolean( $_GET['wp_concatenate_scripts'] );
 	}
 	// phpcs:enable
-}
-
-/**
- * Service worker styles.
- *
- * @since 0.2
- */
-function wp_service_worker_styles() {
-	wp_add_inline_style( 'admin-bar', '#wp-admin-bar-pwa-sw-update-notice { display:none }' );
-}
-
-/**
- * Add Service Worker update notification to admin bar.
- *
- * @since 0.2
- *
- * @param object $wp_admin_bar WP Admin Bar.
- */
-function wp_service_worker_update_node( $wp_admin_bar ) {
-	if ( wp_service_worker_skip_waiting() ) {
-		return;
-	}
-	$wp_admin_bar->add_node(
-		array(
-			'id'    => 'pwa-sw-update-notice',
-			'title' => __( 'Update to a new version of this site!', 'pwa' ),
-			'href'  => '#',
-		)
-	);
 }
 
 /**

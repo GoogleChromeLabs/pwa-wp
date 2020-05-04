@@ -101,13 +101,16 @@ function wp_add_error_template_no_robots() {
 }
 
 /**
- * Hide the admin bar if serving the offline template.
+ * Ensure current user is unset when serving an error page (either offline or server error).
  *
- * @since 0.2
+ * This is important so that what the service worker initially precaches for the user when first accessing the site
+ * will persist even after they have authenticated.
+ *
+ * @since 0.5
  */
-function wp_hide_admin_bar_offline() {
-	if ( is_offline() ) {
-		show_admin_bar( false );
+function wp_unauthenticate_error_template_requests() {
+	if ( is_offline() || is_500() ) {
+		wp_set_current_user( 0 );
 	}
 }
 

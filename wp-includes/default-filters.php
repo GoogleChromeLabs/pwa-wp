@@ -15,15 +15,9 @@ foreach ( array( 'wp_print_footer_scripts', 'admin_print_scripts', 'customize_co
 add_action( 'parse_query', 'wp_service_worker_loaded' );
 add_action( 'wp_ajax_wp_service_worker', 'wp_ajax_wp_service_worker' );
 add_action( 'wp_ajax_nopriv_wp_service_worker', 'wp_ajax_wp_service_worker' );
-add_action( 'parse_query', 'wp_hide_admin_bar_offline' );
+add_action( 'parse_query', 'wp_unauthenticate_error_template_requests' );
 
 add_action( 'wp_head', 'wp_add_error_template_no_robots' );
 add_action( 'error_head', 'wp_add_error_template_no_robots' );
 
 add_action( 'admin_init', 'wp_disable_script_concatenation' );
-
-// Service Worker Updating.
-add_action( 'admin_bar_menu', 'wp_service_worker_update_node', 999 );
-
-add_action( 'wp_enqueue_scripts', 'wp_service_worker_styles', 11 );
-add_action( 'admin_enqueue_scripts', 'wp_service_worker_styles', 11 );
