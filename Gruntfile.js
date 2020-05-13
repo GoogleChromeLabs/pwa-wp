@@ -32,7 +32,7 @@ module.exports = function (grunt) {
 			},
 			install_workbox: {
 				command:
-					'if [ -e wp-includes/js/workbox* ]; then rm -r wp-includes/js/workbox*; fi; npx workbox copyLibraries wp-includes/js/',
+					'if [ -e wp-includes/js/workbox* ]; then rm -r wp-includes/js/workbox*; fi; npx workbox copyLibraries wp-includes/js/; rm wp-includes/js/workbox*/workbox-offline-ga*',
 			},
 			create_build_zip: {
 				command:
