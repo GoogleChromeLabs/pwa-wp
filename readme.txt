@@ -3,7 +3,7 @@ Contributors:      google, xwp, westonruter, albertomedina
 Tags:              pwa, progressive web apps, service workers, web app manifest, https
 Requires at least: 5.3
 Tested up to:      5.4
-Stable tag:        0.4.0
+Stable tag:        0.5.0
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
 Requires PHP:      5.6
