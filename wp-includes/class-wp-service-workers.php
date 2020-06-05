@@ -152,7 +152,7 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 		$file_hash = md5( $output );
 		@header( "ETag: $file_hash" ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged
 
-		$etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? trim( $_SERVER['HTTP_IF_NONE_MATCH'] ) : false;
+		$etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? trim( sanitize_text_field( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) : false;
 		if ( $file_hash === $etag_header ) {
 			status_header( 304 );
 			return;

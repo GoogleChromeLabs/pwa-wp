@@ -217,7 +217,7 @@ class WP_HTTPS_UI {
 					$url           = $all_insecure_urls[ $i ];
 					$truncated_url = $this->get_truncated_url( $url );
 					?>
-					<li><a href="<?php echo esc_attr( $url ); ?>"><?php echo esc_html( $truncated_url ); ?></a></li>
+					<li><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $truncated_url ); ?></a></li>
 				<?php endfor; ?>
 			</ul>
 			<?php
@@ -233,7 +233,7 @@ class WP_HTTPS_UI {
 						$url           = $all_insecure_urls[ $i++ ];
 						$truncated_url = $this->get_truncated_url( $url );
 						?>
-						<li><a href="<?php echo esc_attr( $url ); ?>"><?php echo esc_html( $truncated_url ); ?></a></li>
+						<li><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $truncated_url ); ?></a></li>
 					<?php endfor; ?>
 				</ul>
 			<?php endwhile; ?>
@@ -370,7 +370,7 @@ class WP_HTTPS_UI {
 			if ( isset( $parsed_url['port'] ) ) {
 				$url .= ':' . $parsed_url['port'];
 			}
-			$url .= wp_unslash( $_SERVER['REQUEST_URI'] );
+			$url .= wp_unslash( sanitize_text_field( $_SERVER['REQUEST_URI'] ) );
 
 			wp_safe_redirect( $url, 302 ); // Temporary redirect. @todo Make permanent.
 			exit;

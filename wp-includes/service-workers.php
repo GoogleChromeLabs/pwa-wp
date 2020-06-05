@@ -225,7 +225,7 @@ function wp_disable_script_concatenation() {
 	 * for browsers that don't support service workers. Note that concatenation only applies in the admin,
 	 * for authenticated users without full-page caching.
 	*/
-	if ( isset( $_COOKIE['wordpress_sw_installed'] ) ) {
+	if ( isset( $_COOKIE['wordpress_sw_installed'] ) ) {  // phpcs:ignore WordPressVIPMinimum.Variables.RestrictedVariables.cache_constraints___COOKIE
 		$concatenate_scripts = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 	}
 
