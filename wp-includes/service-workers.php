@@ -86,12 +86,19 @@ function wp_register_service_worker_caching_route( $route, $args = array() ) {
  * @return string Service Worker URL.
  */
 function wp_get_service_worker_url( $scope = WP_Service_Workers::SCOPE_FRONT ) {
+	/* @var WP_Rewrite $wp_rewrite */
+	global $wp_rewrite;
+
 	if ( WP_Service_Workers::SCOPE_FRONT !== $scope && WP_Service_Workers::SCOPE_ADMIN !== $scope ) {
 		_doing_it_wrong( __FUNCTION__, esc_html__( 'Scope must be either WP_Service_Workers::SCOPE_FRONT or WP_Service_Workers::SCOPE_ADMIN.', 'pwa' ), '?' );
 		$scope = WP_Service_Workers::SCOPE_FRONT;
 	}
 
 	if ( WP_Service_Workers::SCOPE_FRONT === $scope ) {
+		if ( $wp_rewrite->using_permalinks() ) {
+			return home_url( '/wp-service-worker.js' );
+		}
+
 		return add_query_arg(
 			array( WP_Service_Workers::QUERY_VAR => $scope ),
 			home_url( '/', 'relative' )

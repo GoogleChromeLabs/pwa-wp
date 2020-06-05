@@ -7,6 +7,16 @@
  */
 
 /**
+ * Adds rewrite rules to enable pretty permalinks for the service worker script.
+ */
+function pwa_add_rewrite_rules() {
+	add_rewrite_tag( '%' . WP_Service_Workers::QUERY_VAR . '%', '([^?]+)' );
+	add_rewrite_rule( '^wp-service-worker\.js$', 'index.php?' . WP_Service_Workers::QUERY_VAR . '=' . WP_Service_Workers::SCOPE_FRONT, 'top' );
+}
+
+add_action( 'init', 'pwa_add_rewrite_rules' );
+
+/**
  * Add recognition of wp_error_template query var.
  *
  * Upon core merge the query vars here could be added straight to `WP::$public_query_vars`.
@@ -16,9 +26,9 @@
  */
 function pwa_add_public_query_vars( $query_vars ) {
 	$query_vars[] = 'wp_error_template';
-	$query_vars[] = WP_Service_Workers::QUERY_VAR;
 	return $query_vars;
 }
+
 add_filter( 'query_vars', 'pwa_add_public_query_vars' );
 
 /**

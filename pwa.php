@@ -254,6 +254,28 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-query.php';
 require_once PWA_PLUGIN_DIR . '/wp-admin/admin.php';
 
 /**
+ * Plugin activation hook.
+ */
+function _pwa_activate_plugin() {
+	pwa_add_rewrite_rules();
+	flush_rewrite_rules( false );
+}
+
+register_activation_hook( PWA_PLUGIN_FILE, '_pwa_activate_plugin' );
+
+/**
+ * Plugin deactivation hook.
+ */
+function _pwa_deactivate_plugin() {
+	/* @var WP_Rewrite $wp_rewrite */
+	global $wp_rewrite;
+	unset( $wp_rewrite->extra_rules_top['^wp-service-worker\.js$'] );
+	flush_rewrite_rules( false );
+}
+
+register_deactivation_hook( PWA_PLUGIN_FILE, '_pwa_deactivate_plugin' );
+
+/**
  * Load service worker integrations.
  *
  * @since 0.2.0
