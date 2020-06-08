@@ -370,7 +370,7 @@ class WP_HTTPS_UI {
 			if ( isset( $parsed_url['port'] ) ) {
 				$url .= ':' . $parsed_url['port'];
 			}
-			$url .= wp_unslash( sanitize_text_field( $_SERVER['REQUEST_URI'] ) );
+			$url .= wp_unslash( $_SERVER['REQUEST_URI'] );
 
 			wp_safe_redirect( $url, 302 ); // Temporary redirect. @todo Make permanent.
 			exit;
