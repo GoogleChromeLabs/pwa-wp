@@ -143,9 +143,8 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 			do_action( 'wp_admin_service_worker', $this->scripts );
 		}
 
-		printf( "/* PWA v%s-%s */\n\n", esc_html( PWA_VERSION ), is_admin() ? 'admin' : 'front' );
-
 		ob_start();
+		printf( "/* PWA v%s-%s */\n\n", esc_html( PWA_VERSION ), is_admin() ? 'admin' : 'front' );
 		$this->scripts->do_items( array_keys( $this->scripts->registered ) );
 		$output = ob_get_clean();
 
