@@ -8,8 +8,18 @@
 
 /**
  * Adds rewrite rules to enable pretty permalinks for the service worker script.
+ * @global WP_Rewrite $wp_rewrite
  */
 function pwa_add_rewrite_rules() {
+	/* @var WP_Rewrite $wp_rewrite */
+	if ( ! isset( $wp_rewrite->extra_rules_top['^wp-service-worker\.js$'] ) ) {
+		add_action(
+			'admin_init', 
+			function () {
+				flush_rewrite_rules( false );
+			} 
+		);
+	}
 	add_rewrite_tag( '%' . WP_Service_Workers::QUERY_VAR . '%', '([^?]+)' );
 	add_rewrite_rule( '^wp-service-worker\.js$', 'index.php?' . WP_Service_Workers::QUERY_VAR . '=' . WP_Service_Workers::SCOPE_FRONT, 'top' );
 }
