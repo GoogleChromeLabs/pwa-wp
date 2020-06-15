@@ -32,7 +32,8 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 	/**
 	 * Handle navigation request.
 	 *
-	 * @param {Object} event Event.
+	 * @param {Object} args Args.
+	 * @param {FetchEvent} args.event Event.
 	 * @return {Promise<Response>} Response.
 	 */
 	async function handleNavigationRequest({ event }) {

@@ -6,7 +6,8 @@
 		"es6": true
 	},
   "globals": {
-    "wp": true
+    "wp": "writable",
+    "FetchEvent": "readonly"
   },
 	"parserOptions": {
 		"ecmaVersion": 2018
