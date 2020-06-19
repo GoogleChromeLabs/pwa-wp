@@ -12,7 +12,7 @@ WordPress feature plugin to bring Progressive Web App (PWA) capabilities to Core
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 **Requires PHP:** 5.6  
 
-[![Build Status](https://travis-ci.com/GoogleChromeLabs/pwa-wp.svg?branch=master)](https://travis-ci.com/GoogleChromeLabs/pwa-wp) [![Built with Grunt](https://gruntjs.com/cdn/builtwith.svg)](http://gruntjs.com) 
+[![Build Status](https://travis-ci.com/GoogleChromeLabs/pwa-wp.svg?branch=develop)](https://travis-ci.com/GoogleChromeLabs/pwa-wp) [![Built with Grunt](https://gruntjs.com/cdn/builtwith.svg)](http://gruntjs.com) 
 
 ## Description ##
 
