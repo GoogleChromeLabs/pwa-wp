@@ -39,6 +39,12 @@ class WP_HTTPS_Detection {
 	const INSECURE_CONTENT_OPTION_NAME = 'insecure_content';
 
 	/**
+	 * Filter tag to disable HTTPS detection and UI, such as when redirection is
+	 * handled outside of WordPress.
+	 */
+	const FILTER_DISABLE = 'wp_https_detection_ui_disabled';
+
+	/**
 	 * The tag names for insecure content.
 	 *
 	 * @see https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content
@@ -57,6 +63,10 @@ class WP_HTTPS_Detection {
 	 * Initializes the object.
 	 */
 	public function init() {
+		if ( apply_filters( self::FILTER_DISABLE, false ) ) {
+			return;
+		}
+
 		add_action( 'init', array( $this, 'schedule_cron' ) );
 		add_action( self::CRON_HOOK, array( $this, 'update_https_support_options' ) );
 		add_filter( 'cron_request', array( $this, 'conditionally_prevent_sslverify' ), PHP_INT_MAX );

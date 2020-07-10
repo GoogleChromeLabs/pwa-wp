@@ -79,6 +79,10 @@ class WP_HTTPS_UI {
 	 * Initializes the object.
 	 */
 	public function init() {
+		if ( apply_filters( WP_HTTPS_Detection::FILTER_DISABLE, false ) ) {
+			return;
+		}
+
 		add_action( 'admin_init', array( $this, 'init_admin' ) );
 		add_action( 'init', array( $this, 'filter_site_url_and_home' ) );
 		add_action( 'init', array( $this, 'filter_header' ) );
