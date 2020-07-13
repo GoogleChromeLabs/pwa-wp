@@ -79,6 +79,11 @@ class WP_HTTPS_UI {
 	 * Initializes the object.
 	 */
 	public function init() {
+		/** This filter is documented in wp-includes/class-wp-https-detection.php */
+		if ( apply_filters( 'wp_https_detection_ui_disabled', false ) ) {
+			return;
+		}
+
 		add_action( 'admin_init', array( $this, 'init_admin' ) );
 		add_action( 'init', array( $this, 'filter_site_url_and_home' ) );
 		add_action( 'init', array( $this, 'filter_header' ) );
