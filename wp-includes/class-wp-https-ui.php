@@ -79,7 +79,8 @@ class WP_HTTPS_UI {
 	 * Initializes the object.
 	 */
 	public function init() {
-		if ( apply_filters( WP_HTTPS_Detection::FILTER_DISABLE, false ) ) {
+		/** This filter is documented in wp-includes/class-wp-https-detection.php */
+		if ( apply_filters( 'wp_https_detection_ui_disabled', false ) ) {
 			return;
 		}
 
