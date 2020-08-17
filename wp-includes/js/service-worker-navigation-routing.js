@@ -158,11 +158,15 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 		(pattern) => new RegExp(pattern)
 	);
 	if (navigationRouteEntry && navigationRouteEntry.url) {
-		wp.serviceWorker.routing.registerNavigationRoute(
-			navigationRouteEntry.url,
-			{
-				denylist,
-			}
+		wp.serviceWorker.routing.registerRoute(
+			new wp.serviceWorker.routing.NavigationRoute(
+				wp.serviceWorker.precaching.createHandlerBoundToURL(
+					navigationRouteEntry.url
+				),
+				{
+					denylist,
+				}
+			)
 		);
 
 		class FetchNavigationRoute extends wp.serviceWorker.routing.Route {
