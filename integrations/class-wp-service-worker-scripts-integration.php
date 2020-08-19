@@ -75,16 +75,21 @@ class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base_Integ
 			/** This filter is documented in wp-includes/class.wp-scripts.php */
 			$url = apply_filters( 'script_loader_src', $url, $handle );
 
+			$revision = null;
+			$version  = '';
+
 			if ( null === $dependency->ver ) {
 				$revision = wp_scripts()->default_version;
 			} else {
-				$url = add_query_arg(
-					'ver',
-					$dependency->ver ?: wp_scripts()->default_version,
-					$url
-				);
+				$version = $dependency->ver ? $dependency->ver : wp_scripts()->default_version;
+			}
 
-				$revision = null;
+			if ( isset( wp_scripts()->args[ $handle ] ) ) {
+				$version = $version ? $version . '&amp;' . wp_scripts()->args[ $handle ] : wp_scripts()->args[ $handle ];
+			}
+
+			if ( ! empty( $version ) ) {
+				$url = add_query_arg( 'ver', $version, $url );
 			}
 
 			// @todo Issue a warning when it is not a local file?
