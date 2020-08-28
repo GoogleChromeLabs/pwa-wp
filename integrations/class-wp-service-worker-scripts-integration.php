@@ -85,7 +85,7 @@ class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base_Integ
 			}
 
 			if ( isset( wp_scripts()->args[ $handle ] ) ) {
-				$version = $version ? $version . '&amp;' . wp_scripts()->args[ $handle ] : wp_scripts()->args[ $handle ];
+				$version = $version ? $version . '&' . wp_scripts()->args[ $handle ] : wp_scripts()->args[ $handle ];
 			}
 
 			if ( ! empty( $version ) ) {

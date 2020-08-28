@@ -85,7 +85,7 @@ class WP_Service_Worker_Styles_Integration extends WP_Service_Worker_Base_Integr
 			}
 
 			if ( isset( wp_styles()->args[ $handle ] ) ) {
-				$version = $version ? $version . '&amp;' . wp_styles()->args[ $handle ] : wp_styles()->args[ $handle ];
+				$version = $version ? $version . '&' . wp_styles()->args[ $handle ] : wp_styles()->args[ $handle ];
 			}
 
 			if ( ! empty( $version ) ) {
