@@ -113,7 +113,7 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 		 */
 		@header( 'Cache-Control: no-cache' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged
 
-		@header( 'Content-Type: text/javascript; charset=utf-8' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged
+		@header( 'Content-Type: application/javascript; charset=utf-8' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged
 
 		if ( ! is_admin() ) {
 			wp_enqueue_scripts();
