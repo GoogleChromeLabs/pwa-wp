@@ -143,6 +143,7 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 			do_action( 'wp_admin_service_worker', $this->scripts );
 		}
 
+		ob_start();
 		printf( "/* PWA v%s-%s */\n\n", esc_html( PWA_VERSION ), is_admin() ? 'admin' : 'front' );
 		echo '/* ';
 		printf(
@@ -153,16 +154,15 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 			is_admin() ? 'wp_admin_service_worker' : 'wp_front_service_worker'
 		);
 		echo " /*\n\n";
-
-		ob_start();
 		$this->scripts->do_items( array_keys( $this->scripts->registered ) );
 		$output = ob_get_clean();
 
 		$file_hash = md5( $output );
-		@header( "ETag: $file_hash" ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged
+		$etag      = sprintf( '"%s"', $file_hash );
+		@header( "ETag: $etag" ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged
 
-		$etag_header = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? trim( $_SERVER['HTTP_IF_NONE_MATCH'] ) : false;
-		if ( $file_hash === $etag_header ) {
+		$if_none_match = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? trim( wp_unslash( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) : false;
+		if ( $if_none_match === $etag ) {
 			status_header( 304 );
 			return;
 		}

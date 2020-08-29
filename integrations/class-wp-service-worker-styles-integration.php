@@ -72,10 +72,25 @@ class WP_Service_Worker_Styles_Integration extends WP_Service_Worker_Base_Integr
 				$url = wp_styles()->base_url . $url;
 			}
 
-			$revision = false === $dependency->ver ? get_bloginfo( 'version' ) : $dependency->ver;
-
 			/** This filter is documented in wp-includes/class.wp-styles.php */
 			$url = apply_filters( 'style_loader_src', $url, $handle );
+
+			$revision = null;
+			$version  = '';
+
+			if ( null === $dependency->ver ) {
+				$revision = wp_styles()->default_version;
+			} else {
+				$version = $dependency->ver ? $dependency->ver : wp_styles()->default_version;
+			}
+
+			if ( isset( wp_styles()->args[ $handle ] ) ) {
+				$version = $version ? $version . '&' . wp_styles()->args[ $handle ] : wp_styles()->args[ $handle ];
+			}
+
+			if ( ! empty( $version ) ) {
+				$url = add_query_arg( 'ver', $version, $url );
+			}
 
 			// @todo Issue a warning when it is not a local file?
 			if ( is_string( $url ) && $this->is_local_file_url( $url ) ) {

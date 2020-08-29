@@ -72,7 +72,7 @@ class WP_Web_App_Manifest {
 	public function manifest_link_and_meta() {
 		$manifest = $this->get_manifest();
 		?>
-		<link rel="manifest" href="<?php echo esc_url( rest_url( self::REST_NAMESPACE . self::REST_ROUTE ) ); ?>">
+		<link rel="manifest" href="<?php echo esc_url( static::get_url() ); ?>">
 		<meta name="theme-color" content="<?php echo esc_attr( $manifest['theme_color'] ); ?>">
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="mobile-web-app-capable" content="yes">
@@ -337,5 +337,14 @@ class WP_Web_App_Manifest {
 	 */
 	public function sort_icons_callback( $a, $b ) {
 		return (int) strtok( $a['sizes'], 'x' ) - (int) strtok( $b['sizes'], 'x' );
+	}
+
+	/**
+	 * Return manifest URL.
+	 *
+	 * @return string
+	 */
+	public static function get_url() {
+		return rest_url( self::REST_NAMESPACE . self::REST_ROUTE );
 	}
 }

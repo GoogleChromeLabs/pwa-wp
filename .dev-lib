@@ -6,3 +6,4 @@ if [[ ! -z $TRAVIS ]]; then
 	CHECK_SCOPE=all
 fi
 CHECK_SCOPE=all
+DEFAULT_BASE_BRANCH=develop
