@@ -13,7 +13,7 @@
  */
 function pwa_add_rewrite_rules() {
 	global $wp_rewrite;
-	$rewrite_rule_regex = '^wp-service-worker\.js$';
+	$rewrite_rule_regex = '^wp\.serviceworker$';
 
 	/* @var WP_Rewrite $wp_rewrite */
 	if ( ! isset( $wp_rewrite->extra_rules_top[ $rewrite_rule_regex ] ) ) {

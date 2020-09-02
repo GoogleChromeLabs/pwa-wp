@@ -96,7 +96,7 @@ function wp_get_service_worker_url( $scope = WP_Service_Workers::SCOPE_FRONT ) {
 
 	if ( WP_Service_Workers::SCOPE_FRONT === $scope ) {
 		if ( $wp_rewrite->using_permalinks() ) {
-			return home_url( '/wp-service-worker.js' );
+			return home_url( '/wp.serviceworker' );
 		}
 
 		return add_query_arg(

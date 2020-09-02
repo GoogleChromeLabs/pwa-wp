@@ -269,7 +269,7 @@ register_activation_hook( PWA_PLUGIN_FILE, '_pwa_activate_plugin' );
 function _pwa_deactivate_plugin() {
 	/* @var WP_Rewrite $wp_rewrite */
 	global $wp_rewrite;
-	unset( $wp_rewrite->extra_rules_top['^wp-service-worker\.js$'] );
+	unset( $wp_rewrite->extra_rules_top['^wp\.serviceworker$'] );
 	flush_rewrite_rules( false );
 }
 
