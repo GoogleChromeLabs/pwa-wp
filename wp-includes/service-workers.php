@@ -188,9 +188,20 @@ function wp_print_service_workers() {
  * @see wp_ajax_wp_service_worker()
  *
  * @param WP_Query $query Query.
+ * @global WP $wp
  */
 function wp_service_worker_loaded( WP_Query $query ) {
-	if ( $query->is_main_query() && $query->get( WP_Service_Workers::QUERY_VAR ) ) {
+	global $wp;
+	if ( ! $query->is_main_query() ) {
+		return;
+	}
+
+	// Handle case where rewrite rules have not yet been flushed.
+	if ( 'wp.serviceworker' === $wp->request ) {
+		$query->set( WP_Service_Workers::QUERY_VAR, 1 );
+	}
+
+	if ( $query->get( WP_Service_Workers::QUERY_VAR ) ) {
 		wp_service_workers()->serve_request();
 		die();
 	}
