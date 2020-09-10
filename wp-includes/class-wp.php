@@ -7,6 +7,32 @@
  */
 
 /**
+ * Adds rewrite rules to enable pretty permalinks for the service worker script.
+ *
+ * @global WP_Rewrite $wp_rewrite
+ */
+function pwa_add_rewrite_rules() {
+	global $wp_rewrite;
+	$rewrite_rule_regex = '^wp\.serviceworker$';
+
+	/* @var WP_Rewrite $wp_rewrite */
+	if ( ! isset( $wp_rewrite->extra_rules_top[ $rewrite_rule_regex ] ) ) {
+		// Note: This logic will not be required as part of core merge since rewrite rules are flushed upon DB upgrade (as long as the DB version is bumped).
+		add_action(
+			'admin_init',
+			function () {
+				flush_rewrite_rules( false );
+			}
+		);
+	}
+	add_rewrite_rule( $rewrite_rule_regex, 'index.php?' . WP_Service_Workers::QUERY_VAR . '=' . WP_Service_Workers::SCOPE_FRONT, 'top' );
+
+	add_rewrite_tag( '%' . WP_Service_Workers::QUERY_VAR . '%', '([^?]+)' );
+}
+
+add_action( 'init', 'pwa_add_rewrite_rules' );
+
+/**
  * Add recognition of wp_error_template query var.
  *
  * Upon core merge the query vars here could be added straight to `WP::$public_query_vars`.
@@ -16,9 +42,9 @@
  */
 function pwa_add_public_query_vars( $query_vars ) {
 	$query_vars[] = 'wp_error_template';
-	$query_vars[] = WP_Service_Workers::QUERY_VAR;
 	return $query_vars;
 }
+
 add_filter( 'query_vars', 'pwa_add_public_query_vars' );
 
 /**
