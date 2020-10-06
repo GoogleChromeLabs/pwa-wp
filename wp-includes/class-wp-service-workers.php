@@ -117,6 +117,7 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 
 		@header( 'Content-Type: text/javascript; charset=utf-8' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged
 
+		ob_start(); // Start guarding against themes/plugins printing anything at wp_enqueue_scripts admin_enqueue_scripts.
 		if ( ! is_admin() ) {
 			wp_enqueue_scripts();
 
@@ -144,6 +145,7 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 			 */
 			do_action( 'wp_admin_service_worker', $this->scripts );
 		}
+		ob_end_clean(); // Finish guarding against themes/plugins printing anything at wp_enqueue_scripts admin_enqueue_scripts.
 
 		ob_start();
 		printf( "/* PWA v%s-%s */\n\n", esc_html( PWA_VERSION ), is_admin() ? 'admin' : 'front' );
