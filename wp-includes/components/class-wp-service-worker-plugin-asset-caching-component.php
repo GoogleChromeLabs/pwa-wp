@@ -34,7 +34,8 @@ class WP_Service_Worker_Plugin_Asset_Caching_Component implements WP_Service_Wor
 		$scripts->caching_routes()->register(
 			'^' . preg_quote( trailingslashit( plugins_url() ), '/' ) . '.*',
 			array(
-				'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST,
+				// The stale-while-revalidate strategy is used because plugin assets should always have version (ver) cache buster query vars.
+				'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE,
 				'cacheName' => self::CACHE_NAME,
 				'plugins'   => array(
 					'expiration' => array(

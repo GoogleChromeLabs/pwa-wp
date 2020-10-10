@@ -41,7 +41,8 @@ class WP_Service_Worker_Theme_Asset_Caching_Component implements WP_Service_Work
 		$scripts->caching_routes()->register(
 			'^(' . implode( '|', $theme_directory_uri_patterns ) . ').*',
 			array(
-				'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST,
+				// The stale-while-revalidate strategy is used because theme assets should always have version (ver) cache buster query vars.
+				'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE,
 				'cacheName' => self::CACHE_NAME,
 				'plugins'   => array(
 					'expiration' => array(
