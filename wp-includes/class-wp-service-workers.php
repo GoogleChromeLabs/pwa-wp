@@ -57,13 +57,14 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 	 */
 	public function __construct() {
 		$components = array(
-			'configuration'            => new WP_Service_Worker_Configuration_Component(),
-			'navigation_routing'       => new WP_Service_Worker_Navigation_Routing_Component(),
-			'theme_asset_caching'      => new WP_Service_Worker_Theme_Asset_Caching_Component(),
-			'plugin_asset_caching'     => new WP_Service_Worker_Plugin_Asset_Caching_Component(),
-			'uploaded_images__caching' => new WP_Service_Worker_Uploaded_Image_Caching_Component(),
-			'precaching_routes'        => new WP_Service_Worker_Precaching_Routes_Component(),
-			'caching_routes'           => new WP_Service_Worker_Caching_Routes_Component(),
+			'configuration'           => new WP_Service_Worker_Configuration_Component(),
+			'navigation_routing'      => new WP_Service_Worker_Navigation_Routing_Component(),
+			'core_asset_caching'      => new WP_Service_Worker_Core_Asset_Caching_Component(),
+			'theme_asset_caching'     => new WP_Service_Worker_Theme_Asset_Caching_Component(),
+			'plugin_asset_caching'    => new WP_Service_Worker_Plugin_Asset_Caching_Component(),
+			'uploaded_images_caching' => new WP_Service_Worker_Uploaded_Image_Caching_Component(),
+			'precaching_routes'       => new WP_Service_Worker_Precaching_Routes_Component(),
+			'caching_routes'          => new WP_Service_Worker_Caching_Routes_Component(),
 		);
 
 		$this->scripts = new WP_Service_Worker_Scripts( $components );
