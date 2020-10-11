@@ -46,8 +46,14 @@ class WP_Service_Worker_Theme_Asset_Caching_Component implements WP_Service_Work
 				'cacheName' => self::CACHE_NAME,
 				'plugins'   => array(
 					'expiration' => array(
-						// @todo The number here should be validated based what themes actually add to the page.
-						'maxEntries' => 25, // Limit the cached entries to the number of files loaded over network, e.g. JS, CSS, and PNG.
+
+						/*
+						 * Limit the cached entries to the number of files loaded over network, e.g. JS, CSS, and PNG.
+						 * The number 34 is derived from the 75th percentile of theme assets used on pages served from
+						 * WordPress sites, as indexed by HTTP Archive.
+						 * See https://github.com/GoogleChromeLabs/pwa-wp/issues/265#issuecomment-706612536.
+						 */
+						'maxEntries' => 34,
 					),
 				),
 			)
