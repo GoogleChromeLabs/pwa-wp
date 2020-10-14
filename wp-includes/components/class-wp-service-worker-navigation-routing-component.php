@@ -136,7 +136,50 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 */
 			$caching_strategy_args = apply_filters( 'wp_service_worker_navigation_caching_strategy_args', $caching_strategy_args, $caching_strategy );
 
-			$caching_strategy_args_js = WP_Service_Worker_Caching_Routes::prepare_strategy_args_for_js_export( $caching_strategy_args );
+			// Merge and flatten strategy and args to pass into a singular wp_service_worker_navigation_caching filter.
+			$plugins = array();
+			if ( isset( $caching_strategy_args['plugins'] ) ) {
+				$plugins = $caching_strategy_args['plugins'];
+				unset( $caching_strategy_args['plugins'] );
+			}
+			$config = array_merge(
+				array( 'strategy' => $caching_strategy ),
+				$caching_strategy_args,
+				$plugins
+			);
+
+			/**
+			 * Filters service worker caching configuration for navigation requests.
+			 *
+			 * @since 0.6
+			 * @todo Snake_case???
+			 *
+			 * @param array {
+			 *     Navigation caching configuration.
+			 *
+			 *     @type string     $strategy              Strategy. Defaults to NetworkFirst. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-strategies>.
+			 *     @type int        $networkTimeoutSeconds Network timeout seconds. Only applies to NetworkFirst strategy.
+			 *     @type string     $cacheName             Cache name. Defaults to 'navigations'. This will get a site-specific prefix to prevent subdirectory multisite conflicts.
+			 *     @type array|null $expiration {
+			 *          Expiration plugin configuration. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-expiration.ExpirationPlugin>.
+			 *
+			 *          @type int|null $maxEntries    Max entries to cache.
+			 *          @type int|null $maxAgeSeconds Max age seconds.
+			 *     }
+			 *     @type array|null $broadcastUpdate   Broadcast update plugin configuration. Not included by default. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-broadcast-update.BroadcastUpdatePlugin>.
+			 *     @type array|null $cacheableResponse Cacheable response plugin configuration. Not included by default. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-cacheable-response.CacheableResponsePlugin>.
+			 * }
+			 */
+			$config = apply_filters( 'wp_service_worker_navigation_caching', $config );
+
+			// If strategy was removed, abort serving navigation caching strategy.
+			if ( empty( $config ) || ! isset( $config['strategy'] ) ) {
+				return;
+			}
+			$caching_strategy = $config['strategy'];
+			unset( $config['strategy'] );
+
+			$caching_strategy_args_js = WP_Service_Worker_Caching_Routes::prepare_strategy_args_for_js_export( $config );
 
 			$offline_error_template_file  = pwa_locate_template( array( 'offline.php', 'error.php' ) );
 			$offline_error_precache_entry = array(

@@ -61,6 +61,20 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	const NAVIGATIONS_CACHE_NAME = 'navigations';
 
 	/**
+	 * List of plugins in Workbox.
+	 *
+	 * @since 0.6
+	 * @var string[]
+	 */
+	const WORKBOX_CORE_PLUGINS = [
+		'backgroundSync',
+		'broadcastUpdate',
+		'cacheableResponse',
+		'expiration',
+		'rangeRequests',
+	];
+
+	/**
 	 * Registered caching routes.
 	 *
 	 * @since 0.2
@@ -71,19 +85,19 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	/**
 	 * Registers a route.
 	 *
-	 * @since 0.2
-	 *
 	 * @param string $route Route regular expression, without delimiters.
-	 * @param array  $args  {
+	 * @param array $args {
 	 *     Additional route arguments.
 	 *
-	 *     @type string $strategy   Required. Strategy, can be WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
-	 *                              WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
-	 *                              WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY.
-	 *     @type string $cache_name Name to use for the cache.
-	 *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
+	 *     @type string $strategy Required. Strategy, can be WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
+	 *                                WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
+	 *                                WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY.
+	 *     @type string $cache_name Name to use for the cache. @todo CamelCase?
+	 *     @type array $plugins Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
 	 *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
 	 * }
+	 * @since 0.2
+	 *
 	 */
 	public function register( $route, $args = array() ) {
 		if ( ! is_array( $args ) ) {
@@ -137,14 +151,13 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	/**
 	 * Gets all registered routes.
 	 *
+	 * @return array List of registered routes.
 	 * @since 0.2
 	 *
-	 * @return array List of registered routes.
 	 */
 	public function get_all() {
 		return $this->routes;
 	}
-
 
 	/**
 	 * Prepare caching strategy args for export to JS.
@@ -157,54 +170,58 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	public static function prepare_strategy_args_for_js_export( $strategy_args ) {
 		$exported = '( function() {';
 
-		// Extract plugins since not JSON-serializable as-is.
 		$plugins = array();
 		if ( isset( $strategy_args['plugins'] ) ) {
-			$plugins = $strategy_args['plugins'];
+			if ( is_array( $strategy_args['plugins'] ) ) {
+				$plugins = $strategy_args['plugins'];
+			}
 			unset( $strategy_args['plugins'] );
 		}
 
-		foreach ( $strategy_args as $strategy_arg_name => $strategy_arg_value ) {
-			if ( false !== strpos( $strategy_arg_name, '_' ) ) {
-				$strategy_arg_name = preg_replace_callback( '/_[a-z]/', array( __CLASS__, 'convert_snake_case_to_camel_case_callback' ), $strategy_arg_name );
+		// Pluck out plugins defined at the top-level.
+		foreach ( self::WORKBOX_CORE_PLUGINS as $plugin_name ) {
+			if ( array_key_exists( $plugin_name, $strategy_args ) ) {
+				$plugin_config = $strategy_args[ $plugin_name ];
+				unset( $strategy_args[ $plugin_name ] );
+				$plugins[ $plugin_name ] = $plugin_config;
 			}
-			$exported_strategy_args[ $strategy_arg_name ] = $strategy_arg_value;
 		}
 
-		$exported .= sprintf( 'const strategyArgs = %s;', empty( $exported_strategy_args ) ? '{}' : wp_service_worker_json_encode( $exported_strategy_args ) );
+		// Extract plugins since not JSON-serializable as-is.
+		$plugins_js = array();
+		foreach ( $plugins as $plugin_name => $plugin_config ) {
+			$plugin_name = self::convert_snake_case_to_camel_case( $plugin_name );
+
+			// Skip plugin if it was explicitly disabled.
+			if ( false === $plugin_config || null === $plugin_config ) {
+				continue;
+			} elseif ( ! is_array( $plugin_config ) ) {
+				/* translators: %s is plugin name */
+				_doing_it_wrong( 'WP_Service_Workers::register_cached_route', esc_html( sprintf( __( 'Non-array plugin configuration for %s', 'pwa' ), $plugin_name ) ), '0.6' );
+				$plugin_config = array();
+			}
+
+			if ( ! in_array( $plugin_name, self::WORKBOX_CORE_PLUGINS, true ) ) {
+				/* translators: %s is plugin name */
+				_doing_it_wrong( 'WP_Service_Workers::register_cached_route', esc_html( sprintf( __( 'Unrecognized plugin: %s', 'pwa' ), $plugin_name ) ), '0.2' );
+			} else {
+				$plugins_js[] = sprintf(
+					'new wp.serviceWorker[ %s ][ %s ]( %s )',
+					wp_json_encode( $plugin_name ),
+					wp_json_encode( ucfirst( $plugin_name ) . 'Plugin' ),
+					wp_json_encode( self::camel_case_array_keys( $plugin_config ), JSON_FORCE_OBJECT )
+				);
+			}
+		}
+
+		$strategy_args = self::camel_case_array_keys( $strategy_args );
+
+		$exported .= sprintf( 'const strategyArgs = %s;', wp_json_encode( $strategy_args, JSON_FORCE_OBJECT ) );
 
 		// Prefix the cache to prevent collision with other subdirectory installs.
 		$exported .= 'if ( strategyArgs.cacheName && wp.serviceWorker.core.cacheNames.prefix ) { strategyArgs.cacheName = `${wp.serviceWorker.core.cacheNames.prefix}-${strategyArgs.cacheName}`; }';
 
-		if ( is_array( $plugins ) ) {
-
-			$recognized_plugins = array(
-				'backgroundSync',
-				'broadcastUpdate',
-				'cacheableResponse',
-				'expiration',
-				'rangeRequests',
-			);
-
-			$plugins_js = array();
-			foreach ( $plugins as $plugin_name => $plugin_args ) {
-				if ( false !== strpos( $plugin_name, '_' ) ) {
-					$plugin_name = preg_replace_callback( '/_[a-z]/', array( __CLASS__, 'convert_snake_case_to_camel_case_callback' ), $plugin_name );
-				}
-
-				if ( ! in_array( $plugin_name, $recognized_plugins, true ) ) {
-					/* translators: %s is plugin name */
-					_doing_it_wrong( 'WP_Service_Workers::register_cached_route', esc_html( sprintf( __( 'Unrecognized plugin: %s', 'pwa' ), $plugin_name ) ), '0.2' );
-				} else {
-					$plugins_js[] = sprintf(
-						'new wp.serviceWorker[ %s ][ %s ]( %s )',
-						wp_service_worker_json_encode( $plugin_name ),
-						wp_service_worker_json_encode( ucfirst( $plugin_name ) . 'Plugin' ),
-						empty( $plugin_args ) ? '{}' : wp_service_worker_json_encode( $plugin_args )
-					);
-				}
-			}
-
+		if ( ! empty( $plugins_js ) ) {
 			$exported .= sprintf( 'strategyArgs.plugins = [%s];', implode( ', ', $plugins_js ) );
 		}
 
@@ -215,17 +232,36 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	}
 
 	/**
-	 * Convert snake_case to camelCase.
+	 * Convert array keys from snake_case to camelCase.
 	 *
-	 * This is is used by `preg_replace_callback()` for the pattern /_[a-z]/.
-	 *
-	 * @since 0.2
+	 * @since 0.6
 	 * @see WP_Service_Worker_Caching_Routes_Component::get_script()
 	 *
-	 * @param array $matches Matches.
-	 * @return string Replaced string.
+	 * @param array $array Array.
+	 * @return array Array with camelCased-array keys.
 	 */
-	protected static function convert_snake_case_to_camel_case_callback( $matches ) {
-		return strtoupper( ltrim( $matches[0], '_' ) );
+	protected static function camel_case_array_keys( $array ) {
+		foreach ( $array as $key => $value ) {
+			$array[ self::convert_snake_case_to_camel_case( $key ) ] = $value;
+		}
+		return $array;
+	}
+
+	/**
+	 * Convert snake_case string to CamelCase.
+	 *
+	 * @since 0.6
+	 *
+	 * @param string $string Possibly snake_case string.
+	 * @return string CamelCase string.
+	 */
+	protected static function convert_snake_case_to_camel_case( $string ) {
+		return preg_replace_callback(
+			'/_[a-z]/',
+			static function ( $matches ) {
+				return strtoupper( ltrim( $matches[0], '_' ) );
+			},
+			$string
+		);
 	}
 }
