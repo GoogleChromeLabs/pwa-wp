@@ -85,19 +85,20 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	/**
 	 * Registers a route.
 	 *
+	 * @since 0.2
+	 *
 	 * @param string $route Route regular expression, without delimiters.
 	 * @param array $args {
 	 *     Additional route arguments.
 	 *
-	 *     @type string $strategy Required. Strategy, can be WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
-	 *                                WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
-	 *                                WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY.
-	 *     @type string $cache_name Name to use for the cache. @todo CamelCase?
-	 *     @type array $plugins Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
-	 *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
+	 *     @type string $strategy   Required. Strategy, can be WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
+	 *                                  WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
+	 *                                  WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY.
+	 *     @type string $cache_name Name to use for the cache.
+	 *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
+	 *                                  See <https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins>.
+	 *                                  @todo Eliminate plugins from being primary means of providing Workbox plugin configuration. Flatten the array to promote the plugin keys to the top level.
 	 * }
-	 * @since 0.2
-	 *
 	 */
 	public function register( $route, $args = array() ) {
 		if ( ! is_array( $args ) ) {
@@ -180,10 +181,15 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 
 		// Pluck out plugins defined at the top-level.
 		foreach ( self::WORKBOX_CORE_PLUGINS as $plugin_name ) {
+			$snake_case_plugin_name = self::convert_camel_case_to_snake_case( $plugin_name );
 			if ( array_key_exists( $plugin_name, $strategy_args ) ) {
 				$plugin_config = $strategy_args[ $plugin_name ];
 				unset( $strategy_args[ $plugin_name ] );
-				$plugins[ $plugin_name ] = $plugin_config;
+				$plugins[ $snake_case_plugin_name ] = $plugin_config;
+			} elseif ( array_key_exists( $snake_case_plugin_name, $strategy_args ) ) {
+				$plugin_config = $strategy_args[ $snake_case_plugin_name ];
+				unset( $strategy_args[ $snake_case_plugin_name ] );
+				$plugins[ $snake_case_plugin_name ] = $plugin_config;
 			}
 		}
 
@@ -237,18 +243,19 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	 * @since 0.6
 	 * @see WP_Service_Worker_Caching_Routes_Component::get_script()
 	 *
-	 * @param array $array Array.
+	 * @param array $original Original array.
 	 * @return array Array with camelCased-array keys.
 	 */
-	protected static function camel_case_array_keys( $array ) {
-		foreach ( $array as $key => $value ) {
-			$array[ self::convert_snake_case_to_camel_case( $key ) ] = $value;
+	protected static function camel_case_array_keys( $original ) {
+		$camel_case = array();
+		foreach ( $original as $key => $value ) {
+			$camel_case[ self::convert_snake_case_to_camel_case( $key ) ] = $value;
 		}
-		return $array;
+		return $camel_case;
 	}
 
 	/**
-	 * Convert snake_case string to CamelCase.
+	 * Convert snake_case string to camelCase.
 	 *
 	 * @since 0.6
 	 *
@@ -260,6 +267,24 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 			'/_[a-z]/',
 			static function ( $matches ) {
 				return strtoupper( ltrim( $matches[0], '_' ) );
+			},
+			$string
+		);
+	}
+
+	/**
+	 * Convert camelCase string to snake_case.
+	 *
+	 * @since 0.6
+	 *
+	 * @param string $string Possibly snake_case string.
+	 * @return string CamelCase string.
+	 */
+	protected static function convert_camel_case_to_snake_case( $string ) {
+		return preg_replace_callback(
+			'/(?<=.)([A-Z])/',
+			static function ( $matches ) {
+				return '_' . strtolower( $matches[0] );
 			},
 			$string
 		);

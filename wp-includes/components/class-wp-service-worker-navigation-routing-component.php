@@ -100,7 +100,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			$caching_strategy = apply_filters( 'wp_service_worker_navigation_caching_strategy', WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST );
 
 			$caching_strategy_args = array(
-				'cacheName' => WP_Service_Worker_Caching_Routes::NAVIGATIONS_CACHE_NAME,
+				'cache_name' => WP_Service_Worker_Caching_Routes::NAVIGATIONS_CACHE_NAME,
 			);
 			if ( WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST === $caching_strategy ) {
 				/*
@@ -109,14 +109,14 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 				 * for the service worker to serve a previously-cached page and then for LCP to occur before 2.5s and
 				 * so remain within the good threshold.
 				 */
-				$caching_strategy_args['networkTimeoutSeconds'] = 2;
+				$caching_strategy_args['network_timeout_seconds'] = 2;
 			}
 
 			/*
 			 * By default cache only the last 10 pages visited. This may end up being too high as it seems likely that
 			 * most site visitors will view one page and then maybe a couple others.
 			 */
-			$caching_strategy_args['plugins']['expiration']['maxEntries'] = 10;
+			$caching_strategy_args['plugins']['expiration']['max_entries'] = 10;
 
 			/**
 			 * Filters the caching strategy args used for frontend navigation requests.
@@ -128,9 +128,9 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 * @param array $caching_strategy_args {
 			 *     Caching strategy args.
 			 *
-			 *     @type string $cacheName             Cache name to store navigation responses.
-			 *     @type int    $networkTimeoutSeconds Network timeout seconds when NetworkFirst strategy is used.
-			 *     @type array  $plugins               Configuration for plugins, in particular expiration.
+			 *     @type string $cache_name              Cache name to store navigation responses.
+			 *     @type int    $network_timeout_seconds Network timeout seconds when NetworkFirst strategy is used.
+			 *     @type array  $plugins                 Configuration for plugins, in particular expiration.
 			 * }
 			 * @param string $caching_strategy Caching strategy being used.
 			 */
@@ -152,22 +152,21 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 * Filters service worker caching configuration for navigation requests.
 			 *
 			 * @since 0.6
-			 * @todo Snake_case???
 			 *
 			 * @param array {
 			 *     Navigation caching configuration.
 			 *
-			 *     @type string     $strategy              Strategy. Defaults to NetworkFirst. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-strategies>.
-			 *     @type int        $networkTimeoutSeconds Network timeout seconds. Only applies to NetworkFirst strategy.
-			 *     @type string     $cacheName             Cache name. Defaults to 'navigations'. This will get a site-specific prefix to prevent subdirectory multisite conflicts.
+			 *     @type string     $strategy                Strategy. Defaults to NetworkFirst. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-strategies>.
+			 *     @type int        $network_timeout_seconds Network timeout seconds. Only applies to NetworkFirst strategy.
+			 *     @type string     $cache_name              Cache name. Defaults to 'navigations'. This will get a site-specific prefix to prevent subdirectory multisite conflicts.
 			 *     @type array|null $expiration {
 			 *          Expiration plugin configuration. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-expiration.ExpirationPlugin>.
 			 *
-			 *          @type int|null $maxEntries    Max entries to cache.
-			 *          @type int|null $maxAgeSeconds Max age seconds.
+			 *          @type int|null $max_entries     Max entries to cache.
+			 *          @type int|null $max_age_seconds Max age seconds.
 			 *     }
-			 *     @type array|null $broadcastUpdate   Broadcast update plugin configuration. Not included by default. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-broadcast-update.BroadcastUpdatePlugin>.
-			 *     @type array|null $cacheableResponse Cacheable response plugin configuration. Not included by default. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-cacheable-response.CacheableResponsePlugin>.
+			 *     @type array|null $broadcast_update   Broadcast update plugin configuration. Not included by default. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-broadcast-update.BroadcastUpdatePlugin>.
+			 *     @type array|null $cacheable_response Cacheable response plugin configuration. Not included by default. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-cacheable-response.CacheableResponsePlugin>.
 			 * }
 			 */
 			$config = apply_filters( 'wp_service_worker_navigation_caching', $config );
