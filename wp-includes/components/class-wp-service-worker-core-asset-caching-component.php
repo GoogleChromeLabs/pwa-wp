@@ -31,13 +31,8 @@ class WP_Service_Worker_Core_Asset_Caching_Component implements WP_Service_Worke
 			return;
 		}
 
-		$cached_base_url_patterns = array(
-			preg_quote( trailingslashit( includes_url() ), '/' ) . '.*',
-			'https?:\/\/s\.w\.org\/images\/core\/emoji\/.*',
-		);
-
 		$scripts->caching_routes()->register(
-			'^(' . implode( '|', $cached_base_url_patterns ) . ')',
+			'^' . preg_quote( trailingslashit( includes_url() ), '/' ) . '.*',
 			array(
 				// Even though assets should have far-future expiration, network-first is still preferred for development purposes.
 				'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST,
