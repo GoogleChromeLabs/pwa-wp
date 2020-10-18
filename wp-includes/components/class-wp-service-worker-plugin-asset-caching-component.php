@@ -45,8 +45,8 @@ class WP_Service_Worker_Plugin_Asset_Caching_Component implements WP_Service_Wor
 		 *
 		 * @since 0.6
 		 *
-		 * @param array|null {
-		 *     Plugin asset caching configuration. If filtered to be null, then caching is disabled.
+		 * @param array {
+		 *     Plugin asset caching configuration. If array filtered to be empty, then caching is disabled.
 		 *
 		 *     @type string     $route      Route. Regular expression pattern to match. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-routing#.registerRoute>.
 		 *     @type string     $strategy   Strategy. Defaults to NetworkFirst.

@@ -76,8 +76,8 @@ class WP_Service_Worker_Uploaded_Image_Caching_Component implements WP_Service_W
 		 *
 		 * @since 0.6
 		 *
-		 * @param array|null {
-		 *     Uploaded asset caching configuration. If filtered to be null, then caching is disabled.
+		 * @param array {
+		 *     Uploaded asset caching configuration. If array filtered to be empty, then caching is disabled.
 		 *
 		 *     @type string     $route      Route. Regular expression pattern to match. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-routing#.registerRoute>.
 		 *     @type string     $strategy   Strategy. Defaults to CacheFirst. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-strategies>.
