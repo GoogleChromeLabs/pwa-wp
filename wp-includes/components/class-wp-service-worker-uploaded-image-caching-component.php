@@ -48,30 +48,60 @@ class WP_Service_Worker_Uploaded_Image_Caching_Component implements WP_Service_W
 		 *
 		 * See https://developers.google.com/web/tools/workbox/guides/handle-third-party-requests
 		 */
-		$scripts->caching_routes()->register(
-			sprintf(
-				'^%s.*\.(%s)(\?.*)?$',
-				preg_quote( trailingslashit( $upload_dir['baseurl'] ), '/' ),
-				implode(
-					'|',
-					array_map(
-						static function ( $image_extension ) {
-							return preg_quote( $image_extension, '/' );
-						},
-						$image_extensions
-					)
+		$route = sprintf(
+			'^%s.*\.(%s)(\?.*)?$',
+			preg_quote( trailingslashit( $upload_dir['baseurl'] ), '/' ),
+			implode(
+				'|',
+				array_map(
+					static function ( $image_extension ) {
+						return preg_quote( $image_extension, '/' );
+					},
+					$image_extensions
 				)
-			),
-			array(
-				'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
-				'cacheName' => self::CACHE_NAME,
-				'plugins'   => array(
-					'expiration' => array(
-						'maxAgeSeconds' => MONTH_IN_SECONDS,
-					),
-				),
 			)
 		);
+
+		$config = array(
+			'route'      => $route,
+			'strategy'   => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
+			'cache_name' => self::CACHE_NAME,
+			'expiration' => array(
+				'max_age_seconds' => MONTH_IN_SECONDS,
+			),
+		);
+
+		/**
+		 * Filters service worker caching configuration for uploaded image requests.
+		 *
+		 * @since 0.6
+		 *
+		 * @param array|null {
+		 *     Uploaded asset caching configuration. If filtered to be null, then caching is disabled.
+		 *
+		 *     @type string     $route      Route. Regular expression pattern to match. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-routing#.registerRoute>.
+		 *     @type string     $strategy   Strategy. Defaults to CacheFirst. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-strategies>.
+		 *     @type string     $cache_name Cache name. Defaults to 'uploaded-images'. This will get a site-specific prefix to prevent subdirectory multisite conflicts.
+		 *     @type array|null $expiration {
+		 *          Expiration plugin configuration. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-expiration.ExpirationPlugin>.
+		 *
+		 *          @type int|null $max_age_seconds Max age seconds. Defaults to MONTH_IN_SECONDS.
+		 *          @type int|null $max_entries     Max entries to cache. Defaults to null.
+		 *     }
+		 *     @type array|null $broadcast_update   Broadcast update plugin configuration. Not included by default. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-broadcast-update.BroadcastUpdatePlugin>.
+		 *     @type array|null $cacheable_response Cacheable response plugin configuration. Not included by default. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-cacheable-response.CacheableResponsePlugin>.
+		 * }
+		 */
+		$config = apply_filters( 'wp_service_worker_uploaded_image_caching', $config );
+
+		if ( ! is_array( $config ) || ! isset( $config['route'], $config['strategy'], $config['cache_name'] ) ) {
+			return;
+		}
+
+		$route = $config['route'];
+		unset( $config['route'] );
+
+		$scripts->caching_routes()->register( $route, $config );
 	}
 
 	/**
