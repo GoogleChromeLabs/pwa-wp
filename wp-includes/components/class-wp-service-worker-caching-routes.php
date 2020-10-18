@@ -53,14 +53,6 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	const STRATEGY_NETWORK_ONLY = 'NetworkOnly';
 
 	/**
-	 * Cache name for responses for navigation requests.
-	 *
-	 * @since 0.6
-	 * @var string
-	 */
-	const NAVIGATIONS_CACHE_NAME = 'navigations';
-
-	/**
 	 * List of plugins in Workbox.
 	 *
 	 * @since 0.6

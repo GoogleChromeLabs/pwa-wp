@@ -14,6 +14,13 @@
 class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worker_Component {
 
 	/**
+	 * Cache name.
+	 *
+	 * @var string
+	 */
+	const CACHE_NAME = 'navigations';
+
+	/**
 	 * Slug used to identify whether a theme supports service worker streaming.
 	 *
 	 * @since 0.2
@@ -100,7 +107,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			$caching_strategy = apply_filters( 'wp_service_worker_navigation_caching_strategy', WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST );
 
 			$caching_strategy_args = array(
-				'cache_name' => WP_Service_Worker_Caching_Routes::NAVIGATIONS_CACHE_NAME,
+				'cache_name' => self::CACHE_NAME,
 			);
 			if ( WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST === $caching_strategy ) {
 				/*
