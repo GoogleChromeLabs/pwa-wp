@@ -38,26 +38,52 @@ class WP_Service_Worker_Theme_Asset_Caching_Component implements WP_Service_Work
 			$theme_directory_uri_patterns[] = preg_quote( trailingslashit( get_stylesheet_directory_uri() ), '/' );
 		}
 
-		$scripts->caching_routes()->register(
-			'^(' . implode( '|', $theme_directory_uri_patterns ) . ').*',
-			array(
-				// Even though assets should have far-future expiration, network-first is still preferred for development purposes.
-				'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST,
-				'cacheName' => self::CACHE_NAME,
-				'plugins'   => array(
-					'expiration' => array(
-
-						/*
-						 * Limit the cached entries to the number of files loaded over network, e.g. JS, CSS, and PNG.
-						 * The number 34 is derived from the 75th percentile of theme assets used on pages served from
-						 * WordPress sites, as indexed by HTTP Archive.
-						 * See https://github.com/GoogleChromeLabs/pwa-wp/issues/265#issuecomment-706612536.
-						 */
-						'maxEntries' => 34,
-					),
-				),
-			)
+		$config = array(
+			'route'      => '^(' . implode( '|', $theme_directory_uri_patterns ) . ').*',
+			'strategy'   => WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST,
+			'cache_name' => self::CACHE_NAME,
+			'expiration' => array(
+				'maxEntries' => 34,
+			),
 		);
+
+		/**
+		 * Filters service worker caching configuration for theme asset requests.
+		 *
+		 * @since 0.6
+		 *
+		 * @param array|null {
+		 *     Theme asset caching configuration. If filtered to be null, then caching is disabled.
+		 *
+		 *     @type string     $route      Route. Regular expression pattern to match. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-routing#.registerRoute>.
+		 *     @type string     $strategy   Strategy. Defaults to NetworkFirst.
+		 *                                  Even though assets should have far-future expiration, network-first is still preferred for development purposes.
+		 *                                  See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-strategies>.
+		 *     @type string     $cache_name Cache name. Defaults to 'uploaded-images'. This will get a site-specific prefix to prevent subdirectory multisite conflicts.
+		 *     @type array|null $expiration {
+		 *          Expiration plugin configuration. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-expiration.ExpirationPlugin>.
+		 *
+		 *          @type int|null $max_entries     Max entries to cache. Defaults to 34.
+		 *                                          This limit the cached entries to the number of files loaded over network, e.g. JS, CSS, and PNG.
+		 *                                          The number 34 is derived from the 75th percentile of theme assets used on pages served from
+		 *                                          WordPress sites, as indexed by HTTP Archive.
+		 *                                          See https://github.com/GoogleChromeLabs/pwa-wp/issues/265#issuecomment-706612536.
+		 *          @type int|null $max_age_seconds Max age seconds. Defaults to null.
+		 *     }
+		 *     @type array|null $broadcast_update   Broadcast update plugin configuration. Not included by default. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-broadcast-update.BroadcastUpdatePlugin>.
+		 *     @type array|null $cacheable_response Cacheable response plugin configuration. Not included by default. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-cacheable-response.CacheableResponsePlugin>.
+		 * }
+		 */
+		$config = apply_filters( 'wp_service_worker_theme_asset_caching', $config );
+
+		if ( ! is_array( $config ) || ! isset( $config['route'], $config['strategy'], $config['cache_name'] ) ) {
+			return;
+		}
+
+		$route = $config['route'];
+		unset( $config['route'] );
+
+		$scripts->caching_routes()->register( $route, $config );
 	}
 
 	/**
