@@ -211,7 +211,7 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 					'new wp.serviceWorker[ %s ][ %s ]( %s )',
 					wp_json_encode( $plugin_name ),
 					wp_json_encode( ucfirst( $plugin_name ) . 'Plugin' ),
-					wp_json_encode( self::camel_case_array_keys( $plugin_config ), JSON_FORCE_OBJECT )
+					wp_json_encode( self::camel_case_array_keys( $plugin_config ),  empty( $plugin_config ) ? JSON_FORCE_OBJECT : 0 )
 				);
 			}
 		}
