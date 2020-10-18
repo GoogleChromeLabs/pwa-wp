@@ -160,8 +160,8 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 *
 			 * @since 0.6
 			 *
-			 * @param array {
-			 *     Navigation caching configuration.
+			 * @param array|null {
+			 *     Navigation caching configuration. If filtered to be null, then caching is disabled.
 			 *
 			 *     @type string     $strategy                Strategy. Defaults to NetworkFirst. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-strategies>.
 			 *     @type int        $network_timeout_seconds Network timeout seconds. Only applies to NetworkFirst strategy.
