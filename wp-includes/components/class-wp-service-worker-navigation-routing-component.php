@@ -179,7 +179,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			$config = apply_filters( 'wp_service_worker_navigation_caching', $config );
 
 			// If strategy was removed, abort serving navigation caching strategy.
-			if ( empty( $config ) || ! isset( $config['strategy'] ) ) {
+			if ( empty( $config ) || ! isset( $config['strategy'], $config['cache_name'] ) ) {
 				return;
 			}
 			$caching_strategy = $config['strategy'];
