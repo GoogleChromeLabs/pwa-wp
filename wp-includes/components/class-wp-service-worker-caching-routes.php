@@ -92,12 +92,12 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	 *     Additional route arguments.
 	 *
 	 *     @type string $strategy   Required. Strategy, can be WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
-	 *                                  WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
-	 *                                  WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY.
+	 *                              WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
+	 *                              WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY.
 	 *     @type string $cache_name Name to use for the cache.
 	 *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
-	 *                                  See <https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins>.
-	 *                                  @todo Eliminate plugins from being primary means of providing Workbox plugin configuration. Flatten the array to promote the plugin keys to the top level.
+	 *                              See <https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins>.
+	 *                              @todo Eliminate plugins from being primary means of providing Workbox plugin configuration. Flatten the array to promote the plugin keys to the top level.
 	 * }
 	 */
 	public function register( $route, $args = array() ) {

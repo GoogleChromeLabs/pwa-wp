@@ -39,18 +39,19 @@ class WP_Service_Worker_Uploaded_Image_Caching_Component implements WP_Service_W
 		$image_extensions = $types['image'];
 
 		/*
-		 * Note that the path alone is used because CDN plugins may load from another domain. For example, given an
-		 * uploaded image located at:
-		 *   https://example.com/wp-content/uploads/2020/04/foo.png
-		 * Jetpack can change rewrite the URL to be:
-		 *   https://i2.wp.com/example.com/wp-content/uploads/2020/04/foo.png?fit=900%2C832&ssl=1
-		 * Therefore, the following will include any URL ending in an image file extension which also is also
-		 * preceded by '/wp-content/uploads/'.
+		 * When a CDN is being used, it is up to the CDN plugin to register a caching strategy for images served from
+		 * the CDN. This is because when resources are loaded from another domain which lacks CORS headers, that is
+		 * `Access-Control-Allow-Origin: *`, Workbox will by default refuse to cache them when a CacheFirst strategy
+		 * is being used. This is because the responses are opaque and it can't determine whether the response was
+		 * successful. In such cases, it is up to the CDN to enable CORS and then for its plugin to explicitly register
+		 * its own caching strategy for the assets that it serves.
+		 *
+		 * See https://developers.google.com/web/tools/workbox/guides/handle-third-party-requests
 		 */
 		$scripts->caching_routes()->register(
 			sprintf(
-				'^(.*%s).*\.(%s)(\?.*)?$',
-				preg_quote( wp_parse_url( $upload_dir['baseurl'], PHP_URL_PATH ), '/' ),
+				'^%s.*\.(%s)(\?.*)?$',
+				preg_quote( trailingslashit( $upload_dir['baseurl'] ), '/' ),
 				implode(
 					'|',
 					array_map(
