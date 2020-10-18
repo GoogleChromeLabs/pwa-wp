@@ -156,9 +156,9 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	/**
 	 * Gets all registered routes.
 	 *
-	 * @return array List of registered routes.
 	 * @since 0.2
 	 *
+	 * @return array List of registered routes.
 	 */
 	public function get_all() {
 		return $this->routes;
