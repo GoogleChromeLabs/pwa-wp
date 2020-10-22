@@ -64,10 +64,11 @@ class WP_Service_Worker_Uploaded_Image_Caching_Component implements WP_Service_W
 
 		$config = array(
 			'route'      => $route,
-			'strategy'   => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
+			'strategy'   => WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE,
 			'cache_name' => self::CACHE_NAME,
 			'expiration' => array(
 				'max_age_seconds' => MONTH_IN_SECONDS,
+				'max_entries'     => 100, // Guard against excessive images being cached.
 			),
 		);
 
