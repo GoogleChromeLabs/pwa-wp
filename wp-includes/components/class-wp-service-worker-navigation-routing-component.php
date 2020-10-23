@@ -100,60 +100,66 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 * Filters caching strategy used for frontend navigation requests.
 			 *
 			 * @since 0.2
+			 * @deprecated Use wp_service_worker_navigation_caching instead.
 			 * @see WP_Service_Worker_Caching_Routes::register()
 			 *
 			 * @param string $caching_strategy Caching strategy to use for frontend navigation requests.
 			 */
-			$caching_strategy = apply_filters( 'wp_service_worker_navigation_caching_strategy', WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST );
-
-			$caching_strategy_args = array(
-				'cache_name' => self::CACHE_NAME,
-			);
-			if ( WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST === $caching_strategy ) {
-				/*
-				 * The value of 2 seconds is informed by the Largest Contentful Paint (LCP) metric, of which Time to
-				 * First Byte (TTFB) is a major component. As long as all assets on a page are cached, then this allows
-				 * for the service worker to serve a previously-cached page and then for LCP to occur before 2.5s and
-				 * so remain within the good threshold.
-				 */
-				$caching_strategy_args['network_timeout_seconds'] = 2;
+			$caching_strategy = apply_filters( 'wp_service_worker_navigation_caching_strategy', '' );
+			if ( empty( $caching_strategy ) ) {
+				$caching_strategy = WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST;
 			}
-
-			/*
-			 * By default cache only the last 10 pages visited. This may end up being too high as it seems likely that
-			 * most site visitors will view one page and then maybe a couple others.
-			 */
-			$caching_strategy_args['plugins']['expiration']['max_entries'] = 10;
 
 			/**
 			 * Filters the caching strategy args used for frontend navigation requests.
 			 *
 			 * @since 0.2
-			 * @since 0.6 Added $caching_strategy param and initial array has default values provided.
+			 * @deprecated Use wp_service_worker_navigation_caching instead.
 			 * @see WP_Service_Worker_Caching_Routes::register()
 			 *
-			 * @param array $caching_strategy_args {
-			 *     Caching strategy args.
-			 *
-			 *     @type string $cache_name              Cache name to store navigation responses.
-			 *     @type int    $network_timeout_seconds Network timeout seconds when NetworkFirst strategy is used.
-			 *     @type array  $plugins                 Configuration for plugins, in particular expiration.
-			 * }
-			 * @param string $caching_strategy Caching strategy being used.
+			 * @param array $caching_strategy_args Caching strategy args.
 			 */
-			$caching_strategy_args = apply_filters( 'wp_service_worker_navigation_caching_strategy_args', $caching_strategy_args, $caching_strategy );
+			$config = apply_filters( 'wp_service_worker_navigation_caching_strategy_args', [] );
 
-			// Merge and flatten strategy and args to pass into a singular wp_service_worker_navigation_caching filter.
-			$plugins = array();
-			if ( isset( $caching_strategy_args['plugins'] ) ) {
-				$plugins = $caching_strategy_args['plugins'];
-				unset( $caching_strategy_args['plugins'] );
+			// Migrate legacy format.
+			if ( ! empty( $config ) ) {
+				if ( isset( $config['plugins'] ) ) {
+					// Merge and flatten strategy and args to pass into a singular wp_service_worker_navigation_caching filter.
+					$plugins = $config['plugins'];
+					unset( $config['plugins'] );
+					$config = array_merge(
+						$config,
+						$plugins
+					);
+				}
+				$config = WP_Service_Worker_Caching_Routes::convert_camel_case_array_keys_to_snake_case( $config );
 			}
-			$config = array_merge(
-				array( 'strategy' => $caching_strategy ),
-				$caching_strategy_args,
-				$plugins
-			);
+
+			// Provide default config if no config was already provided via deprecated filters above.
+			if ( empty( $config ) ) {
+				$caching_strategy_args = [
+					'strategy'   => $caching_strategy,
+					'cache_name' => self::CACHE_NAME,
+				];
+
+				if ( WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST === $caching_strategy ) {
+					/*
+					 * The value of 2 seconds is informed by the Largest Contentful Paint (LCP) metric, of which Time to
+					 * First Byte (TTFB) is a major component. As long as all assets on a page are cached, then this allows
+					 * for the service worker to serve a previously-cached page and then for LCP to occur before 2.5s and
+					 * so remain within the good threshold.
+					 */
+					$caching_strategy_args['network_timeout_seconds'] = 2;
+				}
+
+				/*
+				 * By default cache only the last 10 pages visited. This may end up being too high as it seems likely that
+				 * most site visitors will view one page and then maybe a couple others.
+				 */
+				$caching_strategy_args['expiration']['max_entries'] = 10;
+			} else {
+				$config['strategy'] = $caching_strategy;
+			}
 
 			/**
 			 * Filters service worker caching configuration for navigation requests.
@@ -162,6 +168,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 *
 			 * @param array {
 			 *     Navigation caching configuration. If array filtered to be empty, then caching is disabled.
+			 *     Use snake_case convention instead of camelCase (where the latter will automatically convert to former).
 			 *
 			 *     @type string     $strategy                Strategy. Defaults to NetworkFirst. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-strategies>.
 			 *     @type int        $network_timeout_seconds Network timeout seconds. Only applies to NetworkFirst strategy.

@@ -211,12 +211,12 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 					'new wp.serviceWorker[ %s ][ %s ]( %s )',
 					wp_json_encode( $plugin_name ),
 					wp_json_encode( ucfirst( $plugin_name ) . 'Plugin' ),
-					wp_json_encode( self::camel_case_array_keys( $plugin_config ),  empty( $plugin_config ) ? JSON_FORCE_OBJECT : 0 )
+					wp_json_encode( self::convert_snake_case_array_keys_to_camel_case( $plugin_config ),  empty( $plugin_config ) ? JSON_FORCE_OBJECT : 0 )
 				);
 			}
 		}
 
-		$strategy_args = self::camel_case_array_keys( $strategy_args );
+		$strategy_args = self::convert_snake_case_array_keys_to_camel_case( $strategy_args );
 
 		$exported .= sprintf( 'const strategyArgs = %s;', wp_json_encode( $strategy_args, JSON_FORCE_OBJECT ) );
 
@@ -234,6 +234,26 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	}
 
 	/**
+	 * Convert array keys from camelCase to snake_case.
+	 *
+	 * @since 0.6
+	 * @see WP_Service_Worker_Caching_Routes_Component::get_script()
+	 *
+	 * @param array $original Original array.
+	 * @return array Array with camelCased-array keys.
+	 */
+	public static function convert_camel_case_array_keys_to_snake_case( $original ) {
+		$camel_case = array();
+		foreach ( $original as $key => $value ) {
+			if ( is_array( $value ) && ! isset( $value[0] ) ) {
+				$value = self::convert_camel_case_array_keys_to_snake_case( $value );
+			}
+			$camel_case[ self::convert_camel_case_to_snake_case( $key ) ] = $value;
+		}
+		return $camel_case;
+	}
+
+	/**
 	 * Convert array keys from snake_case to camelCase.
 	 *
 	 * @since 0.6
@@ -242,9 +262,12 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	 * @param array $original Original array.
 	 * @return array Array with camelCased-array keys.
 	 */
-	protected static function camel_case_array_keys( $original ) {
+	public static function convert_snake_case_array_keys_to_camel_case( $original ) {
 		$camel_case = array();
 		foreach ( $original as $key => $value ) {
+			if ( is_array( $value ) && ! isset( $value[0] ) ) {
+				$value = self::convert_snake_case_array_keys_to_camel_case( $value );
+			}
 			$camel_case[ self::convert_snake_case_to_camel_case( $key ) ] = $value;
 		}
 		return $camel_case;
