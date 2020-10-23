@@ -414,6 +414,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 
 			// Exclude service worker requests (to ease debugging).
 			$denylist_patterns[] = '.*\?(.*&)?(' . join( '|', array( WP_Service_Workers::QUERY_VAR ) ) . ')=';
+			$denylist_patterns[] = '.*/wp\.serviceworker(\?.*)?$';
 
 			// Exclude feed requests.
 			$denylist_patterns[] = '[^\?]*\/feed\/(\w+\/)?$';
