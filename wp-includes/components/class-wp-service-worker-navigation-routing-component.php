@@ -119,7 +119,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 *
 			 * @param array $caching_strategy_args Caching strategy args.
 			 */
-			$config = apply_filters( 'wp_service_worker_navigation_caching_strategy_args', [] );
+			$config = apply_filters( 'wp_service_worker_navigation_caching_strategy_args', array() );
 
 			// Migrate legacy format.
 			if ( ! empty( $config ) ) {
@@ -137,10 +137,10 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 
 			// Provide default config if no config was already provided via deprecated filters above.
 			if ( empty( $config ) ) {
-				$caching_strategy_args = [
+				$caching_strategy_args = array(
 					'strategy'   => $caching_strategy,
 					'cache_name' => self::CACHE_NAME,
-				];
+				);
 
 				if ( WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST === $caching_strategy ) {
 					/*

@@ -86,7 +86,6 @@ function wp_register_service_worker_caching_route( $route, $args = array() ) {
  * @return string Service Worker URL.
  */
 function wp_get_service_worker_url( $scope = WP_Service_Workers::SCOPE_FRONT ) {
-	/* @var WP_Rewrite $wp_rewrite */
 	global $wp_rewrite;
 
 	if ( WP_Service_Workers::SCOPE_FRONT !== $scope && WP_Service_Workers::SCOPE_ADMIN !== $scope ) {

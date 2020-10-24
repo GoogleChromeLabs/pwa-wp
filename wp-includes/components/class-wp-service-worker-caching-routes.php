@@ -58,13 +58,13 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	 * @since 0.6
 	 * @var string[]
 	 */
-	const WORKBOX_CORE_PLUGINS = [
+	const WORKBOX_CORE_PLUGINS = array(
 		'backgroundSync',
 		'broadcastUpdate',
 		'cacheableResponse',
 		'expiration',
 		'rangeRequests',
-	];
+	);
 
 	/**
 	 * Registered caching routes.
@@ -80,7 +80,7 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	 * @since 0.2
 	 *
 	 * @param string $route Route regular expression, without delimiters.
-	 * @param array $args {
+	 * @param array  $args {
 	 *     Additional route arguments.
 	 *
 	 *     @type string     $strategy           Required. Strategy, can be WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE,
@@ -91,7 +91,7 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	 *     @type array|null $broadcast_update   Broadcast update plugin configuration. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-broadcast-update.BroadcastUpdatePlugin>.
 	 *     @type array|null $cacheable_response Cacheable response plugin configuration. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-cacheable-response.CacheableResponsePlugin>.
 	 *     @type array|null $background_sync    Background sync plugin configuration. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-background-sync.BackgroundSyncPlugin>.
-	 *     @type array      $plugins            Deprecated. Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
+	 *     @type array|null $plugins            Deprecated. Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
 	 *                                          This is deprecated in favor of defining the plugins in the top-level.
 	 *                                          See <https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins>.
 	 * }
@@ -211,7 +211,7 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 					'new wp.serviceWorker[ %s ][ %s ]( %s )',
 					wp_json_encode( $plugin_name ),
 					wp_json_encode( ucfirst( $plugin_name ) . 'Plugin' ),
-					wp_json_encode( self::convert_snake_case_array_keys_to_camel_case( $plugin_config ),  empty( $plugin_config ) ? JSON_FORCE_OBJECT : 0 )
+					wp_json_encode( self::convert_snake_case_array_keys_to_camel_case( $plugin_config ), empty( $plugin_config ) ? JSON_FORCE_OBJECT : 0 )
 				);
 			}
 		}

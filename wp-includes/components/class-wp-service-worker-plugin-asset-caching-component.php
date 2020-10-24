@@ -32,7 +32,7 @@ class WP_Service_Worker_Plugin_Asset_Caching_Component implements WP_Service_Wor
 		}
 
 		$config = array(
-			'route'      =>'^' . preg_quote( trailingslashit( plugins_url() ), '/' ) . '.*',
+			'route'      => '^' . preg_quote( trailingslashit( plugins_url() ), '/' ) . '.*',
 			'strategy'   => WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST,
 			'cache_name' => self::CACHE_NAME,
 			'expiration' => array(
