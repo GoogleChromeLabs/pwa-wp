@@ -137,7 +137,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 
 			// Provide default config if no config was already provided via deprecated filters above.
 			if ( empty( $config ) ) {
-				$caching_strategy_args = array(
+				$config = array(
 					'strategy'   => $caching_strategy,
 					'cache_name' => self::CACHE_NAME,
 				);
@@ -149,14 +149,14 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 					 * for the service worker to serve a previously-cached page and then for LCP to occur before 2.5s and
 					 * so remain within the good threshold.
 					 */
-					$caching_strategy_args['network_timeout_seconds'] = 2;
+					$config['network_timeout_seconds'] = 2;
 				}
 
 				/*
 				 * By default cache only the last 10 pages visited. This may end up being too high as it seems likely that
 				 * most site visitors will view one page and then maybe a couple others.
 				 */
-				$caching_strategy_args['expiration']['max_entries'] = 10;
+				$config['expiration']['max_entries'] = 10;
 			} else {
 				$config['strategy'] = $caching_strategy;
 			}
