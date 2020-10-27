@@ -106,13 +106,7 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 		if ( empty( $route ) || ! is_string( $route ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				esc_html(
-					sprintf(
-						/* translators: %s: caching strategy */
-						__( 'Route for the caching strategy "%s" must be a non-empty string.', 'pwa' ),
-						$route ? $route : '(null)'
-					)
-				),
+				esc_html__( 'Route must be a non-empty string.', 'pwa' ),
 				'0.2'
 			);
 			return false;
