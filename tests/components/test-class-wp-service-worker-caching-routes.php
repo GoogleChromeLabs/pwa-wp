@@ -39,6 +39,7 @@ class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_register
 	 * @covers ::register()
+	 * @covers ::get_all()
 	 */
 	public function test_register( $route, $args, $expected = null ) {
 		$this->instance->register( $route, $args );
@@ -152,6 +153,7 @@ class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
 	 * Test registering with plugins key.
 	 *
 	 * @covers ::register()
+	 * @covers ::normalize_configuration()
 	 * @expectedIncorrectUsage WP_Service_Worker_Caching_Routes::register
 	 */
 	public function test_register_obsolete_plugins_key() {
@@ -190,6 +192,7 @@ class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
 	 * Test registering with unexpected keys.
 	 *
 	 * @covers ::register()
+	 * @covers ::normalize_configuration()
 	 * @expectedIncorrectUsage WP_Service_Worker_Caching_Routes::register
 	 */
 	public function test_register_unexpected_keys() {
@@ -240,6 +243,7 @@ class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
 	 * Test registering a route with an invalid strategy.
 	 *
 	 * @covers ::register()
+	 * @covers ::normalize_configuration()
 	 * @expectedIncorrectUsage WP_Service_Worker_Caching_Routes::register
 	 */
 	public function test_register_invalid_strategy() {
@@ -250,9 +254,40 @@ class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
 	 * Test registering a route without a strategy.
 	 *
 	 * @covers ::register()
+	 * @covers ::normalize_configuration()
 	 * @expectedIncorrectUsage WP_Service_Worker_Caching_Routes::register
 	 */
 	public function test_register_missing_strategy() {
 		$this->instance->register( '/\.(?:js|css)$/', array() );
+	}
+
+	/**
+	 * Test prepare_strategy_args_for_js_export.
+	 *
+	 * @covers ::prepare_strategy_args_for_js_export()
+	 */
+	public function test_prepare_strategy_args_for_js_export() {
+		$prepared = WP_Service_Worker_Caching_Routes::prepare_strategy_args_for_js_export(
+			array(
+				'strategy'                => WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST,
+				'network_timeout_seconds' => 2,
+				'cache_name'              => 'bank-cash',
+				'expiration'              => array(
+					'max_entries'     => 4,
+					'max_age_seconds' => 20,
+				),
+				'broadcast_update'        => array(),
+			)
+		);
+
+		$this->assertContains( WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST, $prepared );
+		$this->assertContains( '"strategy":"NetworkFirst"', $prepared );
+		$this->assertContains( '"networkTimeoutSeconds":2', $prepared );
+		$this->assertContains( '"cacheName":"bank-cash"', $prepared );
+		$this->assertContains( '{"maxEntries":4,"maxAgeSeconds":20}', $prepared );
+		$this->assertContains( 'broadcastUpdate', $prepared );
+		$this->assertContains( 'BroadcastUpdatePlugin', $prepared );
+		$this->assertContains( 'expiration', $prepared );
+		$this->assertContains( 'ExpirationPlugin', $prepared );
 	}
 }
