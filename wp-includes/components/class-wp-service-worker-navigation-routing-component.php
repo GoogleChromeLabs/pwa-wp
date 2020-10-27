@@ -176,18 +176,21 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 * }
 			 */
 			$config = apply_filters( 'wp_service_worker_navigation_caching', $config );
-			if ( empty( $config ) ) {
-				return;
-			}
 
-			// Validate and normalize configuration.
-			$errors = new WP_Error();
-			$config = WP_Service_Worker_Caching_Routes::normalize_configuration( $config, $errors );
-			foreach ( $errors->errors as $error_messages ) {
-				_doing_it_wrong( __METHOD__, esc_html( current( $error_messages ) ), '0.6' );
-			}
-			if ( isset( $errors->errors['missing_strategy'] ) || isset( $errors->errors['invalid_strategy'] ) ) {
-				return;
+			if ( is_array( $config ) ) {
+				// Validate and normalize configuration.
+				$errors = new WP_Error();
+				$config = WP_Service_Worker_Caching_Routes::normalize_configuration( $config, $errors );
+				foreach ( $errors->errors as $error_messages ) {
+					_doing_it_wrong( __METHOD__, esc_html( current( $error_messages ) ), '0.6' );
+				}
+				if ( isset( $errors->errors['missing_strategy'] ) || isset( $errors->errors['invalid_strategy'] ) ) {
+					$config['strategy'] = WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY;
+				}
+			} else {
+				$config = array(
+					'strategy' => WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY,
+				);
 			}
 
 			$caching_strategy = $config['strategy'];
