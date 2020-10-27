@@ -101,6 +101,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 *
 			 * @since 0.2
 			 * @deprecated Use wp_service_worker_navigation_caching instead.
+			 * @todo Use apply_filters_deprecated() in subsequent release.
 			 * @see WP_Service_Worker_Caching_Routes::register()
 			 *
 			 * @param string $caching_strategy Caching strategy to use for frontend navigation requests.
@@ -115,25 +116,12 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 *
 			 * @since 0.2
 			 * @deprecated Use wp_service_worker_navigation_caching instead.
+			 * @todo Use apply_filters_deprecated() in subsequent release.
 			 * @see WP_Service_Worker_Caching_Routes::register()
 			 *
 			 * @param array $caching_strategy_args Caching strategy args.
 			 */
 			$config = apply_filters( 'wp_service_worker_navigation_caching_strategy_args', array() );
-
-			// Migrate legacy format.
-			if ( ! empty( $config ) ) {
-				if ( isset( $config['plugins'] ) ) {
-					// Merge and flatten strategy and args to pass into a singular wp_service_worker_navigation_caching filter.
-					$plugins = $config['plugins'];
-					unset( $config['plugins'] );
-					$config = array_merge(
-						$config,
-						$plugins
-					);
-				}
-				$config = WP_Service_Worker_Caching_Routes::convert_camel_case_array_keys_to_snake_case( $config );
-			}
 
 			// Provide default config if no config was already provided via deprecated filters above.
 			if ( empty( $config ) ) {
@@ -158,6 +146,10 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 				 */
 				$config['expiration']['max_entries'] = 10;
 			} else {
+				// Migrate legacy format to normalized format to pass into wp_service_worker_navigation_caching filter.
+				// The WP_Error is not stored since this filter is deprecated.
+				$config = WP_Service_Worker_Caching_Routes::normalize_configuration( $config, new WP_Error() );
+
 				$config['strategy'] = $caching_strategy;
 			}
 
@@ -184,11 +176,20 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 * }
 			 */
 			$config = apply_filters( 'wp_service_worker_navigation_caching', $config );
-
-			// If strategy was removed, abort serving navigation caching strategy.
-			if ( empty( $config ) || ! isset( $config['strategy'], $config['cache_name'] ) ) {
+			if ( empty( $config ) ) {
 				return;
 			}
+
+			// Validate and normalize configuration.
+			$errors = new WP_Error();
+			$config = WP_Service_Worker_Caching_Routes::normalize_configuration( $config, $errors );
+			foreach ( $errors->errors as $error ) {
+				_doing_it_wrong( __METHOD__, esc_html( $error['message'] ), '0.6' );
+			}
+			if ( isset( $errors->errors['missing_strategy'] ) || isset( $errors->errors['invalid_strategy'] ) ) {
+				return;
+			}
+
 			$caching_strategy = $config['strategy'];
 			unset( $config['strategy'] );
 

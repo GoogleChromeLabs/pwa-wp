@@ -76,7 +76,7 @@ class WP_Service_Worker_Theme_Asset_Caching_Component implements WP_Service_Work
 		 */
 		$config = apply_filters( 'wp_service_worker_theme_asset_caching', $config );
 
-		if ( ! is_array( $config ) || ! isset( $config['route'], $config['strategy'], $config['cache_name'] ) ) {
+		if ( ! is_array( $config ) || ! isset( $config['route'], $config['strategy'] ) ) {
 			return;
 		}
 

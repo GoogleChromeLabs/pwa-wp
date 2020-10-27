@@ -95,7 +95,7 @@ class WP_Service_Worker_Uploaded_Image_Caching_Component implements WP_Service_W
 		 */
 		$config = apply_filters( 'wp_service_worker_uploaded_image_caching', $config );
 
-		if ( ! is_array( $config ) || ! isset( $config['route'], $config['strategy'], $config['cache_name'] ) ) {
+		if ( ! is_array( $config ) || ! isset( $config['route'], $config['strategy'] ) ) {
 			return;
 		}
 
