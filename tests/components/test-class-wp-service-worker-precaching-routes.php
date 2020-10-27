@@ -7,6 +7,8 @@
 
 /**
  * Tests for class WP_Service_Worker_Precaching_Routes.
+ *
+ * @coversDefaultClass WP_Service_Worker_Precaching_Routes
  */
 class Test_WP_Service_Worker_Precaching_Routes extends WP_UnitTestCase {
 
@@ -35,7 +37,7 @@ class Test_WP_Service_Worker_Precaching_Routes extends WP_UnitTestCase {
 	 * @param array  $args URL arguments.
 	 *
 	 * @dataProvider data_register
-	 * @covers WP_Service_Worker_Precaching_Routes::register()
+	 * @covers ::register()
 	 */
 	public function test_register( $url, $args = array() ) {
 		$this->instance->register( $url, $args );
@@ -87,7 +89,7 @@ class Test_WP_Service_Worker_Precaching_Routes extends WP_UnitTestCase {
 	/**
 	 * Test registering a route that is empty.
 	 *
-	 * @covers WP_Service_Worker_Precaching_Routes::register()
+	 * @covers ::register()
 	 */
 	public function test_register_empty_url() {
 		$this->setExpectedIncorrectUsage( 'WP_Service_Worker_Precaching_Routes::register' );

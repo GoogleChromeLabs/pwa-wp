@@ -183,8 +183,8 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			// Validate and normalize configuration.
 			$errors = new WP_Error();
 			$config = WP_Service_Worker_Caching_Routes::normalize_configuration( $config, $errors );
-			foreach ( $errors->errors as $error ) {
-				_doing_it_wrong( __METHOD__, esc_html( $error['message'] ), '0.6' );
+			foreach ( $errors->errors as $error_messages ) {
+				_doing_it_wrong( __METHOD__, esc_html( current( $error_messages ) ), '0.6' );
 			}
 			if ( isset( $errors->errors['missing_strategy'] ) || isset( $errors->errors['invalid_strategy'] ) ) {
 				return;
