@@ -63,7 +63,7 @@ class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
 	 */
 	public function data_register() {
 		return array(
-			'js_or_css'  => array(
+			'js_or_css'            => array(
 				'\.(?:js|css)$',
 				array(
 					'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE,
@@ -75,7 +75,7 @@ class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
 					'route'      => '\.(?:js|css)$',
 				),
 			),
-			'images'     => array(
+			'images'               => array(
 				'\.(?:png|gif|jpg|jpeg|svg)$',
 				array(
 					'strategy'  => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
@@ -87,7 +87,7 @@ class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
 					'route'      => '\.(?:png|gif|jpg|jpeg|svg)$',
 				),
 			),
-			'firebase'   => array(
+			'firebase'             => array(
 				'https://hacker-news.firebaseio.com/v0/*',
 				array(
 					'strategy'              => WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST,
@@ -101,13 +101,13 @@ class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
 					'route'                   => 'https://hacker-news.firebaseio.com/v0/*',
 				),
 			),
-			'googleapis' => array(
+			'googleapis'           => array(
 				'.*(?:googleapis)\.com.*$',
 				array(
 					'strategy' => WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY,
 				),
 			),
-			'gstatic_1'  => array(
+			'gstatic_1'            => array(
 				'.*(?:gstatic)\.com.*$',
 				array(
 					'strategy'          => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
@@ -125,6 +125,24 @@ class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
 					),
 					'broadcast_update'   => array(),
 					'cacheable_response' => array(),
+				),
+			),
+			'empty_plugin_configs' => array(
+				'.*(?:gstatic)\.com.*$',
+				array(
+					'strategy'          => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
+					'expiration'        => array(
+						'maxAgeSeconds' => 3,
+					),
+					'broadcastUpdate'   => null,
+					'cacheableResponse' => false,
+				),
+				array(
+					'route'      => '.*(?:gstatic)\.com.*$',
+					'strategy'   => WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
+					'expiration' => array(
+						'max_age_seconds' => 3,
+					),
 				),
 			),
 		);
