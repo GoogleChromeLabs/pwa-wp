@@ -79,9 +79,9 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	 *
 	 * @since 0.2
 	 *
-	 * @param string $route Route regular expression, without delimiters.
-	 * @param array  $args {
-	 *     Additional route arguments.
+	 * @param string       $route Route regular expression, without delimiters.
+	 * @param array|string $args {
+	 *     Additional route arguments, or else just the strategy name as a string.
 	 *
 	 *     @type string     $strategy           Strategy, can be WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE,
 	 *                                          WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST, WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST,
@@ -101,6 +101,13 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	public function register( $route, $args = array() ) {
 		if ( is_string( $args ) ) {
 			$args = array( 'strategy' => $args );
+		} elseif ( ! is_array( $args ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				esc_html__( 'Args must either be an array or a strategy name as a string.', 'pwa' ),
+				'0.6'
+			);
+			return false;
 		}
 
 		if ( empty( $route ) || ! is_string( $route ) ) {
