@@ -123,7 +123,7 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 		$args   = self::normalize_configuration( $args, $errors );
 		if ( ! empty( $errors->errors ) ) {
 			foreach ( $errors->errors as $error_messages ) {
-				_doing_it_wrong( __METHOD__, esc_html( current( $error_messages ) ), '0.6' );
+				_doing_it_wrong( __METHOD__, esc_html( implode( ' ', $error_messages ) ), '0.6' );
 			}
 
 			// The strategy is the only hard error.
