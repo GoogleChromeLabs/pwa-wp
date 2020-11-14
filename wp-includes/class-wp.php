@@ -9,7 +9,7 @@
 /**
  * Adds rewrite rules to enable pretty permalinks for the service worker script.
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  */
 function pwa_add_rewrite_rules() {
 	global $wp_rewrite;

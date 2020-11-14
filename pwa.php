@@ -269,6 +269,8 @@ register_activation_hook( PWA_PLUGIN_FILE, '_pwa_activate_plugin' );
 
 /**
  * Plugin deactivation hook.
+ *
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  */
 function _pwa_deactivate_plugin() {
 	global $wp_rewrite;
