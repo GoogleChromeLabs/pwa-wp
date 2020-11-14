@@ -133,6 +133,8 @@ class WP_Service_Worker_Caching_Routes implements WP_Service_Worker_Registry {
 	/**
 	 * Normalize configuration.
 	 *
+	 * @since 0.6
+	 *
 	 * @param array    $config Configuration.
 	 * @param WP_Error $errors Errors object. Issues with the config are added to this collection.
 	 * @return array Normalized configuration.
