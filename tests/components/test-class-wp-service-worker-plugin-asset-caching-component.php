@@ -95,9 +95,10 @@ class Test_WP_Service_Worker_Plugin_Asset_Caching_Component extends WP_UnitTestC
 		$component = new WP_Service_Worker_Plugin_Asset_Caching_Component();
 
 		$scripts = new WP_Service_Worker_Scripts(
+			new WP_Service_Worker_Caching_Routes(),
+			new WP_Service_Worker_Precaching_Routes(),
 			array(
 				'plugin_asset_caching' => $component,
-				'caching_routes'       => new WP_Service_Worker_Caching_Routes_Component(),
 			)
 		);
 

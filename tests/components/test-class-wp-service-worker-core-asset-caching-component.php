@@ -93,9 +93,10 @@ class Test_WP_Service_Worker_Core_Asset_Caching_Component extends WP_UnitTestCas
 		$component = new WP_Service_Worker_Core_Asset_Caching_Component();
 
 		$scripts = new WP_Service_Worker_Scripts(
+			new WP_Service_Worker_Caching_Routes(),
+			new WP_Service_Worker_Precaching_Routes(),
 			array(
 				'core_asset_caching' => $component,
-				'caching_routes'     => new WP_Service_Worker_Caching_Routes_Component(),
 			)
 		);
 
