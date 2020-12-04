@@ -10,7 +10,7 @@
  *
  * @since 0.2
  */
-class WP_Service_Worker_Caching_Routes_Component implements WP_Service_Worker_Component, WP_Service_Worker_Registry_Aware {
+class WP_Service_Worker_Caching_Routes_Component implements WP_Service_Worker_Component {
 
 	/**
 	 * Caching routes registry.
@@ -26,9 +26,11 @@ class WP_Service_Worker_Caching_Routes_Component implements WP_Service_Worker_Co
 	 * Instantiates the registry.
 	 *
 	 * @since 0.2
+	 *
+	 * @param WP_Service_Worker_Caching_Routes $registry Registry.
 	 */
-	public function __construct() {
-		$this->registry = new WP_Service_Worker_Caching_Routes();
+	public function __construct( WP_Service_Worker_Caching_Routes $registry ) {
+		$this->registry = $registry;
 	}
 
 	/**
@@ -57,15 +59,6 @@ class WP_Service_Worker_Caching_Routes_Component implements WP_Service_Worker_Co
 	 */
 	public function get_priority() {
 		return 999999;
-	}
-
-	/**
-	 * Gets the registry.
-	 *
-	 * @return WP_Service_Worker_Caching_Routes Caching routes registry instance.
-	 */
-	public function get_registry() {
-		return $this->registry;
 	}
 
 	/**

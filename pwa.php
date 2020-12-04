@@ -197,12 +197,6 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-detection.php';
 /** WP_HTTPS_UI Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-ui.php';
 
-/** WP_Service_Worker_Registry Interface */
-require_once PWA_PLUGIN_DIR . '/wp-includes/interface-wp-service-worker-registry.php';
-
-/** WP_Service_Worker_Registry_Aware Interface */
-require_once PWA_PLUGIN_DIR . '/wp-includes/interface-wp-service-worker-registry-aware.php';
-
 /** WP_Service_Workers Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-workers.php';
 

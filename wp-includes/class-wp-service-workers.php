@@ -13,7 +13,7 @@
  *
  * @see WP_Dependencies
  */
-class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
+class WP_Service_Workers {
 
 	/**
 	 * Param for service workers.
@@ -51,11 +51,30 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 	protected $scripts;
 
 	/**
+	 * Caching routes.
+	 *
+	 * @since 0.6
+	 * @var WP_Service_Worker_Caching_Routes
+	 */
+	protected $caching_routes;
+
+	/**
+	 * Precaching routes.
+	 *
+	 * @since 0.6
+	 * @var WP_Service_Worker_Precaching_Routes
+	 */
+	protected $precaching_routes;
+
+	/**
 	 * Constructor.
 	 *
 	 * Instantiates the service worker scripts registry.
 	 */
 	public function __construct() {
+		$this->precaching_routes = new WP_Service_Worker_Precaching_Routes();
+		$this->caching_routes    = new WP_Service_Worker_Caching_Routes();
+
 		$components = array(
 			'configuration'          => new WP_Service_Worker_Configuration_Component(),
 			'navigation_routing'     => new WP_Service_Worker_Navigation_Routing_Component(),
@@ -63,11 +82,11 @@ class WP_Service_Workers implements WP_Service_Worker_Registry_Aware {
 			'theme_asset_caching'    => new WP_Service_Worker_Theme_Asset_Caching_Component(),
 			'plugin_asset_caching'   => new WP_Service_Worker_Plugin_Asset_Caching_Component(),
 			'uploaded_image_caching' => new WP_Service_Worker_Uploaded_Image_Caching_Component(),
-			'precaching_routes'      => new WP_Service_Worker_Precaching_Routes_Component(),
-			'caching_routes'         => new WP_Service_Worker_Caching_Routes_Component(),
+			'precaching_routes'      => new WP_Service_Worker_Precaching_Routes_Component( $this->precaching_routes ),
+			'caching_routes'         => new WP_Service_Worker_Caching_Routes_Component( $this->caching_routes ),
 		);
 
-		$this->scripts = new WP_Service_Worker_Scripts( $components );
+		$this->scripts = new WP_Service_Worker_Scripts( $this->caching_routes, $this->precaching_routes, $components );
 	}
 
 	/**

@@ -102,7 +102,10 @@ class WP_Service_Worker_Uploaded_Image_Caching_Component implements WP_Service_W
 		$route = $config['route'];
 		unset( $config['route'] );
 
-		$scripts->caching_routes()->register( $route, $config );
+		$strategy = $config['strategy'];
+		unset( $config['strategy'] );
+
+		$scripts->caching_routes()->register( $route, $strategy, $config );
 	}
 
 	/**

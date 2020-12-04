@@ -12,11 +12,8 @@
  * @since 0.1
  *
  * @see WP_Dependencies
- *
- * @method WP_Service_Worker_Precaching_Routes precaching_routes()
- * @method WP_Service_Worker_Caching_Routes caching_routes()
  */
-class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_Registry {
+class WP_Service_Worker_Scripts extends WP_Scripts {
 
 	/**
 	 * Service worker components.
@@ -27,30 +24,36 @@ class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_
 	protected $components = array();
 
 	/**
-	 * Service worker component registries.
+	 * Caching routes.
 	 *
-	 * @since 0.2
-	 * @var array
+	 * @since 0.6
+	 * @var WP_Service_Worker_Caching_Routes
 	 */
-	protected $registries = array();
+	protected $caching_routes;
+
+	/**
+	 * Precaching routes.
+	 *
+	 * @since 0.6
+	 * @var WP_Service_Worker_Precaching_Routes
+	 */
+	protected $precaching_routes;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since 0.2
 	 *
-	 * @param array $components Optional. Service worker components as $slug => $instance pairs.
-	 *                          Each component must implement `WP_Service_Worker_Component`.
-	 *                          Default empty array.
+	 * @param WP_Service_Worker_Caching_Routes    $caching_routes    Caching routes.
+	 * @param WP_Service_Worker_Precaching_Routes $precaching_routes Precaching routes.
+	 * @param array                               $components Optional. Service worker components as $slug => $instance pairs.
+	 *                                                        Each component must implement `WP_Service_Worker_Component`.
+	 *                                                        Default empty array.
 	 */
-	public function __construct( $components = array() ) {
-		$this->components = $components;
-		foreach ( $this->components as $slug => $instance ) {
-			if ( $instance instanceof WP_Service_Worker_Registry_Aware ) {
-				$this->registries[ $slug ] = $instance->get_registry();
-			}
-		}
-
+	public function __construct( $caching_routes, $precaching_routes, $components = array() ) {
+		$this->caching_routes    = $caching_routes;
+		$this->precaching_routes = $precaching_routes;
+		$this->components        = $components;
 		parent::__construct();
 	}
 
@@ -77,20 +80,25 @@ class WP_Service_Worker_Scripts extends WP_Scripts implements WP_Service_Worker_
 	}
 
 	/**
-	 * Magic call method. Allows accessing component registries.
+	 * Get caching routes registry.
 	 *
-	 * @since 0.2
+	 * @since 0.6
 	 *
-	 * @param string $method Method name. Should be the identifier for a component registry.
-	 * @param array  $args   Method arguments.
-	 * @return WP_Service_Worker_Registry|null Registry instance if valid method name, otherwise null.
+	 * @return WP_Service_Worker_Caching_Routes Registry.
 	 */
-	public function __call( $method, $args ) {
-		if ( isset( $this->registries[ $method ] ) ) {
-			return $this->registries[ $method ];
-		}
+	public function caching_routes() {
+		return $this->caching_routes;
+	}
 
-		return null;
+	/**
+	 * Get precaching routes registry.
+	 *
+	 * @since 0.6
+	 *
+	 * @return WP_Service_Worker_Precaching_Routes Registry.
+	 */
+	public function precaching_routes() {
+		return $this->precaching_routes;
 	}
 
 	/**

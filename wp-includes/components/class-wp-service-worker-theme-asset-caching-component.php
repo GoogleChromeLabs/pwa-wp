@@ -43,7 +43,7 @@ class WP_Service_Worker_Theme_Asset_Caching_Component implements WP_Service_Work
 			'strategy'   => WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST,
 			'cache_name' => self::CACHE_NAME,
 			'expiration' => array(
-				'maxEntries' => 34,
+				'max_entries' => 34,
 			),
 		);
 
@@ -83,7 +83,10 @@ class WP_Service_Worker_Theme_Asset_Caching_Component implements WP_Service_Work
 		$route = $config['route'];
 		unset( $config['route'] );
 
-		$scripts->caching_routes()->register( $route, $config );
+		$strategy = $config['strategy'];
+		unset( $config['strategy'] );
+
+		$scripts->caching_routes()->register( $route, $strategy, $config );
 	}
 
 	/**

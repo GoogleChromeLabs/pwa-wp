@@ -76,7 +76,10 @@ class WP_Service_Worker_Core_Asset_Caching_Component implements WP_Service_Worke
 		$route = $config['route'];
 		unset( $config['route'] );
 
-		$scripts->caching_routes()->register( $route, $config );
+		$strategy = $config['strategy'];
+		unset( $config['strategy'] );
+
+		$scripts->caching_routes()->register( $route, $strategy, $config );
 	}
 
 	/**
