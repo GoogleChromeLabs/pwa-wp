@@ -38,14 +38,14 @@ jobs:
   include:
     - stage: test
       php: "7.3"
-      env: WP_VERSION=trunk  PHPUNIT_VERSION=7 WP_TRAVISCI=lint,phpunit
+      env: WP_VERSION=trunk  PHPUNIT_VERSION=7 WP_TRAVISCI=lint,test
     - php: "7.2"
-      env: WP_VERSION=latest PHPUNIT_VERSION=7 WP_TRAVISCI=phpunit
+      env: WP_VERSION=latest PHPUNIT_VERSION=7 WP_TRAVISCI=test
     - php: "7.1"
-      env: WP_VERSION=latest PHPUNIT_VERSION=7 WP_TRAVISCI=phpunit
+      env: WP_VERSION=latest PHPUNIT_VERSION=7 WP_TRAVISCI=test
     - php: "7.0"
-      env: WP_VERSION=latest PHPUNIT_VERSION=6 WP_TRAVISCI=phpunit
+      env: WP_VERSION=latest PHPUNIT_VERSION=6 WP_TRAVISCI=test
     - php: "5.6"
-      env: WP_VERSION=latest PHPUNIT_VERSION=5 WP_TRAVISCI=phpunit
+      env: WP_VERSION=latest PHPUNIT_VERSION=5 WP_TRAVISCI=test
     - php: "5.6"
-      env: WP_VERSION=latest PHPUNIT_VERSION=5 WP_TRAVISCI=phpunit
+      env: WP_VERSION=latest PHPUNIT_VERSION=5 WP_TRAVISCI=test
