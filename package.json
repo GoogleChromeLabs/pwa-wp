@@ -1,6 +1,16 @@
 {
   "name": "pwa-wp",
-  "title": "PWA feature plugin for WordPress Core",
+  "title": "PWA",
+  "description": "Feature plugin to add Progressive Web Apps (PWA) to WordPress Core",
+  "author": "PWA Plugin Contributors",
+  "license": "GPL-2.0-or-later",
+  "keywords": [
+    "pwa",
+    "progressive web app",
+    "service worker",
+    "web app manifest",
+    "https"
+  ],
   "homepage": "https://github.com/GoogleChromeLabs/pwa-wp",
   "repository": {
     "type": "git",
@@ -9,8 +19,8 @@
   "bugs": {
     "url": "https://github.com/GoogleChromeLabs/pwa-wp/issues"
   },
-  "license": "GPL-2.0-or-later",
   "private": true,
+  "dependencies": {},
   "devDependencies": {
     "@wordpress/eslint-plugin": "7.3.0",
     "@wordpress/plugins": "2.23.0",
@@ -65,6 +75,5 @@
     "rules": {
       "require-version": "off"
     }
-  },
-  "dependencies": {}
+  }
 }
