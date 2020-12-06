@@ -179,7 +179,7 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 
 		$this->assertEmpty( $route['args'] );
 		$this->assertEquals( $methods, $route['methods'] );
-		$this->assertEquals( array( $this->instance, 'get_manifest' ), $route['callback'] );
+		$this->assertEquals( array( $this->instance, 'rest_serve_manifest' ), $route['callback'] );
 		$this->assertEquals( array( $this->instance, 'rest_permission' ), $route['permission_callback'] );
 	}
 
