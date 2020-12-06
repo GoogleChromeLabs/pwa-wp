@@ -5,7 +5,7 @@
   "homepage": "https://github.com/GoogleChromeLabs/pwa-wp",
   "license": "GPL-2.0-or-later",
   "require": {
-    "php": "^5.6.0 || ^7.0"
+    "php": "^5.6 || ^7.0 || ^8.0"
   },
   "require-dev": {
     "dealerdirect/phpcodesniffer-composer-installer": "0.7.0",
