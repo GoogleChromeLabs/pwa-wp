@@ -84,7 +84,11 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 	 * @covers WP_HTTPS_UI::register_settings()
 	 */
 	public function test_register_settings() {
-		global $new_allowed_options, $new_whitelist_options, $wp_registered_settings;
+		global $new_whitelist_options, $new_allowed_options, $wp_registered_settings;
+
+		if ( isset( $new_whitelist_options ) && ! isset( $new_allowed_options ) ) {
+			$new_allowed_options = &$new_whitelist_options;
+		}
 
 		$base_expected_settings = array(
 			'type'         => 'boolean',
@@ -100,8 +104,7 @@ class Test_WP_HTTPS_UI extends WP_UnitTestCase {
 			)
 		);
 		$this->instance->register_settings();
-		$allowed_options = isset( $new_allowed_options ) ? $new_allowed_options : $new_whitelist_options;
-		$this->assertTrue( in_array( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, $allowed_options[ WP_HTTPS_UI::OPTION_GROUP ], true ) );
+		$this->assertTrue( in_array( WP_HTTPS_UI::UPGRADE_HTTPS_OPTION, $new_allowed_options[ WP_HTTPS_UI::OPTION_GROUP ], true ) );
 		$this->assertEquals(
 			$expected_https_settings,
 			$wp_registered_settings[ WP_HTTPS_UI::UPGRADE_HTTPS_OPTION ]

@@ -279,10 +279,24 @@ class WP_Web_App_Manifest {
 			self::REST_ROUTE,
 			array(
 				'methods'             => 'GET',
-				'callback'            => array( $this, 'get_manifest' ),
+				'callback'            => array( $this, 'rest_serve_manifest' ),
 				'permission_callback' => array( $this, 'rest_permission' ),
 			)
 		);
+	}
+
+	/**
+	 * Serve the manifest file.
+	 *
+	 * This serves our manifest file and sets the content type to `application/manifest+json`.
+	 *
+	 * @return WP_REST_Response Response containing the manifest and the right content-type header.
+	 */
+	public function rest_serve_manifest() {
+		$response = rest_ensure_response( $this->get_manifest() );
+		$response->header( 'Content-Type', 'application/manifest+json' );
+
+		return $response;
 	}
 
 	/**

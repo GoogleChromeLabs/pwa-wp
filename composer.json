@@ -1,16 +1,30 @@
 {
   "name": "google/pwa-wp",
+  "type": "wordpress-plugin",
   "description": "WordPress plugin for adding PWA support.",
   "homepage": "https://github.com/GoogleChromeLabs/pwa-wp",
-  "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
   "require": {
-    "php": "^5.6.0 || ^7.0"
+    "php": "^5.6 || ^7.0 || ^8.0"
   },
   "require-dev": {
     "dealerdirect/phpcodesniffer-composer-installer": "0.7.0",
     "phpcompatibility/phpcompatibility-wp": "2.1.0",
+    "phpunit/phpunit": "^5.7 || ^6.5 || ^7.5",
     "wp-coding-standards/wpcs": "2.3.0",
-    "xwp/wp-dev-lib": "1.6.4"
+    "xwp/wp-dev-lib": "1.6.5"
+  },
+  "config": {
+    "platform": {
+      "php": "5.6"
+    },
+    "sort-packages": true
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "scripts": {
+    "pre-commit": [
+      "npm run lint:staged"
+    ]
   }
 }
