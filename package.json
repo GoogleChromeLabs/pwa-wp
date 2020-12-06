@@ -44,7 +44,7 @@
     "lint:pkg-json": "wp-scripts lint-pkg-json --ignorePath .gitignore",
     "lint:staged": "lint-staged",
     "test": "npm-run-all --parallel test:*",
-    "test:php": "phpunit"
+    "test:php": "vendor/bin/phpunit"
   },
   "lint-staged": {
     "package.json": [
