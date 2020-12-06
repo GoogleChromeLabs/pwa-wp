@@ -1,34 +1,70 @@
 {
- "name": "pwa-wp",
- "title": "PWA feature plugin for WordPress Core",
- "homepage": "https://github.com/GoogleChromeLabs/pwa-wp",
- "repository": {
-  "type": "git",
-  "url": "https://github.com/GoogleChromeLabs/pwa-wp.git"
- },
- "license": "GPL-2.0-or-later",
- "private": true,
- "devDependencies": {
-  "@wordpress/eslint-plugin": "7.3.0",
-  "eslint": "7.14.0",
-  "grunt": "1.3.0",
-  "grunt-contrib-clean": "2.0.0",
-  "grunt-contrib-copy": "1.0.0",
-  "grunt-shell": "3.0.1",
-  "grunt-wp-deploy": "2.1.2",
-  "npm-run-all": "4.1.5",
-  "prettier": "2.2.1",
-  "workbox-cli": "5.1.4"
- },
- "scripts": {
-  "generate-readme": "./vendor/xwp/wp-dev-lib/scripts/generate-markdown-readme && sed -i.bak 's/travis-ci\\.org/travis-ci.com/g' readme.md && rm readme.md.bak",
-  "build": "grunt build; grunt create-build-zip",
-  "deploy": "grunt deploy",
-  "lint": "npm-run-all --parallel lint:*",
-  "lint:js": "eslint .",
-  "lint:php": "vendor/bin/phpcs",
-  "test": "npm-run-all --parallel test:*",
-  "test:php": "phpunit"
- },
- "dependencies": {}
+  "name": "pwa-wp",
+  "title": "PWA feature plugin for WordPress Core",
+  "homepage": "https://github.com/GoogleChromeLabs/pwa-wp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GoogleChromeLabs/pwa-wp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/GoogleChromeLabs/pwa-wp/issues"
+  },
+  "license": "GPL-2.0-or-later",
+  "private": true,
+  "devDependencies": {
+    "@wordpress/eslint-plugin": "7.3.0",
+    "@wordpress/plugins": "2.23.0",
+    "@wordpress/scripts": "12.5.0",
+    "eslint": "7.14.0",
+    "eslint-plugin-eslint-comments": "3.2.0",
+    "eslint-plugin-import": "2.22.1",
+    "eslint-plugin-jsdoc": "30.7.8",
+    "grunt": "1.3.0",
+    "grunt-contrib-clean": "2.0.0",
+    "grunt-contrib-copy": "1.0.0",
+    "grunt-shell": "3.0.1",
+    "grunt-wp-deploy": "2.1.2",
+    "lint-staged": "10.5.2",
+    "npm-run-all": "4.1.5",
+    "prettier": "2.2.1",
+    "workbox-cli": "5.1.4"
+  },
+  "scripts": {
+    "build": "grunt build; grunt create-build-zip",
+    "check-engines": "wp-scripts check-engines",
+    "check-licenses": "wp-scripts check-licenses --production",
+    "deploy": "grunt deploy",
+    "generate-readme": "./vendor/xwp/wp-dev-lib/scripts/generate-markdown-readme && sed -i.bak 's/travis-ci\\.org/travis-ci.com/g' readme.md && rm readme.md.bak",
+    "lint": "npm-run-all --parallel lint:*",
+    "lint:js": "wp-scripts lint-js",
+    "lint:js:fix": "npm run lint:js -- --fix",
+    "lint:js:report": "npm run lint:js -- --output-file lint-js-report.json --format json .",
+    "lint:php": "vendor/bin/phpcs",
+    "lint:php:fix": "./bin/phpcbf.sh",
+    "lint:pkg-json": "wp-scripts lint-pkg-json --ignorePath .gitignore",
+    "lint:staged": "lint-staged",
+    "test": "npm-run-all --parallel test:*",
+    "test:php": "phpunit"
+  },
+  "lint-staged": {
+    "package.json": [
+      "npm run lint:pkg-json"
+    ],
+    "**/*.js": [
+      "npm run lint:js"
+    ],
+    "**/!(pwa).php": [
+      "npm run lint:php"
+    ],
+    "pwa.php": [
+      "vendor/bin/phpcs --runtime-set testVersion 5.2-"
+    ]
+  },
+  "npmpackagejsonlint": {
+    "extends": "@wordpress/npm-package-json-lint-config",
+    "rules": {
+      "require-version": "off"
+    }
+  },
+  "dependencies": {}
 }
