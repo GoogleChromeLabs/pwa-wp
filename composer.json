@@ -19,5 +19,12 @@
       "php": "5.6"
     },
     "sort-packages": true
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "scripts": {
+    "pre-commit": [
+      "npm run lint:staged"
+    ]
   }
 }
