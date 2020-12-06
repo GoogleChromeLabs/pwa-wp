@@ -25,7 +25,7 @@
     "@wordpress/eslint-plugin": "7.3.0",
     "@wordpress/plugins": "2.23.0",
     "@wordpress/scripts": "12.5.0",
-    "eslint": "7.14.0",
+    "eslint": "7.15.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.22.1",
     "eslint-plugin-jsdoc": "30.7.8",
