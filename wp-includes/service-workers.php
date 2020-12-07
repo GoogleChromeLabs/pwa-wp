@@ -84,9 +84,9 @@ function wp_register_service_worker_caching_route( $route, $args = array() ) {
  *
  * @param int $scope Scope for which service worker to output. Can be WP_Service_Workers::SCOPE_FRONT (default) or WP_Service_Workers::SCOPE_ADMIN.
  * @return string Service Worker URL.
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  */
 function wp_get_service_worker_url( $scope = WP_Service_Workers::SCOPE_FRONT ) {
-	/* @var WP_Rewrite $wp_rewrite */
 	global $wp_rewrite;
 
 	if ( WP_Service_Workers::SCOPE_FRONT !== $scope && WP_Service_Workers::SCOPE_ADMIN !== $scope ) {

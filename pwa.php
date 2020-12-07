@@ -197,12 +197,6 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-detection.php';
 /** WP_HTTPS_UI Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-ui.php';
 
-/** WP_Service_Worker_Registry Interface */
-require_once PWA_PLUGIN_DIR . '/wp-includes/interface-wp-service-worker-registry.php';
-
-/** WP_Service_Worker_Registry_Aware Interface */
-require_once PWA_PLUGIN_DIR . '/wp-includes/interface-wp-service-worker-registry-aware.php';
-
 /** WP_Service_Workers Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-workers.php';
 
@@ -215,6 +209,10 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/components/interface-wp-service-work
 /** WP_Service_Worker_Component Implementation Classes */
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-configuration-component.php';
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-navigation-routing-component.php';
+require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-core-asset-caching-component.php';
+require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-theme-asset-caching-component.php';
+require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-plugin-asset-caching-component.php';
+require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-uploaded-image-caching-component.php';
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-precaching-routes-component.php';
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-precaching-routes.php';
 require_once PWA_PLUGIN_DIR . '/wp-includes/components/class-wp-service-worker-caching-routes-component.php';
@@ -265,9 +263,10 @@ register_activation_hook( PWA_PLUGIN_FILE, '_pwa_activate_plugin' );
 
 /**
  * Plugin deactivation hook.
+ *
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  */
 function _pwa_deactivate_plugin() {
-	/* @var WP_Rewrite $wp_rewrite */
 	global $wp_rewrite;
 	unset( $wp_rewrite->extra_rules_top['^wp\.serviceworker$'] );
 	flush_rewrite_rules( false );

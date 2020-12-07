@@ -10,7 +10,7 @@
  *
  * @since 0.2
  */
-class WP_Service_Worker_Caching_Routes_Component implements WP_Service_Worker_Component, WP_Service_Worker_Registry_Aware {
+class WP_Service_Worker_Caching_Routes_Component implements WP_Service_Worker_Component {
 
 	/**
 	 * Caching routes registry.
@@ -26,9 +26,11 @@ class WP_Service_Worker_Caching_Routes_Component implements WP_Service_Worker_Co
 	 * Instantiates the registry.
 	 *
 	 * @since 0.2
+	 *
+	 * @param WP_Service_Worker_Caching_Routes $registry Registry.
 	 */
-	public function __construct() {
-		$this->registry = new WP_Service_Worker_Caching_Routes();
+	public function __construct( WP_Service_Worker_Caching_Routes $registry ) {
+		$this->registry = $registry;
 	}
 
 	/**
@@ -60,15 +62,6 @@ class WP_Service_Worker_Caching_Routes_Component implements WP_Service_Worker_Co
 	}
 
 	/**
-	 * Gets the registry.
-	 *
-	 * @return WP_Service_Worker_Caching_Routes Caching routes registry instance.
-	 */
-	public function get_registry() {
-		return $this->registry;
-	}
-
-	/**
 	 * Gets the script that registers the caching routes.
 	 *
 	 * @since 0.2
@@ -80,14 +73,17 @@ class WP_Service_Worker_Caching_Routes_Component implements WP_Service_Worker_Co
 
 		$script = '';
 		foreach ( $routes as $route_data ) {
-			// Ensure Workbox<=3 strategy factory names like "networkFirst" are converted to class names like "NetworkFirst".
-			$strategy = ucfirst( $route_data['strategy'] );
+			$strategy = $route_data['strategy'];
+			unset( $route_data['strategy'] );
+
+			$route = $route_data['route'];
+			unset( $route_data['route'] );
 
 			$script .= sprintf(
 				'wp.serviceWorker.routing.registerRoute( new RegExp( %s ), new wp.serviceWorker.strategies[ %s ]( %s ) );',
-				wp_service_worker_json_encode( $route_data['route'] ),
+				wp_service_worker_json_encode( $route ),
 				wp_service_worker_json_encode( $strategy ),
-				WP_Service_Worker_Caching_Routes::prepare_strategy_args_for_js_export( $route_data['strategy_args'] )
+				WP_Service_Worker_Caching_Routes::prepare_strategy_args_for_js_export( $route_data )
 			);
 		}
 

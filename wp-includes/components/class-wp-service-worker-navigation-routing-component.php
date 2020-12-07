@@ -14,6 +14,13 @@
 class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worker_Component {
 
 	/**
+	 * Cache name.
+	 *
+	 * @var string
+	 */
+	const CACHE_NAME = 'navigations';
+
+	/**
 	 * Slug used to identify whether a theme supports service worker streaming.
 	 *
 	 * @since 0.2
@@ -93,23 +100,103 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 			 * Filters caching strategy used for frontend navigation requests.
 			 *
 			 * @since 0.2
+			 * @deprecated Use wp_service_worker_navigation_caching instead.
+			 * @todo Use apply_filters_deprecated() in subsequent release.
 			 * @see WP_Service_Worker_Caching_Routes::register()
 			 *
 			 * @param string $caching_strategy Caching strategy to use for frontend navigation requests.
 			 */
-			$caching_strategy = apply_filters( 'wp_service_worker_navigation_caching_strategy', WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY );
+			$caching_strategy = apply_filters( 'wp_service_worker_navigation_caching_strategy', '' );
+			if ( empty( $caching_strategy ) ) {
+				$caching_strategy = WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST;
+			}
 
 			/**
 			 * Filters the caching strategy args used for frontend navigation requests.
 			 *
 			 * @since 0.2
+			 * @deprecated Use wp_service_worker_navigation_caching instead.
+			 * @todo Use apply_filters_deprecated() in subsequent release.
 			 * @see WP_Service_Worker_Caching_Routes::register()
 			 *
 			 * @param array $caching_strategy_args Caching strategy args.
 			 */
-			$caching_strategy_args = apply_filters( 'wp_service_worker_navigation_caching_strategy_args', array() );
+			$config = apply_filters( 'wp_service_worker_navigation_caching_strategy_args', array() );
 
-			$caching_strategy_args_js = WP_Service_Worker_Caching_Routes::prepare_strategy_args_for_js_export( $caching_strategy_args );
+			// Provide default config if no config was already provided via deprecated filters above.
+			if ( empty( $config ) ) {
+				$config = array(
+					'strategy'   => $caching_strategy,
+					'cache_name' => self::CACHE_NAME,
+				);
+
+				if ( WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST === $caching_strategy ) {
+					/*
+					 * The value of 2 seconds is informed by the Largest Contentful Paint (LCP) metric, of which Time to
+					 * First Byte (TTFB) is a major component. As long as all assets on a page are cached, then this allows
+					 * for the service worker to serve a previously-cached page and then for LCP to occur before 2.5s and
+					 * so remain within the good threshold.
+					 */
+					$config['network_timeout_seconds'] = 2;
+				}
+
+				/*
+				 * By default cache only the last 10 pages visited. This may end up being too high as it seems likely that
+				 * most site visitors will view one page and then maybe a couple others.
+				 */
+				$config['expiration']['max_entries'] = 10;
+			} else {
+				// Migrate legacy format to normalized format to pass into wp_service_worker_navigation_caching filter.
+				// The WP_Error is not stored since this filter is deprecated.
+				$config = WP_Service_Worker_Caching_Routes::normalize_configuration( $config, new WP_Error() );
+
+				$config['strategy'] = $caching_strategy;
+			}
+
+			/**
+			 * Filters service worker caching configuration for navigation requests.
+			 *
+			 * @since 0.6
+			 *
+			 * @param array {
+			 *     Navigation caching configuration. If array filtered to be empty, then caching is disabled.
+			 *     Use snake_case convention instead of camelCase (where the latter will automatically convert to former).
+			 *
+			 *     @type string     $strategy                Strategy. Defaults to NetworkFirst. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-strategies>.
+			 *     @type int        $network_timeout_seconds Network timeout seconds. Only applies to NetworkFirst strategy.
+			 *     @type string     $cache_name              Cache name. Defaults to 'navigations'. This will get a site-specific prefix to prevent subdirectory multisite conflicts.
+			 *     @type array|null $expiration {
+			 *          Expiration plugin configuration. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-expiration.ExpirationPlugin>.
+			 *
+			 *          @type int|null $max_entries     Max entries to cache.
+			 *          @type int|null $max_age_seconds Max age seconds.
+			 *     }
+			 *     @type array|null $broadcast_update   Broadcast update plugin configuration. Not included by default. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-broadcast-update.BroadcastUpdatePlugin>.
+			 *     @type array|null $cacheable_response Cacheable response plugin configuration. Not included by default. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-cacheable-response.CacheableResponsePlugin>.
+			 * }
+			 */
+			$config = apply_filters( 'wp_service_worker_navigation_caching', $config );
+
+			if ( is_array( $config ) ) {
+				// Validate and normalize configuration.
+				$errors = new WP_Error();
+				$config = WP_Service_Worker_Caching_Routes::normalize_configuration( $config, $errors );
+				foreach ( $errors->errors as $error_messages ) {
+					_doing_it_wrong( __METHOD__, esc_html( current( $error_messages ) ), '0.6' );
+				}
+				if ( isset( $errors->errors['missing_strategy'] ) || isset( $errors->errors['invalid_strategy'] ) ) {
+					$config['strategy'] = WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY;
+				}
+			} else {
+				$config = array(
+					'strategy' => WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY,
+				);
+			}
+
+			$caching_strategy = $config['strategy'];
+			unset( $config['strategy'] );
+
+			$caching_strategy_args_js = WP_Service_Worker_Caching_Routes::prepare_strategy_args_for_js_export( $config );
 
 			$offline_error_template_file  = pwa_locate_template( array( 'offline.php', 'error.php' ) );
 			$offline_error_precache_entry = array(
@@ -331,6 +418,7 @@ class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worke
 
 			// Exclude service worker requests (to ease debugging).
 			$denylist_patterns[] = '.*\?(.*&)?(' . join( '|', array( WP_Service_Workers::QUERY_VAR ) ) . ')=';
+			$denylist_patterns[] = '.*/wp\.serviceworker(\?.*)?$';
 
 			// Exclude feed requests.
 			$denylist_patterns[] = '[^\?]*\/feed\/(\w+\/)?$';
