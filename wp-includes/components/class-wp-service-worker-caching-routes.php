@@ -10,7 +10,7 @@
  *
  * @since 0.2
  */
-class WP_Service_Worker_Caching_Routes {
+final class WP_Service_Worker_Caching_Routes {
 
 	/**
 	 * Stale while revalidate caching strategy.

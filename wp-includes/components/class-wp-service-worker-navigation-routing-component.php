@@ -11,7 +11,7 @@
  * @todo The component system needs to be instantiated even if the service worker is not being served.
  * @since 0.2
  */
-class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worker_Component {
+final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service_Worker_Component {
 
 	/**
 	 * Cache name.

@@ -10,7 +10,7 @@
  *
  * @since 0.6
  */
-class WP_Service_Worker_Uploaded_Image_Caching_Component implements WP_Service_Worker_Component {
+final class WP_Service_Worker_Uploaded_Image_Caching_Component implements WP_Service_Worker_Component {
 
 	/**
 	 * Cache name.
