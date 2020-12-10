@@ -11,6 +11,7 @@
  * Service worker styles.
  *
  * @deprecated No longer used.
+ * @codeCoverageIgnore
  * @since 0.2
  * @since 0.5 Deprecated.
  */
@@ -22,6 +23,7 @@ function wp_service_worker_styles() {
  * Add Service Worker update notification to admin bar.
  *
  * @deprecated No longer used.
+ * @codeCoverageIgnore
  * @since 0.2
  * @since 0.5 Deprecated.
  */
@@ -33,6 +35,7 @@ function wp_service_worker_update_node() {
  * Hide the admin bar if serving the offline template.
  *
  * @deprecated No longer used.
+ * @codeCoverageIgnore
  * @since 0.2
  * @since 0.5 Deprecated.
  */
@@ -45,6 +48,7 @@ function wp_hide_admin_bar_offline() {
  *
  * @since 0.2
  * @deprecated 0.6 Now wp_json_encode() is used directly.
+ * @codeCoverageIgnore
  *
  * @param mixed $data Data.
  * @return string JSON.
