@@ -39,3 +39,17 @@ function wp_service_worker_update_node() {
 function wp_hide_admin_bar_offline() {
 	_deprecated_function( __FUNCTION__, '0.5' );
 }
+
+/**
+ * JSON-encodes with pretty printing.
+ *
+ * @since 0.2
+ * @deprecated 0.6 Now wp_json_encode() is used directly.
+ *
+ * @param mixed $data Data.
+ * @return string JSON.
+ */
+function wp_service_worker_json_encode( $data ) {
+	_deprecated_function( __FUNCTION__, '0.6' );
+	return wp_json_encode( $data, 128 | 64 /* JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES */ );
+}
