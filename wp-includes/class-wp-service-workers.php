@@ -76,15 +76,23 @@ class WP_Service_Workers {
 		$this->caching_routes    = new WP_Service_Worker_Caching_Routes();
 
 		$components = array(
-			'configuration'          => new WP_Service_Worker_Configuration_Component(),
-			'navigation_routing'     => new WP_Service_Worker_Navigation_Routing_Component(),
-			'core_asset_caching'     => new WP_Service_Worker_Core_Asset_Caching_Component(),
-			'theme_asset_caching'    => new WP_Service_Worker_Theme_Asset_Caching_Component(),
-			'plugin_asset_caching'   => new WP_Service_Worker_Plugin_Asset_Caching_Component(),
-			'uploaded_image_caching' => new WP_Service_Worker_Uploaded_Image_Caching_Component(),
-			'precaching_routes'      => new WP_Service_Worker_Precaching_Routes_Component( $this->precaching_routes ),
-			'caching_routes'         => new WP_Service_Worker_Caching_Routes_Component( $this->caching_routes ),
+			'configuration'      => new WP_Service_Worker_Configuration_Component(),
+			'precaching_routes'  => new WP_Service_Worker_Precaching_Routes_Component( $this->precaching_routes ),
+			'caching_routes'     => new WP_Service_Worker_Caching_Routes_Component( $this->caching_routes ),
+			'navigation_routing' => new WP_Service_Worker_Navigation_Routing_Component(),
 		);
+
+		if ( get_option( 'offline_browsing' ) ) {
+			$components = array_merge(
+				$components,
+				array(
+					'core_asset_caching'     => new WP_Service_Worker_Core_Asset_Caching_Component(),
+					'theme_asset_caching'    => new WP_Service_Worker_Theme_Asset_Caching_Component(),
+					'plugin_asset_caching'   => new WP_Service_Worker_Plugin_Asset_Caching_Component(),
+					'uploaded_image_caching' => new WP_Service_Worker_Uploaded_Image_Caching_Component(),
+				)
+			);
+		}
 
 		$this->scripts = new WP_Service_Worker_Scripts( $this->caching_routes, $this->precaching_routes, $components );
 	}
