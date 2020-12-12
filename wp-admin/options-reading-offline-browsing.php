@@ -64,17 +64,20 @@ function render_offline_browsing_setting_field() {
  * Print admin pointer.
  */
 function print_admin_pointer() {
-	if ( 'options-reading' === get_current_screen()->id || ! current_user_can( 'manage_options' ) ) {
-		return;
-	}
-
-	if ( get_option( 'offline_browsing' ) ) {
+	// Skip showing admin pointer if not relevant.
+	if (
+		get_option( 'offline_browsing' )
+		||
+		'options-reading' === get_current_screen()->id
+		||
+		! current_user_can( 'manage_options' )
+	) {
 		return;
 	}
 
 	$pointer = 'pwa_offline_browsing';
 
-	// Use array_flip() for more performant lookup.
+	// Skip showing admin pointer if dismissed.
 	$dismissed_pointers = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
 	if ( in_array( $pointer, $dismissed_pointers, true ) ) {
 		return;
