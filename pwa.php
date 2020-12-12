@@ -20,7 +20,7 @@
 define( 'PWA_VERSION', '0.6.0-alpha' );
 define( 'PWA_PLUGIN_FILE', __FILE__ );
 define( 'PWA_PLUGIN_DIR', dirname( __FILE__ ) );
-define( 'PWA_WORKBOX_VERSION', json_decode( file_get_contents( PWA_PLUGIN_DIR . '/package.json' ), true )['devDependencies']['workbox-cli'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Replaced with version literal build.
+define( 'PWA_WORKBOX_VERSION', json_decode( file_get_contents( PWA_PLUGIN_DIR . '/package.json' ), true )['devDependencies']['workbox-cli'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents,PHPCompatibility.Syntax.NewFunctionArrayDereferencing.Found -- Replaced with version literal build.
 define( 'PWA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 /**
@@ -96,7 +96,7 @@ function _pwa_print_build_needed_notice() {
 	</div>
 	<?php
 }
-if ( ! file_exists( __DIR__ . '/wp-includes/js/workbox-v' . PWA_WORKBOX_VERSION ) || ! file_exists( __DIR__ . '/wp-includes/js/workbox-v' . PWA_WORKBOX_VERSION . '/workbox-sw.js' ) ) {
+if ( ! file_exists( PWA_PLUGIN_DIR . '/wp-includes/js/workbox-v' . PWA_WORKBOX_VERSION ) || ! file_exists( PWA_PLUGIN_DIR . '/wp-includes/js/workbox-v' . PWA_WORKBOX_VERSION . '/workbox-sw.js' ) ) {
 	add_action( 'admin_notices', '_pwa_print_build_needed_notice' );
 	return;
 }
@@ -298,3 +298,5 @@ $wp_web_app_manifest->init();
 
 $wp_https_detection = new WP_HTTPS_Detection();
 $wp_https_detection->init();
+
+require_once PWA_PLUGIN_DIR . '/wp-admin/options-reading-offline-browsing.php';
