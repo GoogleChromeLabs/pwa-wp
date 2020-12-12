@@ -84,7 +84,7 @@ function print_admin_pointer() {
 	wp_print_styles( array( 'wp-pointer' ) );
 
 	$content  = '<h3>' . esc_html__( 'PWA', 'pwa' ) . '</h3>';
-	$content .= '<p>' . esc_html__( 'Offline browsing is now available to enable by default in Reading settings.', 'pwa' ) . '</p>';
+	$content .= '<p>' . esc_html__( 'Offline browsing is now available in Reading settings.', 'pwa' ) . '</p>';
 
 	$args = array(
 		'content'  => $content,
@@ -97,6 +97,12 @@ function print_admin_pointer() {
 	?>
 	<script type="text/javascript">
 		jQuery( function( $ ) {
+			const menuSettingsItem = $( '#menu-settings' );
+			const readingSettingsItem = menuSettingsItem.find( 'li:has( a[href="options-reading.php"] )' );
+			if ( readingSettingsItem.length === 0 ) {
+				return;
+			}
+
 			const options = $.extend( <?php echo wp_json_encode( $args ); ?>, {
 				close: function() {
 					$.post( ajaxurl, {
@@ -106,7 +112,14 @@ function print_admin_pointer() {
 				}
 			});
 
-			$( '#menu-settings' ).first().pointer( options ).pointer( 'open' );
+			let target;
+			if ( menuSettingsItem.hasClass( 'wp-menu-open' ) ) {
+				target = readingSettingsItem;
+			} else {
+				target = menuSettingsItem;
+			}
+
+			target.pointer( options ).pointer( 'open' );
 		} );
 	</script>
 	<?php
