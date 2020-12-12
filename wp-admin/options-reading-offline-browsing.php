@@ -59,3 +59,57 @@ function render_offline_browsing_setting_field() {
 	</fieldset>
 	<?php
 }
+
+/**
+ * Print admin pointer.
+ */
+function print_admin_pointer() {
+	if ( 'options-reading' === get_current_screen()->id ) {
+		return;
+	}
+
+	if ( get_option( 'offline_browsing' ) ) {
+		return;
+	}
+
+	$pointer = 'pwa_offline_browsing';
+
+	// Use array_flip() for more performant lookup.
+	$dismissed_pointers = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
+	if ( in_array( $pointer, $dismissed_pointers, true ) ) {
+		return;
+	}
+
+	wp_print_scripts( array( 'wp-pointer' ) );
+	wp_print_styles( array( 'wp-pointer' ) );
+
+	$content  = '<h3>' . esc_html__( 'PWA', 'pwa' ) . '</h3>';
+	$content .= '<p>' . esc_html__( 'Offline browsing is now available to enable by default in Reading settings.', 'pwa' ) . '</p>';
+
+	$args = array(
+		'content'  => $content,
+		'position' => array(
+			'align' => 'middle',
+			'edge'  => is_rtl() ? 'right' : 'left',
+		),
+	);
+
+	?>
+	<script type="text/javascript">
+		jQuery( function( $ ) {
+			const options = $.extend( <?php echo wp_json_encode( $args ); ?>, {
+				close: function() {
+					$.post( ajaxurl, {
+						pointer: <?php echo wp_json_encode( $pointer ); ?>,
+						action: 'dismiss-wp-pointer'
+					});
+				}
+			});
+
+			$( '#menu-settings' ).first().pointer( options ).pointer( 'open' );
+		} );
+	</script>
+	<?php
+
+}
+add_action( 'admin_print_footer_scripts', __NAMESPACE__ . '\print_admin_pointer' );
