@@ -64,7 +64,7 @@ function render_offline_browsing_setting_field() {
  * Print admin pointer.
  */
 function print_admin_pointer() {
-	if ( 'options-reading' === get_current_screen()->id ) {
+	if ( 'options-reading' === get_current_screen()->id || ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
 
