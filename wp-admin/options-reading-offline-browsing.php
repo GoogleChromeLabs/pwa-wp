@@ -46,7 +46,7 @@ function render_offline_browsing_setting_field() {
 		<legend class="screen-reader-text"><span><?php esc_html_e( 'Offline browsing', 'pwa' ); ?> </span></legend>
 		<label for="offline_browsing">
 			<input name="offline_browsing" type="checkbox" id="offline_browsing" value="1" <?php checked( '1', get_option( 'offline_browsing' ) ); ?> />
-			<?php esc_html_e( 'Cache visited pages in the browser so visitors can re-access then when offline.', 'pwa' ); ?>
+			<?php esc_html_e( 'Cache visited pages in the browser so visitors can re-access them when offline.', 'pwa' ); ?>
 		</label>
 		<p class="description">
 			<?php
