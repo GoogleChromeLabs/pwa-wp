@@ -54,6 +54,6 @@ function wp_hide_admin_bar_offline() {
  * @return string JSON.
  */
 function wp_service_worker_json_encode( $data ) {
-	_deprecated_function( __FUNCTION__, '0.6' );
+	_deprecated_function( __FUNCTION__, '0.6', 'wp_json_encode()' );
 	return wp_json_encode( $data, 128 | 64 /* JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES */ );
 }
