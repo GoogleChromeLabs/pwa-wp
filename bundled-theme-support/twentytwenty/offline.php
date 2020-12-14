@@ -3,7 +3,7 @@
  * The template for displaying offline pages
  *
  * @package WordPress
- * @subpackage Twenty_Thirteen
+ * @subpackage Twenty_Twenty
  */
 
 // Prevent showing nav menus.
