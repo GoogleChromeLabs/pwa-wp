@@ -8,7 +8,7 @@
 /**
  * WP_HTTPS_UI class.
  */
-class WP_HTTPS_UI {
+final class WP_HTTPS_UI {
 
 	/**
 	 * The option group, indicating that this UI should be on the 'General Settings' page.

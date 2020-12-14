@@ -10,7 +10,7 @@
  *
  * @since 0.2
  */
-class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Component {
+final class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Component {
 
 	/**
 	 * Adds the component functionality to the service worker.

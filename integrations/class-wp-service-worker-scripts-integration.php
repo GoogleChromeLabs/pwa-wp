@@ -10,7 +10,7 @@
  *
  * @since 0.2
  */
-class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base_Integration {
+final class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base_Integration {
 
 	/**
 	 * Script handles to manage.

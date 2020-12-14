@@ -13,7 +13,7 @@
  *
  * @see WP_Dependencies
  */
-class WP_Service_Worker_Scripts extends WP_Scripts {
+final class WP_Service_Worker_Scripts extends WP_Scripts {
 
 	/**
 	 * Service worker components.
