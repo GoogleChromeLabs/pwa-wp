@@ -221,18 +221,6 @@ function wp_ajax_wp_service_worker() {
 }
 
 /**
- * JSON-encodes with pretty printing.
- *
- * @since 0.2
- *
- * @param mixed $data Data.
- * @return string JSON.
- */
-function wp_service_worker_json_encode( $data ) {
-	return wp_json_encode( $data, 128 | 64 /* JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES */ );
-}
-
-/**
  * Disables concatenating scripts to leverage caching the assets via Service Worker instead.
  */
 function wp_disable_script_concatenation() {

@@ -369,14 +369,14 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 		}
 
 		$this->replacements = array(
-			'NAVIGATION_PRELOAD'           => wp_service_worker_json_encode( $navigation_preload ),
-			'CACHING_STRATEGY'             => wp_service_worker_json_encode( $caching_strategy ),
+			'NAVIGATION_PRELOAD'           => wp_json_encode( $navigation_preload ),
+			'CACHING_STRATEGY'             => wp_json_encode( $caching_strategy ),
 			'CACHING_STRATEGY_ARGS'        => isset( $caching_strategy_args_js ) ? $caching_strategy_args_js : '{}',
-			'NAVIGATION_ROUTE_ENTRY'       => wp_service_worker_json_encode( $navigation_route_precache_entry ),
-			'ERROR_OFFLINE_URL'            => wp_service_worker_json_encode( isset( $offline_error_precache_entry['url'] ) ? $offline_error_precache_entry['url'] : null ),
-			'ERROR_500_URL'                => wp_service_worker_json_encode( isset( $server_error_precache_entry['url'] ) ? $server_error_precache_entry['url'] : null ),
-			'NAVIGATION_DENYLIST_PATTERNS' => wp_service_worker_json_encode( $this->get_navigation_route_denylist_patterns() ),
-			'ERROR_MESSAGES'               => wp_service_worker_json_encode( wp_service_worker_get_error_messages() ),
+			'NAVIGATION_ROUTE_ENTRY'       => wp_json_encode( $navigation_route_precache_entry ),
+			'ERROR_OFFLINE_URL'            => wp_json_encode( isset( $offline_error_precache_entry['url'] ) ? $offline_error_precache_entry['url'] : null ),
+			'ERROR_500_URL'                => wp_json_encode( isset( $server_error_precache_entry['url'] ) ? $server_error_precache_entry['url'] : null ),
+			'NAVIGATION_DENYLIST_PATTERNS' => wp_json_encode( $this->get_navigation_route_denylist_patterns() ),
+			'ERROR_MESSAGES'               => wp_json_encode( wp_service_worker_get_error_messages() ),
 		);
 	}
 

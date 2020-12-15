@@ -81,8 +81,8 @@ final class WP_Service_Worker_Caching_Routes_Component implements WP_Service_Wor
 
 			$script .= sprintf(
 				'wp.serviceWorker.routing.registerRoute( new RegExp( %s ), new wp.serviceWorker.strategies[ %s ]( %s ) );',
-				wp_service_worker_json_encode( $route ),
-				wp_service_worker_json_encode( $strategy ),
+				wp_json_encode( $route ),
+				wp_json_encode( $strategy ),
 				WP_Service_Worker_Caching_Routes::prepare_strategy_args_for_js_export( $route_data )
 			);
 		}
