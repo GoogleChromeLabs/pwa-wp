@@ -108,7 +108,11 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 			 */
 			$caching_strategy = apply_filters( 'wp_service_worker_navigation_caching_strategy', '' );
 			if ( empty( $caching_strategy ) ) {
-				$caching_strategy = WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST;
+				if ( get_option( 'offline_browsing' ) ) {
+					$caching_strategy = WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST;
+				} else {
+					$caching_strategy = WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY;
+				}
 			}
 
 			/**
