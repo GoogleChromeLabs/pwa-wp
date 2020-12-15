@@ -10,7 +10,7 @@
  *
  * @since 0.2
  */
-class WP_Service_Worker_Precaching_Routes_Component implements WP_Service_Worker_Component {
+final class WP_Service_Worker_Precaching_Routes_Component implements WP_Service_Worker_Component {
 
 	/**
 	 * Precaching routes registry.
@@ -78,7 +78,7 @@ class WP_Service_Worker_Precaching_Routes_Component implements WP_Service_Worker
 		}
 
 		$replacements = array(
-			'PRECACHE_ENTRIES' => wp_service_worker_json_encode( $routes ),
+			'PRECACHE_ENTRIES' => wp_json_encode( $routes ),
 		);
 
 		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-precaching.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents

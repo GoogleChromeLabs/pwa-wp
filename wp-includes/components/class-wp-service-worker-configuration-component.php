@@ -10,7 +10,7 @@
  *
  * @since 0.2
  */
-class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Component {
+final class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Component {
 
 	/**
 	 * Adds the component functionality to the service worker.
@@ -64,7 +64,7 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 			// Load with importScripts() so that source map is available.
 			$script .= sprintf(
 				"importScripts( %s );\n",
-				wp_service_worker_json_encode( PWA_PLUGIN_URL . $workbox_dir . 'workbox-sw.js' )
+				wp_json_encode( PWA_PLUGIN_URL . $workbox_dir . 'workbox-sw.js' )
 			);
 		} else {
 			// Inline the workbox-sw.js to avoid an additional HTTP request.
@@ -76,7 +76,7 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 			'debug'            => SCRIPT_DEBUG, // When true, the dev builds are loaded. Otherwise, the prod builds are used.
 			'modulePathPrefix' => PWA_PLUGIN_URL . $workbox_dir,
 		);
-		$script .= sprintf( "workbox.setConfig( %s );\n", wp_service_worker_json_encode( $options ) );
+		$script .= sprintf( "workbox.setConfig( %s );\n", wp_json_encode( $options ) );
 
 		// Vary the prefix by the root directory of the site to ensure multisite subdirectory installs don't pollute each other's caches.
 		$prefix = sprintf(
@@ -91,7 +91,7 @@ class WP_Service_Worker_Configuration_Component implements WP_Service_Worker_Com
 			'suffix'   => 'v1',
 		);
 
-		$script .= sprintf( "workbox.core.setCacheNameDetails( %s );\n", wp_service_worker_json_encode( $cache_name_details ) );
+		$script .= sprintf( "workbox.core.setCacheNameDetails( %s );\n", wp_json_encode( $cache_name_details ) );
 
 		$skip_waiting = wp_service_worker_skip_waiting();
 

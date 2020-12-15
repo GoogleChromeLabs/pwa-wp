@@ -13,7 +13,7 @@
  *
  * @see WP_Dependencies
  */
-class WP_Service_Workers {
+final class WP_Service_Workers {
 
 	/**
 	 * Param for service workers.

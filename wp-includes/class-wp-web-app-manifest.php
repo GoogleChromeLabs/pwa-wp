@@ -10,7 +10,7 @@
  *
  * Mainly copied from Jetpack_PWA_Manifest and Jetpack_PWA_Helpers.
  */
-class WP_Web_App_Manifest {
+final class WP_Web_App_Manifest {
 
 	/**
 	 * The theme color to use if no dynamic value is present.

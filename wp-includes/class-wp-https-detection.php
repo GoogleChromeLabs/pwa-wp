@@ -8,7 +8,7 @@
 /**
  * WP_HTTPS_Detection class.
  */
-class WP_HTTPS_Detection {
+final class WP_HTTPS_Detection {
 
 	/**
 	 * The cron hook to check HTTPS support.
