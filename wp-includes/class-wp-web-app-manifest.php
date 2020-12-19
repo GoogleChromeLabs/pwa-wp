@@ -72,7 +72,7 @@ final class WP_Web_App_Manifest {
 	public function manifest_link_and_meta() {
 		$manifest = $this->get_manifest();
 		?>
-		<link rel="manifest" href="<?php echo esc_url( static::get_url() ); ?>">
+		<link rel="manifest" href="<?php echo esc_url( static::get_url() ); ?>" crossorigin="use-credentials">
 		<meta name="theme-color" content="<?php echo esc_attr( $manifest['theme_color'] ); ?>">
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="mobile-web-app-capable" content="yes">
