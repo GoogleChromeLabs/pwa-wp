@@ -44,7 +44,6 @@
     "check-engines": "wp-scripts check-engines",
     "check-licenses": "wp-scripts check-licenses --production",
     "deploy": "grunt deploy",
-    "generate-readme": "./vendor/xwp/wp-dev-lib/scripts/generate-markdown-readme && sed -i.bak 's/travis-ci\\.org/travis-ci.com/g' readme.md && rm readme.md.bak",
     "lint": "npm-run-all --parallel lint:*",
     "lint:js": "wp-scripts lint-js",
     "lint:js:fix": "npm run lint:js -- --fix",

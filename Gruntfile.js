@@ -21,9 +21,6 @@ module.exports = function (grunt) {
 				stdout: true,
 				stderr: true,
 			},
-			readme: {
-				command: 'npm run generate-readme', // Generate the readme.md.
-			},
 			phpunit: {
 				command: 'phpunit',
 			},
@@ -46,7 +43,7 @@ module.exports = function (grunt) {
 				options: {
 					plugin_slug: 'pwa',
 					build_dir: 'build',
-					assets_dir: 'wp-assets',
+					assets_dir: '.wordpress-org',
 				},
 			},
 		},
@@ -60,8 +57,6 @@ module.exports = function (grunt) {
 
 	// Register tasks.
 	grunt.registerTask('default', ['build']);
-
-	grunt.registerTask('readme', ['shell:readme']);
 
 	grunt.registerTask('build', function () {
 		const done = this.async();
@@ -102,21 +97,20 @@ module.exports = function (grunt) {
 				.trim()
 				.split(/\n/)
 				.filter(function (file) {
-					return !/^(\.|bin|([^/]+)+\.(json|xml)|Gruntfile\.js|tests|readme\.md|CONTRIBUTING\.md|wp-assets|composer\..*|webpack.*)/.test(
+					return !/^(\.|bin|([^/]+)+\.(json|xml)|Gruntfile\.js|tests|CONTRIBUTING\.md|\.wordpress-org|composer\..*|webpack.*)/.test(
 						file
 					);
 				});
 			paths.push('wp-includes/js/workbox*/**');
 
 			grunt.task.run('clean');
-			grunt.task.run('readme');
 			grunt.config.set('copy', {
 				build: {
 					src: paths,
 					dest: 'build',
 					expand: true,
 					options: {
-						noProcess: ['*/**', 'LICENSE'], // We only want to process pwa.php, readme.txt, and readme.md.
+						noProcess: ['*/**', 'LICENSE'], // We only want to process pwa.php and README.md.
 						process(content, srcpath) {
 							let matches, version, versionRegex;
 							if (/pwa\.php$/.test(srcpath)) {
