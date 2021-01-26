@@ -32,9 +32,6 @@ if ( file_exists( __DIR__ . '/../phpunit-plugin-bootstrap.project.php' ) ) {
 	require_once __DIR__ . '/../phpunit-plugin-bootstrap.project.php';
 }
 
-global $_plugin_file;
-$_plugin_file = getenv( 'PLUGIN_FILE' );
-
 $_tests_dir = getenv( 'WP_TESTS_DIR' );
 
 // Travis CI & Vagrant SSH tests directory.
@@ -52,57 +49,11 @@ if ( ! is_dir( $_tests_dir . '/includes/' ) ) {
 }
 require_once $_tests_dir . '/includes/functions.php';
 
-// Fallback to searching for plugin file if its not supplied.
-if ( empty( $_plugin_file ) ) {
-	$_plugin_dir = getcwd();
-	foreach ( glob( $_plugin_dir . '/*.php' ) as $_plugin_file_candidate ) {
-		$_plugin_file_src = file_get_contents( $_plugin_file_candidate );
-		if ( preg_match( '/Plugin\s*Name\s*:/', $_plugin_file_src ) ) {
-			$_plugin_file = $_plugin_file_candidate;
-			break;
-		}
-	}
-}
-
-if ( ! file_exists( $_plugin_file ) ) {
-	trigger_error( 'Unable to locate a file containing a plugin metadata block.', E_USER_ERROR );
-}
-unset( $_plugin_dir, $_plugin_file_candidate, $_plugin_file_src );
-
-/**
- * Force plugins defined in a constant (supplied by phpunit.xml) to be active at runtime.
- *
- * @filter site_option_active_sitewide_plugins
- * @filter option_active_plugins
- *
- * @param array $active_plugins Active plugins.
- * @return array
- */
-function pwa_filter_active_plugins_for_phpunit( $active_plugins ) {
-	$forced_active_plugins = array();
-	if ( file_exists( WP_CONTENT_DIR . '/themes/vip/plugins/vip-init.php' ) && defined( 'WP_TEST_VIP_QUICKSTART_ACTIVATED_PLUGINS' ) ) {
-		$forced_active_plugins = preg_split( '/\s*,\s*/', WP_TEST_VIP_QUICKSTART_ACTIVATED_PLUGINS );
-	} elseif ( defined( 'WP_TEST_ACTIVATED_PLUGINS' ) ) {
-		$forced_active_plugins = preg_split( '/\s*,\s*/', WP_TEST_ACTIVATED_PLUGINS );
-	}
-
-	if ( ! empty( $forced_active_plugins ) ) {
-		foreach ( $forced_active_plugins as $forced_active_plugin ) {
-			$active_plugins[] = $forced_active_plugin;
-		}
-	}
-	return $active_plugins;
-}
-tests_add_filter( 'site_option_active_sitewide_plugins', 'pwa_filter_active_plugins_for_phpunit' );
-tests_add_filter( 'option_active_plugins', 'pwa_filter_active_plugins_for_phpunit' );
-
 /**
  * Load plugin file.
  */
 function pwa_unit_test_load_plugin_file() {
-	global $_plugin_file;
-	require_once $_plugin_file;
-	unset( $_plugin_file );
+	require_once __DIR__ . '/../pwa.php';
 }
 tests_add_filter( 'muplugins_loaded', 'pwa_unit_test_load_plugin_file' );
 
