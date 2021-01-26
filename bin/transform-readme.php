@@ -7,7 +7,10 @@
  * @package PWA
  */
 
-// phpcs:ignoreFile
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_read_fwrite
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_read_file_put_contents
 
 if ( 'cli' !== php_sapi_name() ) {
 	fwrite( STDERR, "Must run from CLI.\n" );
@@ -40,7 +43,7 @@ $readme_txt = preg_replace_callback(
 			exit( __LINE__ );
 		}
 
-		$metadata = [];
+		$metadata = array();
 		foreach ( explode( "\n", $parts[2] ) as $meta ) {
 			$meta = trim( $meta );
 			if ( ! preg_match( '/^\*\*(?P<key>.+?):\*\* (?P<value>.+)/', $meta, $matches ) ) {
@@ -65,7 +68,7 @@ $readme_txt = preg_replace_callback(
 			}
 		}
 
-		$expected_metadata = [
+		$expected_metadata = array(
 			'Contributors',
 			'Tags',
 			'Requires at least',
@@ -74,7 +77,7 @@ $readme_txt = preg_replace_callback(
 			'License',
 			'License URI',
 			'Requires PHP',
-		];
+		);
 		foreach ( $expected_metadata as $key ) {
 			if ( empty( $metadata[ $key ] ) ) {
 				fwrite( STDERR, "Failed to parse metadata. Missign: $key\n" );
