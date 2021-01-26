@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ffff73aa226f34c6bd5b38c2c9e42493",
+    "content-hash": "366731aaf9c6567479e928a6889660df",
     "packages": [],
     "packages-dev": [
         {
@@ -1741,43 +1741,6 @@
                 "wordpress"
             ],
             "time": "2020-05-13T23:57:56+00:00"
-        },
-        {
-            "name": "xwp/wp-dev-lib",
-            "version": "1.6.5",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/xwp/wp-dev-lib.git",
-                "reference": "a62ccca94f9995f294e12d500c45856adff81e34"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/xwp/wp-dev-lib/zipball/a62ccca94f9995f294e12d500c45856adff81e34",
-                "reference": "a62ccca94f9995f294e12d500c45856adff81e34",
-                "shasum": ""
-            },
-            "type": "library",
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "XWP",
-                    "email": "technology@xwp.co",
-                    "homepage": "https://xwp.co"
-                }
-            ],
-            "description": "Common code used during development of WordPress plugins and themes",
-            "homepage": "https://github.com/xwp/wp-dev-lib",
-            "keywords": [
-                "development",
-                "plugins",
-                "themes",
-                "tools",
-                "wordpress"
-            ],
-            "time": "2020-10-16T04:03:40+00:00"
         }
     ],
     "aliases": [],

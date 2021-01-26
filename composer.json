@@ -11,8 +11,7 @@
     "dealerdirect/phpcodesniffer-composer-installer": "0.7.1",
     "phpcompatibility/phpcompatibility-wp": "2.1.0",
     "phpunit/phpunit": "^5.7 || ^6.5 || ^7.5",
-    "wp-coding-standards/wpcs": "2.3.0",
-    "xwp/wp-dev-lib": "1.6.5"
+    "wp-coding-standards/wpcs": "2.3.0"
   },
   "config": {
     "platform": {
