@@ -27,6 +27,9 @@ module.exports = function (grunt) {
 			verify_matching_versions: {
 				command: 'php bin/verify-version-consistency.php',
 			},
+			transform_readme: {
+				command: 'php bin/transform-readme.php',
+			},
 			install_workbox: {
 				command:
 					'if [ -e wp-includes/js/workbox* ]; then rm -r wp-includes/js/workbox*; fi; npx workbox copyLibraries wp-includes/js/',
@@ -97,10 +100,14 @@ module.exports = function (grunt) {
 				.trim()
 				.split(/\n/)
 				.filter(function (file) {
-					return !/^(\.|bin|([^/]+)+\.(json|xml)|Gruntfile\.js|tests|CONTRIBUTING\.md|\.wordpress-org|composer\..*|webpack.*)/.test(
+					return !/^(\.|bin|([^/]+)+\.(json|xml)|Gruntfile\.js|tests|README\.md|CONTRIBUTING\.md|\.wordpress-org|composer\..*|webpack.*)/.test(
 						file
 					);
 				});
+
+			grunt.task.run('shell:transform_readme');
+			paths.push('readme.txt');
+
 			paths.push('wp-includes/js/workbox*/**');
 
 			grunt.task.run('clean');
