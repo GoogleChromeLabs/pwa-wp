@@ -17,7 +17,12 @@ add_action( 'wp_ajax_wp_service_worker', 'wp_ajax_wp_service_worker' );
 add_action( 'wp_ajax_nopriv_wp_service_worker', 'wp_ajax_wp_service_worker' );
 add_action( 'parse_query', 'wp_unauthenticate_error_template_requests' );
 
-add_action( 'wp_head', 'wp_add_error_template_no_robots' );
-add_action( 'error_head', 'wp_add_error_template_no_robots' );
+if ( version_compare( strtok( get_bloginfo( 'version' ), '-' ), '5.7', '>=' ) ) {
+	add_action( 'error_head', 'wp_robots', 1 ); // To match wp_robots running at wp_head.
+	add_filter( 'wp_robots', 'wp_filter_robots_for_error_template' );
+} else {
+	add_action( 'wp_head', 'wp_add_error_template_no_robots' );
+	add_action( 'error_head', 'wp_add_error_template_no_robots' );
+}
 
 add_action( 'admin_init', 'wp_disable_script_concatenation' );

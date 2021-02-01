@@ -88,8 +88,24 @@ function pwa_get_footer( $name = null ) {
 }
 
 /**
+ * Filter wp_robots to prevent the error template from being indexed.
+ *
+ * @since 0.7
+ *
+ * @param array $robots Robots.
+ * @return array Robots.
+ */
+function wp_filter_robots_for_error_template( $robots ) {
+	if ( is_offline() || is_500() ) {
+		$robots['noindex'] = true;
+	}
+	return $robots;
+}
+
+/**
  * Add no-robots meta tag to error template.
  *
+ * @deprecated Only relevant to WordPress < 5.6.
  * @todo Is this right? Should we add_action when we find out that the filter is present?
  * @see wp_no_robots()
  * @since 0.2
