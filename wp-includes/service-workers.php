@@ -57,24 +57,32 @@ function wp_register_service_worker_precaching_route( $url, $args = array() ) {
 }
 
 /**
- * Registers a caching route.
+ * Registers a route.
  *
  * @since 0.2
+ * @since 0.7 Added $strategy parameter.
  *
- * @param string $route Route regular expression, without delimiters.
- * @param array  $args  {
- *     Additional route arguments.
+ * @param string       $route    Route regular expression, without delimiters.
+ * @param string|array $strategy Strategy, can be WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE,
+ *                               WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST, WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST,
+ *                               WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY, WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY.
+ *                               Deprecated usage: supplying strategy args as an array.
+ * @param array        $args {
+ *     Additional caching strategy route arguments.
  *
- *     @type string $strategy   Required. Strategy, can be WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_FIRST,
- *                              WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST, WP_Service_Worker_Caching_Routes::STRATEGY_CACHE_ONLY,
- *                              WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_ONLY.
- *     @type string $cache_name Name to use for the cache.
- *     @type array  $plugins    Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
- *                              See https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins.
+ *     @type string $cache_name         Name to use for the cache.
+ *     @type array  $expiration         Expiration plugin configuration. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-expiration.ExpirationPlugin>.
+ *     @type array  $broadcast_update   Broadcast update plugin configuration. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-broadcast-update.BroadcastUpdatePlugin>.
+ *     @type array  $cacheable_response Cacheable response plugin configuration. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-cacheable-response.CacheableResponsePlugin>.
+ *     @type array  $background_sync    Background sync plugin configuration. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-background-sync.BackgroundSyncPlugin>.
+ *     @type array  $plugins            Deprecated. Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
+ *                                      This is deprecated in favor of defining the plugins in the top-level.
+ *                                      See <https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins>.
  * }
+ * @return bool Whether the registration was successful.
  */
-function wp_register_service_worker_caching_route( $route, $args = array() ) {
-	wp_service_workers()->get_registry()->caching_routes()->register( $route, $args );
+function wp_register_service_worker_caching_route( $route, $strategy, $args = array() ) {
+	return wp_service_workers()->get_registry()->caching_routes()->register( $route, $strategy, $args );
 }
 
 /**
