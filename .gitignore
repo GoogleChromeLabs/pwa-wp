@@ -6,3 +6,6 @@
 *.zip
 /wp-includes/js/workbox*
 /wiki
+
+# Generated via bin/transform-readme.php
+/readme.txt
