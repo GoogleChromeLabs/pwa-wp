@@ -20,7 +20,7 @@ function pwa_add_rewrite_rules() {
 		add_action(
 			'admin_init',
 			function () {
-				flush_rewrite_rules( false );
+				flush_rewrite_rules( false ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- Not theme code.
 			}
 		);
 	}

@@ -256,7 +256,7 @@ require_once PWA_PLUGIN_DIR . '/wp-admin/admin.php';
  */
 function _pwa_activate_plugin() {
 	pwa_add_rewrite_rules();
-	flush_rewrite_rules( false );
+	flush_rewrite_rules( false ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- Not theme code.
 }
 
 register_activation_hook( PWA_PLUGIN_FILE, '_pwa_activate_plugin' );
@@ -269,7 +269,7 @@ register_activation_hook( PWA_PLUGIN_FILE, '_pwa_activate_plugin' );
 function _pwa_deactivate_plugin() {
 	global $wp_rewrite;
 	unset( $wp_rewrite->extra_rules_top['^wp\.serviceworker$'] );
-	flush_rewrite_rules( false );
+	flush_rewrite_rules( false ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- Not theme code.
 }
 
 register_deactivation_hook( PWA_PLUGIN_FILE, '_pwa_deactivate_plugin' );

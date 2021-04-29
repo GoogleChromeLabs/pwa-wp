@@ -7,6 +7,7 @@
 
 	<!-- What to scan -->
 	<file>.</file>
+
 	<!-- Ignoring Files and Folders:
 		https://github.com/squizlabs/PHP_CodeSniffer/wiki/Advanced-Usage#ignoring-files-and-folders -->
 	<exclude-pattern>./node_modules/</exclude-pattern>
@@ -17,7 +18,7 @@
 	<arg value="sp"/> <!-- Show sniff and progress -->
 	<arg name="colors"/> <!-- Show results with colors -->
 	<arg name="basepath" value="."/> <!-- Strip the file paths down to the relevant bit -->
-	<arg name="parallel" value="8"/> <!-- Enables parallel processing when available for faster results. -->
+	<arg name="parallel" value="20"/> <!-- Enables parallel processing when available for faster results. -->
 	<arg name="extensions" value="php"/> <!-- Limit to PHP files -->
 
 	<!-- Rules: Check PHP version compatibility - see
@@ -53,6 +54,11 @@
 				<element value="default"/>
 			</property>
 		</properties>
+	</rule>
+
+	<rule ref="WordPress-VIP-Go">
+		<exclude-pattern>tests/*</exclude-pattern>
+		<exclude-pattern>bin/*</exclude-pattern>
 	</rule>
 
 	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
