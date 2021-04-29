@@ -158,7 +158,7 @@ function wp_service_worker_get_error_messages() {
  */
 function wp_service_worker_error_details_template( $output = '' ) {
 	if ( empty( $output ) ) {
-		$output = '<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary>{{{error_details_iframe}}}</details>';
+		$output = '<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary>{{{error_details_iframe}}}</details>'; // phpcs:ignore WordPressVIPMinimum.Security.Mustache.OutputNotation -- Variable includes iframe tag.
 	}
 	echo '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->';
 	echo wp_kses_post( $output );
