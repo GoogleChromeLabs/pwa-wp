@@ -14,7 +14,7 @@
 function pwa_add_rewrite_rules() {
 	global $wp_rewrite;
 	$rewrite_rule_regex = '^wp\.serviceworker$';
-	$rules = $wp_rewrite->wp_rewrite_rules();
+	$rules              = $wp_rewrite->wp_rewrite_rules();
 
 	if ( ! isset( $rules[ $rewrite_rule_regex ] ) ) {
 		// Note: This logic will not be required as part of core merge since rewrite rules are flushed upon DB upgrade (as long as the DB version is bumped).
