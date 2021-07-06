@@ -22,7 +22,7 @@
   "private": true,
   "dependencies": {},
   "devDependencies": {
-    "@wordpress/eslint-plugin": "9.0.4",
+    "@wordpress/eslint-plugin": "9.0.6",
     "@wordpress/plugins": "3.1.3",
     "@wordpress/scripts": "16.1.4",
     "eslint": "7.30.0",
