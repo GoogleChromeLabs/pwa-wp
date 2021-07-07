@@ -1,5 +1,6 @@
 version: 2
 updates:
+
 - package-ecosystem: composer
   directory: "/"
   schedule:
@@ -7,11 +8,10 @@ updates:
     time: "12:00"
     timezone: America/Los_Angeles
   open-pull-requests-limit: 10
-  reviewers:
-  - westonruter
   labels:
   - dependencies
   versioning-strategy: increase
+
 - package-ecosystem: npm
   directory: "/"
   schedule:
@@ -19,8 +19,16 @@ updates:
     time: "12:00"
     timezone: America/Los_Angeles
   open-pull-requests-limit: 10
-  reviewers:
-  - westonruter
   labels:
   - dependencies
   versioning-strategy: increase
+
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "12:00"
+    timezone: America/Los_Angeles
+  open-pull-requests-limit: 10
+  labels:
+    - dependencies
