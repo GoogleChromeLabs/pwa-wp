@@ -78,7 +78,7 @@ final class WP_Service_Worker_Caching_Routes {
 	 * Registers a route.
 	 *
 	 * @since 0.2
-	 * @since 0.6 Add $strategy and $args parameters.
+	 * @since 0.6 Add $strategy parameter.
 	 *
 	 * @param string       $route    Route regular expression, without delimiters.
 	 * @param string|array $strategy Strategy, can be WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE,
