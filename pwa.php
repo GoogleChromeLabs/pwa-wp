@@ -191,12 +191,6 @@ function _pwa_check_disabled_navigation_preload() {
 /** WP_Web_App_Manifest Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-web-app-manifest.php';
 
-/** WP_HTTPS_Detection Class */
-require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-detection.php';
-
-/** WP_HTTPS_UI Class */
-require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-https-ui.php';
-
 /** WP_Service_Workers Class */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-service-workers.php';
 
@@ -295,8 +289,5 @@ add_action( 'wp_default_service_workers', 'pwa_load_service_worker_integrations'
 
 $wp_web_app_manifest = new WP_Web_App_Manifest();
 $wp_web_app_manifest->init();
-
-$wp_https_detection = new WP_HTTPS_Detection();
-$wp_https_detection->init();
 
 require_once PWA_PLUGIN_DIR . '/wp-admin/options-reading-offline-browsing.php';
