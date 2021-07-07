@@ -121,7 +121,8 @@ module.exports = function (grunt) {
 						process(content, srcpath) {
 							let matches, version, versionRegex;
 							if (/pwa\.php$/.test(srcpath)) {
-								versionRegex = /(\*\s+Version:\s+)(\d+(\.\d+)+-\w+)/;
+								versionRegex =
+									/(\*\s+Version:\s+)(\d+(\.\d+)+-\w+)/;
 
 								// If not a stable build (e.g. 0.7.0-beta), amend the version with the git commit and current timestamp.
 								matches = content.match(versionRegex);
@@ -141,9 +142,9 @@ module.exports = function (grunt) {
 									);
 								}
 
-								const workboxVersion = grunt.file.readJSON(
-									'package.json'
-								).devDependencies['workbox-cli'];
+								const workboxVersion =
+									grunt.file.readJSON('package.json')
+										.devDependencies['workbox-cli'];
 								content = content.replace(
 									/define\(.+?PWA_WORKBOX_VERSION.+/,
 									`define( 'PWA_WORKBOX_VERSION', '${workboxVersion}' );`
