@@ -78,6 +78,7 @@ final class WP_Service_Worker_Caching_Routes {
 	 * Registers a route.
 	 *
 	 * @since 0.2
+	 * @since 0.6 Add $strategy parameter.
 	 *
 	 * @param string       $route    Route regular expression, without delimiters.
 	 * @param string|array $strategy Strategy, can be WP_Service_Worker_Caching_Routes::STRATEGY_STALE_WHILE_REVALIDATE,
@@ -95,8 +96,8 @@ final class WP_Service_Worker_Caching_Routes {
 	 *     @type array  $plugins            Deprecated. Array of plugins with configuration. The key of each plugin in the array must match the plugin's name.
 	 *                                      This is deprecated in favor of defining the plugins in the top-level.
 	 *                                      See <https://developers.google.com/web/tools/workbox/guides/using-plugins#workbox_plugins>.
-	 * @return bool Whether the registration was successful.
 	 * }
+	 * @return bool Whether the registration was successful.
 	 */
 	public function register( $route, $strategy, $args = array() ) {
 
