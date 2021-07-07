@@ -57,7 +57,7 @@ function wp_register_service_worker_precaching_route( $url, $args = array() ) {
 }
 
 /**
- * Registers a route.
+ * Registers a caching route.
  *
  * @since 0.2
  * @since 0.7 Added $strategy parameter.
