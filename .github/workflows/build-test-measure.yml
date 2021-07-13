@@ -209,6 +209,9 @@ jobs:
       - name: Install Composer dependencies
         run: composer install
 
+      - name: Install WordPress extensions for PHPStan
+        run: composer require --dev szepeviktor/phpstan-wordpress --ignore-platform-reqs
+
       - name: Static Analysis (PHPStan)
         run: vendor/bin/phpstan analyse
 
