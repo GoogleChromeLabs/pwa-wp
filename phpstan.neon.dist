@@ -21,5 +21,3 @@ parameters:
 		# Dynamically set attributes which will be eventually declared on WP_Query.
 		- '#^Access to an undefined property WP_Query::\$is_offline\.#'
 		- '#^Access to an undefined property WP_Query::\$is_500\.#'
-		# PHPStan doesn't seem to like the nested array definitions for params.
-		- '#^PHPDoc tag @param has invalid value \(array \{#'

@@ -77,7 +77,7 @@ final class WP_Service_Worker_Uploaded_Image_Caching_Component implements WP_Ser
 		 *
 		 * @since 0.6
 		 *
-		 * @param array {
+		 * @param array $config {
 		 *     Uploaded asset caching configuration. If array filtered to be empty, then caching is disabled.
 		 *
 		 *     @type string     $route      Route. Regular expression pattern to match. See <https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-routing#.registerRoute>.
