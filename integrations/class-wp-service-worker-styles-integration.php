@@ -16,7 +16,7 @@ final class WP_Service_Worker_Styles_Integration extends WP_Service_Worker_Base_
 	 * Stylesheet handles to manage.
 	 *
 	 * @since 0.2
-	 * @var array
+	 * @var string[]
 	 */
 	protected $handles = array();
 
@@ -25,7 +25,7 @@ final class WP_Service_Worker_Styles_Integration extends WP_Service_Worker_Base_
 	 *
 	 * @since 0.2
 	 *
-	 * @param array $handles Stylesheet handles to manage.
+	 * @param string[] $handles Stylesheet handles to manage.
 	 */
 	public function __construct( array $handles = array() ) {
 		$this->handles = $handles;

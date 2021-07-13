@@ -92,8 +92,8 @@ function pwa_get_footer( $name = null ) {
  *
  * @since 0.7
  *
- * @param array $robots Robots.
- * @return array Robots.
+ * @param array<string, true|string> $robots Robots.
+ * @return array<string, true|string> Robots.
  */
 function wp_filter_robots_for_error_template( $robots ) {
 	if ( is_offline() || is_500() ) {
@@ -146,7 +146,7 @@ function wp_unauthenticate_error_template_requests() {
  *     @type string $tagline Optional. Site description when on home page.
  *     @type string $site    Optional. Site title when not on home page.
  * }
- * @return array $title Filtered title.
+ * @return array<string, string> $title Filtered title.
  */
 function pwa_filter_document_title_parts( $parts ) {
 	if ( ! empty( $parts['title'] ) ) {

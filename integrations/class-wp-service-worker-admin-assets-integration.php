@@ -40,11 +40,9 @@ final class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker
 		);
 
 		foreach ( $routes as $options ) {
-			if ( isset( $options['url'] ) ) {
-				$url = $options['url'];
-				unset( $options['url'] );
-				$scripts->precaching_routes()->register( $url, $options );
-			}
+			$url = $options['url'];
+			unset( $options['url'] );
+			$scripts->precaching_routes()->register( $url, $options );
 		}
 	}
 
@@ -61,10 +59,8 @@ final class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker
 	 * Flags admin assets with precache.
 	 *
 	 * @param _WP_Dependency[] $dependencies Array of _WP_Dependency objects.
-	 * @return array Array of routes.
 	 */
 	protected function flag_admin_assets_with_precache( $dependencies ) {
-		$routes = array();
 		foreach ( $dependencies as $handle => $params ) {
 
 			// Only precache scripts from wp-admin and wp-includes (and Gutenberg).
@@ -72,7 +68,6 @@ final class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker
 				$params->add_data( 'precache', true );
 			}
 		}
-		return $routes;
 	}
 
 	/**
@@ -124,9 +119,9 @@ final class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker
 	/**
 	 * Get routes from file paths list.
 	 *
-	 * @param array  $list List of file paths.
-	 * @param string $folder Folder -- either 'wp-admin' or 'wp-includes'.
 	 * @return array List of routes.
+	 * @param string[] $list   List of file paths.
+	 * @param string   $folder Folder -- either 'wp-admin' or 'wp-includes'.
 	 */
 	protected function get_routes_from_file_list( $list, $folder ) {
 		$routes = array();
