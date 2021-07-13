@@ -10,31 +10,6 @@ if [[ -z $WP_VERSION ]]; then
 	exit 1
 fi
 
-case "$WP_VERSION" in
-	"4.9")
-		gb_version="4.9.0"
-		;;
-	"5.0" | "5.1")
-		gb_version="6.9.0"
-		;;
-	"5.2")
-		gb_version="7.6.1"
-		;;
-	*)
-		# WP 5.3 onwards can use the latest version of Gutenberg.
-		gb_version="trunk"
-		;;
-esac
-
-if [[ "$gb_version" != "" ]]; then
-	echo -n "Installing Gutenberg ${gb_version}..."
-
-	url_path=$([ $gb_version == "trunk" ] && echo "trunk" || echo "tags/${gb_version}")
-	gutenberg_plugin_svn_url="https://plugins.svn.wordpress.org/gutenberg/${url_path}/"
-	svn export -q "$gutenberg_plugin_svn_url" "$WP_CORE_DIR/src/wp-content/plugins/gutenberg"
-	echo "done"
-fi
-
 if [[ $(php -r "echo PHP_VERSION;") == 8.0* ]]; then
 	echo "Installing compatible PHPUnit for use with PHP 8..."
 
