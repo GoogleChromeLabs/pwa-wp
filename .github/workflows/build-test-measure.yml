@@ -11,13 +11,82 @@ on:
     types: [opened, synchronize, ready_for_review]
 
 jobs:
+  pre-run:
+    name: 'Pre run'
+    runs-on: ubuntu-latest
+    outputs:
+      changed-file-count: ${{ steps.determine-file-counts.outputs.count }}
+      changed-php-count: ${{ steps.determine-file-counts.outputs.php-count }}
+      changed-js-count: ${{ steps.determine-file-counts.outputs.js-count }}
+    steps:
+      - name: Checkout including last 2 commits
+        # Fetch last 2 commits if it's not a PR, so that we can determine the list of modified files.
+        if: ${{ github.base_ref == null }}
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+
+      - name: Checkout
+        # Do usual checkout if it's a PR.
+        if: ${{ github.base_ref != null }}
+        uses: actions/checkout@v2
+
+      - name: Fetch base branch
+        # Only fetch base ref if it's a PR.
+        if: ${{ github.base_ref != null }}
+        run: git fetch --depth=1 --no-tags origin ${{ github.base_ref }}
+
+      - name: Determine modified files for PR
+        if: ${{ github.base_ref != null }}
+        run: echo "MODIFIED_FILES=$(git diff --name-only FETCH_HEAD HEAD | base64 -w 0)" >> $GITHUB_ENV
+
+      - name: Determine modified files for commit
+        if: ${{ github.base_ref == null }}
+        run: echo "MODIFIED_FILES=$(git diff --name-only HEAD~1 HEAD | base64 -w 0)" >> $GITHUB_ENV
+
+      - id: determine-file-counts
+        name: Determine if modified files should make the workflow run continue
+        run: |
+          MODIFIED_FILES=$(echo "$MODIFIED_FILES" | base64 -d)
+          echo -e "Modified files:\n$MODIFIED_FILES\n"
+
+          FILE_COUNT=$(php -f bin/determine-modified-files-count.php "$IGNORE_PATH_REGEX" "$MODIFIED_FILES" --invert)
+          PHP_FILE_COUNT=$(php -f bin/determine-modified-files-count.php ".+\.php|composer\.(json|lock)" "$MODIFIED_FILES")
+          JS_FILE_COUNT=$(php -f bin/determine-modified-files-count.php ".+\.(js|snap)|package\.(json|lock)" "$MODIFIED_FILES")
+
+          echo "Changed file count: $FILE_COUNT"
+          echo "Changed PHP file count: $PHP_FILE_COUNT"
+          echo "Changed JS file count: $JS_FILE_COUNT"
+
+          echo "::set-output name=count::$FILE_COUNT"
+          echo "::set-output name=php-count::$PHP_FILE_COUNT"
+          echo "::set-output name=js-count::$JS_FILE_COUNT"
+        env:
+          # Ignore Paths:
+          # - .github/
+          # - !.github/workflows
+          # - .wordpress-org/
+          IGNORE_PATH_REGEX: \.github\/(?!workflows)|\.wordpress-org\/
+
+  #-----------------------------------------------------------------------------------------------------------------------
 
   lint-js:
     name: 'Lint: JS'
+    needs: pre-run
+    if: needs.pre-run.outputs.changed-js-count > 0
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Read .nvmrc
+        run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
+        id: nvm
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ steps.nvm.outputs.NVMRC }}
 
       - name: Get npm cache directory
         id: npm-cache
@@ -39,22 +108,36 @@ jobs:
       - name: Validate package.json
         run: npm run lint:pkg-json
 
-      - name: Detect coding standard violations (ESLint)
+      - name: Detect ESLint coding standard violations
+        if: >
+          github.event.pull_request.head.repo.fork == true ||
+          github.event.pull_request.user.login == 'dependabot[bot]'
+        run: npm run lint:js
+
+      - name: Generate ESLint coding standard violations report
+        # Prevent generating the ESLint report if PR is from a fork or authored by Dependabot.
+        if: >
+          ! ( github.event.pull_request.head.repo.fork == true ||
+          github.event.pull_request.user.login == 'dependabot[bot]' )
         run: npm run lint:js:report
         continue-on-error: true
 
       - name: Annotate code linting results
-        # The action cannot annotate the PR diff when run from a PR fork
-        if: github.event.pull_request.head.repo.fork == false
+        # The action cannot annotate the PR when run from a PR fork or was authored by Dependabot.
+        if: >
+          ! ( github.event.pull_request.head.repo.fork == true ||
+          github.event.pull_request.user.login == 'dependabot[bot]' )
         uses: ataylorme/eslint-annotate-action@1.2.0
         with:
           repo-token: '${{ secrets.GITHUB_TOKEN }}'
           report-json: 'lint-js-report.json'
 
-#-----------------------------------------------------------------------------------------------------------------------
+  #-----------------------------------------------------------------------------------------------------------------------
 
   lint-php:
     name: 'Lint: PHP'
+    needs: pre-run
+    if: needs.pre-run.outputs.changed-php-count > 0
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -129,13 +212,15 @@ jobs:
       - name: Static Analysis (PHPStan)
         run: vendor/bin/phpstan analyse
 
-#-----------------------------------------------------------------------------------------------------------------------
+  #-----------------------------------------------------------------------------------------------------------------------
 
   # Adapted from workflow for running PHP unit tests on google/web-stories-wp.
   # See https://github.com/google/web-stories-wp/blob/cb2ebada48039171e25c279bdb27d3712dd70b22/.github/workflows/continuous-integration-unit-php.yml
   unit-test-php:
     name: "Unit test${{ matrix.coverage && ' (with coverage)' || '' }}: PHP ${{ matrix.php }}, WP ${{ matrix.wp }}"
     runs-on: ubuntu-latest
+    needs: pre-run
+    if: needs.pre-run.outputs.changed-file-count > 0
     env:
       WP_CORE_DIR: /tmp/wordpress
     services:
@@ -163,18 +248,22 @@ jobs:
 
           - php: '7.4'
             wp: 'latest'
-            coverage: true
-
-          - php: '7.3'
-            wp: 'latest'
             coverage: false
 
-          - php: '7.2'
+          - php: '7.4'
             wp: 'latest'
+            coverage: true
+
+          - php: '7.0'
+            wp: '5.1'
             coverage: false
 
           - php: '5.6'
-            wp: 'latest'
+            wp: '5.0'
+            coverage: false
+
+          - php: '5.6'
+            wp: '4.9'
             coverage: false
 
     steps:
@@ -197,6 +286,15 @@ jobs:
           while ! mysqladmin ping -h"127.0.0.1" -P"${{ job.services.mysql.ports[3306] }}" --silent; do
             sleep 1
           done
+
+      - name: Read .nvmrc
+        run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
+        id: nvm
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ steps.nvm.outputs.NVMRC }}
 
       - name: Get Composer Cache Directory
         id: composer-cache
@@ -263,7 +361,13 @@ jobs:
 
       - name: Run tests with coverage
         if: ${{ matrix.coverage == true }}
-        run: |
-          vendor/bin/phpunit --coverage-clover build/logs/clover.xml
-          bash <(curl -s https://codecov.io/bash) -cF php -f "$PWD/build/logs/clover.xml"
+        run: vendor/bin/phpunit --coverage-clover build/logs/clover.xml
         working-directory: ${{ env.WP_CORE_DIR }}/src/wp-content/plugins/pwa
+
+      - name: Upload code coverage report
+        if: ${{ matrix.coverage == true }}
+        uses: codecov/codecov-action@v1.5.2
+        with:
+          file: ${{ env.WP_CORE_DIR }}/src/wp-content/plugins/pwa/build/logs/clover.xml
+          flags: php,unit
+          fail_ci_if_error: true
