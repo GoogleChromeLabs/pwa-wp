@@ -61,7 +61,7 @@ final class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker
 	 * @param _WP_Dependency[] $dependencies Array of _WP_Dependency objects.
 	 */
 	protected function flag_admin_assets_with_precache( $dependencies ) {
-		foreach ( $dependencies as $handle => $params ) {
+		foreach ( $dependencies as $params ) {
 
 			// Only precache scripts from wp-admin and wp-includes (and Gutenberg).
 			if ( preg_match( '#/(wp-admin|wp-includes|wp-content/plugins/gutenberg)/#', $params->src ) ) {
@@ -119,9 +119,9 @@ final class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker
 	/**
 	 * Get routes from file paths list.
 	 *
-	 * @return array List of routes.
 	 * @param string[] $list   List of file paths.
 	 * @param string   $folder Folder -- either 'wp-admin' or 'wp-includes'.
+	 * @return array List of routes.
 	 */
 	protected function get_routes_from_file_list( $list, $folder ) {
 		$routes = array();

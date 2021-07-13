@@ -11,7 +11,8 @@
  * Would output: 1
  *
  * @codeCoverageIgnore
- * @package AMP
+ * @package PWA
+ * @author Pierre Gordon <pierregordon@protonmail.com>
  */
 
 $file_pattern    = sprintf( '/^%s$/m', $argv[1] );
