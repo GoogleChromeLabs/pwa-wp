@@ -192,7 +192,6 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 			 * @param {URL} options.url
 			 * @param {Request} options.request
 			 * @return {boolean} Whether there is a match or not.
-			 *
 			 * @private
 			 */
 			_match({ url, request }) {
