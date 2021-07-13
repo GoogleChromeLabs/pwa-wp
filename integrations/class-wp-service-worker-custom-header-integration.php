@@ -20,7 +20,7 @@ final class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worke
 	 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
 	 */
 	public function register( WP_Service_Worker_Scripts $scripts ) {
-		if ( ! current_theme_supports( 'custom-header' ) || ! get_custom_header() ) {
+		if ( ! current_theme_supports( 'custom-header' ) || ! get_custom_header()->url ) {
 			return;
 		}
 
@@ -49,7 +49,7 @@ final class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worke
 				if ( is_string( $file ) ) {
 					$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown
 				}
-				$scripts->precaching_routes()->register( $url, $revision );
+				$scripts->precaching_routes()->register( $url, compact( 'revision' ) );
 			}
 			return;
 		}
@@ -60,7 +60,7 @@ final class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worke
 
 		if ( $attachment ) {
 			foreach ( $this->get_attachment_image_urls( $attachment->ID, array( $header->width, $header->height ) ) as $image_url ) {
-				$scripts->precaching_routes()->register( $image_url, $attachment->post_modified );
+				$scripts->precaching_routes()->register( $image_url, array( 'revision' => $attachment->post_modified ) );
 			}
 		} elseif ( is_string( $header_image ) ) {
 			$file     = $scripts->get_validated_file_path( $header_image );
@@ -68,7 +68,7 @@ final class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worke
 			if ( is_string( $file ) ) {
 				$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown
 			}
-			$scripts->precaching_routes()->register( $header_image, $revision );
+			$scripts->precaching_routes()->register( $header_image, compact( 'revision' ) );
 		}
 	}
 

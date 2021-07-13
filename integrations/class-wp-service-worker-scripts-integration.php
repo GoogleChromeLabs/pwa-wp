@@ -16,7 +16,7 @@ final class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base
 	 * Script handles to manage.
 	 *
 	 * @since 0.2
-	 * @var array
+	 * @var string[]
 	 */
 	protected $handles = array();
 
@@ -25,7 +25,7 @@ final class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base
 	 *
 	 * @since 0.2
 	 *
-	 * @param array $handles Script handles to manage.
+	 * @param string[] $handles Script handles to manage.
 	 */
 	public function __construct( array $handles = array() ) {
 		$this->handles = $handles;
@@ -94,7 +94,7 @@ final class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base
 
 			// @todo Issue a warning when it is not a local file?
 			if ( $url && $this->is_local_file_url( $url ) ) {
-				$scripts->precaching_routes()->register( $url, $revision );
+				$scripts->precaching_routes()->register( $url, compact( 'revision' ) );
 			}
 		}
 

@@ -33,7 +33,7 @@ function wp_service_workers() {
  *
  *     @type string|callable $src  Required. URL to the source in the WordPress install, or a callback that
  *                                 returns the JS to include in the service worker.
- *     @type array           $deps An array of registered item handles this item depends on. Default empty array.
+ *     @type string[]        $deps An array of registered item handles this item depends on. Default empty array.
  * }
  */
 function wp_register_service_worker_script( $handle, $args = array() ) {

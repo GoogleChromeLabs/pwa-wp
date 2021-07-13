@@ -18,8 +18,8 @@
  * @global WP_Query $wp_query
  * @see get_body_class()
  *
- * @param array $classes One or more classes.
- * @return array Array of classes.
+ * @param string[] $classes One or more classes.
+ * @return string[] Array of classes.
  */
 function pwa_filter_body_class( $classes ) {
 	if ( is_500() ) {

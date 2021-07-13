@@ -70,9 +70,9 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 
 		$revision = PWA_VERSION;
 
-		$revision .= sprintf( ';%s=%s', $template, wp_get_theme( $template )->version );
+		$revision .= sprintf( ';%s=%s', $template, wp_get_theme( $template )->get( 'Version' ) );
 		if ( $template !== $stylesheet ) {
-			$revision .= sprintf( ';%s=%s', $stylesheet, wp_get_theme( $stylesheet )->version );
+			$revision .= sprintf( ';%s=%s', $stylesheet, wp_get_theme( $stylesheet )->get( 'Version' ) );
 		}
 
 		if ( ! is_admin() ) {
@@ -162,7 +162,7 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 			 *
 			 * @since 0.6
 			 *
-			 * @param array {
+			 * @param array $config {
 			 *     Navigation caching configuration. If array filtered to be empty, then caching is disabled.
 			 *     Use snake_case convention instead of camelCase (where the latter will automatically convert to former).
 			 *

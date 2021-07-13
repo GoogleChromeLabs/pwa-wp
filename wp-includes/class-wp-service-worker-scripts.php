@@ -19,7 +19,7 @@ final class WP_Service_Worker_Scripts extends WP_Scripts {
 	 * Service worker components.
 	 *
 	 * @since 0.2
-	 * @var array
+	 * @var array<string, WP_Service_Worker_Component>
 	 */
 	protected $components = array();
 
@@ -44,11 +44,11 @@ final class WP_Service_Worker_Scripts extends WP_Scripts {
 	 *
 	 * @since 0.2
 	 *
-	 * @param WP_Service_Worker_Caching_Routes    $caching_routes    Caching routes.
-	 * @param WP_Service_Worker_Precaching_Routes $precaching_routes Precaching routes.
-	 * @param array                               $components Optional. Service worker components as $slug => $instance pairs.
-	 *                                                        Each component must implement `WP_Service_Worker_Component`.
-	 *                                                        Default empty array.
+	 * @param WP_Service_Worker_Caching_Routes           $caching_routes    Caching routes.
+	 * @param WP_Service_Worker_Precaching_Routes        $precaching_routes Precaching routes.
+	 * @param array<string, WP_Service_Worker_Component> $components        Optional. Service worker components as $slug => $instance pairs.
+	 *                                                                      Each component must implement `WP_Service_Worker_Component`.
+	 *                                                                      Default empty array.
 	 */
 	public function __construct( $caching_routes, $precaching_routes, $components = array() ) {
 		$this->caching_routes    = $caching_routes;
@@ -107,12 +107,12 @@ final class WP_Service_Worker_Scripts extends WP_Scripts {
 	 * @since 0.2
 	 *
 	 * @param string $handle Handle of the script.
-	 * @param array  $args   {
+	 * @param array  $args {
 	 *     Additional script arguments.
 	 *
 	 *     @type string|callable $src  Required. URL to the source in the WordPress install, or a callback that
 	 *                                 returns the JS to include in the service worker.
-	 *     @type array           $deps An array of registered item handles this item depends on. Default empty array.
+	 *     @type string[]        $deps An array of registered item handles this item depends on. Default empty array.
 	 * }
 	 */
 	public function register( $handle, $args = array() ) {
@@ -145,7 +145,7 @@ final class WP_Service_Worker_Scripts extends WP_Scripts {
 	 *
 	 * @since 0.2
 	 *
-	 * @return array List of registered scripts.
+	 * @return array[array] List of registered scripts.
 	 */
 	public function get_all() {
 		return array_values( $this->registered );
@@ -196,8 +196,6 @@ final class WP_Service_Worker_Scripts extends WP_Scripts {
 	 */
 	public function get_validated_file_path( $url ) {
 		$needs_base_url = (
-			! is_bool( $url )
-			&&
 			! preg_match( '|^(https?:)?//|', $url )
 			&&
 			! ( $this->content_url && 0 === strpos( $url, $this->content_url ) )

@@ -23,9 +23,9 @@
  * @since 0.2.0
  * @see locate_template() This is a clone of the core function but adds the plugin's theme-compat directory to the template search path.
  *
- * @param string|array $template_names Template file(s) to search for, in order.
- * @param bool         $load           If true the template file will be loaded if it is found.
- * @param bool         $require_once   Whether to require_once or require. Default true. Has no effect if $load is false.
+ * @param string|string[] $template_names Template file(s) to search for, in order.
+ * @param bool            $load           If true the template file will be loaded if it is found.
+ * @param bool            $require_once   Whether to require_once or require. Default true. Has no effect if $load is false.
  * @return string The template filename if one is located.
  */
 function pwa_locate_template( $template_names, $load = false, $require_once = true ) {
@@ -74,8 +74,8 @@ function pwa_locate_template( $template_names, $load = false, $require_once = tr
  * @since 0.2.0
  * @see get_query_template() This is a clone of the core function but uses `pwa_locate_template()` instead of `locate_template()`.
  *
- * @param string $type      Filename without extension.
- * @param array  $templates An optional list of template candidates.
+ * @param string   $type      Filename without extension.
+ * @param string[] $templates An optional list of template candidates.
  * @return string Full path to template file.
  */
 function pwa_get_query_template( $type, $templates = array() ) {
@@ -137,7 +137,7 @@ function get_500_template() {
 /**
  * Get service worker error messages.
  *
- * @return array Array of error messages: default, comment.
+ * @return array<string, string> Array of error messages: default, comment.
  */
 function wp_service_worker_get_error_messages() {
 	return apply_filters(

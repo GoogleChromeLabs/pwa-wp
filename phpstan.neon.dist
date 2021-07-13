@@ -1,0 +1,32 @@
+includes:
+	# @see https://github.com/phpstan/phpstan-src/blob/b9f62d63f2deaa0a5e97f51073e41a422c48aa01/conf/bleedingEdge.neon
+	- phar://phpstan.phar/conf/bleedingEdge.neon
+parameters:
+	level: 5
+	inferPrivatePropertyTypeFromConstructor: true
+	paths:
+		- %currentWorkingDirectory%/wp-admin
+		- %currentWorkingDirectory%/wp-includes
+		- %currentWorkingDirectory%/bundled-theme-support
+		- %currentWorkingDirectory%/integrations
+	bootstrapFiles:
+		- %currentWorkingDirectory%/tests/static-analysis-stubs/wordpress-defines.stub
+	autoload_files:
+		- %currentWorkingDirectory%/vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+		- %currentWorkingDirectory%/tests/static-analysis-stubs/wordpress-defines.stub
+		- %currentWorkingDirectory%/pwa.php
+	ignoreErrors:
+		# Uses func_get_args()
+		- '#^Function apply_filters(_ref_array)? invoked with [34567] parameters, 2 required\.$#'
+		# Dynamically set attributes which will be eventually declared on WP_Query.
+		- '#^Access to an undefined property WP_Query::\$is_offline\.#'
+		- '#^Access to an undefined property WP_Query::\$is_500\.#'
+		-
+			message: '#^Negated boolean expression is always true\.#'
+			path:    integrations/functions.php
+		-
+			message: '#^If condition is always false\.#'
+			path:    wp-includes/components/class-wp-service-worker-configuration-component.php
+		-
+			message: '#Left side of \|\| is always false\.#'
+			path:    wp-includes/components/class-wp-service-worker-precaching-routes.php

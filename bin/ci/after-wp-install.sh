@@ -16,12 +16,12 @@ if [[ $(php -r "echo PHP_VERSION;") == 8.0* ]]; then
 	DIFF=$(
 		cat <<-EOF
 diff --git a/composer.json b/composer.json
-index 186b940..b06b129 100644
+index 562c54a..0c6a247 100644
 --- a/composer.json
 +++ b/composer.json
-@@ -20,6 +20,20 @@
-     },
-     "sort-packages": true
+@@ -31,6 +31,20 @@
+       }
+     }
    },
 +  "autoload-dev": {
 +     "files": [
