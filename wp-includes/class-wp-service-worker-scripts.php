@@ -145,7 +145,7 @@ final class WP_Service_Worker_Scripts extends WP_Scripts {
 	 *
 	 * @since 0.2
 	 *
-	 * @return array[array] List of registered scripts.
+	 * @return array[] List of registered scripts.
 	 */
 	public function get_all() {
 		return array_values( $this->registered );
