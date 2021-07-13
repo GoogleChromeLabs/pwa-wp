@@ -9,8 +9,10 @@
   },
   "require-dev": {
     "automattic/vipwpcs": "^2.2",
+    "civicrm/composer-downloads-plugin": "^3.0",
     "dealerdirect/phpcodesniffer-composer-installer": "0.7.1",
     "phpcompatibility/phpcompatibility-wp": "2.1.1",
+    "php-stubs/wordpress-stubs": "^5.3.2",
     "phpunit/phpunit": "^5.7 || ^6.5 || ^7.5",
     "wp-coding-standards/wpcs": "2.3.0"
   },
@@ -20,9 +22,19 @@
     },
     "sort-packages": true
   },
+  "extra": {
+    "downloads": {
+      "phpstan": {
+        "path": "vendor/bin/phpstan",
+        "type": "phar",
+        "url": "https://github.com/phpstan/phpstan/releases/latest/download/phpstan.phar"
+      }
+    }
+  },
   "minimum-stability": "dev",
   "prefer-stable": true,
   "scripts": {
+    "analyze": "if [ -z $TEST_SKIP_PHPSTAN ]; then phpstan --version; phpstan analyze --ansi; fi",
     "pre-commit": [
       "npm run lint:staged"
     ]
