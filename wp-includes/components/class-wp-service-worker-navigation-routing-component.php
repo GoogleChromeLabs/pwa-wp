@@ -70,9 +70,9 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 
 		$revision = PWA_VERSION;
 
-		$revision .= sprintf( ';%s=%s', $template, wp_get_theme( $template )->version );
+		$revision .= sprintf( ';%s=%s', $template, wp_get_theme( $template )->get( 'Version' ) );
 		if ( $template !== $stylesheet ) {
-			$revision .= sprintf( ';%s=%s', $stylesheet, wp_get_theme( $stylesheet )->version );
+			$revision .= sprintf( ';%s=%s', $stylesheet, wp_get_theme( $stylesheet )->get( 'Version' ) );
 		}
 
 		if ( ! is_admin() ) {
