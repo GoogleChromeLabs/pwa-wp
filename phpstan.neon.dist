@@ -2,7 +2,7 @@ includes:
 	# @see https://github.com/phpstan/phpstan-src/blob/b9f62d63f2deaa0a5e97f51073e41a422c48aa01/conf/bleedingEdge.neon
 	- phar://phpstan.phar/conf/bleedingEdge.neon
 parameters:
-	level: 3
+	level: 4
 	inferPrivatePropertyTypeFromConstructor: true
 	paths:
 		- %currentWorkingDirectory%/wp-admin
@@ -21,3 +21,12 @@ parameters:
 		# Dynamically set attributes which will be eventually declared on WP_Query.
 		- '#^Access to an undefined property WP_Query::\$is_offline\.#'
 		- '#^Access to an undefined property WP_Query::\$is_500\.#'
+		-
+			message: '#^Negated boolean expression is always true\.#'
+			path:    integrations/functions.php
+		-
+			message: '#^If condition is always false\.#'
+			path:    wp-includes/components/class-wp-service-worker-configuration-component.php
+		-
+			message: '#Left side of \|\| is always false\.#'
+			path:    wp-includes/components/class-wp-service-worker-precaching-routes.php

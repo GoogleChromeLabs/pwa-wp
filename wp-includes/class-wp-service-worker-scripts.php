@@ -196,8 +196,6 @@ final class WP_Service_Worker_Scripts extends WP_Scripts {
 	 */
 	public function get_validated_file_path( $url ) {
 		$needs_base_url = (
-			! is_bool( $url )
-			&&
 			! preg_match( '|^(https?:)?//|', $url )
 			&&
 			! ( $this->content_url && 0 === strpos( $url, $this->content_url ) )

@@ -20,7 +20,7 @@ final class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worke
 	 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
 	 */
 	public function register( WP_Service_Worker_Scripts $scripts ) {
-		if ( ! current_theme_supports( 'custom-header' ) || ! get_custom_header() ) {
+		if ( ! current_theme_supports( 'custom-header' ) || ! get_custom_header()->url ) {
 			return;
 		}
 
