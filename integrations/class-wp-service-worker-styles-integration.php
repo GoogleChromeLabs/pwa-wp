@@ -94,7 +94,7 @@ final class WP_Service_Worker_Styles_Integration extends WP_Service_Worker_Base_
 
 			// @todo Issue a warning when it is not a local file?
 			if ( is_string( $url ) && $this->is_local_file_url( $url ) ) {
-				$scripts->precaching_routes()->register( $url, $revision );
+				$scripts->precaching_routes()->register( $url, compact( 'revision' ) );
 			}
 		}
 		wp_styles()->to_do = $original_to_do; // Restore original styles to do.

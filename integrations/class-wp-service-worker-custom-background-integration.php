@@ -30,7 +30,7 @@ final class WP_Service_Worker_Custom_Background_Integration extends WP_Service_W
 		if ( is_string( $file ) ) {
 			$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown
 		}
-		$scripts->precaching_routes()->register( $url, $revision );
+		$scripts->precaching_routes()->register( $url, compact( 'revision' ) );
 	}
 
 	/**

@@ -94,7 +94,7 @@ final class WP_Service_Worker_Scripts_Integration extends WP_Service_Worker_Base
 
 			// @todo Issue a warning when it is not a local file?
 			if ( $url && $this->is_local_file_url( $url ) ) {
-				$scripts->precaching_routes()->register( $url, $revision );
+				$scripts->precaching_routes()->register( $url, compact( 'revision' ) );
 			}
 		}
 
