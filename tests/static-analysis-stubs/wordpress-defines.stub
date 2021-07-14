@@ -36,3 +36,10 @@ define( 'ARRAY_N', 'ARRAY_N' );
 // Theme constants.
 define( 'STYLESHEETPATH', '/app/themes/child/' );
 define( 'TEMPLATEPATH', '/app/themes/parent/' );
+
+// PWA plugin.
+define( 'PWA_VERSION', '0.7.0-alpha' );
+define( 'PWA_PLUGIN_FILE', '/app/plugins/pwa.php' );
+define( 'PWA_PLUGIN_DIR', '/app/plugins' );
+define( 'PWA_WORKBOX_VERSION', '6.1.5' );
+define( 'PWA_PLUGIN_URL', 'https://example.com/wp-content/plugins/pwa/' );
