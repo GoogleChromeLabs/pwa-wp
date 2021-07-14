@@ -12,6 +12,7 @@ parameters:
 		- %currentWorkingDirectory%/integrations
 	bootstrapFiles:
 		- %currentWorkingDirectory%/tests/static-analysis-stubs/wordpress-defines.stub
+		- %currentWorkingDirectory%/vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
 	dynamicConstantNames:
 		- SCRIPT_DEBUG
 	ignoreErrors:
