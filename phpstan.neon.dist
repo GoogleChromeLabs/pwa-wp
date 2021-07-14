@@ -11,6 +11,7 @@ parameters:
 		- %currentWorkingDirectory%/bundled-theme-support
 		- %currentWorkingDirectory%/integrations
 	bootstrapFiles:
+		- %currentWorkingDirectory%/pwa.php
 		- %currentWorkingDirectory%/tests/static-analysis-stubs/wordpress-defines.stub
 		- %currentWorkingDirectory%/vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
 	dynamicConstantNames:
