@@ -16,7 +16,15 @@ wp.serviceWorker = workbox;
  * mechanism for clients to skip waiting if they want to.
  */
 self.addEventListener('message', function (event) {
-	if ('skipWaiting' === event.data.action) {
+	if (!event.data) {
+		return;
+	}
+	if (
+		// De facto standard used by Workbox.
+		event.data.type === 'SKIP_WAITING' ||
+		// Obsolete message sent in older versions of the plugin.
+		'skipWaiting' === event.data.action
+	) {
 		self.skipWaiting();
 	}
 });
