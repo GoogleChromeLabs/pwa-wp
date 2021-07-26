@@ -229,29 +229,6 @@ function wp_ajax_wp_service_worker() {
 }
 
 /**
- * Disables concatenating scripts to leverage caching the assets via Service Worker instead.
- */
-function wp_disable_script_concatenation() {
-	global $concatenate_scripts;
-
-	/*
-	 * This cookie is set when the service worker registers successfully, avoiding unnecessary result
-	 * for browsers that don't support service workers. Note that concatenation only applies in the admin,
-	 * for authenticated users without full-page caching.
-	*/
-	if ( isset( $_COOKIE['wordpress_sw_installed'] ) ) {
-		$concatenate_scripts = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-	}
-
-	// phpcs:disable
-	// @todo This is just here for debugging purposes.
-	if ( isset( $_GET['wp_concatenate_scripts'] ) ) {
-		$concatenate_scripts = rest_sanitize_boolean( $_GET['wp_concatenate_scripts'] );
-	}
-	// phpcs:enable
-}
-
-/**
  * Checks if Service Worker should skip waiting in case of update and update automatically.
  *
  * @since 0.2
