@@ -74,17 +74,27 @@ final class WP_Web_App_Manifest {
 		?>
 		<link rel="manifest" href="<?php echo esc_url( static::get_url() ); ?>">
 		<meta name="theme-color" content="<?php echo esc_attr( $manifest['theme_color'] ); ?>">
-		<meta name="apple-mobile-web-app-capable" content="yes">
-		<meta name="mobile-web-app-capable" content="yes">
-		<meta name="apple-touch-fullscreen" content="YES">
 		<?php
-		$icons = isset( $manifest['icons'] ) ? $manifest['icons'] : array();
-		usort( $icons, array( $this, 'sort_icons_callback' ) );
-		$icon = array_shift( $icons );
+		$display = isset( $manifest['display'] ) ? $manifest['display'] : '';
+		switch ( $display ) :
+			case 'fullscreen':
+			case 'minimal-ui':
+			case 'standalone':
+				?>
+				<meta name="apple-mobile-web-app-capable" content="yes">
+				<meta name="mobile-web-app-capable" content="yes">
+				<?php
+				$icons = isset( $manifest['icons'] ) ? $manifest['icons'] : array();
+				usort( $icons, array( $this, 'sort_icons_callback' ) );
+				$icon = array_shift( $icons );
+				?>
+				<?php if ( ! empty( $icon ) ) : ?>
+					<link rel="apple-touch-startup-image" href="<?php echo esc_url( $icon['src'] ); ?>">
+				<?php endif; ?>
+				<?php
+				break;
+		endswitch;
 		?>
-		<?php if ( ! empty( $icon ) ) : ?>
-			<link rel="apple-touch-startup-image" href="<?php echo esc_url( $icon['src'] ); ?>">
-		<?php endif; ?>
 
 		<?php $name = isset( $manifest['short_name'] ) ? $manifest['short_name'] : $manifest['name']; ?>
 		<meta name="apple-mobile-web-app-title" content="<?php echo esc_attr( $name ); ?>">
