@@ -83,15 +83,48 @@ final class WP_Web_App_Manifest {
 				?>
 				<meta name="apple-mobile-web-app-capable" content="yes">
 				<meta name="mobile-web-app-capable" content="yes">
+
 				<?php
 				$icons = isset( $manifest['icons'] ) ? $manifest['icons'] : array();
 				usort( $icons, array( $this, 'sort_icons_callback' ) );
 				$icon = array_shift( $icons );
-				?>
-				<?php if ( ! empty( $icon ) ) : ?>
-					<link rel="apple-touch-startup-image" href="<?php echo esc_url( $icon['src'] ); ?>">
-				<?php endif; ?>
-				<?php
+
+				$images = array();
+				if ( ! empty( $icon ) ) {
+					$images[] = array( 'href' => $icon['src'] );
+				}
+
+				/**
+				 * Filters splash screen images for Safari on iOS.
+				 *
+				 * @param array $images {
+				 *     Array of splash screen images and their attributes.
+				 *
+				 *     @type array ...$0 {
+				 *         Array of splash screen image attributes.
+				 *
+				 *         @type string $href  URL of splash screen image. Required.
+				 *         @type string $media Media query for when the splash screen image should be used.
+				 *     }
+				 * }
+				 */
+				$images = apply_filters( 'apple_touch_startup_images', $images );
+
+				foreach ( $images as $key => $image ) {
+					if ( ! is_array( $image ) ) {
+						continue;
+					}
+
+					if ( ! isset( $image['href'] ) || ! esc_url( $image['href'], array( 'http', 'https' ) ) ) {
+						continue;
+					}
+
+					printf( '<link rel="apple-touch-startup-image" href="%s"', esc_url( $image['href'] ) );
+					if ( isset( $image['media'] ) ) {
+						printf( ' media="%s"', esc_attr( $image['media'] ) );
+					}
+					echo ">\n";
+				}
 				break;
 		endswitch;
 		?>
