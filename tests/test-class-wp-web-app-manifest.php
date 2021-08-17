@@ -97,9 +97,43 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 	 * @covers WP_Web_App_Manifest::manifest_link_and_meta()
 	 */
 	public function test_manifest_link_and_meta() {
+		$this->mock_site_icon();
+
+		$added_images = array(
+			array(
+				'href'  => home_url( '/340.png' ),
+				'media' => '(device-width: 340px)',
+			),
+			array(
+				'href' => home_url( '/480.png' ),
+			),
+		);
+
+		add_filter(
+			'apple_touch_startup_images',
+			function ( $images ) use ( $added_images ) {
+				$this->assertInternalType( 'array', $images );
+				$this->assertCount( 1, $images );
+				$images   = array_merge( $images, $added_images );
+				$images[] = array( 'bad' => 'yes' );
+				return $images;
+			}
+		);
+
 		ob_start();
 		$this->instance->manifest_link_and_meta();
 		$output = ob_get_clean();
+
+		$this->assertSame( 3, substr_count( $output, '<link rel="apple-touch-startup-image"' ) );
+		$this->assertContains( sprintf( '<link rel="apple-touch-startup-image" href="%s">', esc_url( get_site_icon_url() ) ), $output );
+		foreach ( $added_images as $added_image ) {
+			$tag = sprintf( '<link rel="apple-touch-startup-image" href="%s"', esc_url( $added_image['href'] ) );
+			if ( isset( $added_image['media'] ) ) {
+				$tag .= sprintf( ' media="%s"', esc_attr( $added_image['media'] ) );
+			}
+			$tag .= '>';
+			$this->assertContains( $tag, $output );
+		}
 
 		$this->assertContains( '<link rel="manifest"', $output );
 		$this->assertContains( rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ), $output );
