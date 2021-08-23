@@ -177,7 +177,6 @@ function wp_print_service_workers() {
 		'scope' => $scope,
 	);
 
-	// phpcs:disable Squiz.PHP.EmbeddedPhp.NoSemicolon
 	?>
 	<script type="module">
 		import { Workbox } from <?php echo wp_json_encode( $workbox_window_src ); ?>;
@@ -185,14 +184,13 @@ function wp_print_service_workers() {
 		if ( 'serviceWorker' in navigator ) {
 			window.wp = window.wp || {};
 			window.wp.serviceWorkerWindow = new Workbox(
-				<?php echo wp_json_encode( $sw_src ) ?>,
-				<?php echo wp_json_encode( $register_options ) ?>
+				<?php echo wp_json_encode( $sw_src ); ?>,
+				<?php echo wp_json_encode( $register_options ); ?>
 			);
 			window.wp.serviceWorkerWindow.register();
 		}
 	</script>
 	<?php
-	// phpcs:enable Squiz.PHP.EmbeddedPhp.NoSemicolon
 }
 
 /**
