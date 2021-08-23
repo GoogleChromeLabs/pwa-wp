@@ -62,6 +62,7 @@ function wp_service_worker_json_encode( $data ) {
  * Disables concatenating scripts to leverage caching the assets via Service Worker instead.
  *
  * @deprecated 0.7 No longer used.
+ * @codeCoverageIgnore
  */
 function wp_disable_script_concatenation() {
 	_deprecated_function( __FUNCTION__, '0.7' );
