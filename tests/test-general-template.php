@@ -5,10 +5,12 @@
  * @package PWA
  */
 
+use Yoast\WPTestUtils\WPIntegration\TestCase;
+
 /**
  * Tests for general-template.php.
  */
-class Test_General_Template extends WP_UnitTestCase {
+class Test_General_Template extends TestCase {
 
 	/**
 	 * Get data for testing wp_unauthenticate_error_template_requests().

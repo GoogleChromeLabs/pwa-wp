@@ -5,10 +5,12 @@
  * @package PWA
  */
 
+use Yoast\WPTestUtils\WPIntegration\TestCase;
+
 /**
  * Tests for pwa.php.
  */
-class Test_PWA extends WP_UnitTestCase {
+class Test_PWA extends TestCase {
 
 	/**
 	 * Test bootstrap.

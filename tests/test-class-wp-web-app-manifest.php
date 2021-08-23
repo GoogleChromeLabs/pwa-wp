@@ -5,10 +5,12 @@
  * @package PWA
  */
 
+use Yoast\WPTestUtils\WPIntegration\TestCase;
+
 /**
  * Tests for class WP_Web_App_Manifest.
  */
-class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
+class Test_WP_Web_App_Manifest extends TestCase {
 
 	/**
 	 * Tested instance.

@@ -5,12 +5,14 @@
  * @package PWA
  */
 
+use Yoast\WPTestUtils\WPIntegration\TestCase;
+
 /**
  * Tests for class WP_Service_Worker_Caching_Routes.
  *
  * @coversDefaultClass WP_Service_Worker_Caching_Routes
  */
-class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
+class Test_WP_Service_Worker_Caching_Routes extends TestCase {
 
 	/**
 	 * Tested instance.

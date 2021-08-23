@@ -5,10 +5,12 @@
  * @package PWA
  */
 
+use Yoast\WPTestUtils\WPIntegration\TestCase;
+
 /**
  * Tests for class WP_Service_Worker_Scripts.
  */
-class Test_WP_Service_Worker_Scripts extends WP_UnitTestCase {
+class Test_WP_Service_Worker_Scripts extends TestCase {
 
 	/**
 	 * Tested instance.

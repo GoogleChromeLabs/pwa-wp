@@ -5,12 +5,14 @@
  * @package PWA
  */
 
+use Yoast\WPTestUtils\WPIntegration\TestCase;
+
 /**
  * Tests for class WP_Service_Worker_Navigation_Routing_Component.
  *
  * @coversDefaultClass WP_Service_Worker_Navigation_Routing_Component
  */
-class Test_WP_Service_Worker_Navigation_Routing_Component extends WP_UnitTestCase {
+class Test_WP_Service_Worker_Navigation_Routing_Component extends TestCase {
 
 	/**
 	 * Test registering a route.

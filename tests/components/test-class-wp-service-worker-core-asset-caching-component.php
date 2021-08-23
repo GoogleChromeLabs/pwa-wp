@@ -5,12 +5,14 @@
  * @package PWA
  */
 
+use Yoast\WPTestUtils\WPIntegration\TestCase;
+
 /**
  * Tests for class WP_Service_Worker_Core_Asset_Caching_Component.
  *
  * @coversDefaultClass WP_Service_Worker_Core_Asset_Caching_Component
  */
-class Test_WP_Service_Worker_Core_Asset_Caching_Component extends WP_UnitTestCase {
+class Test_WP_Service_Worker_Core_Asset_Caching_Component extends TestCase {
 
 	/**
 	 * Get data for test_serve.
