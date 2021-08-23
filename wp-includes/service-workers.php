@@ -167,7 +167,12 @@ function wp_print_service_workers() {
 		return;
 	}
 
-	$workbox_window_src = sprintf( '%s/wp-includes/js/workbox-v%s/workbox-window.%s.js', PWA_PLUGIN_URL, PWA_WORKBOX_VERSION, SCRIPT_DEBUG ? 'dev' : 'prod' );
+	$workbox_window_src = sprintf(
+		'%s/wp-includes/js/workbox-v%s/workbox-window.%s.js',
+		PWA_PLUGIN_URL,
+		PWA_WORKBOX_VERSION,
+		SCRIPT_DEBUG ? 'dev' : 'prod'
+	);
 	$register_options   = array(
 		'scope' => $scope,
 	);
@@ -177,7 +182,6 @@ function wp_print_service_workers() {
 	<script type="module">
 		import { Workbox } from <?php echo wp_json_encode( $workbox_window_src ); ?>;
 
-		// @todo Defer to load event?
 		if ( 'serviceWorker' in navigator ) {
 			window.wp = window.wp || {};
 			window.wp.serviceWorkerWindow = new Workbox(
