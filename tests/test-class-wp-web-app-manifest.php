@@ -125,20 +125,20 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertSame( 3, substr_count( $output, '<link rel="apple-touch-startup-image"' ) );
-		$this->assertContains( sprintf( '<link rel="apple-touch-startup-image" href="%s">', esc_url( get_site_icon_url() ) ), $output );
+		$this->assertStringContainsString( sprintf( '<link rel="apple-touch-startup-image" href="%s">', esc_url( get_site_icon_url() ) ), $output );
 		foreach ( $added_images as $added_image ) {
 			$tag = sprintf( '<link rel="apple-touch-startup-image" href="%s"', esc_url( $added_image['href'] ) );
 			if ( isset( $added_image['media'] ) ) {
 				$tag .= sprintf( ' media="%s"', esc_attr( $added_image['media'] ) );
 			}
 			$tag .= '>';
-			$this->assertContains( $tag, $output );
+			$this->assertStringContainsString( $tag, $output );
 		}
 
-		$this->assertContains( '<link rel="manifest"', $output );
-		$this->assertContains( rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ), $output );
-		$this->assertContains( '<meta name="theme-color" content="', $output );
-		$this->assertContains( $this->instance->get_theme_color(), $output );
+		$this->assertStringContainsString( '<link rel="manifest"', $output );
+		$this->assertStringContainsString( rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ), $output );
+		$this->assertStringContainsString( '<meta name="theme-color" content="', $output );
+		$this->assertStringContainsString( $this->instance->get_theme_color(), $output );
 	}
 
 	/**
@@ -194,7 +194,7 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 		// Test that the filter at the end of the method overrides the value.
 		add_filter( 'web_app_manifest', array( $this, 'mock_manifest' ) );
 		$actual_manifest = $this->instance->get_manifest();
-		$this->assertContains( self::MOCK_THEME_COLOR, $actual_manifest['theme_color'] );
+		$this->assertStringContainsString( self::MOCK_THEME_COLOR, $actual_manifest['theme_color'] );
 	}
 
 	/**
