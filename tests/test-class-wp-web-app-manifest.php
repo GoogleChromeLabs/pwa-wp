@@ -112,7 +112,7 @@ class Test_WP_Web_App_Manifest extends WP_UnitTestCase {
 		add_filter(
 			'apple_touch_startup_images',
 			function ( $images ) use ( $added_images ) {
-				$this->assertInternalType( 'array', $images );
+				$this->assertIsArray( $images );
 				$this->assertCount( 1, $images );
 				$images   = array_merge( $images, $added_images );
 				$images[] = array( 'bad' => 'yes' );
