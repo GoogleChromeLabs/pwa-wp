@@ -5,10 +5,12 @@
  * @package PWA
  */
 
+use Yoast\WPTestUtils\WPIntegration\TestCase;
+
 /**
  * Tests for class WP_Service_Workers.
  */
-class Test_WP_Service_Workers extends WP_UnitTestCase {
+class Test_WP_Service_Workers extends TestCase {
 
 	/**
 	 * Tested instance.
@@ -69,9 +71,9 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertSame( 0, get_current_user_id() );
-		$this->assertContains( $this->return_foo_sw(), $output );
-		$this->assertContains( $this->return_bar_sw(), $output );
-		$this->assertNotContains( $this->return_baz_sw(), $output );
+		$this->assertStringContainsString( $this->return_foo_sw(), $output );
+		$this->assertStringContainsString( $this->return_bar_sw(), $output );
+		$this->assertStringNotContainsString( $this->return_baz_sw(), $output );
 		$this->assertTrue(
 			strpos( $output, $this->return_foo_sw() ) < strpos( $output, $this->return_bar_sw() )
 		);
@@ -96,9 +98,9 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertSame( 0, get_current_user_id() );
-		$this->assertContains( $this->return_foo_sw(), $output );
-		$this->assertNotContains( $this->return_bar_sw(), $output );
-		$this->assertContains( $this->return_baz_sw(), $output );
+		$this->assertStringContainsString( $this->return_foo_sw(), $output );
+		$this->assertStringNotContainsString( $this->return_bar_sw(), $output );
+		$this->assertStringContainsString( $this->return_baz_sw(), $output );
 		$this->assertTrue(
 			strpos( $output, $this->return_foo_sw() ) < strpos( $output, $this->return_baz_sw() )
 		);
@@ -124,7 +126,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		wp_service_workers()->serve_request();
 		$output = ob_get_clean();
 
-		$this->assertContains( 'Service worker src is invalid', $output );
+		$this->assertStringContainsString( 'Service worker src is invalid', $output );
 	}
 
 	/**
@@ -146,7 +148,7 @@ class Test_WP_Service_Workers extends WP_UnitTestCase {
 		wp_service_workers()->serve_request();
 		$output = ob_get_clean();
 
-		$this->assertContains( 'Service worker src is invalid', $output );
+		$this->assertStringContainsString( 'Service worker src is invalid', $output );
 	}
 
 	/**

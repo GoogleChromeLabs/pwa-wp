@@ -5,12 +5,14 @@
  * @package PWA
  */
 
+use Yoast\WPTestUtils\WPIntegration\TestCase;
+
 /**
  * Tests for class WP_Service_Worker_Caching_Routes.
  *
  * @coversDefaultClass WP_Service_Worker_Caching_Routes
  */
-class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
+class Test_WP_Service_Worker_Caching_Routes extends TestCase {
 
 	/**
 	 * Tested instance.
@@ -280,14 +282,14 @@ class Test_WP_Service_Worker_Caching_Routes extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST, $prepared );
-		$this->assertContains( '"strategy":"NetworkFirst"', $prepared );
-		$this->assertContains( '"networkTimeoutSeconds":2', $prepared );
-		$this->assertContains( '"cacheName":"bank-cash"', $prepared );
-		$this->assertContains( '{"maxEntries":4,"maxAgeSeconds":20}', $prepared );
-		$this->assertContains( 'broadcastUpdate', $prepared );
-		$this->assertContains( 'BroadcastUpdatePlugin', $prepared );
-		$this->assertContains( 'expiration', $prepared );
-		$this->assertContains( 'ExpirationPlugin', $prepared );
+		$this->assertStringContainsString( WP_Service_Worker_Caching_Routes::STRATEGY_NETWORK_FIRST, $prepared );
+		$this->assertStringContainsString( '"strategy":"NetworkFirst"', $prepared );
+		$this->assertStringContainsString( '"networkTimeoutSeconds":2', $prepared );
+		$this->assertStringContainsString( '"cacheName":"bank-cash"', $prepared );
+		$this->assertStringContainsString( '{"maxEntries":4,"maxAgeSeconds":20}', $prepared );
+		$this->assertStringContainsString( 'broadcastUpdate', $prepared );
+		$this->assertStringContainsString( 'BroadcastUpdatePlugin', $prepared );
+		$this->assertStringContainsString( 'expiration', $prepared );
+		$this->assertStringContainsString( 'ExpirationPlugin', $prepared );
 	}
 }
