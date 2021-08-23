@@ -188,10 +188,8 @@ function wp_print_service_workers() {
 				<?php echo wp_json_encode( $sw_src ) ?>,
 				<?php echo wp_json_encode( $register_options ) ?>
 			);
-			// @todo Allow clients to register event listeners here.
 			window.wp.serviceWorkerWindow.register();
 		}
-
 	</script>
 	<?php
 	// phpcs:enable Squiz.PHP.EmbeddedPhp.NoSemicolon
