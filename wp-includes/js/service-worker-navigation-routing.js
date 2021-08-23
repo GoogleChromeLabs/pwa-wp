@@ -32,7 +32,7 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 	/**
 	 * Handle navigation request.
 	 *
-	 * @param {Object} args Args.
+	 * @param {Object}     args       Args.
 	 * @param {FetchEvent} args.event Event.
 	 * @return {Promise<Response>} Response.
 	 */
@@ -188,8 +188,8 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 			/**
 			 * Routes match handler.
 			 *
-			 * @param {Object} options
-			 * @param {URL} options.url
+			 * @param {Object}  options
+			 * @param {URL}     options.url
 			 * @param {Request} options.request
 			 * @return {boolean} Whether there is a match or not.
 			 * @private
