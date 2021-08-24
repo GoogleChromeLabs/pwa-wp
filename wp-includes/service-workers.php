@@ -138,7 +138,6 @@ function wp_print_service_workers() {
 	}
 
 	global $pagenow;
-	$scopes = array();
 
 	$home_port  = wp_parse_url( home_url(), PHP_URL_PORT );
 	$admin_port = wp_parse_url( admin_url(), PHP_URL_PORT );
@@ -152,37 +151,43 @@ function wp_print_service_workers() {
 	$on_front_domain = isset( $_SERVER['HTTP_HOST'] ) && $home_url === $_SERVER['HTTP_HOST'];
 	$on_admin_domain = isset( $_SERVER['HTTP_HOST'] ) && $admin_url === $_SERVER['HTTP_HOST'];
 
-	// Install the front service worker if currently on the home domain.
-	if ( $on_front_domain ) {
-		$scopes[ WP_Service_Workers::SCOPE_FRONT ] = home_url( '/', 'relative' ); // The home_url() here will account for subdirectory installs.
-	}
+	$sw_src = null;
+	$scope  = null;
 
 	// Include admin service worker if it seems it will be used (and it can be installed).
-	if ( $on_admin_domain && ( is_user_logged_in() || is_admin() || in_array( $pagenow, array( 'wp-login.php', 'wp-signup.php', 'wp-activate.php' ), true ) ) ) {
-		$scopes[ WP_Service_Workers::SCOPE_ADMIN ] = wp_parse_url( admin_url( '/' ), PHP_URL_PATH );
+	if ( $on_admin_domain && ( is_admin() || in_array( $pagenow, array( 'wp-login.php', 'wp-signup.php', 'wp-activate.php' ), true ) ) ) {
+		$sw_src = wp_get_service_worker_url( WP_Service_Workers::SCOPE_ADMIN );
+		$scope  = wp_parse_url( admin_url( '/' ), PHP_URL_PATH );
+	} elseif ( $on_front_domain ) {
+		$sw_src = wp_get_service_worker_url( WP_Service_Workers::SCOPE_FRONT );
+		$scope  = home_url( '/', 'relative' ); // The home_url() here will account for subdirectory installs.
 	}
 
-	if ( empty( $scopes ) ) {
+	if ( ! $sw_src || ! $scope ) {
 		return;
 	}
 
+	$workbox_window_src = sprintf(
+		'%s/wp-includes/js/workbox-v%s/workbox-window.%s.js',
+		PWA_PLUGIN_URL,
+		PWA_WORKBOX_VERSION,
+		SCRIPT_DEBUG ? 'dev' : 'prod'
+	);
+	$register_options   = array(
+		'scope' => $scope,
+	);
+
 	?>
-	<script>
-		if ( navigator.serviceWorker ) {
-			window.addEventListener( 'load', function() {
-				<?php foreach ( $scopes as $name => $scope ) : ?>
-					{
-						navigator.serviceWorker.register(
-							<?php echo wp_json_encode( wp_get_service_worker_url( $name ) ); ?>,
-							<?php echo wp_json_encode( compact( 'scope' ) ); ?>
-						).then( reg => {
-							<?php if ( WP_Service_Workers::SCOPE_ADMIN === $name ) : ?>
-								document.cookie = <?php echo wp_json_encode( sprintf( 'wordpress_sw_installed=1; path=%s; expires=Fri, 31 Dec 9999 23:59:59 GMT; secure; samesite=strict', $scope ) ); ?>;
-							<?php endif; ?>
-						} );
-					}
-				<?php endforeach; ?>
-			} );
+	<script type="module">
+		import { Workbox } from <?php echo wp_json_encode( $workbox_window_src ); ?>;
+
+		if ( 'serviceWorker' in navigator ) {
+			window.wp = window.wp || {};
+			window.wp.serviceWorkerWindow = new Workbox(
+				<?php echo wp_json_encode( $sw_src ); ?>,
+				<?php echo wp_json_encode( $register_options ); ?>
+			);
+			window.wp.serviceWorkerWindow.register();
 		}
 	</script>
 	<?php
@@ -226,29 +231,6 @@ function wp_service_worker_loaded( WP_Query $query ) {
 function wp_ajax_wp_service_worker() {
 	wp_service_workers()->serve_request();
 	die();
-}
-
-/**
- * Disables concatenating scripts to leverage caching the assets via Service Worker instead.
- */
-function wp_disable_script_concatenation() {
-	global $concatenate_scripts;
-
-	/*
-	 * This cookie is set when the service worker registers successfully, avoiding unnecessary result
-	 * for browsers that don't support service workers. Note that concatenation only applies in the admin,
-	 * for authenticated users without full-page caching.
-	*/
-	if ( isset( $_COOKIE['wordpress_sw_installed'] ) ) {
-		$concatenate_scripts = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-	}
-
-	// phpcs:disable
-	// @todo This is just here for debugging purposes.
-	if ( isset( $_GET['wp_concatenate_scripts'] ) ) {
-		$concatenate_scripts = rest_sanitize_boolean( $_GET['wp_concatenate_scripts'] );
-	}
-	// phpcs:enable
 }
 
 /**

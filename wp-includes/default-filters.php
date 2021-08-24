@@ -24,5 +24,3 @@ if ( version_compare( strtok( get_bloginfo( 'version' ), '-' ), '5.7', '>=' ) ) 
 	add_action( 'wp_head', 'wp_add_error_template_no_robots' );
 	add_action( 'error_head', 'wp_add_error_template_no_robots' );
 }
-
-add_action( 'admin_init', 'wp_disable_script_concatenation' );

@@ -32,7 +32,15 @@ module.exports = function (grunt) {
 			},
 			install_workbox: {
 				command:
-					'if [ -e wp-includes/js/workbox* ]; then rm -r wp-includes/js/workbox*; fi; npx workbox copyLibraries wp-includes/js/',
+					'if [ -e wp-includes/js/workbox* ]; then ' +
+					'rm -r wp-includes/js/workbox*; ' +
+					'fi; ' +
+					'npx workbox copyLibraries wp-includes/js/;' +
+					// Rename .mjs with .js since servers may not be configured to serve the former as text/javascript.
+					'for mjs in wp-includes/js/workbox*/*.mjs; do ' +
+					'sed "s/\\.mjs/.js/g" "$mjs" > "${mjs%mjs}js";' +
+					'rm $mjs;' +
+					'done;',
 			},
 			create_build_zip: {
 				command:
