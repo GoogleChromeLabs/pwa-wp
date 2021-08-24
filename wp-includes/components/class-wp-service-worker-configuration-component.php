@@ -51,8 +51,9 @@ final class WP_Service_Worker_Configuration_Component implements WP_Service_Work
 	 * @return string Script.
 	 */
 	public function get_script() {
-		$current_scope = wp_service_workers()->get_current_scope();
-		$workbox_dir   = sprintf( 'wp-includes/js/workbox-v%s/', PWA_WORKBOX_VERSION );
+		$current_scope    = wp_service_workers()->get_current_scope();
+		$workbox_dir_path = sprintf( 'wp-includes/js/workbox-v%s/', PWA_WORKBOX_VERSION );
+		$workbox_dir_url  = plugins_url( $workbox_dir_path, PWA_PLUGIN_FILE ); // Core merge: replace with includes_url().
 
 		$script = '';
 		if ( SCRIPT_DEBUG ) {
@@ -64,17 +65,18 @@ final class WP_Service_Worker_Configuration_Component implements WP_Service_Work
 			// Load with importScripts() so that source map is available.
 			$script .= sprintf(
 				"importScripts( %s );\n",
-				wp_json_encode( PWA_PLUGIN_URL . $workbox_dir . 'workbox-sw.js' )
+				wp_json_encode( $workbox_dir_url . 'workbox-sw.js' )
 			);
 		} else {
 			// Inline the workbox-sw.js to avoid an additional HTTP request.
-			$wbjs    = file_get_contents( PWA_PLUGIN_DIR . '/' . $workbox_dir . 'workbox-sw.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			// Core merge: Replace with PWA_PLUGIN_DIR with ABSPATH . WPINC . etc.
+			$wbjs    = file_get_contents( PWA_PLUGIN_DIR . '/' . $workbox_dir_path . 'workbox-sw.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			$script .= preg_replace( '://# sourceMappingURL=.+?\.map\s*$:s', '', $wbjs );
 		}
 
 		$options = array(
 			'debug'            => SCRIPT_DEBUG, // When true, the dev builds are loaded. Otherwise, the prod builds are used.
-			'modulePathPrefix' => PWA_PLUGIN_URL . $workbox_dir,
+			'modulePathPrefix' => $workbox_dir_url,
 		);
 		$script .= sprintf( "workbox.setConfig( %s );\n", wp_json_encode( $options ) );
 
@@ -122,6 +124,7 @@ final class WP_Service_Worker_Configuration_Component implements WP_Service_Work
 		}
 
 		// Note: This includes the aliasing of `workbox` to `wp.serviceWorker`.
+		// Core merge: Replace with PWA_PLUGIN_DIR with ABSPATH . WPINC . etc.
 		$script .= file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 
 		return $script;

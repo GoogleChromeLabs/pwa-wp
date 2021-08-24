@@ -167,11 +167,14 @@ function wp_print_service_workers() {
 		return;
 	}
 
-	$workbox_window_src = sprintf(
-		'%s/wp-includes/js/workbox-v%s/workbox-window.%s.js',
-		PWA_PLUGIN_URL,
-		PWA_WORKBOX_VERSION,
-		SCRIPT_DEBUG ? 'dev' : 'prod'
+	// Core merge: replace plugins_url() with includes_url().
+	$workbox_window_src = plugins_url(
+		sprintf(
+			'wp-includes/js/workbox-v%s/workbox-window.%s.js',
+			PWA_WORKBOX_VERSION,
+			SCRIPT_DEBUG ? 'dev' : 'prod'
+		),
+		PWA_PLUGIN_FILE
 	);
 	$register_options   = array(
 		'scope' => $scope,
