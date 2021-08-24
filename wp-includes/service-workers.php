@@ -167,6 +167,7 @@ function wp_print_service_workers() {
 		return;
 	}
 
+	// Core merge: replace plugins_url() with includes_url().
 	$workbox_window_src = plugins_url(
 		sprintf(
 			'wp-includes/js/workbox-v%s/workbox-window.%s.js',
