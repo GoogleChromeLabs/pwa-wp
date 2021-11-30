@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "32b51102db14973d54567b07d67b20cd",
+    "content-hash": "c9a58bad156a6e635285f0c447efb604",
     "packages": [],
     "packages-dev": [
         {
@@ -530,16 +530,16 @@
         },
         {
             "name": "php-stubs/wordpress-stubs",
-            "version": "v5.8.0",
+            "version": "v5.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-stubs/wordpress-stubs.git",
-                "reference": "794e6eedfd5f2a334d581214c007fc398be588fe"
+                "reference": "67fd773742b7be5b4463f40318b0b4890a07033b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-stubs/wordpress-stubs/zipball/794e6eedfd5f2a334d581214c007fc398be588fe",
-                "reference": "794e6eedfd5f2a334d581214c007fc398be588fe",
+                "url": "https://api.github.com/repos/php-stubs/wordpress-stubs/zipball/67fd773742b7be5b4463f40318b0b4890a07033b",
+                "reference": "67fd773742b7be5b4463f40318b0b4890a07033b",
                 "shasum": ""
             },
             "replace": {
@@ -568,9 +568,9 @@
             ],
             "support": {
                 "issues": "https://github.com/php-stubs/wordpress-stubs/issues",
-                "source": "https://github.com/php-stubs/wordpress-stubs/tree/v5.8.0"
+                "source": "https://github.com/php-stubs/wordpress-stubs/tree/v5.8.2"
             },
-            "time": "2021-07-21T02:34:37+00:00"
+            "time": "2021-11-11T13:57:00+00:00"
         },
         {
             "name": "phpcompatibility/php-compatibility",
