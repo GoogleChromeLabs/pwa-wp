@@ -10,7 +10,7 @@
   "require-dev": {
     "automattic/vipwpcs": "^2.2",
     "civicrm/composer-downloads-plugin": "^3.0",
-    "dealerdirect/phpcodesniffer-composer-installer": "0.7.1",
+    "dealerdirect/phpcodesniffer-composer-installer": "0.7.2",
     "php-stubs/wordpress-stubs": "^5.8.0",
     "phpcompatibility/phpcompatibility-wp": "2.1.2",
     "wp-coding-standards/wpcs": "2.3.0",
