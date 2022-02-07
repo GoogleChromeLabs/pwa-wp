@@ -160,32 +160,30 @@ final class WP_Service_Worker_Scripts extends WP_Scripts {
 	 */
 	public function do_item( $handle, $group = false ) {
 		$registered = $this->registered[ $handle ];
-		$invalid    = false;
+		$valid      = false;
 
 		if ( is_callable( $registered->src ) ) {
 			printf( "\n/* Source %s: */\n", esc_js( $handle ) );
 			echo call_user_func( $registered->src ) . "\n"; // phpcs:ignore WordPress.XSS.EscapeOutput, WordPress.Security.EscapeOutput
+			$valid = true;
 		} elseif ( is_string( $registered->src ) ) {
 			$validated_path = $this->get_validated_file_path( $registered->src );
-			if ( is_wp_error( $validated_path ) ) {
-				$invalid = true;
-			} else {
+			if ( ! is_wp_error( $validated_path ) ) {
 				/* translators: %s is file URL */
 				printf( "\n/* Source %s <%s>: */\n", esc_js( $handle ), esc_js( $registered->src ) );
 				echo @file_get_contents( $validated_path ) . "\n"; // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents, WordPress.XSS.EscapeOutput, WordPress.Security.EscapeOutput
+				$valid = true;
 			}
-		} else {
-			$invalid = true;
 		}
 
-		if ( $invalid ) {
+		if ( ! $valid ) {
 			/* translators: %s is script handle */
 			$error = sprintf( __( 'Service worker src is invalid for handle "%s".', 'pwa' ), $handle );
 			@_doing_it_wrong( 'WP_Service_Worker_Scripts::register', esc_html( $error ), '0.1' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged -- We want the error in the PHP log, but not in the JS output.
 			printf( "console.warn( %s );\n", wp_json_encode( $error ) ); // phpcs:ignore WordPress.XSS.EscapeOutput, WordPress.Security.EscapeOutput
 		}
 
-		return ! $invalid;
+		return $valid;
 	}
 
 	/**

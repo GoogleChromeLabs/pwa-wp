@@ -163,6 +163,7 @@ jobs:
       - name: Normalize composer.json
         run: |
           composer require --no-interaction --dev ergebnis/composer-normalize --ignore-platform-reqs
+          composer config --no-interaction --no-plugins allow-plugins.ergebnis/composer-normalize true
           composer --no-interaction normalize --dry-run
 
   #-----------------------------------------------------------------------------------------------------------------------
@@ -182,6 +183,7 @@ jobs:
           # phpstan requires PHP 7.1+.
           php-version: 7.4
           extensions: dom, iconv, json, libxml, zip
+          tools: phpstan
 
       - name: Get Composer Cache Directory
         id: composer-cache
@@ -199,7 +201,9 @@ jobs:
         run: composer install
 
       - name: Static Analysis (PHPStan)
-        run: vendor/bin/phpstan analyse
+        run: |
+          phpstan --version
+          phpstan analyse
 
   #-----------------------------------------------------------------------------------------------------------------------
 
