@@ -19,6 +19,10 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "civicrm/composer-downloads-plugin": true
+    },
     "platform": {
       "php": "5.6"
     },
