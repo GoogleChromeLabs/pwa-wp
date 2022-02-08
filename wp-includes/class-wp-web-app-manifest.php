@@ -166,6 +166,21 @@ final class WP_Web_App_Manifest {
 	}
 
 	/**
+	 * Check if the supplied name is short.
+	 *
+	 * @link https://developers.google.com/web/tools/lighthouse/audits/manifest-contains-short_name
+	 * @link https://developer.chrome.com/apps/manifest/name#short_name
+	 * @link https://github.com/GoogleChrome/lighthouse/blob/949bbdb/lighthouse-core/computed/manifest-values.js#L13-L15
+	 *
+	 * @param string $name Name.
+	 * @return bool Whether name is short.
+	 */
+	private function is_name_short( $name ) {
+		$length = function_exists( 'mb_strlen' ) ? mb_strlen( $name ) : strlen( $name );
+		return $length <= self::SHORT_NAME_MAX_LENGTH;
+	}
+
+	/**
 	 * Gets the manifest data for the REST API response.
 	 *
 	 * Mainly copied from Jetpack_PWA_Helpers::render_manifest_json().
@@ -178,16 +193,9 @@ final class WP_Web_App_Manifest {
 			'dir'       => is_rtl() ? 'rtl' : 'ltr',
 		);
 
-		/*
-		 * If the name is 12 characters or less, use it as the short_name. Lighthouse complains when the short_name
-		 * is absent, even when the name is 12 characters or less. Chrome's max recommended short_name length is 12
-		 * characters.
-		 *
-		 * @todo This should probably use mb_strlen().
-		 * https://developers.google.com/web/tools/lighthouse/audits/manifest-contains-short_name
-		 * https://developer.chrome.com/apps/manifest/name#short_name
-		 */
-		if ( strlen( $manifest['name'] ) <= self::SHORT_NAME_MAX_LENGTH ) {
+		// Lighthouse complains when the short_name is absent, even when the name is 12 characters or less. If the name
+		// is 12 characters or less, use it as the short_name.
+		if ( $this->is_name_short( $manifest['name'] ) ) {
 			$manifest['short_name'] = $manifest['name'];
 		}
 
@@ -275,7 +283,7 @@ final class WP_Web_App_Manifest {
 				'description' => wp_kses_post( sprintf( '<p>%s</p>', $description ) ),
 				'actions'     => wp_kses_post( $actions ),
 			);
-		} elseif ( strlen( $manifest['short_name'] ) > self::SHORT_NAME_MAX_LENGTH ) {
+		} elseif ( ! $this->is_name_short( $manifest['short_name'] ) ) {
 			$result = array(
 				'label'       =>
 					sprintf(
