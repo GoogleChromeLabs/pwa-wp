@@ -176,6 +176,7 @@ final class WP_Web_App_Manifest {
 	 * @return bool Whether name is short.
 	 */
 	private function is_name_short( $name ) {
+		$name   = trim( $name );
 		$length = function_exists( 'mb_strlen' ) ? mb_strlen( $name ) : strlen( $name );
 		return $length <= self::SHORT_NAME_MAX_LENGTH;
 	}
@@ -196,7 +197,7 @@ final class WP_Web_App_Manifest {
 		// Lighthouse complains when the short_name is absent, even when the name is 12 characters or less. If the name
 		// is 12 characters or less, use it as the short_name.
 		if ( $this->is_name_short( $manifest['name'] ) ) {
-			$manifest['short_name'] = $manifest['name'];
+			$manifest['short_name'] = trim( $manifest['name'] );
 		}
 
 		$language = get_bloginfo( 'language' );
