@@ -539,8 +539,7 @@ final class WP_Web_App_Manifest {
 				 * Enable form validation for General Settings. Disabling form validation was done 8 years ago (2014) in
 				 * WP 4.0 in 2014 due to an email validation bug in Firefox. This has since surely been resolved, so
 				 * there is no no need to retain it and we can start to benefit from client-side validation, such as
-				 * the required constraint for the short name. See
-				 * <https://github.com/WordPress/wordpress-develop/commit/0a4e8b2b7ee84efb28acc946a9a54cdd03414c28>
+				 * the required constraint for the short name. See <https://core.trac.wordpress.org/ticket/22183#comment:6>.
 				 */
 				shortNameField.form.noValidate = false;
 
