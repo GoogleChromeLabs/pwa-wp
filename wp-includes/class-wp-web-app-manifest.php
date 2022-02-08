@@ -499,7 +499,7 @@ final class WP_Web_App_Manifest {
 						id="<?php echo esc_attr( self::SHORT_NAME_OPTION ); ?>"
 						name="<?php echo esc_attr( self::SHORT_NAME_OPTION ); ?>"
 						value="<?php echo esc_attr( $readonly ? $actual_short_name : $short_name_option ); ?>"
-						class="regular-text <?php echo $readonly ? 'disabled' : ''; ?>" maxlength="<?php echo esc_attr( self::SHORT_NAME_MAX_LENGTH ); ?>"
+						class="regular-text <?php echo $readonly ? 'disabled' : ''; ?>" maxlength="<?php echo esc_attr( (string) self::SHORT_NAME_MAX_LENGTH ); ?>"
 						<?php disabled( $readonly ); ?>
 					>
 					<p class="description">
