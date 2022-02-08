@@ -34,6 +34,13 @@ final class WP_Web_App_Manifest {
 	const REST_ROUTE = '/web-app-manifest';
 
 	/**
+	 * Option name for short_name.
+	 *
+	 * @var string
+	 */
+	const SHORT_NAME_OPTION = 'short_name';
+
+	/**
 	 * Maximum length for short_name.
 	 *
 	 * @since 0.4
@@ -54,14 +61,16 @@ final class WP_Web_App_Manifest {
 	public $default_manifest_icon_sizes = array( 192, 512 );
 
 	/**
-	 * Inits the class.
-	 *
-	 * Mainly copied from Jetpack_PWA_Manifest::__construct().
+	 * Initialize.
 	 */
 	public function init() {
 		add_action( 'wp_head', array( $this, 'manifest_link_and_meta' ) );
 		add_action( 'rest_api_init', array( $this, 'register_manifest_rest_route' ) );
 		add_filter( 'site_status_tests', array( $this, 'add_short_name_site_status_test' ) );
+
+		add_action( 'rest_api_init', array( $this, 'register_short_name_setting' ) );
+		add_action( 'admin_init', array( $this, 'register_short_name_setting' ) );
+		add_action( 'admin_init', array( $this, 'add_short_name_settings_field' ) );
 	}
 
 	/**
@@ -412,5 +421,150 @@ final class WP_Web_App_Manifest {
 	 */
 	public static function get_url() {
 		return rest_url( self::REST_NAMESPACE . self::REST_ROUTE );
+	}
+
+	/**
+	 * Register setting for short_name.
+	 */
+	public function register_short_name_setting() {
+		register_setting(
+			'general',
+			self::SHORT_NAME_OPTION,
+			array(
+				'type'              => 'string',
+				'description'       => __( 'Short version of site title which is suitable for app icon on home screen.', 'pwa' ),
+				'sanitize_callback' => array( $this, 'sanitize_short_name' ),
+				'show_in_rest'      => true,
+			)
+		);
+	}
+
+	/**
+	 * Add the settings field for short name.
+	 */
+	public function add_short_name_settings_field() {
+		add_settings_field(
+			self::SHORT_NAME_OPTION,
+			esc_html__( 'Short Name', 'pwa' ),
+			array( $this, 'render_short_name_settings_field' ),
+			'general'
+		);
+	}
+
+	/**
+	 * Sanitize short name.
+	 *
+	 * @param string|mixed $value Unsanitized short name.
+	 * @return string Sanitized short name.
+	 */
+	public function sanitize_short_name( $value ) {
+		if ( ! is_string( $value ) ) {
+			return '';
+		}
+		$value = trim( sanitize_text_field( $value ) );
+		return (string) substr( $value, 0, self::SHORT_NAME_MAX_LENGTH );
+	}
+
+	/**
+	 * Render short name settings field.
+	 *
+	 * @return void
+	 */
+	public function render_short_name_settings_field() {
+		$short_name_option = get_option( self::SHORT_NAME_OPTION, '' );
+
+		$manifest          = $this->get_manifest();
+		$actual_short_name = isset( $manifest['short_name'] ) ? $manifest['short_name'] : '';
+
+		// Disable the field if the user is supplying the short name via the web_app_manifest filter.
+		$readonly = (
+			$actual_short_name !== $short_name_option
+			&&
+			has_filter( 'web_app_manifest' )
+		);
+
+		?>
+		<table id="short_name_table" hidden>
+			<tr>
+				<th scope="row">
+					<label for="<?php echo esc_attr( self::SHORT_NAME_OPTION ); ?>">
+						<?php esc_html_e( 'Short Name', 'pwa' ); ?>
+					</label>
+				</th>
+				<td>
+					<input
+						type="text"
+						id="<?php echo esc_attr( self::SHORT_NAME_OPTION ); ?>"
+						name="<?php echo esc_attr( self::SHORT_NAME_OPTION ); ?>"
+						value="<?php echo esc_attr( $readonly ? $actual_short_name : $short_name_option ); ?>"
+						class="regular-text <?php echo $readonly ? 'disabled' : ''; ?>" maxlength="<?php echo esc_attr( self::SHORT_NAME_MAX_LENGTH ); ?>"
+						<?php disabled( $readonly ); ?>
+					>
+					<p class="description">
+						<?php
+						echo wp_kses_post(
+							sprintf(
+								/* translators: %1$d is the max length as a number */
+								__( 'This is the short version of your site title. It is displayed when there is not enough space for the full title, for example with the site icon on a phone&#8217;s homescreen as an installed app. It should be a maximum of %1$d characters long.', 'pwa' ),
+								self::SHORT_NAME_MAX_LENGTH
+							)
+						);
+						?>
+						<?php if ( $readonly ) : ?>
+							<strong>
+							<?php esc_html_e( 'A plugin or theme is managing this field.', 'pwa' ); ?>
+							</strong>
+						<?php endif; ?>
+					</p>
+				</td>
+			</tr>
+		</table>
+
+		<script>
+			( ( shortNameTable, blogNameField, shortNameMaxLength ) => {
+				if ( ! shortNameTable || ! blogNameField ) {
+					return;
+				}
+
+				const blogNameRow = blogNameField.closest( 'tr' );
+				const shortNameRow = shortNameTable.querySelector( 'tr' );
+				const shortNameField = shortNameTable.querySelector( '#short_name' );
+
+				blogNameRow.parentNode.insertBefore( shortNameRow, blogNameRow.nextSibling );
+				shortNameTable.parentNode.removeChild( shortNameTable );
+
+				/*
+				 * Enable form validation for General Settings. Disabling form validation was done 8 years ago (2014) in
+				 * WP 4.0 in 2014 due to an email validation bug in Firefox. This has since surely been resolved, so
+				 * there is no no need to retain it and we can start to benefit from client-side validation, such as
+				 * the required constraint for the short name. See
+				 * <https://github.com/WordPress/wordpress-develop/commit/0a4e8b2b7ee84efb28acc946a9a54cdd03414c28>
+				 */
+				shortNameField.form.noValidate = false;
+
+				/**
+				 * Update short_name field.
+				 *
+				 * When the Site Title is not too long, use it as the placeholder for the Short Name field and let it
+				 * not be required.
+				 */
+				function updateShortNameField() {
+					if ( blogNameField.value.trim().length <= shortNameMaxLength ) {
+						shortNameField.required = false;
+						shortNameField.placeholder = blogNameField.value.trim();
+					} else {
+						shortNameField.required = true;
+						shortNameField.placeholder = '';
+					}
+				}
+				updateShortNameField();
+				blogNameField.addEventListener( 'input', updateShortNameField );
+			} )(
+				document.getElementById( 'short_name_table' ),
+				document.getElementById( 'blogname' ),
+				<?php echo wp_json_encode( self::SHORT_NAME_MAX_LENGTH ); ?>
+			);
+		</script>
+		<?php
 	}
 }
