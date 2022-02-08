@@ -478,6 +478,8 @@ final class WP_Web_App_Manifest {
 
 		// Disable the field if the user is supplying the short name via the web_app_manifest filter.
 		$readonly = (
+			isset( $manifest['short_name'] )
+			&&
 			$actual_short_name !== $short_name_option
 			&&
 			has_filter( 'web_app_manifest' )
