@@ -9,6 +9,8 @@ use Yoast\WPTestUtils\WPIntegration\TestCase;
 
 /**
  * Tests for class WP_Web_App_Manifest.
+ *
+ * @coversDefaultClass WP_Web_App_Manifest
  */
 class Test_WP_Web_App_Manifest extends TestCase {
 
@@ -84,7 +86,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	/**
 	 * Test init.
 	 *
-	 * @covers WP_Web_App_Manifest::init()
+	 * @covers ::init()
 	 */
 	public function test_init() {
 		$this->instance->init();
@@ -96,7 +98,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	/**
 	 * Test manifest_link_and_meta.
 	 *
-	 * @covers WP_Web_App_Manifest::manifest_link_and_meta()
+	 * @covers ::manifest_link_and_meta()
 	 */
 	public function test_manifest_link_and_meta() {
 		$this->mock_site_icon();
@@ -146,7 +148,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	/**
 	 * Test get_theme_color.
 	 *
-	 * @covers WP_Web_App_Manifest::get_theme_color()
+	 * @covers ::get_theme_color()
 	 */
 	public function test_get_theme_color() {
 		$test_background_color = '2a7230';
@@ -162,7 +164,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	/**
 	 * Test get_manifest.
 	 *
-	 * @covers WP_Web_App_Manifest::get_manifest()
+	 * @covers ::get_manifest()
 	 */
 	public function test_get_manifest() {
 		$this->mock_site_icon();
@@ -202,7 +204,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	/**
 	 * Test register_manifest_rest_route.
 	 *
-	 * @covers WP_Web_App_Manifest::register_manifest_rest_route()
+	 * @covers ::register_manifest_rest_route()
 	 */
 	public function test_register_manifest_rest_route() {
 		add_action( 'rest_api_init', array( $this->instance, 'register_manifest_rest_route' ) );
@@ -239,7 +241,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	/**
 	 * Test get_icons.
 	 *
-	 * @covers WP_Web_App_Manifest::get_icons()
+	 * @covers ::get_icons()
 	 */
 	public function test_get_icons() {
 
