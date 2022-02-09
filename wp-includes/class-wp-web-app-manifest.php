@@ -272,10 +272,9 @@ final class WP_Web_App_Manifest {
 		$manifest = $this->get_manifest();
 
 		$description = sprintf(
-			/* translators: %1$s is `short_name`, %2$d is the max length as a number */
-			__( 'The %1$s is a short version of your website&#8217;s name. It is displayed when there is not enough space for the full name, for example with the site icon on a phone&#8217;s homescreen. It should be a maximum of %2$d characters long.', 'pwa' ),
-			'<code>short_name</code>',
-			self::SHORT_NAME_MAX_LENGTH
+			/* translators: %s is the max length as a number */
+			__( 'This is the short version of your site title. It is displayed when there is not enough space for the full title, for example with the site icon on a phone&#8217;s homescreen as an installed app. It should be a maximum of %s characters long.', 'pwa' ),
+			number_format_i18n( self::SHORT_NAME_MAX_LENGTH )
 		);
 
 		$actions = sprintf(
@@ -298,10 +297,12 @@ final class WP_Web_App_Manifest {
 		} elseif ( ! $this->is_name_short( $manifest['short_name'] ) ) {
 			$result = array(
 				'label'       =>
-					sprintf(
-						/* translators: %s is the short name */
-						__( 'Web App Manifest has a short name (%s) that is too long', 'pwa' ),
-						esc_html( $manifest['short_name'] )
+					wp_kses_post(
+						sprintf(
+							/* translators: %s is the short name */
+							__( 'Web App Manifest has a short name (%s) that is too long', 'pwa' ),
+							$manifest['short_name']
+						)
 					),
 				'status'      => 'recommended',
 				'badge'       => array(
@@ -314,10 +315,12 @@ final class WP_Web_App_Manifest {
 		} else {
 			$result = array(
 				'label'       =>
-					sprintf(
-						/* translators: %s is the short name */
-						__( 'Web App Manifest has a short name (%s)', 'pwa' ),
-						esc_html( $manifest['short_name'] )
+					wp_kses_post(
+						sprintf(
+							/* translators: %s is the short name */
+							__( 'Web App Manifest has a short name (%s)', 'pwa' ),
+							$manifest['short_name']
+						)
 					),
 				'status'      => 'good',
 				'badge'       => array(
@@ -508,9 +511,9 @@ final class WP_Web_App_Manifest {
 						<?php
 						echo wp_kses_post(
 							sprintf(
-								/* translators: %1$d is the max length as a number */
-								__( 'This is the short version of your site title. It is displayed when there is not enough space for the full title, for example with the site icon on a phone&#8217;s homescreen as an installed app. It should be a maximum of %1$d characters long.', 'pwa' ),
-								self::SHORT_NAME_MAX_LENGTH
+								/* translators: %s is the max length as a number */
+								__( 'This is the short version of your site title. It is displayed when there is not enough space for the full title, for example with the site icon on a phone&#8217;s homescreen as an installed app. It should be a maximum of %s characters long.', 'pwa' ),
+								number_format_i18n( self::SHORT_NAME_MAX_LENGTH )
 							)
 						);
 						?>
