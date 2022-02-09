@@ -203,9 +203,12 @@ final class WP_Web_App_Manifest {
 			'dir'       => is_rtl() ? 'rtl' : 'ltr',
 		);
 
-		// Lighthouse complains when the short_name is absent, even when the name is 12 characters or less. If the name
-		// is 12 characters or less, use it as the short_name.
-		if ( $this->is_name_short( $manifest['name'] ) ) {
+		$short_name = get_option( self::SHORT_NAME_OPTION, '' );
+		if ( $short_name ) {
+			$manifest['short_name'] = $short_name;
+		} elseif ( $this->is_name_short( $manifest['name'] ) ) {
+			// Lighthouse complains when the short_name is absent, even when the name is 12 characters or less. If the name
+			// is 12 characters or less, use it as the short_name.
 			$manifest['short_name'] = trim( $manifest['name'] );
 		}
 
@@ -276,10 +279,9 @@ final class WP_Web_App_Manifest {
 		);
 
 		$actions = sprintf(
-			/* translators: %1$s is `web_app_manifest`, %2$s is `functions.php` */
-			__( 'You currently may use %1$s filter to set the short name, for example in your theme&#8217;s %2$s.', 'pwa' ),
-			'<code>web_app_manifest</code>',
-			'<code>functions.php</code>'
+			/* translators: %s is the URL to the Short Name field on the General Settings screen */
+			__( 'You can update this via the <a href="%s">Short Name field</a> on the General Settings screen.', 'pwa' ),
+			esc_url( admin_url( 'options-general.php' ) . '#short_name' )
 		);
 
 		if ( empty( $manifest['short_name'] ) ) {
@@ -297,7 +299,7 @@ final class WP_Web_App_Manifest {
 			$result = array(
 				'label'       =>
 					sprintf(
-						/* translators: %1$s is the short name */
+						/* translators: %s is the short name */
 						__( 'Web App Manifest has a short name (%s) that is too long', 'pwa' ),
 						esc_html( $manifest['short_name'] )
 					),
@@ -313,7 +315,7 @@ final class WP_Web_App_Manifest {
 			$result = array(
 				'label'       =>
 					sprintf(
-						/* translators: %1$s is the short name */
+						/* translators: %s is the short name */
 						__( 'Web App Manifest has a short name (%s)', 'pwa' ),
 						esc_html( $manifest['short_name'] )
 					),
