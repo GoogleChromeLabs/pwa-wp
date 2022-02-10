@@ -90,9 +90,13 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	 */
 	public function test_init() {
 		$this->instance->init();
-		$this->assertEquals( 'WP_Web_App_Manifest', get_class( $this->instance ) );
+		$this->assertInstanceOf( WP_Web_App_Manifest::class, $this->instance );
 		$this->assertEquals( 10, has_action( 'wp_head', array( $this->instance, 'manifest_link_and_meta' ) ) );
 		$this->assertEquals( 10, has_action( 'rest_api_init', array( $this->instance, 'register_manifest_rest_route' ) ) );
+
+		$this->assertEquals( 10, has_action( 'rest_api_init', array( $this->instance, 'register_short_name_setting' ) ) );
+		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'register_short_name_setting' ) ) );
+		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'add_short_name_settings_field' ) ) );
 	}
 
 	/**
@@ -228,6 +232,72 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		add_filter( 'web_app_manifest', array( $this, 'mock_manifest' ) );
 		$actual_manifest = $this->instance->get_manifest();
 		$this->assertStringContainsString( self::MOCK_THEME_COLOR, $actual_manifest['theme_color'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function get_data_to_test_get_manifest_short_name() {
+		$set_long_blogname                  = static function () {
+			update_option( 'blogname', 'WordPress Develop' );
+		};
+		$set_short_blogname                 = static function () {
+			update_option( 'blogname', 'WP Dev' );
+		};
+		$set_short_blogname_with_whitespace = static function () {
+			update_option( 'blogname', 'WP Dev                ' );
+		};
+		$set_short_name                     = static function () {
+			update_option( 'short_name', 'WP Dev' );
+		};
+
+		return array(
+			'long_blogname'             => array( $set_long_blogname, null ),
+			'short_blogname'            => array( $set_short_blogname, 'WP Dev' ),
+			'short_blogname_whitespace' => array( $set_short_blogname_with_whitespace, 'WP Dev' ),
+			'short_name_option'         => array(
+				static function () use ( $set_long_blogname, $set_short_name ) {
+					$set_long_blogname();
+					$set_short_name();
+				},
+				'WP Dev',
+			),
+			'short_name_filtered'       => array(
+				static function () use ( $set_long_blogname, $set_short_name ) {
+					$set_long_blogname();
+					add_filter(
+						'web_app_manifest',
+						static function ( $manifest ) {
+							$manifest['short_name'] = 'So short!';
+							return $manifest;
+						}
+					);
+				},
+				'So short!',
+			),
+		);
+	}
+
+	/**
+	 * Test get_manifest for short_name.
+	 *
+	 * @covers ::get_manifest()
+	 * @dataProvider get_data_to_test_get_manifest_short_name
+	 *
+	 * @param callable    $setup Setup callback.
+	 * @param string|null $expected Expected short name.
+	 */
+	public function test_get_manifest_short_name( $setup, $expected ) {
+		$setup();
+		$manifest = $this->instance->get_manifest();
+		if ( null === $expected ) {
+			$this->assertArrayNotHasKey( 'short_name', $manifest );
+		} else {
+			$this->assertArrayHasKey( 'short_name', $manifest );
+			$this->assertEquals( $expected, $manifest['short_name'] );
+		}
 	}
 
 	/**
