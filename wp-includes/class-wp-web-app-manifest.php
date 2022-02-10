@@ -94,8 +94,16 @@ final class WP_Web_App_Manifest {
 				<meta name="mobile-web-app-capable" content="yes">
 
 				<?php
+				// Use the smallest icon from the manifest as the default Apple touch startup image.
 				$icons = isset( $manifest['icons'] ) ? $manifest['icons'] : array();
-				usort( $icons, array( $this, 'sort_icons_callback' ) );
+				usort(
+					$icons,
+					static function ( $a, $b ) {
+						$a_size = isset( $a['sizes'] ) ? (int) strtok( $a['sizes'], 'x' ) : 0;
+						$b_size = isset( $b['sizes'] ) ? (int) strtok( $b['sizes'], 'x' ) : 0;
+						return $a_size - $b_size;
+					}
+				);
 				$icon = array_shift( $icons );
 
 				$images = array();
@@ -119,20 +127,14 @@ final class WP_Web_App_Manifest {
 				 */
 				$images = apply_filters( 'apple_touch_startup_images', $images );
 
-				foreach ( $images as $key => $image ) {
-					if ( ! is_array( $image ) ) {
-						continue;
+				foreach ( $images as $image ) {
+					if ( is_array( $image ) && isset( $image['href'] ) && esc_url( $image['href'], array( 'http', 'https' ) ) ) {
+						printf( '<link rel="apple-touch-startup-image" href="%s"', esc_url( $image['href'] ) );
+						if ( isset( $image['media'] ) ) {
+							printf( ' media="%s"', esc_attr( $image['media'] ) );
+						}
+						echo ">\n";
 					}
-
-					if ( ! isset( $image['href'] ) || ! esc_url( $image['href'], array( 'http', 'https' ) ) ) {
-						continue;
-					}
-
-					printf( '<link rel="apple-touch-startup-image" href="%s"', esc_url( $image['href'] ) );
-					if ( isset( $image['media'] ) ) {
-						printf( ' media="%s"', esc_attr( $image['media'] ) );
-					}
-					echo ">\n";
 				}
 				break;
 		endswitch;
@@ -397,26 +399,16 @@ final class WP_Web_App_Manifest {
 		$icons     = array();
 		$mime_type = get_post_mime_type( $site_icon_id );
 		foreach ( $this->default_manifest_icon_sizes as $size ) {
-			$icons[] = array(
-				'src'   => get_site_icon_url( $size ),
-				'sizes' => sprintf( '%1$dx%1$d', $size ),
-				'type'  => $mime_type,
-			);
+			$src = get_site_icon_url( $size );
+			if ( $src ) {
+				$icons[] = array(
+					'src'   => $src,
+					'sizes' => sprintf( '%1$dx%1$d', $size ),
+					'type'  => $mime_type,
+				);
+			}
 		}
 		return $icons;
-	}
-
-	/**
-	 * Sort icon sizes.
-	 *
-	 * Used as a callback in usort(), called from the manifest_link_and_meta() method.
-	 *
-	 * @param array $a The 1st icon item in our comparison.
-	 * @param array $b The 2nd icon item in our comparison.
-	 * @return int
-	 */
-	public function sort_icons_callback( $a, $b ) {
-		return (int) strtok( $a['sizes'], 'x' ) - (int) strtok( $b['sizes'], 'x' );
 	}
 
 	/**

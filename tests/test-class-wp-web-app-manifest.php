@@ -100,12 +100,13 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	}
 
 	/**
-	 * Test manifest_link_and_meta.
+	 * Test manifest_link_and_meta when using the default minimal-ui display.
 	 *
 	 * @covers ::manifest_link_and_meta()
 	 */
-	public function test_manifest_link_and_meta() {
+	public function test_manifest_link_and_meta_non_browser_display() {
 		$this->mock_site_icon();
+		update_option( 'short_name', 'WP Dev' );
 
 		$added_images = array(
 			array(
@@ -132,6 +133,9 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		$this->instance->manifest_link_and_meta();
 		$output = ob_get_clean();
 
+		$this->assertStringContainsString( '<meta name="apple-mobile-web-app-capable" content="yes">', $output );
+		$this->assertStringContainsString( '<meta name="mobile-web-app-capable" content="yes">', $output );
+
 		$this->assertSame( 3, substr_count( $output, '<link rel="apple-touch-startup-image"' ) );
 		$this->assertStringContainsString( sprintf( '<link rel="apple-touch-startup-image" href="%s">', esc_url( get_site_icon_url() ) ), $output );
 		foreach ( $added_images as $added_image ) {
@@ -147,6 +151,45 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		$this->assertStringContainsString( rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ), $output );
 		$this->assertStringContainsString( '<meta name="theme-color" content="', $output );
 		$this->assertStringContainsString( $this->instance->get_theme_color(), $output );
+
+		$this->assertStringContainsString( '<meta name="apple-mobile-web-app-title" content="WP Dev">', $output );
+		$this->assertStringContainsString( '<meta name="application-name" content="WP Dev">', $output );
+	}
+
+
+	/**
+	 * Test manifest_link_and_meta when using the browser display.
+	 *
+	 * @covers ::manifest_link_and_meta()
+	 */
+	public function test_manifest_link_and_meta_browser_display() {
+		$this->mock_site_icon();
+		update_option( 'blogname', 'WordPress Develop' );
+		update_option( 'short_name', 'WP Dev' );
+
+		add_filter(
+			'web_app_manifest',
+			static function ( $manifest ) {
+				$manifest['display'] = 'browser';
+				return $manifest;
+			}
+		);
+
+		ob_start();
+		$this->instance->manifest_link_and_meta();
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( '<meta name="apple-mobile-web-app-capable"', $output );
+		$this->assertStringNotContainsString( '<meta name="mobile-web-app-capable"', $output );
+		$this->assertStringNotContainsString( '<link rel="apple-touch-startup-image"', $output );
+
+		$this->assertStringContainsString( '<link rel="manifest"', $output );
+		$this->assertStringContainsString( rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ), $output );
+		$this->assertStringContainsString( '<meta name="theme-color" content="', $output );
+		$this->assertStringContainsString( $this->instance->get_theme_color(), $output );
+
+		$this->assertStringContainsString( '<meta name="apple-mobile-web-app-title" content="WP Dev">', $output );
+		$this->assertStringContainsString( '<meta name="application-name" content="WP Dev">', $output );
 	}
 
 	/**
@@ -357,15 +400,6 @@ class Test_WP_Web_App_Manifest extends TestCase {
 			);
 		}
 		$this->assertEquals( $expected_icons, $this->instance->get_icons() );
-	}
-
-	/**
-	 * Test sort_icons_callback.
-	 *
-	 * @covers ::sort_icons_callback()
-	 */
-	public function test_sort_icons_callback() {
-		$this->markTestIncomplete();
 	}
 
 	/**
