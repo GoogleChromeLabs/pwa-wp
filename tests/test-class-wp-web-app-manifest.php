@@ -162,6 +162,35 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	}
 
 	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function get_data_to_test_is_name_short() {
+		return array(
+			array( '0123456789ab', true ),
+			array( 'áâàéêèíîìóôò', true ),
+			array( ' áâàéêèíîìóôò ', true ),
+			array( ' 0123456789ab ', true ),
+			array( '0123456789abc', false ),
+			array( 'áâàéêèíîìóôò2', false ),
+		);
+	}
+
+	/**
+	 * Test is_name_short.
+	 *
+	 * @dataProvider get_data_to_test_is_name_short
+	 * @covers ::is_name_short()
+	 *
+	 * @param string $name     Short name to test.
+	 * @param bool   $is_short Whether short is expected.
+	 */
+	public function test_is_name_short( $name, $is_short ) {
+		$this->assertSame( $is_short, $this->instance->is_name_short( $name ) );
+	}
+
+	/**
 	 * Test get_manifest.
 	 *
 	 * @covers ::get_manifest()

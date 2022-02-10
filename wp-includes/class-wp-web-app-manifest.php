@@ -184,7 +184,7 @@ final class WP_Web_App_Manifest {
 	 * @param string $name Name.
 	 * @return bool Whether name is short.
 	 */
-	private function is_name_short( $name ) {
+	public function is_name_short( $name ) {
 		$name   = trim( $name );
 		$length = function_exists( 'mb_strlen' ) ? mb_strlen( $name ) : strlen( $name );
 		return $length <= self::SHORT_NAME_MAX_LENGTH;
