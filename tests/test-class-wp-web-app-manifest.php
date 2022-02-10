@@ -360,6 +360,60 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	}
 
 	/**
+	 * Test sort_icons_callback.
+	 *
+	 * @covers ::sort_icons_callback()
+	 */
+	public function test_sort_icons_callback() {
+		$this->markTestIncomplete();
+	}
+
+	/**
+	 * Test get_url.
+	 *
+	 * @covers ::get_url()
+	 */
+	public function test_get_url() {
+		$this->markTestIncomplete();
+	}
+
+	/**
+	 * Test register_short_name_setting.
+	 *
+	 * @covers ::register_short_name_setting()
+	 */
+	public function test_register_short_name_setting() {
+		$this->markTestIncomplete();
+	}
+
+	/**
+	 * Test add_short_name_settings_field.
+	 *
+	 * @covers ::add_short_name_settings_field()
+	 */
+	public function test_add_short_name_settings_field() {
+		$this->markTestIncomplete();
+	}
+
+	/**
+	 * Test sanitize_short_name.
+	 *
+	 * @covers ::sanitize_short_name()
+	 */
+	public function test_sanitize_short_name() {
+		$this->markTestIncomplete();
+	}
+
+	/**
+	 * Test render_short_name_settings_field.
+	 *
+	 * @covers ::render_short_name_settings_field()
+	 */
+	public function test_render_short_name_settings_field() {
+		$this->markTestIncomplete();
+	}
+
+	/**
 	 * Gets a mock background color.
 	 *
 	 * @return string $background_color A mock background color.
