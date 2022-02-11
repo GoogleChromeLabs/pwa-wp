@@ -19,6 +19,7 @@
 					isMaskableIcon.value = true;
 					isMaskableIcon.checked = true;
 					siteIcon = document.querySelector('img.app-icon-preview');
+					siteIcon.style.clipPath = 'inset(10% round 50%)';
 				}
 			});
 		});
