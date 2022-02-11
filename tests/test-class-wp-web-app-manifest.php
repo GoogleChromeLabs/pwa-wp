@@ -408,7 +408,10 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	 * @covers ::get_url()
 	 */
 	public function test_get_url() {
-		$this->markTestIncomplete();
+		$this->assertEquals(
+			rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ),
+			$this->instance->get_url()
+		);
 	}
 
 	/**
@@ -417,7 +420,18 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	 * @covers ::register_short_name_setting()
 	 */
 	public function test_register_short_name_setting() {
-		$this->markTestIncomplete();
+		global $wp_registered_settings;
+		unset( $wp_registered_settings['short_name'] );
+
+		$this->assertArrayNotHasKey( 'short_name', $wp_registered_settings );
+		$this->instance->register_short_name_setting();
+		$this->assertArrayHasKey( 'short_name', $wp_registered_settings );
+		$setting = $wp_registered_settings['short_name'];
+
+		$this->assertEquals( 'string', $setting['type'] );
+		$this->assertEquals( 'general', $setting['group'] );
+		$this->assertEquals( array( $this->instance, 'sanitize_short_name' ), $setting['sanitize_callback'] );
+		$this->assertEquals( true, $setting['show_in_rest'] );
 	}
 
 	/**
@@ -426,25 +440,107 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	 * @covers ::add_short_name_settings_field()
 	 */
 	public function test_add_short_name_settings_field() {
-		$this->markTestIncomplete();
+		global $wp_settings_fields;
+		unset( $wp_settings_fields['general']['default']['short_name'] );
+		$this->instance->add_short_name_settings_field();
+		$this->assertTrue( isset( $wp_settings_fields['general']['default']['short_name'] ) );
+		$field = $wp_settings_fields['general']['default']['short_name'];
+
+		$this->assertEquals( 'short_name', $field['id'] );
+		$this->assertEquals( 'Short Name', $field['title'] );
+		$this->assertEquals( array( $this->instance, 'render_short_name_settings_field' ), $field['callback'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array Test cases.
+	 */
+	public function get_data_to_test_sanitize_short_name() {
+		return array(
+			'int'                => array( 0, '' ),
+			'array'              => array( array(), '' ),
+			'string'             => array( '', '' ),
+			'whitespace_padding' => array( '     WP Dev ', 'WP Dev' ),
+			'script_contains'    => array( 'WP <script>evil</script> Dev ', 'WP Dev' ),
+			'too_long'           => array( 'WordPress Develop', 'WordPress De' ),
+		);
 	}
 
 	/**
 	 * Test sanitize_short_name.
 	 *
+	 * @dataProvider get_data_to_test_sanitize_short_name
 	 * @covers ::sanitize_short_name()
+	 *
+	 * @param mixed  $input    Input.
+	 * @param string $expected Expected.
 	 */
-	public function test_sanitize_short_name() {
-		$this->markTestIncomplete();
+	public function test_sanitize_short_name( $input, $expected ) {
+		$this->assertEquals( $expected, $this->instance->sanitize_short_name( $input ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array Test cases.
+	 */
+	public function get_data_to_test_render_short_name_settings_field() {
+		return array(
+			'short_name_absent'   => array(
+				static function () {
+					update_option( 'short_name', '' );
+				},
+				function ( $output ) {
+					$this->assertStringContainsString( '<input type="text" id="short_name" name="short_name" value="" class="regular-text " maxlength="12">', $output );
+				},
+			),
+			'short_name_set'      => array(
+				static function () {
+					update_option( 'short_name', 'WP\'s Dev' );
+				},
+				function ( $output ) {
+					$this->assertStringContainsString( '<input type="text" id="short_name" name="short_name" value="WP&#039;s Dev" class="regular-text " maxlength="12">', $output );
+				},
+			),
+			'short_name_disabled' => array(
+				static function () {
+					add_filter(
+						'web_app_manifest',
+						static function ( $manifest ) {
+							$manifest['short_name'] = 'Short';
+							return $manifest;
+						}
+					);
+				},
+				function ( $output ) {
+					$this->assertStringContainsString( '<input type="text" id="short_name" name="short_name" value="Short" class="regular-text disabled" maxlength="12" disabled=\'disabled\'>', $output );
+				},
+			),
+		);
 	}
 
 	/**
 	 * Test render_short_name_settings_field.
 	 *
 	 * @covers ::render_short_name_settings_field()
+	 * @dataProvider get_data_to_test_render_short_name_settings_field
+	 *
+	 * @param callable $setup  Set up.
+	 * @param callable $assert Assert.
 	 */
-	public function test_render_short_name_settings_field() {
-		$this->markTestIncomplete();
+	public function test_render_short_name_settings_field( $setup, $assert ) {
+		$setup();
+		$output = trim( get_echo( array( $this->instance, 'render_short_name_settings_field' ) ) );
+		$output = preg_replace( '/\s+/', ' ', $output );
+		$output = preg_replace( '/\s+>/', '>', $output );
+		$output = preg_replace( '/>\s+</', '><', $output );
+		$output = preg_replace( '/>\s*/', '>', $output );
+		$output = preg_replace( '/\s*</', '<', $output );
+
+		$assert( $output );
+
+		$this->assertStringContainsString( '<script>', $output );
 	}
 
 	/**
