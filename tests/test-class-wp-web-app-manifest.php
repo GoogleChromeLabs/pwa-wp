@@ -9,6 +9,8 @@ use Yoast\WPTestUtils\WPIntegration\TestCase;
 
 /**
  * Tests for class WP_Web_App_Manifest.
+ *
+ * @coversDefaultClass WP_Web_App_Manifest
  */
 class Test_WP_Web_App_Manifest extends TestCase {
 
@@ -84,22 +86,27 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	/**
 	 * Test init.
 	 *
-	 * @covers WP_Web_App_Manifest::init()
+	 * @covers ::init()
 	 */
 	public function test_init() {
 		$this->instance->init();
-		$this->assertEquals( 'WP_Web_App_Manifest', get_class( $this->instance ) );
+		$this->assertInstanceOf( WP_Web_App_Manifest::class, $this->instance );
 		$this->assertEquals( 10, has_action( 'wp_head', array( $this->instance, 'manifest_link_and_meta' ) ) );
 		$this->assertEquals( 10, has_action( 'rest_api_init', array( $this->instance, 'register_manifest_rest_route' ) ) );
+
+		$this->assertEquals( 10, has_action( 'rest_api_init', array( $this->instance, 'register_short_name_setting' ) ) );
+		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'register_short_name_setting' ) ) );
+		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'add_short_name_settings_field' ) ) );
 	}
 
 	/**
-	 * Test manifest_link_and_meta.
+	 * Test manifest_link_and_meta when using the default minimal-ui display.
 	 *
-	 * @covers WP_Web_App_Manifest::manifest_link_and_meta()
+	 * @covers ::manifest_link_and_meta()
 	 */
-	public function test_manifest_link_and_meta() {
+	public function test_manifest_link_and_meta_non_browser_display() {
 		$this->mock_site_icon();
+		update_option( 'short_name', 'WP Dev' );
 
 		$added_images = array(
 			array(
@@ -126,6 +133,9 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		$this->instance->manifest_link_and_meta();
 		$output = ob_get_clean();
 
+		$this->assertStringContainsString( '<meta name="apple-mobile-web-app-capable" content="yes">', $output );
+		$this->assertStringContainsString( '<meta name="mobile-web-app-capable" content="yes">', $output );
+
 		$this->assertSame( 3, substr_count( $output, '<link rel="apple-touch-startup-image"' ) );
 		$this->assertStringContainsString( sprintf( '<link rel="apple-touch-startup-image" href="%s">', esc_url( get_site_icon_url() ) ), $output );
 		foreach ( $added_images as $added_image ) {
@@ -141,12 +151,51 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		$this->assertStringContainsString( rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ), $output );
 		$this->assertStringContainsString( '<meta name="theme-color" content="', $output );
 		$this->assertStringContainsString( $this->instance->get_theme_color(), $output );
+
+		$this->assertStringContainsString( '<meta name="apple-mobile-web-app-title" content="WP Dev">', $output );
+		$this->assertStringContainsString( '<meta name="application-name" content="WP Dev">', $output );
+	}
+
+
+	/**
+	 * Test manifest_link_and_meta when using the browser display.
+	 *
+	 * @covers ::manifest_link_and_meta()
+	 */
+	public function test_manifest_link_and_meta_browser_display() {
+		$this->mock_site_icon();
+		update_option( 'blogname', 'WordPress Develop' );
+		update_option( 'short_name', 'WP Dev' );
+
+		add_filter(
+			'web_app_manifest',
+			static function ( $manifest ) {
+				$manifest['display'] = 'browser';
+				return $manifest;
+			}
+		);
+
+		ob_start();
+		$this->instance->manifest_link_and_meta();
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( '<meta name="apple-mobile-web-app-capable"', $output );
+		$this->assertStringNotContainsString( '<meta name="mobile-web-app-capable"', $output );
+		$this->assertStringNotContainsString( '<link rel="apple-touch-startup-image"', $output );
+
+		$this->assertStringContainsString( '<link rel="manifest"', $output );
+		$this->assertStringContainsString( rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ), $output );
+		$this->assertStringContainsString( '<meta name="theme-color" content="', $output );
+		$this->assertStringContainsString( $this->instance->get_theme_color(), $output );
+
+		$this->assertStringContainsString( '<meta name="apple-mobile-web-app-title" content="WP Dev">', $output );
+		$this->assertStringContainsString( '<meta name="application-name" content="WP Dev">', $output );
 	}
 
 	/**
 	 * Test get_theme_color.
 	 *
-	 * @covers WP_Web_App_Manifest::get_theme_color()
+	 * @covers ::get_theme_color()
 	 */
 	public function test_get_theme_color() {
 		$test_background_color = '2a7230';
@@ -160,9 +209,38 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	}
 
 	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function get_data_to_test_is_name_short() {
+		return array(
+			array( '0123456789ab', true ),
+			array( 'áâàéêèíîìóôò', true ),
+			array( ' áâàéêèíîìóôò ', true ),
+			array( ' 0123456789ab ', true ),
+			array( '0123456789abc', false ),
+			array( 'áâàéêèíîìóôò2', false ),
+		);
+	}
+
+	/**
+	 * Test is_name_short.
+	 *
+	 * @dataProvider get_data_to_test_is_name_short
+	 * @covers ::is_name_short()
+	 *
+	 * @param string $name     Short name to test.
+	 * @param bool   $is_short Whether short is expected.
+	 */
+	public function test_is_name_short( $name, $is_short ) {
+		$this->assertSame( $is_short, $this->instance->is_name_short( $name ) );
+	}
+
+	/**
 	 * Test get_manifest.
 	 *
-	 * @covers WP_Web_App_Manifest::get_manifest()
+	 * @covers ::get_manifest()
 	 */
 	public function test_get_manifest() {
 		$this->mock_site_icon();
@@ -200,9 +278,75 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	}
 
 	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function get_data_to_test_get_manifest_short_name() {
+		$set_long_blogname                  = static function () {
+			update_option( 'blogname', 'WordPress Develop' );
+		};
+		$set_short_blogname                 = static function () {
+			update_option( 'blogname', 'WP Dev' );
+		};
+		$set_short_blogname_with_whitespace = static function () {
+			update_option( 'blogname', 'WP Dev                ' );
+		};
+		$set_short_name                     = static function () {
+			update_option( 'short_name', 'WP Dev' );
+		};
+
+		return array(
+			'long_blogname'             => array( $set_long_blogname, null ),
+			'short_blogname'            => array( $set_short_blogname, 'WP Dev' ),
+			'short_blogname_whitespace' => array( $set_short_blogname_with_whitespace, 'WP Dev' ),
+			'short_name_option'         => array(
+				static function () use ( $set_long_blogname, $set_short_name ) {
+					$set_long_blogname();
+					$set_short_name();
+				},
+				'WP Dev',
+			),
+			'short_name_filtered'       => array(
+				static function () use ( $set_long_blogname, $set_short_name ) {
+					$set_long_blogname();
+					add_filter(
+						'web_app_manifest',
+						static function ( $manifest ) {
+							$manifest['short_name'] = 'So short!';
+							return $manifest;
+						}
+					);
+				},
+				'So short!',
+			),
+		);
+	}
+
+	/**
+	 * Test get_manifest for short_name.
+	 *
+	 * @covers ::get_manifest()
+	 * @dataProvider get_data_to_test_get_manifest_short_name
+	 *
+	 * @param callable    $setup Setup callback.
+	 * @param string|null $expected Expected short name.
+	 */
+	public function test_get_manifest_short_name( $setup, $expected ) {
+		$setup();
+		$manifest = $this->instance->get_manifest();
+		if ( null === $expected ) {
+			$this->assertArrayNotHasKey( 'short_name', $manifest );
+		} else {
+			$this->assertArrayHasKey( 'short_name', $manifest );
+			$this->assertEquals( $expected, $manifest['short_name'] );
+		}
+	}
+
+	/**
 	 * Test register_manifest_rest_route.
 	 *
-	 * @covers WP_Web_App_Manifest::register_manifest_rest_route()
+	 * @covers ::register_manifest_rest_route()
 	 */
 	public function test_register_manifest_rest_route() {
 		add_action( 'rest_api_init', array( $this->instance, 'register_manifest_rest_route' ) );
@@ -239,7 +383,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	/**
 	 * Test get_icons.
 	 *
-	 * @covers WP_Web_App_Manifest::get_icons()
+	 * @covers ::get_icons()
 	 */
 	public function test_get_icons() {
 
@@ -256,6 +400,147 @@ class Test_WP_Web_App_Manifest extends TestCase {
 			);
 		}
 		$this->assertEquals( $expected_icons, $this->instance->get_icons() );
+	}
+
+	/**
+	 * Test get_url.
+	 *
+	 * @covers ::get_url()
+	 */
+	public function test_get_url() {
+		$this->assertEquals(
+			rest_url( WP_Web_App_Manifest::REST_NAMESPACE . WP_Web_App_Manifest::REST_ROUTE ),
+			$this->instance->get_url()
+		);
+	}
+
+	/**
+	 * Test register_short_name_setting.
+	 *
+	 * @covers ::register_short_name_setting()
+	 */
+	public function test_register_short_name_setting() {
+		global $wp_registered_settings;
+		unset( $wp_registered_settings['short_name'] );
+
+		$this->assertArrayNotHasKey( 'short_name', $wp_registered_settings );
+		$this->instance->register_short_name_setting();
+		$this->assertArrayHasKey( 'short_name', $wp_registered_settings );
+		$setting = $wp_registered_settings['short_name'];
+
+		$this->assertEquals( 'string', $setting['type'] );
+		$this->assertEquals( 'general', $setting['group'] );
+		$this->assertEquals( array( $this->instance, 'sanitize_short_name' ), $setting['sanitize_callback'] );
+		$this->assertEquals( true, $setting['show_in_rest'] );
+	}
+
+	/**
+	 * Test add_short_name_settings_field.
+	 *
+	 * @covers ::add_short_name_settings_field()
+	 */
+	public function test_add_short_name_settings_field() {
+		global $wp_settings_fields;
+		unset( $wp_settings_fields['general']['default']['short_name'] );
+		$this->instance->add_short_name_settings_field();
+		$this->assertTrue( isset( $wp_settings_fields['general']['default']['short_name'] ) );
+		$field = $wp_settings_fields['general']['default']['short_name'];
+
+		$this->assertEquals( 'short_name', $field['id'] );
+		$this->assertEquals( 'Short Name', $field['title'] );
+		$this->assertEquals( array( $this->instance, 'render_short_name_settings_field' ), $field['callback'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array Test cases.
+	 */
+	public function get_data_to_test_sanitize_short_name() {
+		return array(
+			'int'                => array( 0, '' ),
+			'array'              => array( array(), '' ),
+			'string'             => array( '', '' ),
+			'whitespace_padding' => array( '     WP Dev ', 'WP Dev' ),
+			'script_contains'    => array( 'WP <script>evil</script> Dev ', 'WP Dev' ),
+			'too_long'           => array( 'WordPress Develop', 'WordPress De' ),
+		);
+	}
+
+	/**
+	 * Test sanitize_short_name.
+	 *
+	 * @dataProvider get_data_to_test_sanitize_short_name
+	 * @covers ::sanitize_short_name()
+	 *
+	 * @param mixed  $input    Input.
+	 * @param string $expected Expected.
+	 */
+	public function test_sanitize_short_name( $input, $expected ) {
+		$this->assertEquals( $expected, $this->instance->sanitize_short_name( $input ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array Test cases.
+	 */
+	public function get_data_to_test_render_short_name_settings_field() {
+		return array(
+			'short_name_absent'   => array(
+				static function () {
+					update_option( 'short_name', '' );
+				},
+				function ( $output ) {
+					$this->assertStringContainsString( '<input type="text" id="short_name" name="short_name" value="" class="regular-text " maxlength="12">', $output );
+				},
+			),
+			'short_name_set'      => array(
+				static function () {
+					update_option( 'short_name', 'WP\'s Dev' );
+				},
+				function ( $output ) {
+					$this->assertStringContainsString( '<input type="text" id="short_name" name="short_name" value="WP&#039;s Dev" class="regular-text " maxlength="12">', $output );
+				},
+			),
+			'short_name_disabled' => array(
+				static function () {
+					add_filter(
+						'web_app_manifest',
+						static function ( $manifest ) {
+							$manifest['short_name'] = 'Short';
+							return $manifest;
+						}
+					);
+				},
+				function ( $output ) {
+					$this->assertStringContainsString( '<input type="text" id="short_name" name="short_name" value="Short" class="regular-text disabled" maxlength="12" disabled=\'disabled\'>', $output );
+				},
+			),
+		);
+	}
+
+	/**
+	 * Test render_short_name_settings_field.
+	 *
+	 * @covers ::render_short_name_settings_field()
+	 * @dataProvider get_data_to_test_render_short_name_settings_field
+	 *
+	 * @param callable $setup  Set up.
+	 * @param callable $assert Assert.
+	 */
+	public function test_render_short_name_settings_field( $setup, $assert ) {
+		$setup();
+		$output = trim( get_echo( array( $this->instance, 'render_short_name_settings_field' ) ) );
+		$output = preg_replace( '/\s+/', ' ', $output );
+		$output = preg_replace( '/\s+>/', '>', $output );
+		$output = preg_replace( '/>\s+</', '><', $output );
+		$output = preg_replace( '/>\s*/', '>', $output );
+		$output = preg_replace( '/\s*</', '<', $output );
+
+		$assert( $output );
+
+		$this->assertStringContainsString( '<script>', $output );
 	}
 
 	/**
