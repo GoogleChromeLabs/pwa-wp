@@ -25,6 +25,8 @@
 				return;
 			}
 
+			// At this point we are sure that icon is set, thus activate control.
+			wp.customize.control( 'pwa_maskable_icon' ).activate();
 			document.querySelector('img.app-icon-preview').style.clipPath = this.checked && siteIcon ? 'inset(10% round 50%)' : '';
 		};
 
