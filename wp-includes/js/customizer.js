@@ -4,8 +4,9 @@
 
 	wp.customize.bind('ready', function() {
 		let siteIcon = PWA_Customizer_Data.siteIcon;
+		let isIconMaskable = PWA_Customizer_Data.maskableIcon;
 		// Checkbox input.
-		const isMaskableIcon = document.getElementById( '_customize-input-pwa_maskable_icon' );
+		const maskableInput = document.getElementById( '_customize-input-pwa_maskable_icon' );
 
 		/**
 		 * Listens to icon update. This includes following scenarios.
@@ -19,8 +20,8 @@
 			const iconPreview = document.querySelector('img.app-icon-preview');
 
 			siteIcon = parseInt( this.iconId, 10 );
-			isMaskableIcon.value = this.checked;
-			isMaskableIcon.checked = this.checked;
+			maskableInput.value = this.checked;
+			maskableInput.checked = this.checked;
 
 			if( ! siteIcon ) {
 				wp.customize.control( 'pwa_maskable_icon' ).deactivate();
@@ -63,7 +64,7 @@
 		// Trigger the listener for the first time.
 		iconUpdateListener.call({
 			iconId: siteIcon,
-			checked: isMaskableIcon.checked,
+			checked: isIconMaskable,
 		});
 	});
 })();
