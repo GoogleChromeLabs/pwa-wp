@@ -27,7 +27,7 @@ add_action( 'wp_ajax_nopriv_wp_error_template', 'pwa_serve_admin_error_template'
  *
  * @return void
  */
-function register_maskable_icon_setting( WP_Customize_Manager $wp_customize ) {
+function pwa_maskable_icon_control( WP_Customize_Manager $wp_customize ) {
 	// add setting in the site identity section.
 	$wp_customize->add_setting(
 		'pwa_maskable_icon',
@@ -51,14 +51,14 @@ function register_maskable_icon_setting( WP_Customize_Manager $wp_customize ) {
 	);
 
 }
-add_action( 'customize_register', 'register_maskable_icon_setting' );
+add_action( 'customize_register', 'pwa_maskable_icon_control' );
 
 /**
  * Enqueue scripts for maskable icon customizer setting.
  *
  * @return void
  */
-function maskable_icon_scripts() {
+function pwa_maskable_icon_scripts() {
 	wp_register_script(
 		'pwa_customizer_script',
 		plugins_url( 'wp-includes/js/customizer.js', dirname( __FILE__ ) ),
@@ -78,4 +78,4 @@ function maskable_icon_scripts() {
 
 	wp_enqueue_script( 'pwa_customizer_script' );
 }
-add_action( 'customize_controls_enqueue_scripts', 'maskable_icon_scripts' );
+add_action( 'customize_controls_enqueue_scripts', 'pwa_maskable_icon_scripts' );
