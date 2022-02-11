@@ -235,6 +235,19 @@ final class WP_Web_App_Manifest {
 			$manifest['icons'] = $manifest_icons;
 		}
 
+		$manifest_icon_maskable = get_theme_mod( 'pwa_maskable_icon', false );
+		if ( ! $manifest_icon_maskable ) {
+			$manifest['icons'] = array_map(
+				function ( $icon ) {
+					if ( ! isset( $icon['purpose'] ) ) {
+						$icon['purpose'] = 'any maskable';
+					}
+					return $icon;
+				},
+				$manifest['icons']
+			);
+		}
+
 		/**
 		 * Enables overriding the manifest json.
 		 *
