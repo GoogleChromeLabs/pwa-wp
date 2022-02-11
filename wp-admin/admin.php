@@ -71,7 +71,8 @@ function maskable_icon_scripts() {
 		'pwa_customizer_script',
 		'PWA_Customizer_Data',
 		array(
-			'maskable_icon' => get_option( 'pwa_maskable_icon', false ),
+			'maskableIcon' => get_option( 'pwa_maskable_icon', false ),
+			'siteIcon'     => get_option( 'site_icon', 0 ),
 		)
 	);
 
