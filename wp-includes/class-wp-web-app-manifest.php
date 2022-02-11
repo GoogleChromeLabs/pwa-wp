@@ -281,7 +281,7 @@ final class WP_Web_App_Manifest {
 
 		$actions = sprintf(
 			/* translators: %s is the URL to the Short Name field on the General Settings screen */
-			__( 'You can update this via the <a href="%s">Short Name field</a> on the General Settings screen.', 'pwa' ),
+			__( 'You can update the <a href="%s">Short Name</a> on the General Settings screen.', 'pwa' ),
 			esc_url( admin_url( 'options-general.php' ) . '#short_name' )
 		);
 
