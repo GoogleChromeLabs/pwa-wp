@@ -16,18 +16,23 @@
 		 * 4. Icon set as un-maskable.
 		 */
 		const iconUpdateListener = function() {
-			siteIcon = this.iconId;
-			isMaskableIcon.checked = this.checked;
-			isMaskableIcon.value = this.checked;
+			const iconPreview = document.querySelector('img.app-icon-preview');
 
-			if( ! this.iconId ) {
+			siteIcon = parseInt( this.iconId, 10 );
+			isMaskableIcon.value = this.checked;
+			isMaskableIcon.checked = this.checked;
+
+			if( ! siteIcon ) {
 				wp.customize.control( 'pwa_maskable_icon' ).deactivate();
 				return;
 			}
 
 			// At this point we are sure that icon is set, thus activate control.
 			wp.customize.control( 'pwa_maskable_icon' ).activate();
-			document.querySelector('img.app-icon-preview').style.clipPath = this.checked && siteIcon ? 'inset(10% round 50%)' : '';
+
+			if ( iconPreview ) {
+				document.querySelector('img.app-icon-preview').style.clipPath = this.checked && siteIcon ? 'inset(10% round 50%)' : '';
+			}
 		};
 
 		/**
@@ -37,7 +42,8 @@
 			value.bind(function ( id ) {
 				iconUpdateListener.call({
 					iconId: id,
-					checked: false,
+					// If image is removed or changed, uncheck maskable checkbox.
+					checked: ( id && id === siteIcon ) ? isMaskableIcon.checked : false,
 				});
 			});
 		});
