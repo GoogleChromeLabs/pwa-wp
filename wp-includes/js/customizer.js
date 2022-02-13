@@ -1,12 +1,11 @@
-/* global PWA_Customizer_Data */
-
+/**
+ * Add customizer controls for the PWA plugin.
+ */
 (function () {
 	wp.customize.bind('ready', function () {
-		let siteIcon = PWA_Customizer_Data.siteIcon;
-		const isIconMaskable = PWA_Customizer_Data.maskableIcon;
-		// Checkbox input.
-		const maskableInput = document.getElementById(
-			'_customize-input-pwa_maskable_icon'
+		const isIconMaskable = wp.customize('pwa_maskable_icon').get();
+		const maskableInput = document.querySelector(
+			'#_customize-input-pwa_maskable_icon'
 		);
 
 		/**
@@ -18,11 +17,10 @@
 		 * 4. Icon set as un-maskable.
 		 */
 		const iconUpdateListener = function () {
-			siteIcon = parseInt(this.iconId, 10);
-			maskableInput.value = this.checked;
-			maskableInput.checked = this.checked;
+			const { isSet, makeFocused } = this;
+			const iconPreview = document.querySelector('img.app-icon-preview');
 
-			if (!siteIcon) {
+			if (!isSet && !iconPreview) {
 				wp.customize.control('pwa_maskable_icon').deactivate();
 				return;
 			}
@@ -30,43 +28,51 @@
 			// At this point we are sure that icon is set, thus activate control.
 			wp.customize.control('pwa_maskable_icon').activate();
 
-			const iconPreview = document.querySelector('img.app-icon-preview');
+			if (makeFocused) {
+				wp.customize.control('pwa_maskable_icon').focus();
+			}
+
 			if (iconPreview) {
 				iconPreview.style.clipPath =
-					this.checked && siteIcon ? 'inset(10% round 50%)' : '';
+					isSet && maskableInput.checked
+						? 'inset(10% round 50%)'
+						: '';
 			}
 		};
 
 		/**
-		 * Bind to the events when icon is updated or removed.
+		 * Bind the icon change event.
 		 */
-		wp.customize('site_icon', function (value) {
-			value.bind(function (id) {
-				iconUpdateListener.call({
-					iconId: id,
-					// If image is removed or changed, uncheck maskable checkbox.
-					checked:
-						id && id === siteIcon ? isIconMaskable.checked : false,
+		wp.customize(
+			'site_icon',
+			'pwa_maskable_icon',
+			function (siteIcon, maskableIcon) {
+				siteIcon.bind(function (id) {
+					if (!id) {
+						maskableIcon.set(false);
+					}
+					iconUpdateListener.call({
+						isSet: id ? true : false,
+						makeFocused: true,
+					});
 				});
-			});
-		});
+			}
+		);
 
 		/**
 		 * Bind the checkbox change event.
 		 */
-		wp.customize('pwa_maskable_icon', function (value) {
-			value.bind(function (checked) {
+		wp.customize('pwa_maskable_icon', function (setting) {
+			setting.bind(function (checked) {
 				iconUpdateListener.call({
-					iconId: siteIcon,
-					checked,
+					isSet: checked ? true : false,
 				});
 			});
 		});
 
 		// Trigger the listener for the first time.
 		iconUpdateListener.call({
-			iconId: siteIcon,
-			checked: isIconMaskable,
+			isSet: isIconMaskable ? true : false,
 		});
 	});
 })();
