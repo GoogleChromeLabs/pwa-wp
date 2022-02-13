@@ -242,6 +242,9 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp.php';
 /** Patch behavior in class-wp-query.php */
 require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-query.php';
 
+/** Function to register maskable icon setting in customizer */
+require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-customize-manager.php';
+
 /** Hooks to add for when accessing admin. */
 require_once PWA_PLUGIN_DIR . '/wp-admin/admin.php';
 
