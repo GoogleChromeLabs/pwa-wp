@@ -70,9 +70,11 @@
 			});
 		});
 
-		// Trigger the listener for the first time.
-		iconUpdateListener.call({
-			isSet: isIconMaskable ? true : false,
+		wp.customize.section('title_tagline').expanded.bind(function () {
+			// Trigger the listener for the first time.
+			iconUpdateListener.call({
+				isSet: isIconMaskable ? true : false,
+			});
 		});
 	});
 })();
