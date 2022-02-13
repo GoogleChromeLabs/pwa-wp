@@ -22,20 +22,20 @@ function pwa_customize_register_maskable_icon_setting( WP_Customize_Manager $wp_
 	$wp_customize->add_setting(
 		'pwa_maskable_icon',
 		array(
-			'capability'        => 'manage_options',
-			'type'              => 'option',
-			'default'           => false,
-			'transport'         => 'postMessage',
+			'capability' => 'manage_options',
+			'type'       => 'option',
+			'default'    => false,
+			'transport'  => 'postMessage',
 		)
 	);
 
 	$wp_customize->add_control(
 		'pwa_maskable_icon',
 		array(
-			'type'            => 'checkbox',
-			'section'         => 'title_tagline',
-			'label'           => __( 'Maskable icon', 'pwa' ),
-			'priority'        => 100,
+			'type'     => 'checkbox',
+			'section'  => 'title_tagline',
+			'label'    => __( 'Maskable icon', 'pwa' ),
+			'priority' => 100,
 		)
 	);
 }
