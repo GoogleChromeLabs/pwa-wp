@@ -26,9 +26,6 @@ function pwa_customize_register_maskable_icon_setting( WP_Customize_Manager $wp_
 			'type'              => 'option',
 			'default'           => false,
 			'transport'         => 'postMessage',
-			'sanitize_callback' => function ( $value ) {
-				return (bool) $value;
-			},
 		)
 	);
 
@@ -39,12 +36,6 @@ function pwa_customize_register_maskable_icon_setting( WP_Customize_Manager $wp_
 			'section'         => 'title_tagline',
 			'label'           => __( 'Maskable icon', 'pwa' ),
 			'priority'        => 100,
-			'active_callback' => function() {
-				if ( get_option( 'site_icon', 0 ) ) {
-					return true;
-				}
-				return false;
-			},
 		)
 	);
 }
