@@ -235,13 +235,17 @@ final class WP_Web_App_Manifest {
 			$manifest['icons'] = $manifest_icons;
 		}
 
+		/**
+		 * If user has not confirmed site icon as maskable, add icon purpose as `any maskable`.
+		 * By default, icons are maskable and lighthouse audits fails if icon is not really maskable.
+		 *
+		 * See <https://web.dev/maskable-icon-audit/>
+		 */
 		$manifest_icon_maskable = get_option( 'pwa_maskable_icon', false );
-		if ( $manifest_icon_maskable ) {
+		if ( ! $manifest_icon_maskable && isset( $manifest['icons'] ) ) {
 			$manifest['icons'] = array_map(
 				function ( $icon ) {
-					if ( ! isset( $icon['purpose'] ) ) {
-						$icon['purpose'] = 'any maskable';
-					}
+					$icon['purpose'] = 'any maskable';
 					return $icon;
 				},
 				$manifest['icons']
