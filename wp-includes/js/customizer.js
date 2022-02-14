@@ -4,7 +4,6 @@
 
 	wp.customize.bind('ready', function() {
 		let siteIcon = PWA_Customizer_Data.siteIcon;
-		let isIconMaskable = PWA_Customizer_Data.maskableIcon;
 		// Checkbox input.
 		const maskableInput = document.getElementById( '_customize-input-pwa_maskable_icon' );
 
