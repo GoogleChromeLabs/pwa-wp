@@ -12,11 +12,10 @@
 /**
  * Register maskable icon setting.
  *
- * @since 0.7
- *
  * @param WP_Customize_Manager $wp_customize Customizer manager object.
  *
  * @return void
+ * @since 0.7
  */
 function pwa_customize_register_maskable_icon_setting( WP_Customize_Manager $wp_customize ) {
 	$wp_customize->add_setting(
@@ -39,6 +38,7 @@ function pwa_customize_register_maskable_icon_setting( WP_Customize_Manager $wp_
 		)
 	);
 }
+
 add_action( 'customize_register', 'pwa_customize_register_maskable_icon_setting' );
 
 /**
@@ -55,12 +55,14 @@ function pwa_maskable_icon_scripts() {
 		true
 	);
 
-	wp_localize_script(
+	wp_add_inline_script(
 		'pwa_customizer_script',
-		'PWA_Customizer_Data',
-		array(
-			'siteIcon' => get_option( 'site_icon', 0 ),
-		)
+		'const PWA_Customizer_Data = ' . wp_json_encode(
+			array(
+				'siteIcon' => get_option( 'site_icon', 0 ),
+			) 
+		),
+		'before'
 	);
 
 	wp_enqueue_script( 'pwa_customizer_script' );
