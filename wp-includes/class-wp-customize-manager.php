@@ -31,10 +31,13 @@ function pwa_customize_register_maskable_icon_setting( WP_Customize_Manager $wp_
 	$wp_customize->add_control(
 		'pwa_maskable_icon',
 		array(
-			'type'     => 'checkbox',
-			'section'  => 'title_tagline',
-			'label'    => __( 'Maskable icon', 'pwa' ),
-			'priority' => 100,
+			'type'            => 'checkbox',
+			'section'         => 'title_tagline',
+			'label'           => __( 'Maskable icon', 'pwa' ),
+			'priority'        => 100,
+			'active_callback' => function() {
+				return (bool) get_option( 'site_icon' );
+			},
 		)
 	);
 }
@@ -47,25 +50,13 @@ add_action( 'customize_register', 'pwa_customize_register_maskable_icon_setting'
  * @return void
  */
 function pwa_maskable_icon_scripts() {
-	wp_register_script(
+	wp_enqueue_script(
 		'pwa_customizer_script',
-		plugins_url( 'wp-includes/js/customizer.js', dirname( __FILE__ ) ),
-		array(),
+		plugins_url( 'wp-admin/js/customizer.js', PWA_PLUGIN_FILE ),
+		array( 'customize-controls' ),
 		PWA_VERSION,
 		true
 	);
-
-	wp_add_inline_script(
-		'pwa_customizer_script',
-		'const PWA_Customizer_Data = ' . wp_json_encode(
-			array(
-				'siteIcon' => get_option( 'site_icon', 0 ),
-			) 
-		),
-		'before'
-	);
-
-	wp_enqueue_script( 'pwa_customizer_script' );
 }
 
 add_action( 'customize_controls_enqueue_scripts', 'pwa_maskable_icon_scripts' );
