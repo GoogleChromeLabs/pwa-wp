@@ -47,12 +47,23 @@ add_action( 'customize_register', 'pwa_customize_register_maskable_icon_setting'
  * @return void
  */
 function pwa_maskable_icon_scripts() {
-	wp_enqueue_script(
+	wp_register_script(
 		'pwa_customizer_script',
-		plugins_url( 'wp-admin/js/customizer.js', PWA_PLUGIN_FILE ),
-		array( 'customize-controls' ),
+		plugins_url( 'wp-includes/js/customizer.js', dirname( __FILE__ ) ),
+		array(),
 		PWA_VERSION,
 		true
 	);
+
+	wp_localize_script(
+		'pwa_customizer_script',
+		'PWA_Customizer_Data',
+		array(
+			'siteIcon' => get_option( 'site_icon', 0 ),
+		)
+	);
+
+	wp_enqueue_script( 'pwa_customizer_script' );
 }
+
 add_action( 'customize_controls_enqueue_scripts', 'pwa_maskable_icon_scripts' );
