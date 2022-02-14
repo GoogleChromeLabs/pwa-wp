@@ -350,6 +350,8 @@ final class WP_Web_App_Manifest {
 	 * Validate site icon.
 	 *
 	 * @since 0.7
+	 *
+	 * @return array $icon_errors Errors for site icon.
 	 */
 	public function pwa_validate_site_icon() {
 		$icon_errors = new WP_Error();
@@ -427,7 +429,7 @@ final class WP_Web_App_Manifest {
 				'<a class="button button-primary" href="%s">%s</a>',
 				admin_url( 'customize.php?autofocus[control]=site_icon' ),
 				__( 'Set site icon', 'pwa' )
-			) 
+			)
 		);
 
 		// Empty description before adding errors.
