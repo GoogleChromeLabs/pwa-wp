@@ -53,12 +53,12 @@ class Test_WP_Customize_Manager extends TestCase {
 		$this->assertInstanceOf( 'WP_Customize_Control', $this->wp_customize->get_control( 'site_icon_maskable' ) );
 	}
 
-	public function test_site_icon_maskable_scripts() {
-		site_icon_maskable_scripts();
+	public function test_pwa_customize_controls_enqueue_site_icon_maskable_script() {
+		pwa_customize_controls_enqueue_site_icon_maskable_script();
 
-		$this->assertEquals( 10, has_action( 'customize_controls_enqueue_scripts', 'site_icon_maskable_scripts' ) );
+		$this->assertEquals( 10, has_action( 'customize_controls_enqueue_scripts', 'pwa_customize_controls_enqueue_site_icon_maskable_script' ) );
 		$this->assertTrue( wp_script_is( 'customize-controls', 'enqueued' ) );
-		$this->assertTrue( wp_script_is( 'pwa_customizer_script', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'customize-controls-site-icon-maskable', 'enqueued' ) );
 	}
 
 }

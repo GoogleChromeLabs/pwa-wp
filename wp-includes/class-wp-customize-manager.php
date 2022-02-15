@@ -1,8 +1,6 @@
 <?php
 /**
- * Customizer API: WP_Customize_Manager class
- *
- * Add control for maskable icon setting.
+ * Add hooks to amend behavior of the WP_Customize_Manager class.
  *
  * @package PWA
  * @subpackage Customize
@@ -12,9 +10,11 @@
 /**
  * Register site_icon_maskable setting and control.
  *
- * Core merge note: This will go into the `WP_Customize_Manager::register_controls()` method
+ * Core merge note: This will go into the `WP_Customize_Manager::register_controls()` method or else the control logic
+ * itself may be made part of WP_Customize_Site_Icon_Control.
  *
  * @see WP_Customize_Manager::register_controls()
+ * @see WP_Customize_Site_Icon_Control
  * @since 0.7
  *
  * @param WP_Customize_Manager $wp_customize Customizer manager object.
@@ -50,18 +50,21 @@ function pwa_customize_register_site_icon_maskable( WP_Customize_Manager $wp_cus
 add_action( 'customize_register', 'pwa_customize_register_site_icon_maskable', 1000 );
 
 /**
- * Enqueue scripts for maskable icon customizer setting.
+ * Enqueue script for site_icon_maskable control.
  *
- * @return void
+ * This may end up making sense being enqueued as part of WP_Customize_Site_Icon_Control or just added to logic in
+ * <src/js/_enqueues/wp/customize/controls.js>.
+ *
+ * @see WP_Customize_Site_Icon_Control::enqueue()
  */
-function site_icon_maskable_scripts() {
+function pwa_customize_controls_enqueue_site_icon_maskable_script() {
 	wp_enqueue_script(
-		'pwa_customizer_script',
-		plugins_url( 'wp-admin/js/customizer.js', PWA_PLUGIN_FILE ),
+		'customize-controls-site-icon-maskable',
+		plugins_url( 'wp-admin/js/customize-controls-site-icon-maskable.js', PWA_PLUGIN_FILE ),
 		array( 'customize-controls' ),
 		PWA_VERSION,
 		true
 	);
 }
 
-add_action( 'customize_controls_enqueue_scripts', 'site_icon_maskable_scripts' );
+add_action( 'customize_controls_enqueue_scripts', 'pwa_customize_controls_enqueue_site_icon_maskable_script' );
