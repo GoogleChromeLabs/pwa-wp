@@ -1,4 +1,25 @@
 (function () {
+	wp.customize('site_icon', (siteIconSetting) => {
+		// Toggle site icon maskable active state based on whether the site icon is set.
+		wp.customize.control(
+			'site_icon_maskable',
+			(siteIconMaskableControl) => {
+				const updateActive = () => {
+					const siteIconValue = siteIconSetting();
+					siteIconMaskableControl.active(
+						typeof siteIconValue === 'number' && siteIconValue > 0
+					);
+				};
+
+				// Set initial active state.
+				updateActive();
+
+				// Update active state whenever the site_icon setting changes.
+				siteIconSetting.bind(updateActive);
+			}
+		);
+	});
+
 	wp.customize.bind('ready', function () {
 		let siteIcon = wp.customize('site_icon').get();
 
@@ -17,13 +38,8 @@
 			wp.customize('site_icon_maskable').set(this.checked);
 
 			if (!siteIcon) {
-				//alert( wp.customize.control( 'site_icon_maskable' ) );
-				wp.customize.control('site_icon_maskable').deactivate();
 				return;
 			}
-
-			// At this point we are sure that icon is set, thus activate control.
-			wp.customize.control('site_icon_maskable').activate();
 
 			const iconPreview = document.querySelector('img.app-icon-preview');
 
