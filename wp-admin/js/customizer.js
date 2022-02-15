@@ -14,16 +14,16 @@
 			siteIcon = parseInt(this.iconId, 10);
 
 			// Check/uncheck maskable checkbox.
-			wp.customize('pwa_maskable_icon').set(this.checked);
+			wp.customize('site_icon_maskable').set(this.checked);
 
 			if (!siteIcon) {
-				//alert( wp.customize.control( 'pwa_maskable_icon' ) );
-				wp.customize.control('pwa_maskable_icon').deactivate();
+				//alert( wp.customize.control( 'site_icon_maskable' ) );
+				wp.customize.control('site_icon_maskable').deactivate();
 				return;
 			}
 
 			// At this point we are sure that icon is set, thus activate control.
-			wp.customize.control('pwa_maskable_icon').activate();
+			wp.customize.control('site_icon_maskable').activate();
 
 			const iconPreview = document.querySelector('img.app-icon-preview');
 
@@ -43,7 +43,7 @@
 					// If image is removed or changed, uncheck maskable checkbox.
 					checked:
 						id && id === siteIcon
-							? wp.customize('pwa_maskable_icon').get()
+							? wp.customize('site_icon_maskable').get()
 							: false,
 				});
 			});
@@ -52,7 +52,7 @@
 		/**
 		 * Bind the checkbox change event.
 		 */
-		wp.customize('pwa_maskable_icon', function (value) {
+		wp.customize('site_icon_maskable', function (value) {
 			value.bind(function (checked) {
 				iconUpdateListener.call({
 					iconId: siteIcon,
@@ -64,7 +64,7 @@
 		// Trigger the listener for the first time.
 		iconUpdateListener.call({
 			iconId: siteIcon,
-			checked: wp.customize('pwa_maskable_icon').get(),
+			checked: wp.customize('site_icon_maskable').get(),
 		});
 	});
 })();

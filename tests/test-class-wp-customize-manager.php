@@ -49,14 +49,14 @@ class Test_WP_Customize_Manager extends TestCase {
 		pwa_customize_register_maskable_icon_setting( $this->wp_customize );
 
 		$this->assertEquals( 10, has_action( 'customize_register', 'pwa_customize_register_maskable_icon_setting' ) );
-		$this->assertInstanceOf( 'WP_Customize_Setting', $this->wp_customize->get_setting( 'pwa_maskable_icon' ) );
-		$this->assertInstanceOf( 'WP_Customize_Control', $this->wp_customize->get_control( 'pwa_maskable_icon' ) );
+		$this->assertInstanceOf( 'WP_Customize_Setting', $this->wp_customize->get_setting( 'site_icon_maskable' ) );
+		$this->assertInstanceOf( 'WP_Customize_Control', $this->wp_customize->get_control( 'site_icon_maskable' ) );
 	}
 
-	public function test_pwa_maskable_icon_scripts() {
-		pwa_maskable_icon_scripts();
+	public function test_site_icon_maskable_scripts() {
+		site_icon_maskable_scripts();
 
-		$this->assertEquals( 10, has_action( 'customize_controls_enqueue_scripts', 'pwa_maskable_icon_scripts' ) );
+		$this->assertEquals( 10, has_action( 'customize_controls_enqueue_scripts', 'site_icon_maskable_scripts' ) );
 		$this->assertTrue( wp_script_is( 'customize-controls', 'enqueued' ) );
 		$this->assertTrue( wp_script_is( 'pwa_customizer_script', 'enqueued' ) );
 	}
