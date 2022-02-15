@@ -45,10 +45,10 @@ class Test_WP_Customize_Manager extends TestCase {
 		parent::tearDown();
 	}
 
-	public function test_pwa_customize_register_maskable_icon_setting() {
-		pwa_customize_register_maskable_icon_setting( $this->wp_customize );
+	public function test_pwa_customize_register_site_icon_maskable() {
+		pwa_customize_register_site_icon_maskable( $this->wp_customize );
 
-		$this->assertEquals( 10, has_action( 'customize_register', 'pwa_customize_register_maskable_icon_setting' ) );
+		$this->assertEquals( 10, has_action( 'customize_register', 'pwa_customize_register_site_icon_maskable' ) );
 		$this->assertInstanceOf( 'WP_Customize_Setting', $this->wp_customize->get_setting( 'site_icon_maskable' ) );
 		$this->assertInstanceOf( 'WP_Customize_Control', $this->wp_customize->get_control( 'site_icon_maskable' ) );
 	}
