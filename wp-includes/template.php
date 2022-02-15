@@ -200,7 +200,7 @@ function wp_service_worker_offline_page_reload() {
 		 */
 		async function checkNetworkAndReload() {
 			try {
-				const response = await fetch('.', {method: 'HEAD'});
+				const response = await fetch(location.href, {method: 'HEAD'});
 				// Verify we get a valid response from the server
 				if (response.status >= 200 && response.status < 500) {
 					window.location.reload();
