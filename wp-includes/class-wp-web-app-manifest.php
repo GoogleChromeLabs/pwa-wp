@@ -363,29 +363,22 @@ final class WP_Web_App_Manifest {
 			return $icon_errors;
 		}
 
-		$site_icon_attachment = wp_get_attachment_image_url( $site_icon_id, 'full' );
+		$site_icon_metadata = wp_get_attachment_metadata( $site_icon_id );
 
-		if ( ! $site_icon_attachment ) {
-			$icon_errors->add( 'site_icon_not_set', __( 'The site icon is not set. Please set a site icon to make your site a Progressive Web App.', 'pwa' ) );
+		if ( ! $site_icon_metadata ) {
+			$icon_errors->add( 'site_icon_metadata_not_found', __( 'The site icon metadata could not be found. Please set a site icon to make your site a Progressive Web App.', 'pwa' ) );
 			return $icon_errors;
 		}
 
-		$site_icon_info = wp_getimagesize( $site_icon_attachment );
-
-		if ( ! $site_icon_info ) {
-			$icon_errors->add( 'site_icon_not_set', __( 'The site icon is not set. Please set a site icon to make your site a Progressive Web App.', 'pwa' ) );
-			return $icon_errors;
-		}
-
-		if ( $site_icon_info[0] < 512 && $site_icon_info[1] < 512 ) {
+		if ( $site_icon_metadata['width'] < 512 && $site_icon_metadata['height'] < 512 ) {
 			$icon_errors->add( 'site_icon_too_small', __( 'The site icon is too small. Please use a square image with a minimum size of 512x512px.', 'pwa' ) );
 		}
 
-		if ( $site_icon_info[0] !== $site_icon_info[1] ) {
+		if ( $site_icon_metadata['height'] !== $site_icon_metadata['width'] ) {
 			$icon_errors->add( 'site_icon_not_square', __( 'The site icon is not square. Please use a image with 1:1 ratio resolution.', 'pwa' ) );
 		}
 
-		if ( 'image/png' !== $site_icon_info['mime'] ) {
+		if ( 'image/png' !== get_post_mime_type( $site_icon_id ) ) {
 			$icon_errors->add( 'site_icon_not_png', __( 'The site icon is not a PNG image. Please use a PNG image.', 'pwa' ) );
 		}
 
