@@ -178,9 +178,14 @@ function wp_service_worker_error_message_placeholder() {
  * @since 0.7
  */
 function wp_service_worker_offline_page_reload() {
-	if ( ! is_offline() ) {
+	if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
 		return;
 	}
+
+	if ( ! is_offline() && ! is_500() ) {
+		return;
+	}
+
 	?>
 	<script type="module">
 		/**
@@ -207,7 +212,7 @@ function wp_service_worker_offline_page_reload() {
 					return;
 				}
 			} catch {
-				console.log('User is offline');
+				// Unable to connect so do nothing.
 			}
 			window.setTimeout(checkNetworkAndReload, Math.pow(2, count++) * 2500);
 		}
