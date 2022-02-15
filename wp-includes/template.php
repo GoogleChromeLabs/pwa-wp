@@ -182,7 +182,7 @@ function wp_service_worker_offline_page_reload() {
 		return;
 	}
 	?>
-	<script>
+	<script type="module">
 		/**
 		 * Listen to changes in the network state, reload when online.
 		 * This handles the case when the device is completely offline.
@@ -190,6 +190,9 @@ function wp_service_worker_offline_page_reload() {
 		window.addEventListener('online', () => {
 			window.location.reload();
 		});
+
+		// Create a counter to implement exponential backoff.
+		let count = 0;
 
 		/**
 		 * Check if the server is responding and reload the page if it is.
@@ -206,7 +209,7 @@ function wp_service_worker_offline_page_reload() {
 			} catch {
 				console.log('User is offline');
 			}
-			window.setTimeout(checkNetworkAndReload, 2500);
+			window.setTimeout(checkNetworkAndReload, Math.pow(2, count++) * 2500);
 		}
 		checkNetworkAndReload();
 	</script>
