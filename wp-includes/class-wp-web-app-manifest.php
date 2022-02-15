@@ -241,7 +241,7 @@ final class WP_Web_App_Manifest {
 		 *
 		 * See <https://web.dev/maskable-icon-audit/>
 		 */
-		$manifest_icon_maskable = get_option( 'pwa_maskable_icon', false );
+		$manifest_icon_maskable = get_option( 'site_icon_maskable', false );
 		if ( ! $manifest_icon_maskable && isset( $manifest['icons'] ) ) {
 			$manifest['icons'] = array_map(
 				function ( $icon ) {

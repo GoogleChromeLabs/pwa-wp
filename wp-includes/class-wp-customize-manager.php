@@ -19,7 +19,7 @@
  */
 function pwa_customize_register_maskable_icon_setting( WP_Customize_Manager $wp_customize ) {
 	$wp_customize->add_setting(
-		'pwa_maskable_icon',
+		'site_icon_maskable',
 		array(
 			'capability' => 'manage_options',
 			'type'       => 'option',
@@ -29,7 +29,7 @@ function pwa_customize_register_maskable_icon_setting( WP_Customize_Manager $wp_
 	);
 
 	$wp_customize->add_control(
-		'pwa_maskable_icon',
+		'site_icon_maskable',
 		array(
 			'type'            => 'checkbox',
 			'section'         => 'title_tagline',
@@ -49,7 +49,7 @@ add_action( 'customize_register', 'pwa_customize_register_maskable_icon_setting'
  *
  * @return void
  */
-function pwa_maskable_icon_scripts() {
+function site_icon_maskable_scripts() {
 	wp_enqueue_script(
 		'pwa_customizer_script',
 		plugins_url( 'wp-admin/js/customizer.js', PWA_PLUGIN_FILE ),
@@ -59,4 +59,4 @@ function pwa_maskable_icon_scripts() {
 	);
 }
 
-add_action( 'customize_controls_enqueue_scripts', 'pwa_maskable_icon_scripts' );
+add_action( 'customize_controls_enqueue_scripts', 'site_icon_maskable_scripts' );

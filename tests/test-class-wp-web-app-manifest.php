@@ -64,7 +64,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	public function setUp() {
 		parent::setUp();
 		$this->instance = new WP_Web_App_Manifest();
-		update_option( 'pwa_maskable_icon', true );
+		update_option( 'site_icon_maskable', true );
 	}
 
 	/**
@@ -78,7 +78,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		// Calling remove_theme_mod( 'custom-background' ) causes an undefined index error unless 'wp-head-callback' is set.
 		unset( $_wp_theme_features['custom-background'] );
 		set_theme_mod( 'background_color', null );
-		delete_option( 'pwa_maskable_icon' );
+		delete_option( 'site_icon_maskable' );
 		delete_option( 'site_icon' );
 		remove_filter( 'pwa_background_color', array( $this, 'mock_background_color' ) );
 		remove_filter( 'rest_api_init', array( $this->instance, 'register_manifest_rest_route' ) );
@@ -276,7 +276,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		);
 
 		// Check that icon purpose is `any maskable` if site icon is not maskable.
-		update_option( 'pwa_maskable_icon', false );
+		update_option( 'site_icon_maskable', false );
 		$actual_manifest = $this->instance->get_manifest();
 		$this->assertEquals( $expected_manifest, $actual_manifest );
 
