@@ -45,6 +45,9 @@ class Test_WP_Customize_Manager extends TestCase {
 		parent::tearDown();
 	}
 
+	/**
+	 * @covers ::pwa_customize_register_site_icon_maskable
+	 */
 	public function test_pwa_customize_register_site_icon_maskable() {
 		do_action( 'customize_register', $this->wp_customize );
 		pwa_customize_register_site_icon_maskable( $this->wp_customize );
@@ -54,6 +57,9 @@ class Test_WP_Customize_Manager extends TestCase {
 		$this->assertInstanceOf( 'WP_Customize_Control', $this->wp_customize->get_control( 'site_icon_maskable' ) );
 	}
 
+	/**
+	 * @covers ::pwa_customize_controls_enqueue_site_icon_maskable_script
+	 */
 	public function test_pwa_customize_controls_enqueue_site_icon_maskable_script() {
 		pwa_customize_controls_enqueue_site_icon_maskable_script();
 
