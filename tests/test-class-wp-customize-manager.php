@@ -46,9 +46,10 @@ class Test_WP_Customize_Manager extends TestCase {
 	}
 
 	public function test_pwa_customize_register_site_icon_maskable() {
+		do_action( 'customize_register', $this->wp_customize );
 		pwa_customize_register_site_icon_maskable( $this->wp_customize );
 
-		$this->assertEquals( 10, has_action( 'customize_register', 'pwa_customize_register_site_icon_maskable' ) );
+		$this->assertEquals( 1000, has_action( 'customize_register', 'pwa_customize_register_site_icon_maskable' ) );
 		$this->assertInstanceOf( 'WP_Customize_Setting', $this->wp_customize->get_setting( 'site_icon_maskable' ) );
 		$this->assertInstanceOf( 'WP_Customize_Control', $this->wp_customize->get_control( 'site_icon_maskable' ) );
 	}
