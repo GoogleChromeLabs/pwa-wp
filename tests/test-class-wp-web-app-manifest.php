@@ -324,7 +324,6 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		update_option( 'site_icon', $attachment_id );
 		$actual_site_icon_validation_errors = $this->instance->pwa_validate_site_icon()->get_error_code();
 		$expected_site_icon_validation_errors = 'site_icon_too_small';
-		print_r($actual_site_icon_validation_errors);
 		$this->assertEquals( $expected_site_icon_validation_errors, $actual_site_icon_validation_errors );
 	}
 
