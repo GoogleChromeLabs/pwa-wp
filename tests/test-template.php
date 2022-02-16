@@ -31,7 +31,9 @@ class Test_Template extends TestCase {
 		$error_template_url = add_query_arg( 'wp_error_template', 'offline', home_url( '/', 'relative' ) );
 		$this->go_to( $error_template_url );
 
-		$actual_script = wp_service_worker_offline_page_reload();
+		ob_start();
+		wp_service_worker_offline_page_reload();
+		$actual_script = ob_get_clean();
 		$this->assertEquals( $_SERVER['REQUEST_METHOD'], 'GET' );
 		$this->assertTrue( is_offline() );
 		$this->assertFalse( is_500() );
@@ -42,7 +44,9 @@ class Test_Template extends TestCase {
 		$error_template_url = add_query_arg( 'wp_error_template', '500', home_url( '/', 'relative' ) );
 		$this->go_to( $error_template_url );
 
-		$actual_script = wp_service_worker_offline_page_reload();
+		ob_start();
+		wp_service_worker_offline_page_reload();
+		$actual_script = ob_get_clean();
 		$this->assertEquals( $_SERVER['REQUEST_METHOD'], 'GET' );
 		$this->assertFalse( is_offline() );
 		$this->assertTrue( is_500() );
