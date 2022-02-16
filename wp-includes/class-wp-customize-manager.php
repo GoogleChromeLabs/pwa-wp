@@ -55,11 +55,11 @@ add_action( 'customize_register', 'pwa_customize_register_site_icon_maskable', 1
  * @see WP_Customize_Site_Icon_Control::enqueue()
  */
 function pwa_customize_controls_enqueue_site_icon_maskable_script() {
-	$icon_validation_messages = [
+	$icon_validation_messages = array(
 		'pwa_icon_not_set'   => __( 'Site icon is not present', 'pwa' ),
 		'pwa_icon_too_small' => __( 'Site icon needs to be at least 512 x 512', 'pwa' ),
 		'pwa_icon_no_png'    => __( 'Site icon should .png', 'pwa' ),
-	];
+	);
 
 	wp_register_script(
 		'customize-controls-site-icon-maskable',

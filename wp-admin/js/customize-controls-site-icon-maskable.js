@@ -1,3 +1,4 @@
+/*globals PWA_IconMessages*/
 wp.customize(
 	'site_icon',
 	'site_icon_maskable',
@@ -32,31 +33,49 @@ wp.customize(
 				 * Validate site icons for its presence and size.
 				 */
 				const iconValidation = () => {
-					const iconData = wp.customize.control( 'site_icon' ).container.find('img.app-icon-preview');
-					let NotificationData = {
+					const iconData = wp.customize
+						.control('site_icon')
+						.container.find('img.app-icon-preview');
+					const NotificationData = {
 						dismissible: true,
 						message: '',
 						type: 'error',
 						code: null,
 					};
-					let notifications = [];
+					const notifications = [];
 
-					if ( ! iconData.length ) {
-						notifications.push( new wp.customize.Notification( 'pwa_icon_not_set', {
-							...NotificationData,
-							message: PWA_IconMessages.pwa_icon_not_set,
-						} ) );
+					if (!iconData.length) {
+						notifications.push(
+							new wp.customize.Notification('pwa_icon_not_set', {
+								...NotificationData,
+								message: PWA_IconMessages.pwa_icon_not_set,
+							})
+						);
 					}
 
-					if ( iconData.length && ( iconData[0].naturalHeight < 512 || iconData[0].naturalHeight < 512 ) ) {
-						notifications.push( new wp.customize.Notification( 'pwa_icon_too_small', {
-							...NotificationData,
-							message: PWA_IconMessages.pwa_icon_too_small,
-						} ) );
+					if (
+						iconData.length &&
+						(iconData[0].naturalHeight < 512 ||
+							iconData[0].naturalHeight < 512)
+					) {
+						notifications.push(
+							new wp.customize.Notification(
+								'pwa_icon_too_small',
+								{
+									...NotificationData,
+									message:
+										PWA_IconMessages.pwa_icon_too_small,
+								}
+							)
+						);
 					}
 
-					notifications.map( ( notification ) => {
-						wp.customize.section( 'title_tagline' ).notifications.add( notification );
+					notifications.map((notification) => {
+						wp.customize
+							.section('title_tagline')
+							.notifications.add(notification);
+
+						return notification;
 					});
 				};
 
