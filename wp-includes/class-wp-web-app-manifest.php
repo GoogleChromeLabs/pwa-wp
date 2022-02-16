@@ -351,7 +351,7 @@ final class WP_Web_App_Manifest {
 	 *
 	 * @since 0.7
 	 *
-	 * @return array $icon_errors Errors for site icon.
+	 * @return WP_Error $icon_errors Errors for site icon.
 	 */
 	public function pwa_validate_site_icon() {
 		$icon_errors = new WP_Error();
