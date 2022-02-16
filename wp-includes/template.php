@@ -186,7 +186,6 @@ function wp_service_worker_offline_page_reload() {
 		return;
 	}
 
-	ob_start();
 	?>
 	<script type="module">
 		/**
@@ -220,7 +219,6 @@ function wp_service_worker_offline_page_reload() {
 		checkNetworkAndReload();
 	</script>
 	<?php
-	return ob_get_clean();
 }
 
 add_action( 'wp_footer', 'wp_service_worker_offline_page_reload' );
