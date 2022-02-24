@@ -264,6 +264,18 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		);
 		$this->assertEquals( $expected_manifest, $actual_manifest );
 
+		// Check that icon purpose is `any maskable` if site icon is maskable.
+		update_option( 'site_icon_maskable', true );
+		$actual_manifest            = $this->instance->get_manifest();
+		$expected_manifest['icons'] = array_map(
+			function ( $icon ) {
+				$icon['purpose'] = 'any maskable';
+				return $icon;
+			},
+			$expected_manifest['icons']
+		);
+		$this->assertEquals( $expected_manifest, $actual_manifest );
+
 		// Check that long names do not automatically copy to short name.
 		$blogname = str_repeat( 'x', 13 );
 		update_option( 'blogname', $blogname );

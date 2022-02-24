@@ -396,16 +396,27 @@ final class WP_Web_App_Manifest {
 			return array();
 		}
 
-		$icons     = array();
 		$mime_type = get_post_mime_type( $site_icon_id );
+		if ( ! $mime_type ) {
+			return array();
+		}
+
+		$icons    = array();
+		$maskable = get_option( 'site_icon_maskable', false );
 		foreach ( $this->default_manifest_icon_sizes as $size ) {
 			$src = get_site_icon_url( $size );
 			if ( $src ) {
-				$icons[] = array(
+				$icon = array(
 					'src'   => $src,
 					'sizes' => sprintf( '%1$dx%1$d', $size ),
 					'type'  => $mime_type,
 				);
+
+				if ( $maskable ) {
+					$icon['purpose'] = 'any maskable';
+				}
+
+				$icons[] = $icon;
 			}
 		}
 		return $icons;
