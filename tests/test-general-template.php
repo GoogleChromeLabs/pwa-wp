@@ -75,4 +75,24 @@ class Test_General_Template extends TestCase {
 			$this->assertEquals( 0, get_current_user_id() );
 		}
 	}
+
+	/**
+	 * Test that that `wp_unauthenticate_error_template_requests()` running at the `parse_query` action doesn't cause
+	 * an incorrect usage notice if there is not global `$wp_query` yet, such as when doing a subquery early in the WP
+	 * execution flow.
+	 *
+	 * @covers ::wp_unauthenticate_error_template_requests()
+	 */
+	public function test_wp_unauthenticate_error_template_requests_for_subqueries() {
+		global $wp_query;
+		$wp_query = null;
+
+		$user_id = $this->factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( $user_id );
+
+		$query = new WP_Query();
+		$query->parse_query( 's=test' );
+
+		$this->assertTrue( is_user_logged_in() );
+	}
 }
