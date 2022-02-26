@@ -123,9 +123,11 @@ function wp_add_error_template_no_robots() {
  * will persist even after they have authenticated.
  *
  * @since 0.5
+ *
+ * @param WP_Query $query Query.
  */
-function wp_unauthenticate_error_template_requests() {
-	if ( is_offline() || is_500() ) {
+function wp_unauthenticate_error_template_requests( WP_Query $query ) {
+	if ( $query->is_main_query() && ( is_offline() || is_500() ) ) {
 		wp_set_current_user( 0 );
 	}
 }
