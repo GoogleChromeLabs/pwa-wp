@@ -270,7 +270,7 @@ function _pwa_deactivate_plugin() {
 }
 
 register_deactivation_hook( PWA_PLUGIN_FILE, '_pwa_deactivate_plugin' );
-
+add_theme_support( 'service_worker', true );
 /**
  * Load service worker integrations.
  *
@@ -310,6 +310,7 @@ function pwa_deprecate_service_worker_integrations() {
 		'wp-scripts'           => 'WP_Service_Worker_Scripts_Integration',
 		'wp-styles'            => 'WP_Service_Worker_Styles_Integration',
 		'wp-fonts'             => 'WP_Service_Worker_Fonts_Integration',
+		'wp-admin-assets'      => 'WP_Service_Worker_Admin_Assets_Integration',
 	);
 
 	// Filter active integrations if granular theme support array is provided.
@@ -330,7 +331,7 @@ function pwa_deprecate_service_worker_integrations() {
 	}
 
 	?>
-	<script>
+	<script type="text/javascript" defer>
 		<?php
 		foreach ( $message as $message ) {
 			printf(
