@@ -9,6 +9,8 @@
  * Class representing the Custom Logo service worker integration.
  *
  * @since 0.2
+ *
+ * @deprecated 0.7 Integrations will be removed in the future versions.
  */
 final class WP_Service_Worker_Custom_Logo_Integration extends WP_Service_Worker_Base_Integration {
 

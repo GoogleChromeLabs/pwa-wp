@@ -9,6 +9,8 @@
  * Base class representing a service worker integration.
  *
  * @since 0.2
+ *
+ * @deprecated 0.7 Integrations will be removed in the future versions.
  */
 abstract class WP_Service_Worker_Base_Integration implements WP_Service_Worker_Integration {
 

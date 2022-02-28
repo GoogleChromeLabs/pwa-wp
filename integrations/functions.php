@@ -30,6 +30,8 @@
  *
  * @since 0.2
  *
+ * @deprecated 0.7 Integrations will be removed in the future versions.
+ *
  * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
  */
 function pwa_register_service_worker_integrations( WP_Service_Worker_Scripts $scripts ) {
