@@ -270,7 +270,7 @@ function _pwa_deactivate_plugin() {
 }
 
 register_deactivation_hook( PWA_PLUGIN_FILE, '_pwa_deactivate_plugin' );
-add_theme_support( 'service_worker', true );
+
 /**
  * Load service worker integrations.
  *
