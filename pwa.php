@@ -291,7 +291,7 @@ function pwa_load_service_worker_integrations( WP_Service_Worker_Scripts $script
 add_action( 'wp_default_service_workers', 'pwa_load_service_worker_integrations', -1 );
 
 /**
- * Add Integrations deprecation notice.
+ * Add Integrations deprecation notice in user's console
  *
  * @since 0.7
  */
