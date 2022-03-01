@@ -290,6 +290,24 @@ function pwa_load_service_worker_integrations( WP_Service_Worker_Scripts $script
 }
 add_action( 'wp_default_service_workers', 'pwa_load_service_worker_integrations', -1 );
 
+/**
+ * Remove `novalidate` attribute from the comment form tag.
+ *
+ * This is a fix for the `novalidate` attribute being added to the comment form by WordPress
+ * which disables HTML client-side validation for the form.
+ */
+function pwa_remove_novalidate_attribute_from_comments_form() {
+	?>
+	<script type="module">
+		var commentForm = document.getElementById( 'commentform' );
+		if ( commentForm ) {
+			commentForm.removeAttribute( 'novalidate' );
+		}
+	</script>
+	<?php
+}
+add_action( 'comment_form_after', 'pwa_remove_novalidate_attribute_from_comments_form', 10, 0 );
+
 $wp_web_app_manifest = new WP_Web_App_Manifest();
 $wp_web_app_manifest->init();
 
