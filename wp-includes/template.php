@@ -188,35 +188,37 @@ function wp_service_worker_offline_page_reload() {
 
 	?>
 	<script type="module">
-		/**
-		 * Listen to changes in the network state, reload when online.
-		 * This handles the case when the device is completely offline.
-		 */
-		window.addEventListener('online', () => {
-			window.location.reload();
-		});
+		if (!new URLSearchParams(location.search.substr(1)).has("wp_error_template")) {
+			/**
+			* Listen to changes in the network state, reload when online.
+			* This handles the case when the device is completely offline.
+			*/
+			window.addEventListener('online', () => {
+				window.location.reload();
+			});
 
-		// Create a counter to implement exponential backoff.
-		let count = 0;
+			// Create a counter to implement exponential backoff.
+			let count = 0;
 
-		/**
-		 * Check if the server is responding and reload the page if it is.
-		 * This handles the case when the device is online, but the server is offline or misbehaving.
-		 */
-		async function checkNetworkAndReload() {
-			try {
-				const response = await fetch(location.href, {method: 'HEAD'});
-				// Verify we get a valid response from the server
-				if (response.status >= 200 && response.status < 500) {
-					window.location.reload();
-					return;
+			/**
+			* Check if the server is responding and reload the page if it is.
+			* This handles the case when the device is online, but the server is offline or misbehaving.
+			*/
+			async function checkNetworkAndReload() {
+				try {
+					const response = await fetch(location.href, {method: 'HEAD'});
+					// Verify we get a valid response from the server
+					if (response.status >= 200 && response.status < 500) {
+						window.location.reload();
+						return;
+					}
+				} catch {
+					// Unable to connect so do nothing.
 				}
-			} catch {
-				// Unable to connect so do nothing.
+				window.setTimeout(checkNetworkAndReload, Math.pow(2, count++) * 2500);
 			}
-			window.setTimeout(checkNetworkAndReload, Math.pow(2, count++) * 2500);
+			checkNetworkAndReload();
 		}
-		checkNetworkAndReload();
 	</script>
 	<?php
 }
