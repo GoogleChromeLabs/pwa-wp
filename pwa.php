@@ -290,61 +290,6 @@ function pwa_load_service_worker_integrations( WP_Service_Worker_Scripts $script
 }
 add_action( 'wp_default_service_workers', 'pwa_load_service_worker_integrations', -1 );
 
-/**
- * Add Integrations deprecation notice in user's console
- *
- * @since 0.7
- */
-function pwa_deprecate_service_worker_integrations() {
-	// Bail if not supported by theme.
-	$theme_support = get_theme_support( 'service_worker' );
-	if ( ! $theme_support ) {
-		return;
-	}
-
-	$integrations = array(
-		'wp-site-icon'         => 'WP_Service_Worker_Site_Icon_Integration',
-		'wp-custom-logo'       => 'WP_Service_Worker_Custom_Logo_Integration',
-		'wp-custom-header'     => 'WP_Service_Worker_Custom_Header_Integration',
-		'wp-custom-background' => 'WP_Service_Worker_Custom_Background_Integration',
-		'wp-scripts'           => 'WP_Service_Worker_Scripts_Integration',
-		'wp-styles'            => 'WP_Service_Worker_Styles_Integration',
-		'wp-fonts'             => 'WP_Service_Worker_Fonts_Integration',
-		'wp-admin-assets'      => 'WP_Service_Worker_Admin_Assets_Integration',
-	);
-
-	// Filter active integrations if granular theme support array is provided.
-	if ( is_array( $theme_support ) && isset( $theme_support[0] ) && is_array( $theme_support[0] ) ) {
-		$integrations = array_intersect_key(
-			$integrations,
-			array_filter( $theme_support[0] )
-		);
-	}
-
-	$message = array();
-	foreach ( $integrations as $integration => $class ) {
-		$message[] = sprintf(
-			/* translators: 1: Integration name */
-			__( 'The %s integration in the PWA plugin is deprecated and no longer being considered for WordPress core inclusion.', 'pwa' ),
-			strtoupper( str_replace( '-', ' ', $integration ) )
-		);
-	}
-
-	?>
-	<script type="text/javascript" defer>
-		<?php
-		foreach ( $message as $message ) {
-			printf(
-				'console.warn( "%s" );',
-				esc_js( $message )
-			);
-		}
-		?>
-	</script>
-	<?php
-}
-add_action( 'wp_footer', 'pwa_deprecate_service_worker_integrations', 1000 );
-
 $wp_web_app_manifest = new WP_Web_App_Manifest();
 $wp_web_app_manifest->init();
 
