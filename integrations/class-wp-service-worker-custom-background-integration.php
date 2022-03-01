@@ -33,6 +33,26 @@ final class WP_Service_Worker_Custom_Background_Integration extends WP_Service_W
 			$revision = md5( file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown
 		}
 		$scripts->precaching_routes()->register( $url, compact( 'revision' ) );
+
+		// Add deprecation warning in user's console when service worker is installed.
+		$scripts->register(
+			__CLASS__ . '-deprecation',
+			array(
+				'src' => static function () {
+					return sprintf(
+						'console.warn( %s );',
+						wp_json_encode(
+							sprintf(
+								/* translators: %1$s: integration class name, %2$s: issue url */
+								__( 'The %1$s integration in the PWA plugin is no longer being considered WordPress core merge. See %2$s', 'pwa' ),
+								__CLASS__,
+								'https://github.com/GoogleChromeLabs/pwa-wp/issues/403'
+							)
+						)
+					);
+				},
+			)
+		);
 	}
 
 	/**
