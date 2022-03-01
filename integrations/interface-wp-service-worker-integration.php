@@ -10,7 +10,7 @@
  *
  * @since 0.2
  *
- * @deprecated 0.7 Integrations will be removed in the future versions.
+ * @deprecated 0.7 Integrations will not be proposed for WordPress core merge.
  */
 interface WP_Service_Worker_Integration {
 
@@ -19,7 +19,7 @@ interface WP_Service_Worker_Integration {
 	 *
 	 * @since 0.2
 	 *
-	 * @deprecated 0.7 Integrations will be removed in the future versions.
+	 * @deprecated 0.7 Integrations will not be proposed for WordPress core merge.
 	 *
 	 * @return int Either WP_Service_Workers::SCOPE_FRONT, WP_Service_Workers::SCOPE_ADMIN, or
 	 *             WP_Service_Workers::SCOPE_ALL.
@@ -31,7 +31,7 @@ interface WP_Service_Worker_Integration {
 	 *
 	 * @since 0.2
 	 *
-	 * @deprecated 0.7 Integrations will be removed in the future versions.
+	 * @deprecated 0.7 Integrations will not be proposed for WordPress core merge.
 	 *
 	 * @return int Hook priority. A higher number means a lower priority.
 	 */
@@ -42,7 +42,7 @@ interface WP_Service_Worker_Integration {
 	 *
 	 * @since 0.2
 	 *
-	 * @deprecated 0.7 Integrations will be removed in the future versions.
+	 * @deprecated 0.7 Integrations will not be proposed for WordPress core merge.
 	 *
 	 * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
 	 */
