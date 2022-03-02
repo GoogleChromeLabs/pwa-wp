@@ -312,6 +312,27 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 			)
 		);
 
+		/*
+		 * Add offline commenting deprecation warning in user's console when the service worker is being installed.
+		 */
+		$scripts->register(
+			'wp-offline-commenting-deprecation-warning',
+			array(
+				'src' => static function () {
+					return sprintf(
+						'console.warn( %s );',
+						wp_json_encode(
+							sprintf(
+								/* translators: %1$s: issue url */
+								__( 'The offline commenting feature in the PWA plugin is being deprecated and will no longer support in future versions. See %1$s', 'pwa' ),
+								'https://github.com/GoogleChromeLabs/pwa-wp/issues/363'
+							)
+						)
+					);
+				},
+			)
+		);
+
 		if ( $offline_error_precache_entry ) {
 			$scripts->precaching_routes()->register( $offline_error_precache_entry['url'], isset( $offline_error_precache_entry['revision'] ) ? $offline_error_precache_entry['revision'] : null );
 		}
@@ -467,6 +488,8 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 
 	/**
 	 * Get script for offline commenting requests.
+	 *
+	 * @deprecated 0.7 Offline commenting will be removed in the future version of this plugin.
 	 *
 	 * @return string Script.
 	 */
