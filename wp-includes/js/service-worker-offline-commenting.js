@@ -36,7 +36,7 @@
 								};
 
 								let body = text.replace(
-									/[<]!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/,
+									'{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}',
 									errorMessages.error
 								);
 								body = body.replace(
@@ -125,7 +125,7 @@
 							};
 
 							const body = text.replace(
-								/[<]!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/,
+								'{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}',
 								errorMessages.comment
 							);
 

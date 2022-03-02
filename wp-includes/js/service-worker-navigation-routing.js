@@ -68,11 +68,11 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 							};
 
 							let body = text.replace(
-								/[<]!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/,
+								'{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}',
 								errorMessages.error
 							);
 							body = body.replace(
-								/([<]!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->)((?:.|\n)+?)([<]!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->)/,
+								/({{{WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN}}})((?:.|\n)+?)({{{WP_SERVICE_WORKER_ERROR_TEMPLATE_END}}})/,
 								(details) => {
 									if (!responseBody) {
 										return ''; // Remove the details from the document entirely.
@@ -103,13 +103,11 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 
 									// Replace the comments.
 									details = details.replace(
-										'<' +
-											'!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->',
+										'{{{WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN}}}',
 										''
 									);
 									details = details.replace(
-										'<' +
-											'!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->',
+										'{{{WP_SERVICE_WORKER_ERROR_TEMPLATE_END}}}',
 										''
 									);
 									return details;
@@ -137,7 +135,7 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 						};
 
 						const body = text.replace(
-							/[<]!--WP_SERVICE_WORKER_ERROR_MESSAGE-->/,
+							'{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}',
 							navigator.onLine
 								? errorMessages.serverOffline
 								: errorMessages.clientOffline

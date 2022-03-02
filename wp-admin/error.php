@@ -16,13 +16,13 @@ switch ( isset( $_REQUEST['code'] ) ? sanitize_key( $_REQUEST['code'] ) : null )
 	case 'offline':
 		$title_prefix = __( 'Offline', 'pwa' );
 		$content      = sprintf( '<h1>%s</h1>', esc_html__( 'Offline', 'pwa' ) );
-		$content     .= '<p><!--WP_SERVICE_WORKER_ERROR_MESSAGE--></p>';
+		$content     .= '<p>{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}</p>'; // phpcs:ignore WordPressVIPMinimum.Security.Mustache.OutputNotation -- Prints error message placeholder.
 		$content     .= sprintf( '<p>%s</p>', esc_html__( 'In the future, this error screen could provide you with actions you can perform while offline, like edit recent drafts in Gutenberg.', 'pwa' ) );
 		break;
 	case '500':
 		$title_prefix = __( 'Internal Server Error', 'pwa' );
 		$content      = sprintf( '<h1>%s</h1>', esc_html__( 'A server error occurred.', 'pwa' ) );
-		$content     .= '<p><!--WP_SERVICE_WORKER_ERROR_MESSAGE--></p>';
+		$content     .= '<p>{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}</p>'; // phpcs:ignore WordPressVIPMinimum.Security.Mustache.OutputNotation -- Prints error message placeholder.
 		$content     .= sprintf(
 			'<p>%s</p>',
 			esc_html__( 'Something went wrong which prevented WordPress from serving a response. Please check your error logs.', 'pwa' )
