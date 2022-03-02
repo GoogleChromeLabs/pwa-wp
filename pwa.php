@@ -299,7 +299,7 @@ add_action( 'wp_default_service_workers', 'pwa_load_service_worker_integrations'
 function pwa_remove_novalidate_attribute_from_comments_form() {
 	?>
 	<script type="module">
-		var commentForm = document.getElementById( 'commentform' );
+		const commentForm = document.getElementById( 'commentform' );
 		if ( commentForm ) {
 			commentForm.removeAttribute( 'novalidate' );
 		}
