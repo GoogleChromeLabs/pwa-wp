@@ -271,25 +271,6 @@ function _pwa_deactivate_plugin() {
 
 register_deactivation_hook( PWA_PLUGIN_FILE, '_pwa_deactivate_plugin' );
 
-/**
- * Load service worker integrations.
- *
- * @since 0.2.0
- *
- * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
- */
-function pwa_load_service_worker_integrations( WP_Service_Worker_Scripts $scripts ) {
-	if ( ! current_theme_supports( 'service_worker' ) ) {
-		return;
-	}
-
-	/** WordPress Service Worker Integration Functions */
-	require_once PWA_PLUGIN_DIR . '/integrations/functions.php';
-
-	pwa_register_service_worker_integrations( $scripts );
-}
-add_action( 'wp_default_service_workers', 'pwa_load_service_worker_integrations', -1 );
-
 $wp_web_app_manifest = new WP_Web_App_Manifest();
 $wp_web_app_manifest->init();
 
