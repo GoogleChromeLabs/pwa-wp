@@ -9,7 +9,6 @@
  * Class representing the Custom Header service worker integration.
  *
  * @since 0.2
- *
  * @deprecated 0.7 Integrations will not be proposed for WordPress core merge.
  */
 final class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worker_Base_Integration {
