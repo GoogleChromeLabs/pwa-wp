@@ -297,9 +297,9 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 		}
 
 		$scripts->register(
-			'wp-offline-commenting',
+			'wp-offline-post-request-handling',
 			array(
-				'src'  => array( $this, 'get_offline_commenting_script' ),
+				'src'  => array( $this, 'get_offline_post_request_script' ),
 				'deps' => array( 'wp-base-config' ),
 			)
 		);
@@ -308,7 +308,7 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 			'wp-navigation-routing',
 			array(
 				'src'  => array( $this, 'get_script' ),
-				'deps' => array( 'wp-base-config', 'wp-offline-commenting' ),
+				'deps' => array( 'wp-base-config', 'wp-offline-post-request-handling' ),
 			)
 		);
 
@@ -466,12 +466,12 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 	}
 
 	/**
-	 * Get script for offline commenting requests.
+	 * Get script for offline post requests.
 	 *
 	 * @return string Script.
 	 */
-	public function get_offline_commenting_script() {
-		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-offline-commenting.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+	public function get_offline_post_request_script() {
+		$script = file_get_contents( PWA_PLUGIN_DIR . '/wp-includes/js/service-worker-offline-post-request-handling.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$script = preg_replace( '#/\*\s*global.+?\*/#', '', $script );
 
 		return str_replace(
