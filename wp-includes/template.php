@@ -148,9 +148,9 @@ function wp_service_worker_get_error_messages() {
 			'error'             => __( 'Something prevented the page from being rendered. Please try again.', 'pwa' ),
 			'submissionFailure' => wp_kses_post(
 				sprintf(
-					/* translators: %s: history.back() function */
-					__( 'Your submission failed. Please <a href="%s">go back</a> and try again.', 'pwa' ),
-					'javascript:history.back()'
+					/* translators: %s: id attribute value */
+					__( 'Your submission failed. Please <a href="#" id="%s">go back</a> and try again.', 'pwa' ),
+					esc_attr( 'wp-service-worker-go-back' )
 				)
 			),
 		)
@@ -234,3 +234,32 @@ function wp_service_worker_offline_page_reload() {
 
 add_action( 'wp_footer', 'wp_service_worker_offline_page_reload' );
 add_action( 'error_footer', 'wp_service_worker_offline_page_reload' );
+
+/**
+ * Go back to the previous page if submission fails.
+ *
+ * @since 0.7
+ */
+function wp_service_worker_submission_failure_go_back() {
+	if ( ! is_offline() && ! is_500() ) {
+		return;
+	}
+
+	?>
+	<script type="module">
+		const goBack = document.getElementById('wp-service-worker-go-back');
+		if (goBack) {
+			goBack.addEventListener('click', () => {
+				if (history.length > 1) {
+					history.back();
+				} else {
+					window.location.href = document.referrer;
+				}
+			});
+		}
+	</script>
+	<?php
+}
+
+add_action( 'wp_footer', 'wp_service_worker_submission_failure_go_back' );
+add_action( 'error_footer', 'wp_service_worker_submission_failure_go_back' );
