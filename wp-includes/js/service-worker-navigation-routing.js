@@ -69,7 +69,11 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 
 							let body = text.replace(
 								'{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}',
-								errorMessages.error
+								'errorMessages.error'
+							);
+							body = body.replace(
+								'{{{WP_SERVICE_WORKER_SUBMISSION_FAILURE_MESSAGE}}}',
+								''
 							);
 							body = body.replace(
 								/({{{WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN}}})((?:.|\n)+?)({{{WP_SERVICE_WORKER_ERROR_TEMPLATE_END}}})/,
@@ -134,11 +138,15 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 							headers: response.headers,
 						};
 
-						const body = text.replace(
+						let body = text.replace(
 							'{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}',
 							navigator.onLine
 								? errorMessages.serverOffline
 								: errorMessages.clientOffline
+						);
+						body = body.replace(
+							'{{{WP_SERVICE_WORKER_SUBMISSION_FAILURE_MESSAGE}}}',
+							''
 						);
 
 						return new Response(body, init);

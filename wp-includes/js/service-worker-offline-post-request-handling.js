@@ -36,6 +36,10 @@
 									errorMessages.error
 								);
 								body = body.replace(
+									'{{{WP_SERVICE_WORKER_SUBMISSION_FAILURE_MESSAGE}}}',
+									errorMessages.submissionFailure
+								);
+								body = body.replace(
 									/({{{WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN}}})((?:.|\n)+?)({{{WP_SERVICE_WORKER_ERROR_TEMPLATE_END}}})/,
 									(details) => {
 										if (!errorText) {
@@ -99,11 +103,15 @@
 								headers: response.headers,
 							};
 
-							const body = text.replace(
+							let body = text.replace(
 								'{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}',
 								navigator.onLine
 									? errorMessages.serverOffline
 									: errorMessages.clientOffline
+							);
+							body = body.replace(
+								'{{{WP_SERVICE_WORKER_SUBMISSION_FAILURE_MESSAGE}}}',
+								errorMessages.submissionFailure
 							);
 
 							return new Response(body, init);
