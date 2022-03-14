@@ -143,9 +143,16 @@ function wp_service_worker_get_error_messages() {
 	return apply_filters(
 		'wp_service_worker_error_messages',
 		array(
-			'clientOffline' => __( 'It seems you are offline. Please check your internet connection and try again.', 'pwa' ),
-			'serverOffline' => __( 'The server appears to be down, or your connection isn\'t working as expected. Please try again later.', 'pwa' ),
-			'error'         => __( 'Something prevented the page from being rendered. Please try again.', 'pwa' ),
+			'clientOffline'     => __( 'It seems you are offline. Please check your internet connection and try again.', 'pwa' ),
+			'serverOffline'     => __( 'The server appears to be down, or your connection isn\'t working as expected. Please try again later.', 'pwa' ),
+			'error'             => __( 'Something prevented the page from being rendered. Please try again.', 'pwa' ),
+			'submissionFailure' => wp_kses_post(
+				sprintf(
+					/* translators: %s: history.back() function */
+					__( 'Your submission failed. Please <a href="%s">go back</a> and try again.', 'pwa' ),
+					'javascript:history.back()'
+				)
+			),
 		)
 	);
 }
@@ -169,6 +176,9 @@ function wp_service_worker_error_details_template( $output = '' ) {
  */
 function wp_service_worker_error_message_placeholder() {
 	echo '<p>{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}</p>'; // phpcs:ignore WordPressVIPMinimum.Security.Mustache.OutputNotation -- Prints error message placeholder.
+
+	// Display service worker submission failure message on POST request template tag.
+	echo '<p><strong>{{{WP_SERVICE_WORKER_SUBMISSION_FAILURE_MESSAGE}}}</strong></p>'; // phpcs:ignore WordPressVIPMinimum.Security.Mustache.OutputNotation -- Prints submission failure message placeholder.
 }
 
 /**
