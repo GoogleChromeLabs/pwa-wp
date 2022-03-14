@@ -34,7 +34,7 @@ if ( get_option( 'offline_browsing' ) ) {
 	add_action( 'wp_ajax_nopriv_wp_service_worker', 'wp_ajax_wp_service_worker' );
 } else if ( ! empty( $service_worker_actions ) ) {
 	if ( in_array( 'wp_front_service_worker', $service_worker_actions, true ) ) {
-		// Ensure service workers are printed on admin, Customizer, login, sign-up, and activate pages.
+		// Ensure service workers are printed on frontend.
 		foreach ( $hooks['front'] as $filter ) {
 			add_filter( $filter, 'wp_print_service_workers', 9 );
 		}
