@@ -63,46 +63,4 @@ class Test_Template extends TestCase {
 		$this->assertFalse( is_500() );
 		$this->assertEmpty( $actual_script );
 	}
-
-	/**
-	 * Test if function is returning goBack function when is_offline() or is_500 is true
-	 *
-	 * @covers ::wp_service_worker_submission_failure_go_back()
-	 */
-	public function test_wp_service_worker_submission_failure_go_back() {
-		$this->assertEquals( 10, has_action( 'wp_footer', 'wp_service_worker_submission_failure_go_back' ) );
-		$this->assertEquals( 10, has_action( 'error_footer', 'wp_service_worker_submission_failure_go_back' ) );
-
-		// Check when !is_offline() and !is_500.
-		$actual_script = wp_service_worker_submission_failure_go_back();
-		$this->assertFalse( is_offline() );
-		$this->assertFalse( is_500() );
-		$this->assertEmpty( $actual_script );
-
-		// Check when is_offline().
-		$error_template_url = add_query_arg( 'wp_error_template', 'offline', home_url( '/', 'relative' ) );
-		$this->go_to( $error_template_url );
-
-		ob_start();
-		wp_service_worker_submission_failure_go_back();
-		$actual_script = ob_get_clean();
-		$this->assertTrue( is_offline() );
-		$this->assertFalse( is_500() );
-		$this->assertStringContainsString( '<script type="module">', $actual_script );
-		$this->assertStringContainsString( 'history.back()', $actual_script );
-
-		// Check when is_500().
-		$error_template_url = add_query_arg( 'wp_error_template', '500', home_url( '/', 'relative' ) );
-		$this->go_to( $error_template_url );
-
-		ob_start();
-		wp_service_worker_submission_failure_go_back();
-		$actual_script = ob_get_clean();
-		$this->assertFalse( is_offline() );
-		$this->assertTrue( is_500() );
-		$this->assertStringContainsString( '<script type="module">', $actual_script );
-		$this->assertStringContainsString( 'history.back()', $actual_script );
-
-		$this->go_to( home_url( '/', 'relative' ) );
-	}
 }
