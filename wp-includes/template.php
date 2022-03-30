@@ -160,14 +160,68 @@ function wp_service_worker_error_details_template( $output = '' ) {
 	if ( empty( $output ) ) {
 		$output = '<details id="error-details"><summary>' . esc_html__( 'More Details', 'pwa' ) . '</summary>{{{error_details_iframe}}}</details>'; // phpcs:ignore WordPressVIPMinimum.Security.Mustache.OutputNotation -- Variable includes iframe tag.
 	}
-	echo '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->';
+	echo '{{{WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN}}}'; // phpcs:ignore WordPressVIPMinimum.Security.Mustache.OutputNotation -- Prints template begin tag.
 	echo wp_kses_post( $output );
-	echo '<!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->';
+	echo '{{{WP_SERVICE_WORKER_ERROR_TEMPLATE_END}}}'; // phpcs:ignore WordPressVIPMinimum.Security.Mustache.OutputNotation -- Prints template end tag.
 }
 
 /**
  * Display service worker error message template tag.
  */
 function wp_service_worker_error_message_placeholder() {
-	echo '<p><!--WP_SERVICE_WORKER_ERROR_MESSAGE--></p>';
+	echo '<p>{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}</p>'; // phpcs:ignore WordPressVIPMinimum.Security.Mustache.OutputNotation -- Prints error message placeholder.
 }
+
+/**
+ * Reload the offline page and check if user comes online.
+ *
+ * @since 0.7
+ */
+function wp_service_worker_offline_page_reload() {
+	if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
+		return;
+	}
+
+	if ( ! is_offline() && ! is_500() ) {
+		return;
+	}
+
+	?>
+	<script type="module">
+		if (!new URLSearchParams(location.search.substr(1)).has("wp_error_template")) {
+			/**
+			* Listen to changes in the network state, reload when online.
+			* This handles the case when the device is completely offline.
+			*/
+			window.addEventListener('online', () => {
+				window.location.reload();
+			});
+
+			// Create a counter to implement exponential backoff.
+			let count = 0;
+
+			/**
+			* Check if the server is responding and reload the page if it is.
+			* This handles the case when the device is online, but the server is offline or misbehaving.
+			*/
+			async function checkNetworkAndReload() {
+				try {
+					const response = await fetch(location.href, {method: 'HEAD'});
+					// Verify we get a valid response from the server
+					if (response.status >= 200 && response.status < 500) {
+						window.location.reload();
+						return;
+					}
+				} catch {
+					// Unable to connect so do nothing.
+				}
+				window.setTimeout(checkNetworkAndReload, Math.pow(2, count++) * 2500);
+			}
+			checkNetworkAndReload();
+		}
+	</script>
+	<?php
+}
+
+add_action( 'wp_footer', 'wp_service_worker_offline_page_reload' );
+add_action( 'error_footer', 'wp_service_worker_offline_page_reload' );

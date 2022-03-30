@@ -9,6 +9,7 @@
  * Class representing the Site Icon service worker integration.
  *
  * @since 0.2
+ * @deprecated 0.7 Integrations will not be proposed for WordPress core merge.
  */
 final class WP_Service_Worker_Site_Icon_Integration extends WP_Service_Worker_Base_Integration {
 
@@ -43,6 +44,26 @@ final class WP_Service_Worker_Site_Icon_Integration extends WP_Service_Worker_Ba
 		foreach ( $image_urls as $image_url ) {
 			$scripts->precaching_routes()->register( $image_url, array( 'revision' => $attachment->post_modified ) );
 		}
+
+		// Add deprecation warning in user's console when service worker is installed.
+		$scripts->register(
+			__CLASS__ . '-deprecation',
+			array(
+				'src' => static function () {
+					return sprintf(
+						'console.warn( %s );',
+						wp_json_encode(
+							sprintf(
+								/* translators: %1$s: integration class name, %2$s: issue url */
+								__( 'The %1$s integration in the PWA plugin is no longer being considered WordPress core merge. See %2$s', 'pwa' ),
+								__CLASS__,
+								'https://github.com/GoogleChromeLabs/pwa-wp/issues/403'
+							)
+						)
+					);
+				},
+			)
+		);
 	}
 
 	/**

@@ -85,3 +85,23 @@ function wp_disable_script_concatenation() {
 	}
 	// phpcs:enable
 }
+
+/**
+ * Load service worker integrations.
+ *
+ * @since 0.2.0
+ * @deprecated 0.7 Integrations will not be proposed for WordPress core merge.
+ *
+ * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
+ */
+function pwa_load_service_worker_integrations( WP_Service_Worker_Scripts $scripts ) {
+	if ( ! current_theme_supports( 'service_worker' ) ) {
+		return;
+	}
+
+	/** WordPress Service Worker Integration Functions */
+	require_once PWA_PLUGIN_DIR . '/integrations/functions.php';
+
+	pwa_register_service_worker_integrations( $scripts );
+}
+add_action( 'wp_default_service_workers', 'pwa_load_service_worker_integrations', -1 );

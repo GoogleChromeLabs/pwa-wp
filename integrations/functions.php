@@ -29,6 +29,7 @@
  *     );
  *
  * @since 0.2
+ * @deprecated 0.7 Integrations will not be proposed for WordPress core merge.
  *
  * @param WP_Service_Worker_Scripts $scripts Instance to register service worker behavior with.
  */
