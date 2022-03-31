@@ -292,11 +292,10 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	/**
 	 * Test Site icon validation when icon is not set.
 	 *
-	 * @covers ::pwa_validate_site_icon()
+	 * @covers ::validate_site_icon()
 	 */
-	public function test_pwa_validate_site_icon_not_set() {
-		// Test when icon is not set.
-		$actual_site_icon_validation_errors   = $this->instance->pwa_validate_site_icon()->get_error_code();
+	public function test_validate_site_icon_not_set() {
+		$actual_site_icon_validation_errors   = $this->instance->validate_site_icon()->get_error_code();
 		$expected_site_icon_validation_errors = 'site_icon_not_set';
 		$this->assertEquals( $expected_site_icon_validation_errors, $actual_site_icon_validation_errors );
 	}
@@ -304,12 +303,12 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	/**
 	 * Test Site icon validation when icon is not found.
 	 *
-	 * @covers ::pwa_validate_site_icon()
+	 * @covers ::validate_site_icon()
 	 */
-	public function test_pwa_validate_site_icon_metadata_not_found() {
+	public function test_validate_site_icon_metadata_not_found() {
 		$attachment_id = '123456';
 		update_option( 'site_icon', $attachment_id );
-		$actual_site_icon_validation_errors   = $this->instance->pwa_validate_site_icon()->get_error_code();
+		$actual_site_icon_validation_errors   = $this->instance->validate_site_icon()->get_error_code();
 		$expected_site_icon_validation_errors = 'site_icon_metadata_not_found';
 		$this->assertEquals( $expected_site_icon_validation_errors, $actual_site_icon_validation_errors );
 	}
@@ -317,12 +316,12 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	/**
 	 * Test Site icon size validation.
 	 *
-	 * @covers ::pwa_validate_site_icon()
+	 * @covers ::validate_site_icon()
 	 */
-	public function test_pwa_validate_site_icon_too_small() {
+	public function test_validate_site_icon_too_small() {
 		$attachment_id = $this->factory()->attachment->create_upload_object( __DIR__ . '/data/images/100x100.png' );
 		update_option( 'site_icon', $attachment_id );
-		$actual_site_icon_validation_errors   = $this->instance->pwa_validate_site_icon()->get_error_code();
+		$actual_site_icon_validation_errors   = $this->instance->validate_site_icon()->get_error_code();
 		$expected_site_icon_validation_errors = 'site_icon_too_small';
 		$this->assertEquals( $expected_site_icon_validation_errors, $actual_site_icon_validation_errors );
 	}
@@ -330,12 +329,12 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	/**
 	 * Test Site icon as square validation.
 	 *
-	 * @covers ::pwa_validate_site_icon()
+	 * @covers ::validate_site_icon()
 	 */
-	public function test_pwa_validate_site_icon_not_square() {
+	public function test_validate_site_icon_not_square() {
 		$attachment_id = $this->factory()->attachment->create_upload_object( __DIR__ . '/data/images/512x720.png' );
 		update_option( 'site_icon', $attachment_id );
-		$actual_site_icon_validation_errors   = $this->instance->pwa_validate_site_icon()->get_error_code();
+		$actual_site_icon_validation_errors   = $this->instance->validate_site_icon()->get_error_code();
 		$expected_site_icon_validation_errors = 'site_icon_not_square';
 		$this->assertEquals( $expected_site_icon_validation_errors, $actual_site_icon_validation_errors );
 	}
@@ -343,17 +342,28 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	/**
 	 * Test Site icon not png
 	 *
-	 * @covers ::pwa_validate_site_icon()
+	 * @covers ::validate_site_icon()
 	 */
-	public function test_pwa_validate_site_icon_not_png() {
+	public function test_validate_site_icon_not_png() {
 		if ( PHP_MAJOR_VERSION === 7 && PHP_MINOR_VERSION === 1 ) {
 			$this->markTestSkipped( 'See https://github.com/GoogleChromeLabs/pwa-wp/pull/702#issuecomment-1042776987' );
 		}
 		$attachment_id = $this->factory()->attachment->create_upload_object( __DIR__ . '/data/images/512x512.jpg' );
 		update_option( 'site_icon', $attachment_id );
-		$actual_site_icon_validation_errors   = $this->instance->pwa_validate_site_icon()->get_error_code();
+		$actual_site_icon_validation_errors   = $this->instance->validate_site_icon()->get_error_code();
 		$expected_site_icon_validation_errors = 'site_icon_not_png';
 		$this->assertEquals( $expected_site_icon_validation_errors, $actual_site_icon_validation_errors );
+	}
+
+	/**
+	 * Test Site icon as square validation.
+	 *
+	 * @covers ::validate_site_icon()
+	 */
+	public function test_validate_site_icon_good() {
+		$attachment_id = $this->factory()->attachment->create_upload_object( __DIR__ . '/data/images/512x512.png' );
+		update_option( 'site_icon', $attachment_id );
+		$this->assertTrue( $this->instance->validate_site_icon() );
 	}
 
 	/**

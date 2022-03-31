@@ -351,9 +351,9 @@ final class WP_Web_App_Manifest {
 	 *
 	 * @since 0.7
 	 *
-	 * @return WP_Error $icon_errors Errors for site icon.
+	 * @return true|WP_Error $icon_errors Errors for site icon, or true if there were no errors.
 	 */
-	public function pwa_validate_site_icon() {
+	public function validate_site_icon() {
 		$icon_errors = new WP_Error();
 
 		$site_icon_id = get_option( 'site_icon' );
@@ -382,7 +382,7 @@ final class WP_Web_App_Manifest {
 			$icon_errors->add( 'site_icon_not_png', __( 'The site icon is not a PNG image. Please select an image in PNG format.', 'pwa' ) );
 		}
 
-		return $icon_errors;
+		return empty( $icon_errors->errors ) ? true : $icon_errors;
 	}
 
 	/**
@@ -393,9 +393,7 @@ final class WP_Web_App_Manifest {
 	 * @return array $result The test result.
 	 */
 	public function test_site_icon() {
-
-		$site_icon_errors = $this->pwa_validate_site_icon();
-		$error_messages   = $site_icon_errors->get_error_messages();
+		$site_icon_validity = $this->validate_site_icon();
 
 		$results = array(
 			'label'       => __( 'Site icon is valid', 'pwa' ),
@@ -409,7 +407,7 @@ final class WP_Web_App_Manifest {
 			'test'        => 'pwa_site_icon_validation',
 		);
 
-		if ( empty( $error_messages ) ) {
+		if ( true === $site_icon_validity ) {
 			return $results;
 		}
 
@@ -428,7 +426,7 @@ final class WP_Web_App_Manifest {
 		// Empty description before adding errors.
 		$results['description']  = '<p>' . esc_html__( 'Resolve the following issue(s) to ensure your site is available as a Progressive Web App:', 'pwa' ) . '</p>';
 		$results['description'] .= '<ul>';
-		foreach ( $error_messages as $message ) {
+		foreach ( $site_icon_validity->get_error_messages() as $message ) {
 			$results['description'] .= wp_kses_post( sprintf( '<li>%s</li>', $message ) );
 		}
 		$results['description'] .= '</ul>';
