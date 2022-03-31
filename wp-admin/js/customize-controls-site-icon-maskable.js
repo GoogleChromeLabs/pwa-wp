@@ -70,13 +70,9 @@ wp.customize(
 						);
 					}
 
-					notifications.map((notification) => {
-						wp.customize
-							.section('title_tagline')
-							.notifications.add(notification);
-
-						return notification;
-					});
+					for (const notification of notifications) {
+						siteIconControl.notifications.add(notification);
+					}
 				};
 
 				// Update active state whenever the site_icon setting changes.
