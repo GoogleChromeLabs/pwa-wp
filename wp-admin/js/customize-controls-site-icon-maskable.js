@@ -36,11 +36,6 @@ wp.customize(
 				 * Validate site icons for its presence and size.
 				 */
 				const validateIcon = () => {
-					const baseNotificationProps = {
-						message: '',
-						type: 'warning',
-						code: null,
-					};
 					const attachmentId = parseInt(siteIconSetting(), 10);
 
 					const iconMissingNotificationId = 'pwa_icon_not_set';
@@ -51,7 +46,7 @@ wp.customize(
 							new wp.customize.Notification(
 								iconMissingNotificationId,
 								{
-									...baseNotificationProps,
+									type: 'warning',
 									message: PWA_IconMessages.pwa_icon_not_set,
 								}
 							)
@@ -82,7 +77,7 @@ wp.customize(
 										new wp.customize.Notification(
 											iconTooSmallNotificationId,
 											{
-												...baseNotificationProps,
+												type: 'warning',
 												message:
 													PWA_IconMessages.pwa_icon_too_small,
 											}
