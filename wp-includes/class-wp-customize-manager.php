@@ -56,8 +56,8 @@ add_action( 'customize_register', 'pwa_customize_register_site_icon_maskable', 1
  */
 function pwa_customize_controls_enqueue_site_icon_maskable_script() {
 	wp_enqueue_script(
-		'customize-controls-site-icon-maskable',
-		plugins_url( 'wp-admin/js/customize-controls-site-icon-maskable.js', PWA_PLUGIN_FILE ),
+		'customize-controls-site-icon-pwa',
+		plugins_url( 'wp-admin/js/customize-controls-site-icon-pwa.js', PWA_PLUGIN_FILE ),
 		array( 'customize-controls' ),
 		PWA_VERSION,
 		true
@@ -71,7 +71,7 @@ function pwa_customize_controls_enqueue_site_icon_maskable_script() {
 	);
 
 	wp_add_inline_script(
-		'customize-controls-site-icon-maskable',
+		'customize-controls-site-icon-pwa',
 		sprintf( 'Object.assign( window._wpCustomizeControlsL10n, %s );', wp_json_encode( $icon_validation_messages ) ),
 		'after'
 	);
