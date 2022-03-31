@@ -46,7 +46,7 @@ wp.customize(
 					const iconMissingNotificationId = 'pwa_icon_not_set';
 					const iconTooSmallNotificationId = 'pwa_icon_too_small';
 
-					if (!attachmentId) {
+					const addMissingIconNotification = () => {
 						siteIconControl.notifications.add(
 							new wp.customize.Notification(
 								iconMissingNotificationId,
@@ -56,6 +56,10 @@ wp.customize(
 								}
 							)
 						);
+					};
+
+					if (!attachmentId) {
+						addMissingIconNotification();
 					} else {
 						siteIconControl.notifications.remove(
 							iconMissingNotificationId
@@ -64,9 +68,9 @@ wp.customize(
 						wp.media
 							.attachment(attachmentId)
 							.fetch()
-							.done(function (attachment) {
+							.fail(addMissingIconNotification)
+							.done((attachment) => {
 								if (
-									attachment &&
 									attachment.width >= 512 &&
 									attachment.height >= 512
 								) {
