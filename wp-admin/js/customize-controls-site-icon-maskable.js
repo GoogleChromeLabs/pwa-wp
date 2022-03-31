@@ -1,4 +1,3 @@
-/*globals PWA_IconMessages*/
 wp.customize(
 	'site_icon',
 	'site_icon_maskable',
@@ -47,7 +46,7 @@ wp.customize(
 								iconMissingNotificationId,
 								{
 									type: 'warning',
-									message: PWA_IconMessages.pwa_icon_not_set,
+									message: wp.customize.l10n.pwa_icon_not_set,
 								}
 							)
 						);
@@ -79,7 +78,8 @@ wp.customize(
 											{
 												type: 'warning',
 												message:
-													PWA_IconMessages.pwa_icon_too_small,
+													wp.customize.l10n
+														.pwa_icon_too_small,
 											}
 										)
 									);

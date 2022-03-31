@@ -55,13 +55,7 @@ add_action( 'customize_register', 'pwa_customize_register_site_icon_maskable', 1
  * @see WP_Customize_Site_Icon_Control::enqueue()
  */
 function pwa_customize_controls_enqueue_site_icon_maskable_script() {
-	$icon_validation_messages = array(
-		'pwa_icon_not_set'   => __( 'Site icon is not present', 'pwa' ),
-		'pwa_icon_too_small' => __( 'Site icon needs to be at least 512 x 512', 'pwa' ),
-		'pwa_icon_no_png'    => __( 'Site icon should .png', 'pwa' ),
-	);
-
-	wp_register_script(
+	wp_enqueue_script(
 		'customize-controls-site-icon-maskable',
 		plugins_url( 'wp-admin/js/customize-controls-site-icon-maskable.js', PWA_PLUGIN_FILE ),
 		array( 'customize-controls' ),
@@ -69,13 +63,16 @@ function pwa_customize_controls_enqueue_site_icon_maskable_script() {
 		true
 	);
 
-	wp_add_inline_script(
-		'customize-controls-site-icon-maskable',
-		'const PWA_IconMessages = ' . wp_json_encode( $icon_validation_messages ),
-		'before'
+	$icon_validation_messages = array(
+		'pwa_icon_not_set'   => __( 'Site icon is not selected.', 'pwa' ),
+		'pwa_icon_too_small' => __( 'Site icon should be at least 512 x 512 pixels.', 'pwa' ),
+		'pwa_icon_not_png'   => __( 'Site icon should be a PNG iamge.', 'pwa' ),
 	);
 
-	wp_enqueue_script( 'customize-controls-site-icon-maskable' );
+	wp_add_inline_script(
+		'customize-controls-site-icon-maskable',
+		sprintf( 'Object.assign( window._wpCustomizeControlsL10n, %s );', wp_json_encode( $icon_validation_messages ) ),
+		'after'
+	);
 }
-
 add_action( 'customize_controls_enqueue_scripts', 'pwa_customize_controls_enqueue_site_icon_maskable_script' );
