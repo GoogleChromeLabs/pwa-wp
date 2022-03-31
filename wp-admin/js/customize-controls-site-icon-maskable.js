@@ -32,7 +32,7 @@ wp.customize(
 				/**
 				 * Validate site icons for its presence and size.
 				 */
-				const iconValidation = () => {
+				const validateIcon = () => {
 					const iconData = siteIconControl.container.find(
 						'img.app-icon-preview'
 					);
@@ -77,7 +77,7 @@ wp.customize(
 
 				// Update active state whenever the site_icon setting changes.
 				// Update notification when site_icon setting changes.
-				siteIconSetting.bind(updateActive).bind(iconValidation);
+				siteIconSetting.bind(updateActive).bind(validateIcon);
 
 				/**
 				 * Update the icon styling based on whether the site icon maskable is enabled.
