@@ -402,7 +402,7 @@ final class WP_Web_App_Manifest {
 				'label' => __( 'Progressive Web App', 'pwa' ),
 				'color' => 'green',
 			),
-			'description' => __( 'The site icon is used as a browser and app icon. It is recommended to use a square image with a minimum size of 512 &times; 512 pixels.', 'pwa' ),
+			'description' => '<p>' . wp_kses_post( __( 'The site icon is used as a browser and app icon. It is recommended to use a square image with a minimum size of 512 &times; 512 pixels.', 'pwa' ) ) . '</p>',
 			'actions'     => '',
 			'test'        => 'pwa_site_icon_validation',
 		);
@@ -418,7 +418,7 @@ final class WP_Web_App_Manifest {
 			sprintf(
 				'<a class="button button-secondary" href="%s">%s</a>',
 				admin_url( 'customize.php?autofocus[control]=site_icon' ),
-				__( 'Select site icon', 'pwa' )
+				esc_html__( 'Select site icon', 'pwa' )
 			)
 		);
 
