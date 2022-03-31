@@ -370,7 +370,7 @@ final class WP_Web_App_Manifest {
 			return $icon_errors;
 		}
 
-		if ( $site_icon_metadata['width'] < 512 && $site_icon_metadata['height'] < 512 ) {
+		if ( $site_icon_metadata['width'] < 512 || $site_icon_metadata['height'] < 512 ) {
 			$icon_errors->add( 'site_icon_too_small', __( 'The site icon is too small. Please use a square image with a minimum size of 512 &times; 512 pixels.', 'pwa' ) );
 		}
 
