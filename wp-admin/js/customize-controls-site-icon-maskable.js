@@ -39,7 +39,7 @@ wp.customize(
 					const baseNotificationProps = {
 						dismissible: true,
 						message: '',
-						type: 'error',
+						type: 'warning',
 						code: null,
 					};
 					const notifications = [];
