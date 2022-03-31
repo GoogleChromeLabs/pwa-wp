@@ -33,10 +33,10 @@ wp.customize(
 				 * Validate site icons for its presence and size.
 				 */
 				const iconValidation = () => {
-					const iconData = wp.customize
-						.control('site_icon')
-						.container.find('img.app-icon-preview');
-					const NotificationData = {
+					const iconData = siteIconControl.container.find(
+						'img.app-icon-preview'
+					);
+					const baseNotificationProps = {
 						dismissible: true,
 						message: '',
 						type: 'error',
@@ -47,7 +47,7 @@ wp.customize(
 					if (!iconData.length) {
 						notifications.push(
 							new wp.customize.Notification('pwa_icon_not_set', {
-								...NotificationData,
+								...baseNotificationProps,
 								message: PWA_IconMessages.pwa_icon_not_set,
 							})
 						);
@@ -62,7 +62,7 @@ wp.customize(
 							new wp.customize.Notification(
 								'pwa_icon_too_small',
 								{
-									...NotificationData,
+									...baseNotificationProps,
 									message:
 										PWA_IconMessages.pwa_icon_too_small,
 								}
