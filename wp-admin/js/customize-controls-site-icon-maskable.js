@@ -29,55 +29,71 @@ wp.customize(
 				// Set initial active state.
 				updateActive();
 
+				// Update active state whenever the site_icon setting changes.
+				siteIconSetting.bind(updateActive);
+
 				/**
 				 * Validate site icons for its presence and size.
 				 */
 				const validateIcon = () => {
-					const iconData = siteIconControl.container.find(
-						'img.app-icon-preview'
-					);
 					const baseNotificationProps = {
-						dismissible: true,
 						message: '',
 						type: 'warning',
 						code: null,
 					};
-					const notifications = [];
+					const attachmentId = parseInt(siteIconSetting(), 10);
 
-					if (!iconData.length) {
-						notifications.push(
-							new wp.customize.Notification('pwa_icon_not_set', {
-								...baseNotificationProps,
-								message: PWA_IconMessages.pwa_icon_not_set,
-							})
-						);
-					}
+					const iconMissingNotificationId = 'pwa_icon_not_set';
+					const iconTooSmallNotificationId = 'pwa_icon_too_small';
 
-					if (
-						iconData.length &&
-						(iconData[0].naturalHeight < 512 ||
-							iconData[0].naturalHeight < 512)
-					) {
-						notifications.push(
+					if (!attachmentId) {
+						siteIconControl.notifications.add(
 							new wp.customize.Notification(
-								'pwa_icon_too_small',
+								iconMissingNotificationId,
 								{
 									...baseNotificationProps,
-									message:
-										PWA_IconMessages.pwa_icon_too_small,
+									message: PWA_IconMessages.pwa_icon_not_set,
 								}
 							)
 						);
-					}
+					} else {
+						siteIconControl.notifications.remove(
+							iconMissingNotificationId
+						);
 
-					for (const notification of notifications) {
-						siteIconControl.notifications.add(notification);
+						wp.media
+							.attachment(attachmentId)
+							.fetch()
+							.done(function (attachment) {
+								if (
+									attachment &&
+									attachment.width >= 512 &&
+									attachment.height >= 512
+								) {
+									siteIconControl.notifications.remove(
+										iconTooSmallNotificationId
+									);
+								} else {
+									siteIconControl.notifications.add(
+										new wp.customize.Notification(
+											iconTooSmallNotificationId,
+											{
+												...baseNotificationProps,
+												message:
+													PWA_IconMessages.pwa_icon_too_small,
+											}
+										)
+									);
+								}
+							});
 					}
 				};
 
-				// Update active state whenever the site_icon setting changes.
+				// Set initial state.
+				validateIcon();
+
 				// Update notification when site_icon setting changes.
-				siteIconSetting.bind(updateActive).bind(validateIcon);
+				siteIconSetting.bind(validateIcon);
 
 				/**
 				 * Update the icon styling based on whether the site icon maskable is enabled.
