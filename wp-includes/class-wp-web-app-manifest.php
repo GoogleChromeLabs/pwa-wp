@@ -414,13 +414,16 @@ final class WP_Web_App_Manifest {
 		$results['label']          = __( 'You should fix your site icon', 'pwa' );
 		$results['status']         = 'recommended';
 		$results['badge']['color'] = 'orange';
-		$results['actions']        = wp_kses_post(
-			sprintf(
-				'<a class="button button-secondary" href="%s">%s</a>',
-				admin_url( 'customize.php?autofocus[control]=site_icon' ),
-				esc_html__( 'Select site icon', 'pwa' )
-			)
-		);
+
+		if ( current_user_can( 'customize' ) ) {
+			$results['actions'] = wp_kses_post(
+				sprintf(
+					'<a class="button button-secondary" href="%s">%s</a>',
+					admin_url( 'customize.php?autofocus[control]=site_icon' ),
+					esc_html__( 'Select site icon', 'pwa' )
+				)
+			);
+		}
 
 		$results['description']  = '<p>' . esc_html__( 'Resolve the following issue(s) to ensure your site is available as a Progressive Web App:', 'pwa' ) . '</p>';
 		$results['description'] .= '<ul>';
