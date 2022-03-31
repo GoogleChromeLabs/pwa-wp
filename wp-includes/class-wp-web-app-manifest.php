@@ -359,27 +359,27 @@ final class WP_Web_App_Manifest {
 		$site_icon_id = get_option( 'site_icon' );
 
 		if ( ! $site_icon_id ) {
-			$icon_errors->add( 'site_icon_not_set', __( 'The site icon is not set. Please set a site icon to make your site a Progressive Web App.', 'pwa' ) );
+			$icon_errors->add( 'site_icon_not_set', __( 'a site icon has not been selected.', 'pwa' ) );
 			return $icon_errors;
 		}
 
 		$site_icon_metadata = wp_get_attachment_metadata( $site_icon_id );
 
 		if ( ! $site_icon_metadata ) {
-			$icon_errors->add( 'site_icon_metadata_not_found', __( 'The site icon metadata could not be found. Please set a site icon to make your site a Progressive Web App.', 'pwa' ) );
+			$icon_errors->add( 'site_icon_metadata_not_found', __( 'The site icon metadata could not be found. Please re-select a site icon.', 'pwa' ) );
 			return $icon_errors;
 		}
 
 		if ( $site_icon_metadata['width'] < 512 && $site_icon_metadata['height'] < 512 ) {
-			$icon_errors->add( 'site_icon_too_small', __( 'The site icon is too small. Please use a square image with a minimum size of 512x512px.', 'pwa' ) );
+			$icon_errors->add( 'site_icon_too_small', __( 'The site icon is too small. Please use a square image with a minimum size of 512 &times; 512 pixels.', 'pwa' ) );
 		}
 
 		if ( $site_icon_metadata['height'] !== $site_icon_metadata['width'] ) {
-			$icon_errors->add( 'site_icon_not_square', __( 'The site icon is not square. Please use a image with 1:1 ratio resolution.', 'pwa' ) );
+			$icon_errors->add( 'site_icon_not_square', __( 'The site icon is not square. Please select an image with a 1:1 aspect ratio. You may be able to crop your existing site icon.', 'pwa' ) );
 		}
 
 		if ( 'image/png' !== get_post_mime_type( $site_icon_id ) ) {
-			$icon_errors->add( 'site_icon_not_png', __( 'The site icon is not a PNG image. Please use a PNG image.', 'pwa' ) );
+			$icon_errors->add( 'site_icon_not_png', __( 'The site icon is not a PNG image. Please select an image in PNG format.', 'pwa' ) );
 		}
 
 		return $icon_errors;
@@ -398,13 +398,13 @@ final class WP_Web_App_Manifest {
 		$error_messages   = $site_icon_errors->get_error_messages();
 
 		$results = array(
-			'label'       => __( 'Site Icon is valid', 'pwa' ),
+			'label'       => __( 'Site icon is valid', 'pwa' ),
 			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Progressive Web App', 'pwa' ),
 				'color' => 'green',
 			),
-			'description' => __( 'The site icon is used as a browser and app icon. It is recommended to use a square image with a minimum size of 512x512px.', 'pwa' ),
+			'description' => __( 'The site icon is used as a browser and app icon. It is recommended to use a square image with a minimum size of 512 &times; 512 pixels.', 'pwa' ),
 			'actions'     => '',
 			'test'        => 'pwa_site_icon_validation',
 		);
@@ -419,17 +419,19 @@ final class WP_Web_App_Manifest {
 		$results['badge']['color'] = 'orange';
 		$results['actions']        = wp_kses_post(
 			sprintf(
-				'<a class="button button-primary" href="%s">%s</a>',
+				'<a class="button button-secondary" href="%s">%s</a>',
 				admin_url( 'customize.php?autofocus[control]=site_icon' ),
-				__( 'Set site icon', 'pwa' )
+				__( 'Select site icon', 'pwa' )
 			)
 		);
 
 		// Empty description before adding errors.
-		$results['description'] = '';
+		$results['description']  = '<p>' . esc_html__( 'Resolve the following issue(s) to ensure your site is available as a Progressive Web App:', 'pwa' ) . '</p>';
+		$results['description'] .= '<ul>';
 		foreach ( $error_messages as $message ) {
-			$results['description'] .= wp_kses_post( sprintf( '<p>%s</p>', $message ) );
+			$results['description'] .= wp_kses_post( sprintf( '<li>%s</li>', $message ) );
 		}
+		$results['description'] .= '</ul>';
 
 		return $results;
 	}
