@@ -64,9 +64,10 @@ function pwa_customize_controls_enqueue_site_icon_maskable_script() {
 	);
 
 	$icon_validation_messages = array(
-		'pwa_icon_not_set'   => __( 'Site icon is not selected.', 'pwa' ),
-		'pwa_icon_too_small' => __( 'Site icon should be at least 512 x 512 pixels.', 'pwa' ),
-		'pwa_icon_not_png'   => __( 'Site icon should be a PNG iamge.', 'pwa' ),
+		'pwa_icon_not_set'    => __( 'Site icon should be selected.', 'pwa' ),
+		'pwa_icon_too_small'  => __( 'Site icon should be at least 512 x 512 pixels.', 'pwa' ),
+		'pwa_icon_not_png'    => __( 'Site icon should be in PNG format.', 'pwa' ),
+		'pwa_icon_not_square' => __( 'Site icon must be square.', 'pwa' ),
 	);
 
 	wp_add_inline_script(

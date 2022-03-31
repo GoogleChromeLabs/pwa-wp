@@ -39,6 +39,8 @@ wp.customize(
 
 					const iconMissingNotificationId = 'pwa_icon_not_set';
 					const iconTooSmallNotificationId = 'pwa_icon_too_small';
+					const iconNotSquareNotificationId = 'pwa_icon_not_square';
+					const iconNotPngNotificationId = 'pwa_icon_not_png';
 
 					const addMissingIconNotification = () => {
 						siteIconControl.notifications.add(
@@ -64,6 +66,7 @@ wp.customize(
 							.fetch()
 							.fail(addMissingIconNotification)
 							.done((attachment) => {
+								// Check for size.
 								if (
 									attachment.width >= 512 &&
 									attachment.height >= 512
@@ -82,6 +85,44 @@ wp.customize(
 														.pwa_icon_too_small,
 											}
 										)
+									);
+								}
+
+								// Check for square icon per <https://github.com/GoogleChrome/lighthouse/blob/0fb3206/lighthouse-core/lib/icons.js#L63-L64>.
+								if (attachment.width !== attachment.height) {
+									siteIconControl.notifications.add(
+										new wp.customize.Notification(
+											iconNotSquareNotificationId,
+											{
+												type: 'warning',
+												message:
+													wp.customize.l10n
+														.pwa_icon_not_square,
+											}
+										)
+									);
+								} else {
+									siteIconControl.notifications.remove(
+										iconNotSquareNotificationId
+									);
+								}
+
+								// Check for PNG.
+								if ('image/png' !== attachment.mime) {
+									siteIconControl.notifications.add(
+										new wp.customize.Notification(
+											iconNotPngNotificationId,
+											{
+												type: 'warning',
+												message:
+													wp.customize.l10n
+														.pwa_icon_not_png,
+											}
+										)
+									);
+								} else {
+									siteIconControl.notifications.remove(
+										iconNotPngNotificationId
 									);
 								}
 							});
