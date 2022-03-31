@@ -411,7 +411,6 @@ final class WP_Web_App_Manifest {
 			return $results;
 		}
 
-		// prepare results.
 		$results['label']          = __( 'You should fix your site icon', 'pwa' );
 		$results['status']         = 'recommended';
 		$results['badge']['color'] = 'orange';
@@ -423,7 +422,6 @@ final class WP_Web_App_Manifest {
 			)
 		);
 
-		// Empty description before adding errors.
 		$results['description']  = '<p>' . esc_html__( 'Resolve the following issue(s) to ensure your site is available as a Progressive Web App:', 'pwa' ) . '</p>';
 		$results['description'] .= '<ul>';
 		foreach ( $site_icon_validity->get_error_messages() as $message ) {
