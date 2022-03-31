@@ -56,6 +56,15 @@ wp.customize(
 
 					if (!attachmentId) {
 						addMissingIconNotification();
+						siteIconControl.notifications.remove(
+							iconTooSmallNotificationId
+						);
+						siteIconControl.notifications.remove(
+							iconNotSquareNotificationId
+						);
+						siteIconControl.notifications.remove(
+							iconNotPngNotificationId
+						);
 					} else {
 						siteIconControl.notifications.remove(
 							iconMissingNotificationId

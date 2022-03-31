@@ -359,7 +359,7 @@ final class WP_Web_App_Manifest {
 		$site_icon_id = get_option( 'site_icon' );
 
 		if ( ! $site_icon_id ) {
-			$icon_errors->add( 'site_icon_not_set', __( 'a site icon has not been selected.', 'pwa' ) );
+			$icon_errors->add( 'site_icon_not_set', __( 'A site icon has not been selected.', 'pwa' ) );
 			return $icon_errors;
 		}
 
