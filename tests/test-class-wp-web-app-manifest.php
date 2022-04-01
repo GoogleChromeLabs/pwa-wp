@@ -156,7 +156,6 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		$this->assertStringContainsString( '<meta name="application-name" content="WP Dev">', $output );
 	}
 
-
 	/**
 	 * Test manifest_link_and_meta when using the browser display.
 	 *
@@ -314,7 +313,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	}
 
 	/**
-	 * Test Site icon size validation.
+	 * Test site icon size validation.
 	 *
 	 * @covers ::validate_site_icon()
 	 */
@@ -327,7 +326,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	}
 
 	/**
-	 * Test Site icon as square validation.
+	 * Test site icon as square validation.
 	 *
 	 * @covers ::validate_site_icon()
 	 */
@@ -340,7 +339,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	}
 
 	/**
-	 * Test Site icon not png
+	 * Test site icon not being PNG.
 	 *
 	 * @covers ::validate_site_icon()
 	 */
@@ -356,7 +355,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	}
 
 	/**
-	 * Test Site icon as square validation.
+	 * Test site icon as valid.
 	 *
 	 * @covers ::validate_site_icon()
 	 */
