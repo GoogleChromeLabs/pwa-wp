@@ -66,7 +66,7 @@ final class WP_Web_App_Manifest {
 	public function init() {
 		add_action( 'wp_head', array( $this, 'manifest_link_and_meta' ) );
 		add_action( 'rest_api_init', array( $this, 'register_manifest_rest_route' ) );
-		add_filter( 'site_status_tests', array( $this, 'add_short_name_site_status_test' ) );
+		add_filter( 'site_status_tests', array( $this, 'add_pwa_site_health_tests' ) );
 
 		add_action( 'rest_api_init', array( $this, 'register_short_name_setting' ) );
 		add_action( 'admin_init', array( $this, 'register_short_name_setting' ) );
@@ -247,18 +247,26 @@ final class WP_Web_App_Manifest {
 	}
 
 	/**
-	 * Register test for lacking short_name in web app manifest.
+	 * Register test for PWA site health checks.
 	 *
-	 * @since 0.4
+	 * @since 0.7
 	 *
 	 * @param array $tests Tests.
 	 * @return array Tests.
 	 */
-	public function add_short_name_site_status_test( $tests ) {
+	public function add_pwa_site_health_tests( $tests ) {
+		// Add tests for the short_name.
 		$tests['direct']['web_app_manifest_short_name'] = array(
 			'label' => __( 'Short Name in Web App Manifest', 'pwa' ),
 			'test'  => array( $this, 'test_short_name_present_in_manifest' ),
 		);
+
+		// Add tests for the site icon validation.
+		$tests['direct']['pwa_site_icon_validation'] = array(
+			'label' => __( 'Site Icon', 'pwa' ),
+			'test'  => array( $this, 'test_site_icon' ),
+		);
+
 		return $tests;
 	}
 
@@ -336,6 +344,95 @@ final class WP_Web_App_Manifest {
 		$result['test'] = 'web_app_manifest_short_name';
 
 		return $result;
+	}
+
+	/**
+	 * Validate site icon.
+	 *
+	 * @since 0.7
+	 *
+	 * @return true|WP_Error $icon_errors Errors for site icon, or true if there were no errors.
+	 */
+	public function validate_site_icon() {
+		$icon_errors = new WP_Error();
+
+		$site_icon_id = get_option( 'site_icon' );
+
+		if ( ! $site_icon_id ) {
+			$icon_errors->add( 'site_icon_not_set', __( 'A site icon has not been selected.', 'pwa' ) );
+			return $icon_errors;
+		}
+
+		$site_icon_metadata = wp_get_attachment_metadata( $site_icon_id );
+
+		if ( ! $site_icon_metadata ) {
+			$icon_errors->add( 'site_icon_metadata_not_found', __( 'The site icon metadata could not be found. Please re-select a site icon.', 'pwa' ) );
+			return $icon_errors;
+		}
+
+		if ( $site_icon_metadata['width'] < 512 || $site_icon_metadata['height'] < 512 ) {
+			$icon_errors->add( 'site_icon_too_small', __( 'The site icon is too small. Please use a square image with a minimum size of 512 &times; 512 pixels.', 'pwa' ) );
+		}
+
+		if ( $site_icon_metadata['height'] !== $site_icon_metadata['width'] ) {
+			$icon_errors->add( 'site_icon_not_square', __( 'The site icon is not square. Please select an image with a 1:1 aspect ratio. You may be able to crop your existing site icon.', 'pwa' ) );
+		}
+
+		if ( 'image/png' !== get_post_mime_type( $site_icon_id ) ) {
+			$icon_errors->add( 'site_icon_not_png', __( 'The site icon is not a PNG image. Please select an image in PNG format.', 'pwa' ) );
+		}
+
+		return empty( $icon_errors->errors ) ? true : $icon_errors;
+	}
+
+	/**
+	 * Test site icon if it is set, not too small and is square.
+	 *
+	 * @since 0.7
+	 *
+	 * @return array $result The test result.
+	 */
+	public function test_site_icon() {
+		$site_icon_validity = $this->validate_site_icon();
+
+		$results = array(
+			'label'       => __( 'Site icon is valid', 'pwa' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Progressive Web App', 'pwa' ),
+				'color' => 'green',
+			),
+			'description' => '<p>' . wp_kses_post( __( 'The site icon is used as a browser and app icon. It is recommended to use a square image with a minimum size of 512 &times; 512 pixels.', 'pwa' ) ) . '</p>',
+			'actions'     => '',
+			'test'        => 'pwa_site_icon_validation',
+		);
+
+		if ( true === $site_icon_validity ) {
+			return $results;
+		}
+
+		$results['label']          = __( 'You should fix your site icon', 'pwa' );
+		$results['status']         = 'recommended';
+		$results['badge']['color'] = 'orange';
+
+		if ( current_user_can( 'customize' ) ) {
+			$results['actions'] = wp_kses_post(
+				sprintf(
+					'<a class="button button-secondary" href="%s">%s</a>',
+					admin_url( 'customize.php?autofocus[control]=site_icon' ),
+					esc_html__( 'Select site icon', 'pwa' )
+				)
+			);
+		}
+
+		$results['description']  = '<p>' . esc_html__( 'Resolve the following issue(s) to ensure your site is available as a Progressive Web App:', 'pwa' ) . '</p>';
+		$results['description'] .= '<ul>';
+		foreach ( $site_icon_validity->get_error_messages() as $message ) {
+			$results['description'] .= wp_kses_post( sprintf( '<li>%s</li>', $message ) );
+		}
+		$results['description'] .= '</ul>';
+
+		return $results;
 	}
 
 	/**
