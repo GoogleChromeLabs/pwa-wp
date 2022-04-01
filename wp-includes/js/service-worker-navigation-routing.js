@@ -69,7 +69,7 @@ ERROR_OFFLINE_URL, ERROR_500_URL, NAVIGATION_DENYLIST_PATTERNS, ERROR_MESSAGES *
 
 							let body = text.replace(
 								'{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}',
-								'errorMessages.error'
+								errorMessages.error
 							);
 							body = body.replace(
 								'{{{WP_SERVICE_WORKER_SUBMISSION_FAILURE_MESSAGE}}}',
