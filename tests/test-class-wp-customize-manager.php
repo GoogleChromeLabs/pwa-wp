@@ -58,14 +58,14 @@ class Test_WP_Customize_Manager extends TestCase {
 	}
 
 	/**
-	 * @covers ::pwa_customize_controls_enqueue_site_icon_maskable_script
+	 * @covers ::pwa_customize_controls_enqueue_site_icon_script
 	 */
-	public function test_pwa_customize_controls_enqueue_site_icon_maskable_script() {
-		pwa_customize_controls_enqueue_site_icon_maskable_script();
+	public function test_pwa_customize_controls_enqueue_site_icon_script() {
+		pwa_customize_controls_enqueue_site_icon_script();
 
-		$this->assertEquals( 10, has_action( 'customize_controls_enqueue_scripts', 'pwa_customize_controls_enqueue_site_icon_maskable_script' ) );
+		$this->assertEquals( 10, has_action( 'customize_controls_enqueue_scripts', 'pwa_customize_controls_enqueue_site_icon_script' ) );
 		$this->assertTrue( wp_script_is( 'customize-controls', 'enqueued' ) );
-		$this->assertTrue( wp_script_is( 'customize-controls-site-icon-maskable', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'customize-controls-site-icon-pwa', 'enqueued' ) );
 	}
 
 }

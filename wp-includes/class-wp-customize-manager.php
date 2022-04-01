@@ -47,14 +47,14 @@ function pwa_customize_register_site_icon_maskable( WP_Customize_Manager $wp_cus
 add_action( 'customize_register', 'pwa_customize_register_site_icon_maskable', 1000 );
 
 /**
- * Enqueue script for site_icon_maskable control.
+ * Enqueue script for Site Icon control.
  *
  * This may end up making sense being enqueued as part of WP_Customize_Site_Icon_Control or just added to logic in
  * <src/js/_enqueues/wp/customize/controls.js>.
  *
  * @see WP_Customize_Site_Icon_Control::enqueue()
  */
-function pwa_customize_controls_enqueue_site_icon_maskable_script() {
+function pwa_customize_controls_enqueue_site_icon_script() {
 	wp_enqueue_script(
 		'customize-controls-site-icon-pwa',
 		plugins_url( 'wp-admin/js/customize-controls-site-icon-pwa.js', PWA_PLUGIN_FILE ),
@@ -76,4 +76,4 @@ function pwa_customize_controls_enqueue_site_icon_maskable_script() {
 		'after'
 	);
 }
-add_action( 'customize_controls_enqueue_scripts', 'pwa_customize_controls_enqueue_site_icon_maskable_script' );
+add_action( 'customize_controls_enqueue_scripts', 'pwa_customize_controls_enqueue_site_icon_script' );
