@@ -26,7 +26,7 @@
     "@wordpress/scripts": "22.3.0",
     "eslint": "7.32.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-import": "2.25.4",
+    "eslint-plugin-import": "2.26.0",
     "eslint-plugin-jsdoc": "38.1.6",
     "grunt": "1.4.1",
     "grunt-contrib-clean": "2.0.0",
