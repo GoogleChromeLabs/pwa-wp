@@ -30,14 +30,9 @@
 									statusText: errorResponse.statusText,
 									headers: errorResponse.headers,
 								};
-
 								let body = text.replace(
 									'{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}',
-									errorMessages.error
-								);
-								body = body.replace(
-									'{{{WP_SERVICE_WORKER_SUBMISSION_FAILURE_MESSAGE}}}',
-									errorMessages.submissionFailure
+									`${errorMessages.error} <strong>${errorMessages.submissionFailure}</strong>`
 								);
 								body = body.replace(
 									/({{{WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN}}})((?:.|\n)+?)({{{WP_SERVICE_WORKER_ERROR_TEMPLATE_END}}})/,
@@ -103,15 +98,13 @@
 								headers: response.headers,
 							};
 
-							let body = text.replace(
+							const connectionMessage = navigator.onLine
+								? errorMessages.serverOffline
+								: errorMessages.clientOffline;
+
+							const body = text.replace(
 								'{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}',
-								navigator.onLine
-									? errorMessages.serverOffline
-									: errorMessages.clientOffline
-							);
-							body = body.replace(
-								'{{{WP_SERVICE_WORKER_SUBMISSION_FAILURE_MESSAGE}}}',
-								errorMessages.submissionFailure
+								`${connectionMessage} <strong>${errorMessages.submissionFailure}</strong>`
 							);
 
 							return new Response(body, init);

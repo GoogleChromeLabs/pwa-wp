@@ -170,9 +170,6 @@ function wp_service_worker_error_details_template( $output = '' ) {
  */
 function wp_service_worker_error_message_placeholder() {
 	echo '<p>{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}</p>'; // phpcs:ignore WordPressVIPMinimum.Security.Mustache.OutputNotation -- Prints error message placeholder.
-
-	// Display service worker submission failure message on POST request template tag.
-	echo '<p><strong>{{{WP_SERVICE_WORKER_SUBMISSION_FAILURE_MESSAGE}}}</strong></p>'; // phpcs:ignore WordPressVIPMinimum.Security.Mustache.OutputNotation -- Prints submission failure message placeholder.
 }
 
 /**
