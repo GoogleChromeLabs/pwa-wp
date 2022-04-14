@@ -2,13 +2,9 @@
 
 // IIFE is used for lexical scoping instead of just a braces block due to bug with const in Safari.
 (() => {
-	const queue = new wp.serviceWorker.backgroundSync.Queue(
-		'wpPendingComments'
-	);
 	const errorMessages = ERROR_MESSAGES;
 
-	const commentHandler = ({ event }) => {
-		const clone = event.request.clone();
+	const offlinePostRequestHandler = ({ event }) => {
 		return fetch(event.request)
 			.then((response) => {
 				if (response.status < 500) {
@@ -34,13 +30,12 @@
 									statusText: errorResponse.statusText,
 									headers: errorResponse.headers,
 								};
-
 								let body = text.replace(
 									'{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}',
-									errorMessages.error
+									`${errorMessages.error} <strong>${errorMessages.submissionFailure}</strong>`
 								);
 								body = body.replace(
-									/([<]!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->)((?:.|\n)+?)([<]!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->)/,
+									/({{{WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN}}})((?:.|\n)+?)({{{WP_SERVICE_WORKER_ERROR_TEMPLATE_END}}})/,
 									(details) => {
 										if (!errorText) {
 											return ''; // Remove the details from the document entirely.
@@ -71,13 +66,11 @@
 
 										// Replace the comments.
 										details = details.replace(
-											'<' +
-												'!--WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN-->',
+											'{{{WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN}}}',
 											''
 										);
 										details = details.replace(
-											'<' +
-												'!--WP_SERVICE_WORKER_ERROR_TEMPLATE_END-->',
+											'{{{WP_SERVICE_WORKER_ERROR_TEMPLATE_END}}}',
 											''
 										);
 										return details;
@@ -90,25 +83,6 @@
 				});
 			})
 			.catch(() => {
-				const bodyPromise = clone.blob();
-				bodyPromise.then(function (body) {
-					const request = event.request;
-					const req = new Request(request.url, {
-						method: request.method,
-						headers: request.headers,
-						mode: 'same-origin',
-						credentials: request.credentials,
-						referrer: request.referrer,
-						redirect: 'manual',
-						body,
-					});
-
-					// Add request to queue.
-					queue.pushRequest({
-						request: req,
-					});
-				});
-
 				// @todo This is duplicated with code in service-worker-navigation-routing.js.
 				return caches
 					.match(
@@ -124,9 +98,13 @@
 								headers: response.headers,
 							};
 
+							const connectionMessage = navigator.onLine
+								? errorMessages.serverOffline
+								: errorMessages.clientOffline;
+
 							const body = text.replace(
 								'{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}',
-								errorMessages.comment
+								`${connectionMessage} <strong>${errorMessages.submissionFailure}</strong>`
 							);
 
 							return new Response(body, init);
@@ -136,8 +114,8 @@
 	};
 
 	wp.serviceWorker.routing.registerRoute(
-		/\/wp-comments-post\.php$/,
-		commentHandler,
+		/.*/,
+		offlinePostRequestHandler,
 		'POST'
 	);
 })();

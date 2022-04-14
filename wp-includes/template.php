@@ -143,10 +143,10 @@ function wp_service_worker_get_error_messages() {
 	return apply_filters(
 		'wp_service_worker_error_messages',
 		array(
-			'clientOffline' => __( 'It seems you are offline. Please check your internet connection and try again.', 'pwa' ),
-			'serverOffline' => __( 'The server appears to be down, or your connection isn\'t working as expected. Please try again later.', 'pwa' ),
-			'error'         => __( 'Something prevented the page from being rendered. Please try again.', 'pwa' ),
-			'comment'       => __( 'Your comment will be submitted once you are back online!', 'pwa' ),
+			'clientOffline'     => __( 'It seems you are offline. Please check your internet connection and try again.', 'pwa' ),
+			'serverOffline'     => __( 'The server appears to be down, or your connection isn\'t working as expected. Please try again later.', 'pwa' ),
+			'error'             => __( 'Something prevented the page from being rendered. Please try again.', 'pwa' ),
+			'submissionFailure' => __( 'Your submission failed. Please go back and try again.', 'pwa' ),
 		)
 	);
 }
