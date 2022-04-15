@@ -4,6 +4,24 @@
 (() => {
 	const errorMessages = ERROR_MESSAGES;
 
+	/**
+	 * Inject navigation request properties.
+	 *
+	 * @param {string}   body
+	 * @param {Request}  request
+	 * @param {Response} response
+	 * @return {string} Modified body.
+	 */
+	const injectNavigationRequestProperties = (body, request, response) => {
+		return body.replace(
+			'{{{WP_NAVIGATION_REQUEST_PROPERTIES}}}',
+			JSON.stringify({
+				method: request.method,
+				status: response.status,
+			})
+		);
+	};
+
 	const offlinePostRequestHandler = ({ event }) => {
 		return fetch(event.request)
 			.then((response) => {
@@ -34,6 +52,13 @@
 									'{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}',
 									`${errorMessages.error} <strong>${errorMessages.submissionFailure}</strong>`
 								);
+
+								body = injectNavigationRequestProperties(
+									body,
+									event.request,
+									response
+								);
+
 								body = body.replace(
 									/({{{WP_SERVICE_WORKER_ERROR_TEMPLATE_BEGIN}}})((?:.|\n)+?)({{{WP_SERVICE_WORKER_ERROR_TEMPLATE_END}}})/,
 									(details) => {
@@ -102,9 +127,15 @@
 								? errorMessages.serverOffline
 								: errorMessages.clientOffline;
 
-							const body = text.replace(
+							let body = text.replace(
 								'{{{WP_SERVICE_WORKER_ERROR_MESSAGE}}}',
 								`${connectionMessage} <strong>${errorMessages.submissionFailure}</strong>`
+							);
+
+							body = injectNavigationRequestProperties(
+								body,
+								event.request,
+								response
 							);
 
 							return new Response(body, init);

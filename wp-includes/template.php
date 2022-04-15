@@ -178,21 +178,37 @@ function wp_service_worker_error_message_placeholder() {
  * @since 0.7
  */
 function wp_service_worker_offline_page_reload() {
-	if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
-		return;
-	}
-
 	if ( ! is_offline() && ! is_500() ) {
 		return;
 	}
 
 	?>
+	<script id="wp-navigation-request-properties" type="application/json">{{{WP_NAVIGATION_REQUEST_PROPERTIES}}}</script><?php // phpcs:ignore WordPressVIPMinimum.Security.Mustache.OutputNotation ?>
 	<script type="module">
-		if (!new URLSearchParams(location.search.substr(1)).has("wp_error_template")) {
+		const shouldRetry = () => {
+			if (
+				new URLSearchParams(location.search.substring(1)).has(
+					'wp_error_template'
+				)
+			) {
+				return false;
+			}
+
+			const navigationRequestProperties = JSON.parse(
+				document.getElementById('wp-navigation-request-properties').text
+			);
+			if ('GET' !== navigationRequestProperties.method) {
+				return false;
+			}
+
+			return true;
+		};
+
+		if (shouldRetry()) {
 			/**
-			* Listen to changes in the network state, reload when online.
-			* This handles the case when the device is completely offline.
-			*/
+			 * Listen to changes in the network state, reload when online.
+			 * This handles the case when the device is completely offline.
+			 */
 			window.addEventListener('online', () => {
 				window.location.reload();
 			});
@@ -201,12 +217,14 @@ function wp_service_worker_offline_page_reload() {
 			let count = 0;
 
 			/**
-			* Check if the server is responding and reload the page if it is.
-			* This handles the case when the device is online, but the server is offline or misbehaving.
-			*/
+			 * Check if the server is responding and reload the page if it is.
+			 * This handles the case when the device is online, but the server is offline or misbehaving.
+			 */
 			async function checkNetworkAndReload() {
 				try {
-					const response = await fetch(location.href, {method: 'HEAD'});
+					const response = await fetch(location.href, {
+						method: 'HEAD',
+					});
 					// Verify we get a valid response from the server
 					if (response.status >= 200 && response.status < 500) {
 						window.location.reload();
@@ -215,8 +233,12 @@ function wp_service_worker_offline_page_reload() {
 				} catch {
 					// Unable to connect so do nothing.
 				}
-				window.setTimeout(checkNetworkAndReload, Math.pow(2, count++) * 2500);
+				window.setTimeout(
+					checkNetworkAndReload,
+					Math.pow(2, count++) * 2500
+				);
 			}
+
 			checkNetworkAndReload();
 		}
 	</script>
