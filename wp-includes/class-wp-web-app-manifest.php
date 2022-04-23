@@ -504,16 +504,18 @@ final class WP_Web_App_Manifest {
 			$src = get_site_icon_url( $size );
 			if ( $src ) {
 				$icon = array(
-					'src'   => $src,
-					'sizes' => sprintf( '%1$dx%1$d', $size ),
-					'type'  => $mime_type,
+					'purpose' => 'any',
+					'src'     => $src,
+					'sizes'   => sprintf( '%1$dx%1$d', $size ),
+					'type'    => $mime_type,
 				);
 
-				if ( $maskable ) {
-					$icon['purpose'] = 'any maskable';
-				}
-
 				$icons[] = $icon;
+
+				if ( $maskable ) {
+					$icon['purpose'] = 'maskable';
+					$icons[]         = $icon;
+				}
 			}
 		}
 		return $icons;

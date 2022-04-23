@@ -245,6 +245,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		$this->mock_site_icon();
 		$blogname = 'PWA & Test "First" and \'second\' and “third”';
 		update_option( 'blogname', $blogname );
+		update_option( 'site_icon_maskable', false );
 		$actual_manifest = $this->instance->get_manifest();
 
 		// Verify that there are now entities.
@@ -264,16 +265,41 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		$this->assertEquals( $expected_manifest, $actual_manifest );
 
 		// Check that icon purpose is `any maskable` if site icon is maskable.
-		update_option( 'site_icon_maskable', true );
-		$actual_manifest            = $this->instance->get_manifest();
-		$expected_manifest['icons'] = array_map(
-			function ( $icon ) {
-				$icon['purpose'] = 'any maskable';
-				return $icon;
-			},
-			$expected_manifest['icons']
-		);
+		$actual_manifest = $this->instance->get_manifest();
 		$this->assertEquals( $expected_manifest, $actual_manifest );
+		$purposes = array();
+		foreach ( $actual_manifest['icons'] as $icon ) {
+			if ( ! isset( $purposes[ $icon['purpose'] ] ) ) {
+				$purposes[ $icon['purpose'] ] = 0;
+			} else {
+				$purposes[ $icon['purpose'] ]++;
+			}
+		}
+		$this->assertEquals(
+			array(
+				'any' => 1,
+			),
+			$purposes
+		);
+
+		// Make sure maskable is properly checked.
+		update_option( 'site_icon_maskable', true );
+		$actual_manifest = $this->instance->get_manifest();
+		$purposes        = array();
+		foreach ( $actual_manifest['icons'] as $icon ) {
+			if ( ! isset( $purposes[ $icon['purpose'] ] ) ) {
+				$purposes[ $icon['purpose'] ] = 0;
+			} else {
+				$purposes[ $icon['purpose'] ]++;
+			}
+		}
+		$this->assertEquals(
+			array(
+				'any'      => 1,
+				'maskable' => 1,
+			),
+			$purposes
+		);
 
 		// Check that long names do not automatically copy to short name.
 		$blogname = str_repeat( 'x', 13 );
@@ -482,9 +508,10 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		$expected_icons = array();
 		foreach ( $this->instance->default_manifest_icon_sizes as $size ) {
 			$expected_icons[] = array(
-				'src'   => $this->expected_site_icon_img_url,
-				'sizes' => sprintf( '%1$dx%1$d', $size ),
-				'type'  => self::MIME_TYPE,
+				'src'     => $this->expected_site_icon_img_url,
+				'sizes'   => sprintf( '%1$dx%1$d', $size ),
+				'type'    => self::MIME_TYPE,
+				'purpose' => 'any',
 			);
 		}
 		$this->assertEquals( $expected_icons, $this->instance->get_icons() );
