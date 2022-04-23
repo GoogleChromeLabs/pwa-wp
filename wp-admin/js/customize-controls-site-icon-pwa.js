@@ -31,6 +31,13 @@ wp.customize(
 				// Update active state whenever the site_icon setting changes.
 				siteIconSetting.bind(updateActive);
 
+				// Change the site_icon_maskable if site_icon is not set.
+				siteIconSetting.bind((newSiteIconValue) => {
+					if (!newSiteIconValue) {
+						siteIconMaskableSetting(false);
+					}
+				});
+
 				/**
 				 * Validate site icons for its presence and size.
 				 */
