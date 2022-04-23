@@ -18,6 +18,9 @@ wp.customize(
 					);
 				};
 
+				// Force the value to always correspond to whether the site icon is present, disregarding server control.
+				siteIconMaskableControl.active.validate = hasSiteIcon;
+
 				/**
 				 * Toggle site icon maskable active state based on whether the site icon is set.
 				 */
