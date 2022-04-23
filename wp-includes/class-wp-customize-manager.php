@@ -35,10 +35,13 @@ function pwa_customize_register_site_icon_maskable( WP_Customize_Manager $wp_cus
 		$wp_customize->add_control(
 			'site_icon_maskable',
 			array(
-				'type'     => 'checkbox',
-				'section'  => 'title_tagline',
-				'label'    => __( 'Maskable icon', 'pwa' ),
-				'priority' => $site_icon_control->priority + 1,
+				'type'            => 'checkbox',
+				'section'         => 'title_tagline',
+				'label'           => __( 'Maskable icon', 'pwa' ),
+				'priority'        => $site_icon_control->priority + 1,
+				'active_callback' => function() use ( $wp_customize ) {
+					return (bool) $wp_customize->get_setting( 'site_icon' )->value();
+				},
 			)
 		);
 	}
