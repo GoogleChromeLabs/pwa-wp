@@ -40,6 +40,7 @@ module.exports = function (grunt) {
 					'for mjs in wp-includes/js/workbox*/*.mjs; do ' +
 					'sed "s/\\.mjs/.js/g" "$mjs" > "${mjs%mjs}js";' +
 					'rm $mjs;' +
+					'if [ -e $mjs.map ]; then mv $mjs.map "${mjs%mjs}js.map"; fi;' +
 					'done;',
 			},
 			create_build_zip: {
