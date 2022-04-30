@@ -55,6 +55,7 @@
     "lint:staged": "lint-staged",
     "test": "npm-run-all --parallel test:*",
     "test:php": "wp-env run phpunit 'WORDPRESS_TABLE_PREFIX=wptests_ /var/www/html/wp-content/plugins/pwa/vendor/bin/phpunit -c /var/www/html/wp-content/plugins/pwa/phpunit.xml $npm_config_args'",
+    "test:php:xdebug": "wp-env run tests-wordpress 'env PHP_IDE_CONFIG=serverName=pwa WORDPRESS_TABLE_PREFIX=wptests_ WP_PHPUNIT__TESTS_CONFIG=/var/www/html/phpunit-wp-config.php /var/www/html/wp-content/plugins/pwa/vendor/bin/phpunit -c /var/www/html/wp-content/plugins/pwa/phpunit.xml $npm_config_args'",
     "prepare": "husky install",
     "env:clean": "wp-env clean all",
     "env:destroy": "wp-env destroy",
