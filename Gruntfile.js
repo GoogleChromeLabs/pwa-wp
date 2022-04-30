@@ -109,7 +109,7 @@ module.exports = function (grunt) {
 				.trim()
 				.split(/\n/)
 				.filter(function (file) {
-					return !/^(\.|bin|([^/]+)+\.(json|xml)|Gruntfile\.js|tests|README\.md|CONTRIBUTING\.md|\.wordpress-org|composer\..*|webpack.*)/.test(
+					return !/^(\.|bin|([^/]+)+\.(json|xml)|Gruntfile\.js|tests|README\.md|CONTRIBUTING\.md|\.wordpress-org|composer\..*|webpack.*|phpstan.*)/.test(
 						file
 					);
 				});
