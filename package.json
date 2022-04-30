@@ -22,6 +22,7 @@
   "private": true,
   "dependencies": {},
   "devDependencies": {
+    "@wordpress/env": "^4.6.0",
     "@wordpress/eslint-plugin": "9.1.0",
     "@wordpress/scripts": "22.5.0",
     "eslint": "7.32.0",
@@ -53,8 +54,14 @@
     "lint:pkg-json": "wp-scripts lint-pkg-json --ignorePath .gitignore",
     "lint:staged": "lint-staged",
     "test": "npm-run-all --parallel test:*",
-    "test:php": "vendor/bin/phpunit",
-    "prepare": "husky install"
+    "test:php": "wp-env run phpunit 'WORDPRESS_TABLE_PREFIX=wptests_ /var/www/html/wp-content/plugins/pwa/vendor/bin/phpunit -c /var/www/html/wp-content/plugins/pwa/phpunit.xml $npm_config_args'",
+    "prepare": "husky install",
+    "env:clean": "wp-env clean all",
+    "env:destroy": "wp-env destroy",
+    "env:start": "wp-env start --xdebug",
+    "env:stop": "wp-env stop",
+    "env:wp": "wp-env run cli wp",
+    "wp-env": "wp-env"
   },
   "lint-staged": {
     "package.json": [

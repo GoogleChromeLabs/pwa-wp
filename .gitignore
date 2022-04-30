@@ -9,3 +9,4 @@
 
 # Generated via bin/transform-readme.php
 /readme.txt
+/.wp-env.override.json
