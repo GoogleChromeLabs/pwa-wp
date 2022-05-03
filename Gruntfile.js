@@ -22,7 +22,7 @@ module.exports = function (grunt) {
 				stderr: true,
 			},
 			phpunit: {
-				command: 'phpunit',
+				command: 'npm run test:php',
 			},
 			verify_matching_versions: {
 				command: 'php bin/verify-version-consistency.php',
