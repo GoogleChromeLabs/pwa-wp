@@ -1,60 +1,75 @@
 <?php
 /**
- * PHPUnit Bootstrap
- *
- * Copied from <https://github.com/xwp/wp-dev-lib/blob/1.6.5/sample-config/phpunit-plugin-bootstrap.php>.
+ * PHPUnit bootstrap file.
  *
  * @package PWA
  */
 
-// phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-// phpcs:disable WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
+define( 'TESTS_PLUGIN_DIR', dirname( __DIR__ ) );
+
+// Detect where to load the WordPress tests environment from.
+if ( false !== getenv( 'WP_TESTS_DIR' ) ) {
+	$_test_root = getenv( 'WP_TESTS_DIR' );
+} elseif ( false !== getenv( 'WP_DEVELOP_DIR' ) ) {
+	$_test_root = getenv( 'WP_DEVELOP_DIR' ) . '/tests/phpunit';
+} elseif ( file_exists( '/tmp/wordpress-tests/includes/bootstrap.php' ) ) {
+	$_test_root = '/tmp/wordpress-tests';
+} elseif ( file_exists( '/var/www/wordpress-develop/tests/phpunit' ) ) {
+	$_test_root = '/var/www/wordpress-develop/tests/phpunit';
+} else {
+	$_test_root = dirname( dirname( dirname( dirname( TESTS_PLUGIN_DIR ) ) ) ) . '/tests/phpunit';
+}
+
+// When run in wp-env context, set the test config file path.
+if ( ! defined( 'WP_TESTS_CONFIG_FILE_PATH' ) && false !== getenv( 'WP_PHPUNIT__TESTS_CONFIG' ) ) {
+	define( 'WP_TESTS_CONFIG_FILE_PATH', getenv( 'WP_PHPUNIT__TESTS_CONFIG' ) );
+}
+
+require $_test_root . '/includes/functions.php';
 
 /**
- * Determine if we should update the content and plugin paths.
+ * Force plugins defined in a constant (supplied by phpunit.xml) to be active at runtime.
+ *
+ * @param array $active_plugins Active plugins.
+ * @return array Forced active plugins.
  */
-if ( ! defined( 'WP_CONTENT_DIR' ) && getenv( 'WP_CONTENT_DIR' ) ) {
-	define( 'WP_CONTENT_DIR', getenv( 'WP_CONTENT_DIR' ) );
-}
-if ( ! defined( 'WP_CONTENT_DIR' ) ) {
-	if ( file_exists( dirname( __DIR__ ) . '/wp-load.php' ) ) {
-		define( 'WP_CONTENT_DIR', dirname( __DIR__ ) . '/wp-content' );
-	} elseif ( file_exists( '../../../wp-content' ) ) {
-		define( 'WP_CONTENT_DIR', dirname( dirname( dirname( getcwd() ) ) ) . '/wp-content' );
+function pwa_filter_active_plugins_for_phpunit( $active_plugins ) {
+	if ( defined( 'WP_TEST_ACTIVATED_PLUGINS' ) ) {
+		$forced_active_plugins = preg_split( '/\s*,\s*/', WP_TEST_ACTIVATED_PLUGINS );
 	}
+
+	if ( ! empty( $forced_active_plugins ) ) {
+		foreach ( $forced_active_plugins as $forced_active_plugin ) {
+			$active_plugins[] = $forced_active_plugin;
+		}
+	}
+	return $active_plugins;
 }
 
-if ( defined( 'WP_CONTENT_DIR' ) && ! defined( 'WP_PLUGIN_DIR' ) ) {
-	define( 'WP_PLUGIN_DIR', rtrim( WP_CONTENT_DIR, '/' ) . '/plugins' );
-}
-
-if ( file_exists( __DIR__ . '/../phpunit-plugin-bootstrap.project.php' ) ) {
-	require_once __DIR__ . '/../phpunit-plugin-bootstrap.project.php';
-}
-
-$_tests_dir = getenv( 'WP_TESTS_DIR' );
-
-// Travis CI & Vagrant SSH tests directory.
-if ( empty( $_tests_dir ) ) {
-	$_tests_dir = '/tmp/wordpress-tests';
-}
-
-// Relative path to Core tests directory.
-if ( ! is_dir( $_tests_dir . '/includes/' ) ) {
-	$_tests_dir = '../../../../tests/phpunit';
-}
-
-if ( ! is_dir( $_tests_dir . '/includes/' ) ) {
-	trigger_error( 'Unable to locate wordpress-tests-lib', E_USER_ERROR );
-}
-require_once $_tests_dir . '/includes/functions.php';
+tests_add_filter( 'site_option_active_sitewide_plugins', 'pwa_filter_active_plugins_for_phpunit' );
+tests_add_filter( 'option_active_plugins', 'pwa_filter_active_plugins_for_phpunit' );
 
 /**
- * Load plugin file.
+ * Ensure plugin is always activated.
+ *
+ * @return void
  */
 function pwa_unit_test_load_plugin_file() {
-	require_once __DIR__ . '/../pwa.php';
+	require_once TESTS_PLUGIN_DIR . '/pwa.php';
 }
+
 tests_add_filter( 'muplugins_loaded', 'pwa_unit_test_load_plugin_file' );
 
-require $_tests_dir . '/includes/bootstrap.php';
+/*
+ * Load WP CLI. Its test bootstrap file can't be required as it will load
+ * duplicate class names which are already in use.
+ */
+define( 'WP_CLI_ROOT', TESTS_PLUGIN_DIR . '/vendor/wp-cli/wp-cli' );
+define( 'WP_CLI_VENDOR_DIR', TESTS_PLUGIN_DIR . '/vendor' );
+require_once WP_CLI_ROOT . '/php/utils.php';
+
+$logger = new WP_CLI\Loggers\Regular( true );
+WP_CLI::set_logger( $logger );
+
+// Start up the WP testing environment.
+require $_test_root . '/includes/bootstrap.php';

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# TODO: This should be eliminated in favor of using Docker on GitHub Actions.
+
 set -e
 
 if [ $# -lt 3 ]; then
