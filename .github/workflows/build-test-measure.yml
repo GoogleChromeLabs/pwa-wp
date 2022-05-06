@@ -157,10 +157,7 @@ jobs:
         run: vendor/bin/phpcs -q --report=checkstyle --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1 | cs2pr --graceful-warnings
 
       - name: Normalize composer.json
-        run: |
-          composer require --no-interaction --dev ergebnis/composer-normalize --ignore-platform-reqs
-          composer config --no-interaction --no-plugins allow-plugins.ergebnis/composer-normalize true
-          composer --no-interaction normalize --dry-run
+        run: vendor/bin/composer-normalize --dry-run
 
   #-----------------------------------------------------------------------------------------------------------------------
 
