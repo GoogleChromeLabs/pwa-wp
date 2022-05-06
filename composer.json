@@ -5,8 +5,8 @@
   "type": "wordpress-plugin",
   "homepage": "https://github.com/GoogleChromeLabs/pwa-wp",
   "require": {
-    "ext-json": "*",
-    "php": "^5.6 || ^7.0 || ^8.0"
+    "php": "^5.6 || ^7.0 || ^8.0",
+    "ext-json": "*"
   },
   "require-dev": {
     "automattic/vipwpcs": "^2.3",
@@ -32,6 +32,11 @@
   },
   "extra": {
     "downloads": {
+      "composer-normalize": {
+        "path": "vendor/bin/composer-normalize",
+        "type": "phar",
+        "url": "https://github.com/ergebnis/composer-normalize/releases/latest/download/composer-normalize.phar"
+      },
       "phpstan": {
         "path": "vendor/bin/phpstan",
         "type": "phar",
