@@ -146,6 +146,13 @@ class Test_WP_Service_Worker_Navigation_Routing_Component extends TestCase {
 			$setup();
 		}
 
+		// Only the path and search are considered by Workbox in navigation requests.
+		$parsed_url = wp_parse_url( $url );
+		$url        = $parsed_url['path'];
+		if ( ! empty( $parsed_url['query'] ) ) {
+			$url .= '?' . $parsed_url['query'];
+		}
+
 		$instance  = new WP_Service_Worker_Navigation_Routing_Component();
 		$patterns  = $instance->get_navigation_route_denylist_patterns();
 		$matched   = null;
