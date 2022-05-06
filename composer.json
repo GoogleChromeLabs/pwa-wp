@@ -5,6 +5,7 @@
   "type": "wordpress-plugin",
   "homepage": "https://github.com/GoogleChromeLabs/pwa-wp",
   "require": {
+    "ext-json": "*",
     "php": "^5.6 || ^7.0 || ^8.0"
   },
   "require-dev": {
