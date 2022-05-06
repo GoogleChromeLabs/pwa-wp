@@ -415,10 +415,10 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 			$denylist_patterns = apply_filters( 'wp_service_worker_navigation_route_denylist_patterns', $denylist_patterns );
 
 			// Exclude admin URLs, if not in the admin.
-			$denylist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?|/)';
+			$denylist_patterns[] = '^' . preg_quote( untrailingslashit( admin_url() ), '/' ) . '($|\?|/)';
 
 			// Exclude PHP files (e.g. wp-login.php).
-			$denylist_patterns[] = '[^\?]*?\.php($|\?)';
+			$denylist_patterns[] = '^[^\?]*?\.php($|\?)';
 
 			// Exclude service worker requests (to ease debugging).
 			$denylist_patterns[] = '\?(.*?&)?' . WP_Service_Workers::QUERY_VAR . '=';
@@ -433,7 +433,7 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 		}
 
 		// Exclude REST API (this only matters if you directly access the REST API in browser).
-		$denylist_patterns[] = '^' . preg_quote( wp_parse_url( get_rest_url(), PHP_URL_PATH ), '/' );
+		$denylist_patterns[] = '^' . preg_quote( get_rest_url(), '/' );
 
 		return $denylist_patterns;
 	}
