@@ -415,25 +415,25 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 			$denylist_patterns = apply_filters( 'wp_service_worker_navigation_route_denylist_patterns', $denylist_patterns );
 
 			// Exclude admin URLs, if not in the admin.
-			$denylist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?.*|/.*)';
+			$denylist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?|/)';
 
 			// Exclude PHP files (e.g. wp-login.php).
-			$denylist_patterns[] = '[^\?]*.\.php($|\?.*)';
+			$denylist_patterns[] = '[^\?]*?\.php($|\?)';
 
 			// Exclude service worker requests (to ease debugging).
-			$denylist_patterns[] = '.*\?(.*&)?(' . join( '|', array( WP_Service_Workers::QUERY_VAR ) ) . ')=';
-			$denylist_patterns[] = '.*/wp\.serviceworker(\?.*)?$';
+			$denylist_patterns[] = '\?(.*?&)?' . WP_Service_Workers::QUERY_VAR . '=';
+			$denylist_patterns[] = '^[^\?]*?\/wp\.serviceworker(\?|$)';
 
 			// Exclude feed requests.
-			$denylist_patterns[] = '[^\?]*\/feed\/(\w+\/)?$';
+			$denylist_patterns[] = '^[^\?]*?\/feed\/(\w+\/)?$';
 
 			// Exclude Customizer preview.
-			$denylist_patterns[] = '\?(.+&)*wp_customize=';
-			$denylist_patterns[] = '\?(.+&)*customize_changeset_uuid=';
+			$denylist_patterns[] = '\?(.*?&)?wp_customize=';
+			$denylist_patterns[] = '\?(.*?&)?customize_changeset_uuid=';
 		}
 
 		// Exclude REST API (this only matters if you directly access the REST API in browser).
-		$denylist_patterns[] = '^' . preg_quote( wp_parse_url( get_rest_url(), PHP_URL_PATH ), '/' ) . '.*';
+		$denylist_patterns[] = '^' . preg_quote( wp_parse_url( get_rest_url(), PHP_URL_PATH ), '/' );
 
 		return $denylist_patterns;
 	}
