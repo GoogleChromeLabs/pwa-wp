@@ -408,14 +408,18 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 			/**
 			 * Filter list of URL patterns to denylist from handling from the navigation router.
 			 *
+			 * Please note that the pattern is matched against the URL path concatenated with the query string.
+			 * The URL origin (scheme, host, port) are not considered for matching in navigation requests.
+			 *
 			 * @since 0.4
+			 * @link https://github.com/GoogleChrome/workbox/blob/5530e0b5d0b8d4da9f23747ecac665950a26bd51/packages/workbox-routing/src/NavigationRoute.ts#L103-L116
 			 *
 			 * @param array $denylist_patterns Denylist patterns.
 			 */
 			$denylist_patterns = apply_filters( 'wp_service_worker_navigation_route_denylist_patterns', $denylist_patterns );
 
 			// Exclude admin URLs, if not in the admin.
-			$denylist_patterns[] = '^' . preg_quote( untrailingslashit( admin_url() ), '/' ) . '($|\?|/)';
+			$denylist_patterns[] = '^' . preg_quote( untrailingslashit( wp_parse_url( admin_url(), PHP_URL_PATH ) ), '/' ) . '($|\?|/)';
 
 			// Exclude PHP files (e.g. wp-login.php).
 			$denylist_patterns[] = '^[^\?]*?\.php($|\?)';
@@ -433,7 +437,7 @@ final class WP_Service_Worker_Navigation_Routing_Component implements WP_Service
 		}
 
 		// Exclude REST API (this only matters if you directly access the REST API in browser).
-		$denylist_patterns[] = '^' . preg_quote( get_rest_url(), '/' );
+		$denylist_patterns[] = '^' . preg_quote( wp_parse_url( get_rest_url(), PHP_URL_PATH ), '/' );
 
 		return $denylist_patterns;
 	}
