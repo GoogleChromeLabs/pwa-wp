@@ -1,4 +1,7 @@
 {
+  "config": {
+    "WP_SERVICE_WORKER_DEBUG_LOG": true
+  },
   "env": {
     "development": {
       "plugins": [
