@@ -64,20 +64,6 @@
     "env:wp": "wp-env run cli wp",
     "wp-env": "wp-env"
   },
-  "lint-staged": {
-    "package.json": [
-      "npm run lint:pkg-json"
-    ],
-    "**/*.js": [
-      "npm run lint:js"
-    ],
-    "**/!(pwa).php": [
-      "npm run lint:php"
-    ],
-    "pwa.php": [
-      "vendor/bin/phpcs --runtime-set testVersion 5.2-"
-    ]
-  },
   "npmpackagejsonlint": {
     "extends": "@wordpress/npm-package-json-lint-config",
     "rules": {
