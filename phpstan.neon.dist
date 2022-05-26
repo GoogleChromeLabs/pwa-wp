@@ -16,7 +16,5 @@ parameters:
 	dynamicConstantNames:
 		- SCRIPT_DEBUG
 	ignoreErrors:
-		# Uses func_get_args()
-		- '#^Function apply_filters(_ref_array)? invoked with [34567] parameters, 2 required\.$#'
 		# Dynamically set attributes which will be eventually declared on WP_Query.
 		- '#^Access to an undefined property WP_Query::\$(is_offline|is_500)\.$#'
