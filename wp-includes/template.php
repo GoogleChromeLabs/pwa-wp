@@ -184,7 +184,7 @@ function wp_service_worker_offline_page_reload() {
 
 	?>
 	<script id="wp-navigation-request-properties" type="application/json">{{{WP_NAVIGATION_REQUEST_PROPERTIES}}}</script><?php // phpcs:ignore WordPressVIPMinimum.Security.Mustache.OutputNotation ?>
-	<script id="check-network-and-reload" type="module">
+	<script id="wp-offline-page-reload" type="module">
 		const shouldRetry = () => {
 			if (
 				new URLSearchParams(location.search.substring(1)).has(
