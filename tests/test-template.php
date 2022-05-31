@@ -34,7 +34,7 @@ class Test_Template extends TestCase {
 		$actual_script = get_echo( 'wp_service_worker_offline_page_reload' );
 		$this->assertTrue( is_offline() );
 		$this->assertFalse( is_500() );
-		$this->assertStringContainsString( '<script type="module">', $actual_script );
+		$this->assertStringContainsString( '<script id="wp-offline-page-reload" type="module">', $actual_script );
 		$this->assertStringContainsString( 'await fetch', $actual_script );
 
 		// Check if script is added when 500.
@@ -44,7 +44,7 @@ class Test_Template extends TestCase {
 		$actual_script = get_echo( 'wp_service_worker_offline_page_reload' );
 		$this->assertFalse( is_offline() );
 		$this->assertTrue( is_500() );
-		$this->assertStringContainsString( '<script type="module">', $actual_script );
+		$this->assertStringContainsString( '<script id="wp-offline-page-reload" type="module">', $actual_script );
 		$this->assertStringContainsString( 'await fetch', $actual_script );
 	}
 }
