@@ -23,7 +23,7 @@
   "dependencies": {},
   "devDependencies": {
     "@wordpress/env": "^4.8.0",
-    "@wordpress/eslint-plugin": "12.4.0",
+    "@wordpress/eslint-plugin": "12.5.0",
     "@wordpress/scripts": "23.2.0",
     "eslint": "8.17.0",
     "eslint-plugin-eslint-comments": "3.2.0",
