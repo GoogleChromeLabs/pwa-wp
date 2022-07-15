@@ -4,7 +4,7 @@ updates:
 - package-ecosystem: composer
   directory: "/"
   schedule:
-    interval: daily
+    interval: weekly
     time: "12:00"
     timezone: America/Los_Angeles
   open-pull-requests-limit: 10
@@ -15,7 +15,7 @@ updates:
 - package-ecosystem: npm
   directory: "/"
   schedule:
-    interval: daily
+    interval: weekly
     time: "12:00"
     timezone: America/Los_Angeles
   open-pull-requests-limit: 10
@@ -26,7 +26,7 @@ updates:
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
-    interval: daily
+    interval: weekly
     time: "12:00"
     timezone: America/Los_Angeles
   open-pull-requests-limit: 10
