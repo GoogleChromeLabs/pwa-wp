@@ -244,7 +244,9 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	public function test_get_manifest() {
 		$this->mock_site_icon();
 		$blogname = 'PWA & Test "First" and \'second\' and “third”';
+		$tagline  = 'This is an installable website!';
 		update_option( 'blogname', $blogname );
+		update_option( 'blogdescription', $tagline );
 		update_option( 'site_icon_maskable', false );
 		$actual_manifest = $this->instance->get_manifest();
 
