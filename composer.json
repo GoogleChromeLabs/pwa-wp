@@ -16,7 +16,7 @@
     "phpcompatibility/phpcompatibility-wp": "2.1.4",
     "wp-cli/wp-cli": "^2.7",
     "wp-coding-standards/wpcs": "2.3.0",
-    "yoast/wp-test-utils": "^0.2.2"
+    "yoast/wp-test-utils": "^1.0.0"
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
