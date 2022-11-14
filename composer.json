@@ -12,7 +12,7 @@
     "automattic/vipwpcs": "^2.3",
     "civicrm/composer-downloads-plugin": "^3.0",
     "dealerdirect/phpcodesniffer-composer-installer": "0.7.2",
-    "php-stubs/wordpress-stubs": "^6.0.1",
+    "php-stubs/wordpress-stubs": "^6.1.0",
     "phpcompatibility/phpcompatibility-wp": "2.1.4",
     "wp-cli/wp-cli": "^2.7",
     "wp-coding-standards/wpcs": "2.3.0",
