@@ -29,7 +29,7 @@
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-jsdoc": "39.6.4",
-    "grunt": "1.5.3",
+    "grunt": "1.6.0",
     "grunt-contrib-clean": "2.0.1",
     "grunt-contrib-copy": "1.0.0",
     "grunt-shell": "4.0.0",
