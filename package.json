@@ -42,6 +42,8 @@
   },
   "scripts": {
     "build": "grunt build; grunt create-build-zip",
+    "blocks:build": "wp-scripts build",
+    "blocks:start": "wp-scripts start",
     "check-engines": "wp-scripts check-engines",
     "check-licenses": "wp-scripts check-licenses --production",
     "deploy": "grunt deploy",
