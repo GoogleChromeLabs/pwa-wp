@@ -1,0 +1,66 @@
+<?php
+/**
+ * Handles the 'site_icon_maskable' setting within a full-site-editing context
+ *
+ * @package PWA
+ */
+
+namespace PWA_WP;
+
+use Error;
+
+use function add_action;
+use function plugins_url;
+use function register_setting;
+use function wp_enqueue_script;
+use function wp_set_script_translations;
+
+/**
+ * [pwa__enqueue_block_editor_assets description]
+ *
+ * @package PWA
+ * @since   0.8.0-alpha
+ * @throws Error Fatals out when the block-filter files weren't built.
+ *
+ * @see  https://developer.wordpress.org/reference/hooks/enqueue_block_editor_assets/
+ */
+function enqueue_block_editor_assets__site_icon_maskable() {
+	$dir = __DIR__;
+
+	$script_asset_path = "$dir/../build/site-icon-maskable.asset.php";
+	if ( ! file_exists( $script_asset_path ) ) {
+		throw new Error(
+			'You need to run `npm run blocks:start` or `npm run blocks:build` first, for the "core/site-logo"-block filter to work.'
+		);
+	}
+	$index_js     = '../build/site-icon-maskable.js';
+	$script_asset = require $script_asset_path;
+
+	wp_enqueue_script(
+		'pwa-site-icon-maskable-block-editor',
+		plugins_url( $index_js, __FILE__ ),
+		$script_asset['dependencies'],
+		$script_asset['version'],
+		true
+	);
+	wp_set_script_translations( 'pwa-site-icon-maskable-block-editor', 'pwa' );
+
+}
+add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\\enqueue_block_editor_assets__site_icon_maskable' );
+
+/**
+ * Register 'Site Icon maskable' setting.
+ */
+function register_setting__site_icon_maskable() {
+	register_setting(
+		'general',
+		'site_icon_maskable',
+		array(
+			'type'              => 'boolean',
+			'show_in_rest'      => true,
+			'sanitize_callback' => 'rest_sanitize_boolean',
+		)
+	);
+}
+add_action( 'rest_api_init', __NAMESPACE__ . '\\register_setting__site_icon_maskable' );
+add_action( 'admin_init', __NAMESPACE__ . '\\register_setting__site_icon_maskable' );
