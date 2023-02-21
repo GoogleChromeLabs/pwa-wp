@@ -58,9 +58,9 @@ jobs:
           echo "Changed PHP file count: $PHP_FILE_COUNT"
           echo "Changed JS file count: $JS_FILE_COUNT"
 
-          echo "::set-output name=count::$FILE_COUNT"
-          echo "::set-output name=php-count::$PHP_FILE_COUNT"
-          echo "::set-output name=js-count::$JS_FILE_COUNT"
+          echo "count=$FILE_COUNT" >> $GITHUB_OUTPUT
+          echo "php-count=$PHP_FILE_COUNT" >> $GITHUB_OUTPUT
+          echo "js-count=$JS_FILE_COUNT" >> $GITHUB_OUTPUT
         env:
           # Ignore Paths:
           # - .github/
@@ -137,7 +137,7 @@ jobs:
 
       - name: Get Composer Cache Directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Configure Composer cache
         uses: actions/cache@v3
@@ -179,7 +179,7 @@ jobs:
 
       - name: Get Composer Cache Directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Configure Composer cache
         uses: actions/cache@v3
@@ -280,7 +280,7 @@ jobs:
 
       - name: Get Composer Cache Directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Configure Composer cache
         uses: actions/cache@v3
