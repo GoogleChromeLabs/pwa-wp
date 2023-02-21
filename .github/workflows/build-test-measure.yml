@@ -131,7 +131,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.4'
+          php-version: '8.0'
           coverage: none
           tools: cs2pr
 
@@ -174,9 +174,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           # phpstan requires PHP 7.1+.
-          php-version: 7.4
+          php-version: '8.0'
           extensions: dom, iconv, json, libxml, zip
-          tools: phpstan
 
       - name: Get Composer Cache Directory
         id: composer-cache
@@ -195,8 +194,8 @@ jobs:
 
       - name: Static Analysis (PHPStan)
         run: |
-          phpstan --version
-          phpstan analyse
+          vendor/bin/phpstan --version
+          vendor/bin/phpstan
 
   #-----------------------------------------------------------------------------------------------------------------------
 
