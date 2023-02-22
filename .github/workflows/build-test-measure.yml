@@ -58,9 +58,9 @@ jobs:
           echo "Changed PHP file count: $PHP_FILE_COUNT"
           echo "Changed JS file count: $JS_FILE_COUNT"
 
-          echo "::set-output name=count::$FILE_COUNT"
-          echo "::set-output name=php-count::$PHP_FILE_COUNT"
-          echo "::set-output name=js-count::$JS_FILE_COUNT"
+          echo "count=$FILE_COUNT" >> $GITHUB_OUTPUT
+          echo "php-count=$PHP_FILE_COUNT" >> $GITHUB_OUTPUT
+          echo "js-count=$JS_FILE_COUNT" >> $GITHUB_OUTPUT
         env:
           # Ignore Paths:
           # - .github/
@@ -131,13 +131,13 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.4'
+          php-version: '8.0'
           coverage: none
           tools: cs2pr
 
       - name: Get Composer Cache Directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Configure Composer cache
         uses: actions/cache@v3
@@ -174,13 +174,12 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           # phpstan requires PHP 7.1+.
-          php-version: 7.4
+          php-version: '8.0'
           extensions: dom, iconv, json, libxml, zip
-          tools: phpstan
 
       - name: Get Composer Cache Directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Configure Composer cache
         uses: actions/cache@v3
@@ -195,8 +194,8 @@ jobs:
 
       - name: Static Analysis (PHPStan)
         run: |
-          phpstan --version
-          phpstan analyse
+          vendor/bin/phpstan --version
+          vendor/bin/phpstan
 
   #-----------------------------------------------------------------------------------------------------------------------
 
@@ -281,7 +280,7 @@ jobs:
 
       - name: Get Composer Cache Directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Configure Composer cache
         uses: actions/cache@v3

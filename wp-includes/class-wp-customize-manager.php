@@ -25,7 +25,6 @@ function pwa_customize_register_site_icon_maskable( WP_Customize_Manager $wp_cus
 		array(
 			'capability' => 'manage_options',
 			'type'       => 'option',
-			'default'    => false,
 			'transport'  => 'postMessage',
 		)
 	);
