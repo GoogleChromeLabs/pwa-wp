@@ -96,7 +96,10 @@ function _pwa_print_build_needed_notice() {
 	</div>
 	<?php
 }
-if ( ! file_exists( PWA_PLUGIN_DIR . '/wp-includes/js/workbox-v' . PWA_WORKBOX_VERSION ) || ! file_exists( PWA_PLUGIN_DIR . '/wp-includes/js/workbox-v' . PWA_WORKBOX_VERSION . '/workbox-sw.js' ) ) {
+if ( ! file_exists( PWA_PLUGIN_DIR . '/wp-includes/js/workbox-v' . PWA_WORKBOX_VERSION ) || 
+	! file_exists( PWA_PLUGIN_DIR . '/wp-includes/js/workbox-v' . PWA_WORKBOX_VERSION . '/workbox-sw.js' ) || 
+	! file_exists( PWA_PLUGIN_DIR . '/wp-includes/js/dist/site-icon-maskable.asset.php' )
+	) {
 	add_action( 'admin_notices', '_pwa_print_build_needed_notice' );
 	return;
 }

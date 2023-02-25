@@ -7,6 +7,8 @@
 
 namespace PWA_WP;
 
+use PWA_PLUGIN_DIR;
+
 use Error;
 
 use function add_action;
@@ -25,15 +27,14 @@ use function wp_set_script_translations;
  * @see  https://developer.wordpress.org/reference/hooks/enqueue_block_editor_assets/
  */
 function enqueue_block_editor_assets__site_icon_maskable() {
-	$dir = __DIR__;
+	$dir  = '/wp-includes/js/dist';
+	$path = PWA_PLUGIN_DIR . $dir;
 
-	$script_asset_path = "$dir/../build/site-icon-maskable.asset.php";
+	$script_asset_path = "$path/site-icon-maskable.asset.php";
 	if ( ! file_exists( $script_asset_path ) ) {
-		throw new Error(
-			'You need to run `npm run blocks:start` or `npm run blocks:build` first, for the "core/site-logo"-block filter to work.'
-		);
+		return;
 	}
-	$index_js     = '../build/site-icon-maskable.js';
+	$index_js     = "$dir/site-icon-maskable.js";
 	$script_asset = require $script_asset_path;
 
 	wp_enqueue_script(
