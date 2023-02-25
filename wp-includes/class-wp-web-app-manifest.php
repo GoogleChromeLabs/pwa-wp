@@ -82,7 +82,9 @@ final class WP_Web_App_Manifest {
 		$manifest = $this->get_manifest();
 		?>
 		<link rel="manifest" href="<?php echo esc_url( static::get_url() ); ?>">
-		<meta name="theme-color" content="<?php echo esc_attr( $manifest['theme_color'] ); ?>">
+		<?php if ( ! empty( $manifest['theme_color'] ) ) : ?>
+			<meta name="theme-color" content="<?php echo esc_attr( $manifest['theme_color'] ); ?>">
+		<?php endif; ?>
 		<?php
 		$display = isset( $manifest['display'] ) ? $manifest['display'] : '';
 		switch ( $display ) :

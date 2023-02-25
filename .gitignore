@@ -6,6 +6,7 @@
 *.zip
 /wp-includes/js/workbox*
 /wiki
+.vscode
 
 # Generated via bin/transform-readme.php
 /readme.txt
