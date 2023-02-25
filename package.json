@@ -41,9 +41,9 @@
     "workbox-cli": "6.5.4"
   },
   "scripts": {
-    "build": "grunt build; grunt create-build-zip",
-    "blocks:build": "wp-scripts build",
-    "blocks:start": "wp-scripts start",
+    "build": "npm run block:build; grunt build; grunt create-build-zip",
+    "block:build": "wp-scripts build site-icon-maskable=./site-icon-maskable/index.js --output-path=wp-includes/js/dist",
+    "block:start": "wp-scripts start site-icon-maskable=./site-icon-maskable/index.js --output-path=wp-includes/js/dist",
     "check-engines": "wp-scripts check-engines",
     "check-licenses": "wp-scripts check-licenses --production",
     "deploy": "grunt deploy",
