@@ -68,8 +68,8 @@ final class WP_Web_App_Manifest {
 		add_action( 'rest_api_init', array( $this, 'register_manifest_rest_route' ) );
 		add_filter( 'site_status_tests', array( $this, 'add_pwa_site_health_tests' ) );
 
-		add_action( 'rest_api_init', array( $this, 'register_short_name_setting' ) );
-		add_action( 'admin_init', array( $this, 'register_short_name_setting' ) );
+		add_action( 'rest_api_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_init', array( $this, 'add_short_name_settings_field' ) );
 	}
 
@@ -533,9 +533,10 @@ final class WP_Web_App_Manifest {
 	}
 
 	/**
-	 * Register setting for short_name.
+	 * Register pwa settings to the settings-API and make them visible to the REST API.
 	 */
-	public function register_short_name_setting() {
+	public function register_settings() {
+		// Register setting for short_name.
 		register_setting(
 			'general',
 			self::SHORT_NAME_OPTION,
@@ -543,6 +544,17 @@ final class WP_Web_App_Manifest {
 				'type'              => 'string',
 				'description'       => __( 'Short version of site title which is suitable for app icon on home screen.', 'pwa' ),
 				'sanitize_callback' => array( $this, 'sanitize_short_name' ),
+				'show_in_rest'      => true,
+			)
+		);
+		// Register setting for maskable site-icon.
+		register_setting(
+			'general',
+			'site_icon_maskable',
+			array(
+				'type'              => 'boolean',
+				'description'       => __( 'Wether the current site icon is maskable or not, as this is needed by some devices.', 'pwa' ),
+				'sanitize_callback' => 'rest_sanitize_boolean',
 				'show_in_rest'      => true,
 			)
 		);

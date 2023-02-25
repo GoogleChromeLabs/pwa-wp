@@ -49,19 +49,3 @@ function enqueue_block_editor_assets__site_icon_maskable() {
 }
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\\enqueue_block_editor_assets__site_icon_maskable' );
 
-/**
- * Register 'Site Icon maskable' setting.
- */
-function register_setting__site_icon_maskable() {
-	register_setting(
-		'general',
-		'site_icon_maskable',
-		array(
-			'type'              => 'boolean',
-			'show_in_rest'      => true,
-			'sanitize_callback' => 'rest_sanitize_boolean',
-		)
-	);
-}
-add_action( 'rest_api_init', __NAMESPACE__ . '\\register_setting__site_icon_maskable' );
-add_action( 'admin_init', __NAMESPACE__ . '\\register_setting__site_icon_maskable' );
