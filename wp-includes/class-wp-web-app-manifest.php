@@ -536,6 +536,11 @@ final class WP_Web_App_Manifest {
 
 	/**
 	 * Register pwa settings to the settings-API and make them visible to the REST API.
+	 *
+	 * @since 0.7.0
+	 * @since 0.8.0-alpha Added registration of 'site_icon_maskable' setting.
+	 * 
+	 * @return void
 	 */
 	public function register_settings() {
 		// Register setting for short_name.
@@ -549,7 +554,18 @@ final class WP_Web_App_Manifest {
 				'show_in_rest'      => true,
 			)
 		);
-		// Register setting for maskable site-icon.
+		/**
+		 * Register setting for maskable site-icon.
+		 *
+		 * Even that this option is not exposed 
+		 * to the settings UI within normal admin options pages,
+		 * the registration is needed to make the option 
+		 * available to the REST API, which is used by
+		 * the site-editor.
+		 *
+		 * In the site-editor, this option can be set with the help of 
+		 * UI that is added to the 'site-logo' core block.
+		 */
 		register_setting(
 			'general',
 			'site_icon_maskable',
@@ -693,8 +709,8 @@ final class WP_Web_App_Manifest {
 	}
 
 	/**
-	 * Load modifications to the 'site-logo'-block
-	 * 
+	 * Load 'wp/site-logo'-block filter
+	 *
 	 * Handle the 'site_icon_maskable' setting in a full-site-editing context,
 	 * by enqueing a filter to the 'wp:site-logo' block within the site-editor.
 	 *
@@ -707,6 +723,7 @@ final class WP_Web_App_Manifest {
 		$dir  = '/wp-includes/js/dist';
 		$path = PWA_PLUGIN_DIR . $dir;
 
+		// Stop, if needed file was not built successfully.
 		$script_asset_path = "$path/site-icon-maskable.asset.php";
 		if ( ! file_exists( $script_asset_path ) ) {
 			return;
