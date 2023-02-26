@@ -251,9 +251,6 @@ require_once PWA_PLUGIN_DIR . '/wp-includes/class-wp-customize-manager.php';
 /** Hooks to add for when accessing admin. */
 require_once PWA_PLUGIN_DIR . '/wp-admin/admin.php';
 
-/** Function to register maskable icon setting as 'core/site-logo'-block filter  */
-require_once PWA_PLUGIN_DIR . '/site-icon-maskable/site-icon-maskable-block-editor.php';
-
 /**
  * Plugin activation hook.
  */

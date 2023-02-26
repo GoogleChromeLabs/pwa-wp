@@ -698,11 +698,10 @@ final class WP_Web_App_Manifest {
 	 * Handle the 'site_icon_maskable' setting in a full-site-editing context,
 	 * by enqueing a filter to the 'wp:site-logo' block within the site-editor.
 	 *
-	 * @package PWA
-	 * @since   0.8.0-alpha
-	 * @see     https://developer.wordpress.org/reference/hooks/enqueue_block_editor_assets/
+	 * @since  0.8.0-alpha
+	 * @see    https://developer.wordpress.org/reference/hooks/enqueue_block_editor_assets/
 	 *
-	 * @return  void
+	 * @return void
 	 */
 	public function enqueue_site_icon_maskable_block_editor_assets() {
 		$dir  = '/wp-includes/js/dist';
@@ -712,9 +711,9 @@ final class WP_Web_App_Manifest {
 		if ( ! file_exists( $script_asset_path ) ) {
 			return;
 		}
-		$index_js     = "$dir/site-icon-maskable.js";
-		$script_asset = require $script_asset_path;
 
+		$script_asset = require $script_asset_path;
+		$index_js     = "$dir/site-icon-maskable.js";
 		wp_enqueue_script(
 			'pwa-site-icon-maskable-block-editor',
 			plugins_url( $index_js, __FILE__ ),
@@ -723,6 +722,5 @@ final class WP_Web_App_Manifest {
 			true
 		);
 		wp_set_script_translations( 'pwa-site-icon-maskable-block-editor', 'pwa' );
-
 	}
 }
