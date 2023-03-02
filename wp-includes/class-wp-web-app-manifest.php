@@ -554,7 +554,8 @@ final class WP_Web_App_Manifest {
 				'show_in_rest'      => true,
 			)
 		);
-		/**
+
+		/*
 		 * Register setting for maskable site-icon.
 		 *
 		 * Even that this option is not exposed 
