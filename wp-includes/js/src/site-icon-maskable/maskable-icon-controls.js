@@ -20,7 +20,6 @@ import { InspectorControls } from '@wordpress/block-editor';
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-components/
  */
 import {
-	// __experimentalHStack as HStack,
 	Flex,
 	FlexBlock,
 	FlexItem,
