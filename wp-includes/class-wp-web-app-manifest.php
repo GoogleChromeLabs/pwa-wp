@@ -734,7 +734,7 @@ final class WP_Web_App_Manifest {
 		$index_js     = "$dir/site-icon-maskable.js";
 		wp_enqueue_script(
 			'pwa-site-icon-maskable-block-editor',
-			plugins_url( $index_js, __FILE__ ),
+			plugins_url( $index_js, PWA_PLUGIN_FILE ),
 			$script_asset['dependencies'],
 			$script_asset['version'],
 			true
