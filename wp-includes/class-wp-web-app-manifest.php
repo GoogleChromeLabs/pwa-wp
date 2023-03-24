@@ -556,7 +556,11 @@ final class WP_Web_App_Manifest {
 			self::SHORT_NAME_OPTION,
 			esc_html__( 'Short Name', 'pwa' ),
 			array( $this, 'render_short_name_settings_field' ),
-			'general'
+			'general',
+			'default',
+			array(
+				'label_for' => 'short_name',
+			)
 		);
 	}
 
@@ -595,59 +599,46 @@ final class WP_Web_App_Manifest {
 		);
 
 		?>
-		<table id="short_name_table" hidden>
-			<tr>
-				<th scope="row">
-					<label for="<?php echo esc_attr( self::SHORT_NAME_OPTION ); ?>">
-						<?php esc_html_e( 'Short Name', 'pwa' ); ?>
-					</label>
-				</th>
-				<td>
-					<input
-						type="text"
-						id="<?php echo esc_attr( self::SHORT_NAME_OPTION ); ?>"
-						name="<?php echo esc_attr( self::SHORT_NAME_OPTION ); ?>"
-						value="<?php echo esc_attr( $readonly ? $actual_short_name : $short_name_option ); ?>"
-						class="regular-text <?php echo $readonly ? 'disabled' : ''; ?>" maxlength="<?php echo esc_attr( (string) self::SHORT_NAME_MAX_LENGTH ); ?>"
-						<?php disabled( $readonly ); ?>
-					>
-					<p class="description">
-						<?php
-						echo wp_kses_post(
-							sprintf(
-								/* translators: %s is the max length as a number */
-								__( 'This is the short version of your site title. It is displayed when there is not enough space for the full title, for example with the site icon on a phone&#8217;s homescreen as an installed app. It should be a maximum of %s characters long.', 'pwa' ),
-								number_format_i18n( self::SHORT_NAME_MAX_LENGTH )
-							)
-						);
-						?>
-						<?php if ( $readonly ) : ?>
-							<strong>
-							<?php esc_html_e( 'A plugin or theme is managing this field.', 'pwa' ); ?>
-							</strong>
-						<?php endif; ?>
-					</p>
-				</td>
-			</tr>
-		</table>
+		<input
+			type="text"
+			id="<?php echo esc_attr( self::SHORT_NAME_OPTION ); ?>"
+			name="<?php echo esc_attr( self::SHORT_NAME_OPTION ); ?>"
+			value="<?php echo esc_attr( $readonly ? $actual_short_name : $short_name_option ); ?>"
+			class="regular-text <?php echo $readonly ? 'disabled' : ''; ?>" maxlength="<?php echo esc_attr( (string) self::SHORT_NAME_MAX_LENGTH ); ?>"
+			<?php disabled( $readonly ); ?>
+		>
+		<p class="description">
+			<?php
+			echo wp_kses_post(
+				sprintf(
+					/* translators: %s is the max length as a number */
+					__( 'This is the short version of your site title. It is displayed when there is not enough space for the full title, for example with the site icon on a phone&#8217;s homescreen as an installed app. It should be a maximum of %s characters long.', 'pwa' ),
+					number_format_i18n( self::SHORT_NAME_MAX_LENGTH )
+				)
+			);
+			?>
+			<?php if ( $readonly ) : ?>
+				<strong>
+				<?php esc_html_e( 'A plugin or theme is managing this field.', 'pwa' ); ?>
+				</strong>
+			<?php endif; ?>
+		</p>
 
 		<script>
-			( ( shortNameTable, blogNameField, shortNameMaxLength ) => {
-				if ( ! shortNameTable || ! blogNameField ) {
+			( ( shortNameField, blogNameField, shortNameMaxLength ) => {
+				if ( ! shortNameField || ! blogNameField ) {
 					return;
 				}
 
 				const blogNameRow = blogNameField.closest( 'tr' );
-				const shortNameRow = shortNameTable.querySelector( 'tr' );
-				const shortNameField = shortNameTable.querySelector( '#short_name' );
+				const shortNameRow = shortNameField.closest( 'tr' );
 
 				blogNameRow.parentNode.insertBefore( shortNameRow, blogNameRow.nextSibling );
-				shortNameTable.parentNode.removeChild( shortNameTable );
 
 				/*
 				 * Enable form validation for General Settings. Disabling form validation was done 8 years ago (2014) in
 				 * WP 4.0 in 2014 due to an email validation bug in Firefox. This has since surely been resolved, so
-				 * there is no no need to retain it and we can start to benefit from client-side validation, such as
+				 * there is no need to retain it, and we can start to benefit from client-side validation, such as
 				 * the required constraint for the short name. See <https://core.trac.wordpress.org/ticket/22183#comment:6>.
 				 */
 				shortNameField.form.noValidate = false;
@@ -670,7 +661,7 @@ final class WP_Web_App_Manifest {
 				updateShortNameField();
 				blogNameField.addEventListener( 'input', updateShortNameField );
 			} )(
-				document.getElementById( 'short_name_table' ),
+				document.getElementById( 'short_name' ),
 				document.getElementById( 'blogname' ),
 				<?php echo wp_json_encode( self::SHORT_NAME_MAX_LENGTH ); ?>
 			);
