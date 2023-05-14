@@ -575,7 +575,7 @@ final class WP_Web_App_Manifest {
 			return '';
 		}
 		$value = trim( sanitize_text_field( $value ) );
-		return (string) substr( $value, 0, self::SHORT_NAME_MAX_LENGTH );
+		return (string) mb_substr( $value, 0, self::SHORT_NAME_MAX_LENGTH );
 	}
 
 	/**
