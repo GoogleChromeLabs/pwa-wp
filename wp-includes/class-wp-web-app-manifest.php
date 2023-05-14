@@ -203,7 +203,7 @@ final class WP_Web_App_Manifest {
 		$manifest = array(
 			'name'      => html_entity_decode( get_bloginfo( 'name' ), ENT_QUOTES, 'utf-8' ),
 			'start_url' => home_url( '/' ),
-			'display'   => 'minimal-ui',
+			'display'   => get_option( 'web_app_manifest_display', 'minimal-ui' ),
 			'dir'       => is_rtl() ? 'rtl' : 'ltr',
 		);
 
