@@ -275,3 +275,4 @@ $wp_web_app_manifest = new WP_Web_App_Manifest();
 $wp_web_app_manifest->init();
 
 require_once PWA_PLUGIN_DIR . '/wp-admin/options-reading-offline-browsing.php';
+require_once PWA_PLUGIN_DIR . '/wp-admin/options-web-app-manifest-display.php';
