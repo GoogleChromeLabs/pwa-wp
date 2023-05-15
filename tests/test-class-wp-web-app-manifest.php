@@ -581,6 +581,8 @@ class Test_WP_Web_App_Manifest extends TestCase {
 			'whitespace_padding' => array( '     WP Dev ', 'WP Dev' ),
 			'script_contains'    => array( 'WP <script>evil</script> Dev ', 'WP Dev' ),
 			'too_long'           => array( 'WordPress Develop', 'WordPress De' ),
+			'multi-byte'         => array( 'On the Rhône', 'On the Rhône' ),
+			'emoji'              => array( '👌👌👌👌👌👌👌👌👌👌👌👌👌👌', '👌👌👌👌👌👌👌👌👌👌👌👌' ), // 👌 takes 4 bytes.
 		);
 	}
 
