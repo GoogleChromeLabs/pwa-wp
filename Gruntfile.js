@@ -103,7 +103,7 @@ module.exports = function (grunt) {
 				new Date()
 					.toISOString()
 					.replace(/\.\d+/, '')
-					.replace(/-|:/g, '');
+					.replace(/[-:]/g, '');
 
 			const paths = lsOutput
 				.trim()
