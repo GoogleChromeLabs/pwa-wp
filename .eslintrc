@@ -1,15 +1,18 @@
 {
-	"root": true,
-  "extends": [ "plugin:@wordpress/eslint-plugin/recommended" ],
-	"env": {
-		"browser": true,
-		"es6": true
-	},
+  "root": true,
+  "extends": ["plugin:@wordpress/eslint-plugin/recommended"],
+  "rules": {
+    "jsdoc/newline-after-description": 0
+  },
+  "env": {
+    "browser": true,
+    "es6": true
+  },
   "globals": {
     "wp": "writable",
     "FetchEvent": "readonly"
   },
-	"parserOptions": {
-		"ecmaVersion": 2018
-	}
+  "parserOptions": {
+    "ecmaVersion": 2018
+  }
 }
