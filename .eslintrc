@@ -1,7 +1,10 @@
 {
 	"root": true,
   "extends": [ "plugin:@wordpress/eslint-plugin/recommended" ],
-	"env": {
+  "rules": {
+    "jsdoc/newline-after-description": 0
+  },
+  "env": {
 		"browser": true,
 		"es6": true
 	},
