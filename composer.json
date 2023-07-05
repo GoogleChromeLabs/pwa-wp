@@ -14,7 +14,7 @@
     "dealerdirect/phpcodesniffer-composer-installer": "0.7.2",
     "php-stubs/wordpress-stubs": "^6.2.1",
     "phpcompatibility/phpcompatibility-wp": "2.1.4",
-    "wp-cli/wp-cli": "^2.7",
+    "wp-cli/wp-cli": "^2.8",
     "wp-coding-standards/wpcs": "2.3.0",
     "yoast/wp-test-utils": "^0.2.2"
   },
