@@ -19,6 +19,10 @@ updates:
     time: "12:00"
     timezone: America/Los_Angeles
   open-pull-requests-limit: 10
+  groups:
+    wordpress-packages:
+      patterns:
+        - "@wordpress/*"
   labels:
   - dependencies
   versioning-strategy: increase
