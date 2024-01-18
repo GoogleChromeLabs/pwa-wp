@@ -274,7 +274,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 			if ( ! isset( $purposes[ $icon['purpose'] ] ) ) {
 				$purposes[ $icon['purpose'] ] = 0;
 			} else {
-				$purposes[ $icon['purpose'] ]++;
+				++$purposes[ $icon['purpose'] ];
 			}
 		}
 		$this->assertEquals(
@@ -292,7 +292,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 			if ( ! isset( $purposes[ $icon['purpose'] ] ) ) {
 				$purposes[ $icon['purpose'] ] = 0;
 			} else {
-				$purposes[ $icon['purpose'] ]++;
+				++$purposes[ $icon['purpose'] ];
 			}
 		}
 		$this->assertEquals(

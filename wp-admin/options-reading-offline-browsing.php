@@ -126,6 +126,5 @@ function print_admin_pointer() {
 		} );
 	</script>
 	<?php
-
 }
 add_action( 'admin_print_footer_scripts', __NAMESPACE__ . '\print_admin_pointer' );

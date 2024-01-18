@@ -22,7 +22,7 @@ add_filter( 'get_search_form', '__return_empty_string' );
 // Add the body class for the 404 template for the sake of styling.
 add_filter(
 	'body_class',
-	function( $body_classes ) {
+	function ( $body_classes ) {
 		$body_classes[] = 'error404';
 		return $body_classes;
 	}

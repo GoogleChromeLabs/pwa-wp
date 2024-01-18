@@ -38,7 +38,7 @@ function pwa_customize_register_site_icon_maskable( WP_Customize_Manager $wp_cus
 				'section'         => 'title_tagline',
 				'label'           => __( 'Maskable icon', 'pwa' ),
 				'priority'        => $site_icon_control->priority + 1,
-				'active_callback' => function() use ( $wp_customize ) {
+				'active_callback' => function () use ( $wp_customize ) {
 					return (bool) $wp_customize->get_setting( 'site_icon' )->value();
 				},
 			)
