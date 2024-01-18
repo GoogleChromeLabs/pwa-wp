@@ -20,6 +20,13 @@ class Test_WP_Customize_Manager extends TestCase {
 	public $wp_customize;
 
 	/**
+	 * User ID.
+	 *
+	 * @var int
+	 */
+	public $user_id;
+
+	/**
 	 * Setup.
 	 *
 	 * @inheritdoc
