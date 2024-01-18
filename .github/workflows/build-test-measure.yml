@@ -263,7 +263,7 @@ jobs:
           - php: '7.0'
             wp: '6.3'
             coverage: false
-            phpunit: '7'
+            phpunit: '6'
 
     steps:
       - name: Checkout
@@ -274,8 +274,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           extensions: curl, date, dom, gd, iconv, json, libxml, mysql, spl
-          coverage: ${{ matrix.coverage && 'pcov' || 'none' }}
-          ini-values: pcov.directory=.
+          coverage: ${{ matrix.coverage && 'xdebug' || 'none' }}
           tools: phpunit:${{ matrix.phpunit }}
 
       - name: Shutdown default MySQL service
@@ -330,15 +329,6 @@ jobs:
 
       - name: Install WP tests
         run: bash bin/ci/install-wp-tests.sh wordpress_test root '' 127.0.0.1:${{ job.services.mysql.ports['3306'] }} ${{ matrix.wp }} true
-
-      - name: Setup PCOV
-        if: ${{ matrix.coverage == true }}
-        # phpdocumentor/reflection has to be removed as it makes use of an outdated dependency, making pcov/clobber
-        # unable to be installed.
-        run: |
-          composer remove --dev phpdocumentor/reflection
-          composer require --dev --ignore-platform-reqs pcov/clobber
-          vendor/bin/pcov clobber
 
       - name: Copy plugin to WP plugins directory
         run: cp -r "$PWD" "$WP_CORE_DIR/src/wp-content/plugins/pwa"
