@@ -7,6 +7,7 @@
 /wp-includes/js/workbox*
 /wiki
 .vscode
+.phpunit.result.cache
 
 # Generated via bin/transform-readme.php
 /readme.txt
