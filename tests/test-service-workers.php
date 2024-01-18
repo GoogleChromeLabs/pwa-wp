@@ -15,8 +15,8 @@ class Test_Service_Workers_Includes extends TestCase {
 	/**
 	 * Tear down.
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 		$this->disable_permalinks();
 	}
 
