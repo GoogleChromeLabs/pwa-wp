@@ -208,6 +208,8 @@ jobs:
     if: needs.pre-run.outputs.changed-file-count > 0
     env:
       WP_CORE_DIR: /tmp/wordpress
+      WP_TESTS_DIR: /tmp/wordpress-tests-lib
+      WP_ENVIRONMENT_TYPE: local
     services:
       mysql:
         image: mariadb:latest
