@@ -4,7 +4,7 @@
 		"Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
 		"This file is @generated automatically"
 	],
-	"content-hash": "95e167460b2d33ead56d8dcb9d740d60",
+	"content-hash": "274a89cc835e660b5c98416e091d8152",
 	"packages": [],
 	"packages-dev": [
 		{
@@ -57,28 +57,28 @@
 		},
 		{
 			"name": "automattic/vipwpcs",
-			"version": "2.3.3",
+			"version": "2.3.4",
 			"source": {
 				"type": "git",
 				"url": "https://github.com/Automattic/VIP-Coding-Standards.git",
-				"reference": "6cd0a6a82bc0ac988dbf9d6a7c2e293dc8ac640b"
+				"reference": "b8610e3837f49c5f2fcc4b663b6c0a7c9b3509b6"
 			},
 			"dist": {
 				"type": "zip",
-				"url": "https://api.github.com/repos/Automattic/VIP-Coding-Standards/zipball/6cd0a6a82bc0ac988dbf9d6a7c2e293dc8ac640b",
-				"reference": "6cd0a6a82bc0ac988dbf9d6a7c2e293dc8ac640b",
+				"url": "https://api.github.com/repos/Automattic/VIP-Coding-Standards/zipball/b8610e3837f49c5f2fcc4b663b6c0a7c9b3509b6",
+				"reference": "b8610e3837f49c5f2fcc4b663b6c0a7c9b3509b6",
 				"shasum": ""
 			},
 			"require": {
-				"dealerdirect/phpcodesniffer-composer-installer": "^0.4.1 || ^0.5 || ^0.6.2 || ^0.7",
+				"dealerdirect/phpcodesniffer-composer-installer": "^0.4.1 || ^0.5 || ^0.6.2 || ^0.7 || ^1.0",
 				"php": ">=5.4",
-				"sirbrillig/phpcs-variable-analysis": "^2.11.1",
-				"squizlabs/php_codesniffer": "^3.5.5",
+				"sirbrillig/phpcs-variable-analysis": "^2.11.17",
+				"squizlabs/php_codesniffer": "^3.7.1",
 				"wp-coding-standards/wpcs": "^2.3"
 			},
 			"require-dev": {
-				"php-parallel-lint/php-console-highlighter": "^0.5",
-				"php-parallel-lint/php-parallel-lint": "^1.0",
+				"php-parallel-lint/php-console-highlighter": "^1.0.0",
+				"php-parallel-lint/php-parallel-lint": "^1.3.2",
 				"phpcompatibility/php-compatibility": "^9",
 				"phpcsstandards/phpcsdevtools": "^1.0",
 				"phpunit/phpunit": "^4 || ^5 || ^6 || ^7"
@@ -98,6 +98,7 @@
 			"keywords": [
 				"phpcs",
 				"standards",
+				"static analysis",
 				"wordpress"
 			],
 			"support": {
@@ -105,7 +106,7 @@
 				"source": "https://github.com/Automattic/VIP-Coding-Standards",
 				"wiki": "https://github.com/Automattic/VIP-Coding-Standards/wiki"
 			},
-			"time": "2021-09-29T16:20:23+00:00"
+			"time": "2023-08-24T15:11:13+00:00"
 		},
 		{
 			"name": "brain/monkey",
@@ -708,16 +709,16 @@
 		},
 		{
 			"name": "phpcompatibility/phpcompatibility-paragonie",
-			"version": "1.3.1",
+			"version": "1.3.2",
 			"source": {
 				"type": "git",
 				"url": "https://github.com/PHPCompatibility/PHPCompatibilityParagonie.git",
-				"reference": "ddabec839cc003651f2ce695c938686d1086cf43"
+				"reference": "bba5a9dfec7fcfbd679cfaf611d86b4d3759da26"
 			},
 			"dist": {
 				"type": "zip",
-				"url": "https://api.github.com/repos/PHPCompatibility/PHPCompatibilityParagonie/zipball/ddabec839cc003651f2ce695c938686d1086cf43",
-				"reference": "ddabec839cc003651f2ce695c938686d1086cf43",
+				"url": "https://api.github.com/repos/PHPCompatibility/PHPCompatibilityParagonie/zipball/bba5a9dfec7fcfbd679cfaf611d86b4d3759da26",
+				"reference": "bba5a9dfec7fcfbd679cfaf611d86b4d3759da26",
 				"shasum": ""
 			},
 			"require": {
@@ -754,13 +755,14 @@
 				"paragonie",
 				"phpcs",
 				"polyfill",
-				"standards"
+				"standards",
+				"static analysis"
 			],
 			"support": {
 				"issues": "https://github.com/PHPCompatibility/PHPCompatibilityParagonie/issues",
 				"source": "https://github.com/PHPCompatibility/PHPCompatibilityParagonie"
 			},
-			"time": "2021-02-15T10:24:51+00:00"
+			"time": "2022-10-25T01:46:02+00:00"
 		},
 		{
 			"name": "phpcompatibility/phpcompatibility-wp",
@@ -2026,28 +2028,29 @@
 		},
 		{
 			"name": "sirbrillig/phpcs-variable-analysis",
-			"version": "v2.11.3",
+			"version": "v2.11.17",
 			"source": {
 				"type": "git",
 				"url": "https://github.com/sirbrillig/phpcs-variable-analysis.git",
-				"reference": "c921498b474212fe4552928bbeb68d70250ce5e8"
+				"reference": "3b71162a6bf0cde2bff1752e40a1788d8273d049"
 			},
 			"dist": {
 				"type": "zip",
-				"url": "https://api.github.com/repos/sirbrillig/phpcs-variable-analysis/zipball/c921498b474212fe4552928bbeb68d70250ce5e8",
-				"reference": "c921498b474212fe4552928bbeb68d70250ce5e8",
+				"url": "https://api.github.com/repos/sirbrillig/phpcs-variable-analysis/zipball/3b71162a6bf0cde2bff1752e40a1788d8273d049",
+				"reference": "3b71162a6bf0cde2bff1752e40a1788d8273d049",
 				"shasum": ""
 			},
 			"require": {
 				"php": ">=5.4.0",
-				"squizlabs/php_codesniffer": "^3.5"
+				"squizlabs/php_codesniffer": "^3.5.6"
 			},
 			"require-dev": {
-				"dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
-				"limedeck/phpunit-detailed-printer": "^3.1 || ^4.0 || ^5.0",
-				"phpstan/phpstan": "^0.11.8",
-				"phpunit/phpunit": "^5.0 || ^6.5 || ^7.0 || ^8.0",
-				"sirbrillig/phpcs-import-detection": "^1.1"
+				"dealerdirect/phpcodesniffer-composer-installer": "^0.7 || ^1.0",
+				"phpcsstandards/phpcsdevcs": "^1.1",
+				"phpstan/phpstan": "^1.7",
+				"phpunit/phpunit": "^4.8.36 || ^5.7.21 || ^6.5 || ^7.0 || ^8.0 || ^9.0",
+				"sirbrillig/phpcs-import-detection": "^1.1",
+				"vimeo/psalm": "^0.2 || ^0.3 || ^1.1 || ^4.24 || ^5.0@beta"
 			},
 			"type": "phpcodesniffer-standard",
 			"autoload": {
@@ -2070,25 +2073,29 @@
 				}
 			],
 			"description": "A PHPCS sniff to detect problems with variables.",
+			"keywords": [
+				"phpcs",
+				"static analysis"
+			],
 			"support": {
 				"issues": "https://github.com/sirbrillig/phpcs-variable-analysis/issues",
 				"source": "https://github.com/sirbrillig/phpcs-variable-analysis",
 				"wiki": "https://github.com/sirbrillig/phpcs-variable-analysis/wiki"
 			},
-			"time": "2022-02-21T17:01:13+00:00"
+			"time": "2023-08-05T23:46:11+00:00"
 		},
 		{
 			"name": "squizlabs/php_codesniffer",
-			"version": "3.7.1",
+			"version": "3.8.1",
 			"source": {
 				"type": "git",
-				"url": "https://github.com/squizlabs/PHP_CodeSniffer.git",
-				"reference": "1359e176e9307e906dc3d890bcc9603ff6d90619"
+				"url": "https://github.com/PHPCSStandards/PHP_CodeSniffer.git",
+				"reference": "14f5fff1e64118595db5408e946f3a22c75807f7"
 			},
 			"dist": {
 				"type": "zip",
-				"url": "https://api.github.com/repos/squizlabs/PHP_CodeSniffer/zipball/1359e176e9307e906dc3d890bcc9603ff6d90619",
-				"reference": "1359e176e9307e906dc3d890bcc9603ff6d90619",
+				"url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/14f5fff1e64118595db5408e946f3a22c75807f7",
+				"reference": "14f5fff1e64118595db5408e946f3a22c75807f7",
 				"shasum": ""
 			},
 			"require": {
@@ -2098,11 +2105,11 @@
 				"php": ">=5.4.0"
 			},
 			"require-dev": {
-				"phpunit/phpunit": "^4.0 || ^5.0 || ^6.0 || ^7.0"
+				"phpunit/phpunit": "^4.0 || ^5.0 || ^6.0 || ^7.0 || ^8.0 || ^9.3.4"
 			},
 			"bin": [
-				"bin/phpcs",
-				"bin/phpcbf"
+				"bin/phpcbf",
+				"bin/phpcs"
 			],
 			"type": "library",
 			"extra": {
@@ -2117,21 +2124,45 @@
 			"authors": [
 				{
 					"name": "Greg Sherwood",
-					"role": "lead"
+					"role": "Former lead"
+				},
+				{
+					"name": "Juliette Reinders Folmer",
+					"role": "Current lead"
+				},
+				{
+					"name": "Contributors",
+					"homepage": "https://github.com/PHPCSStandards/PHP_CodeSniffer/graphs/contributors"
 				}
 			],
 			"description": "PHP_CodeSniffer tokenizes PHP, JavaScript and CSS files and detects violations of a defined set of coding standards.",
-			"homepage": "https://github.com/squizlabs/PHP_CodeSniffer",
+			"homepage": "https://github.com/PHPCSStandards/PHP_CodeSniffer",
 			"keywords": [
 				"phpcs",
-				"standards"
+				"standards",
+				"static analysis"
 			],
 			"support": {
-				"issues": "https://github.com/squizlabs/PHP_CodeSniffer/issues",
-				"source": "https://github.com/squizlabs/PHP_CodeSniffer",
-				"wiki": "https://github.com/squizlabs/PHP_CodeSniffer/wiki"
+				"issues": "https://github.com/PHPCSStandards/PHP_CodeSniffer/issues",
+				"security": "https://github.com/PHPCSStandards/PHP_CodeSniffer/security/policy",
+				"source": "https://github.com/PHPCSStandards/PHP_CodeSniffer",
+				"wiki": "https://github.com/PHPCSStandards/PHP_CodeSniffer/wiki"
 			},
-			"time": "2022-06-18T07:21:10+00:00"
+			"funding": [
+				{
+					"url": "https://github.com/PHPCSStandards",
+					"type": "github"
+				},
+				{
+					"url": "https://github.com/jrfnl",
+					"type": "github"
+				},
+				{
+					"url": "https://opencollective.com/php_codesniffer",
+					"type": "open_collective"
+				}
+			],
+			"time": "2024-01-11T20:47:48+00:00"
 		},
 		{
 			"name": "symfony/finder",
@@ -2487,16 +2518,16 @@
 		},
 		{
 			"name": "wp-cli/php-cli-tools",
-			"version": "v0.11.21",
+			"version": "v0.11.22",
 			"source": {
 				"type": "git",
 				"url": "https://github.com/wp-cli/php-cli-tools.git",
-				"reference": "b3457a8d60cd0b1c48cab76ad95df136d266f0b6"
+				"reference": "a6bb94664ca36d0962f9c2ff25591c315a550c51"
 			},
 			"dist": {
 				"type": "zip",
-				"url": "https://api.github.com/repos/wp-cli/php-cli-tools/zipball/b3457a8d60cd0b1c48cab76ad95df136d266f0b6",
-				"reference": "b3457a8d60cd0b1c48cab76ad95df136d266f0b6",
+				"url": "https://api.github.com/repos/wp-cli/php-cli-tools/zipball/a6bb94664ca36d0962f9c2ff25591c315a550c51",
+				"reference": "a6bb94664ca36d0962f9c2ff25591c315a550c51",
 				"shasum": ""
 			},
 			"require": {
@@ -2544,9 +2575,9 @@
 			],
 			"support": {
 				"issues": "https://github.com/wp-cli/php-cli-tools/issues",
-				"source": "https://github.com/wp-cli/php-cli-tools/tree/v0.11.21"
+				"source": "https://github.com/wp-cli/php-cli-tools/tree/v0.11.22"
 			},
-			"time": "2023-09-29T15:28:10+00:00"
+			"time": "2023-12-03T19:25:05+00:00"
 		},
 		{
 			"name": "wp-cli/wp-cli",
