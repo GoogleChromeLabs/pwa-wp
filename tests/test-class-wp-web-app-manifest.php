@@ -372,9 +372,10 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	 * @covers ::validate_site_icon()
 	 */
 	public function test_validate_site_icon_not_png() {
-		if ( PHP_MAJOR_VERSION === 7 && PHP_MINOR_VERSION === 1 ) {
+		if ( version_compare( PHP_VERSION, '7.2.0', '<' ) ) {
 			$this->markTestSkipped( 'See https://github.com/GoogleChromeLabs/pwa-wp/pull/702#issuecomment-1042776987' );
 		}
+
 		$attachment_id = $this->factory()->attachment->create_upload_object( __DIR__ . '/data/images/512x512.jpg' );
 		update_option( 'site_icon', $attachment_id );
 		$actual_site_icon_validation_errors   = $this->instance->validate_site_icon()->get_error_code();
