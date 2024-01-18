@@ -112,7 +112,7 @@ function wp_filter_robots_for_error_template( $robots ) {
  */
 function wp_add_error_template_no_robots() {
 	if ( is_offline() || is_500() ) {
-		wp_no_robots();
+		wp_no_robots(); // phpcs:ignore WordPress.WP.DeprecatedFunctions.wp_no_robotsFound
 	}
 }
 

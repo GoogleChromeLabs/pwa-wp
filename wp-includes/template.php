@@ -25,10 +25,10 @@
  *
  * @param string|string[] $template_names Template file(s) to search for, in order.
  * @param bool            $load           If true the template file will be loaded if it is found.
- * @param bool            $require_once   Whether to require_once or require. Default true. Has no effect if $load is false.
+ * @param bool            $load_once      Whether to require_once or require. Default true. Has no effect if $load is false.
  * @return string The template filename if one is located.
  */
-function pwa_locate_template( $template_names, $load = false, $require_once = true ) {
+function pwa_locate_template( $template_names, $load = false, $load_once = true ) {
 	$located = '';
 	foreach ( (array) $template_names as $template_name ) {
 		if ( ! $template_name ) {
@@ -57,7 +57,7 @@ function pwa_locate_template( $template_names, $load = false, $require_once = tr
 	}
 
 	if ( $load && $located ) {
-		load_template( $located, $require_once );
+		load_template( $located, $load_once );
 	}
 
 	return $located;
