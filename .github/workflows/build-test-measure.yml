@@ -335,12 +335,12 @@ jobs:
 
       - name: Run tests
         if: ${{ matrix.coverage == false }}
-        run: phpunit
+        run: phpunit --verbose
         working-directory: ${{ env.WP_CORE_DIR }}/src/wp-content/plugins/pwa
 
       - name: Run tests with coverage
         if: ${{ matrix.coverage == true }}
-        run: phpunit --coverage-clover build/logs/clover.xml
+        run: phpunit --verbose --coverage-clover build/logs/clover.xml
         working-directory: ${{ env.WP_CORE_DIR }}/src/wp-content/plugins/pwa
 
       - name: Upload code coverage report
