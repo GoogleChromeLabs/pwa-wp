@@ -226,34 +226,42 @@ jobs:
         coverage: [false]
         php: ['7.3', '7.2', '7.1']
         wp: ['latest']
+        phpunit: ['7']
         include:
           - php: '8.3'
             wp: 'trunk'
             coverage: false
+            phpunit: '9.6'
 
           - php: '8.2'
             wp: 'trunk'
             coverage: false
+            phpunit: '9.6'
 
           - php: '8.1'
             wp: 'latest'
             coverage: false
+            phpunit: '9.6'
 
           - php: '8.0'
             wp: 'latest'
             coverage: false
+            phpunit: '9.3'
 
           - php: '7.4'
             wp: 'latest'
             coverage: false
+            phpunit: '9.3'
 
           - php: '7.4'
             wp: 'latest'
             coverage: true
+            phpunit: '9.3'
 
           - php: '7.0'
             wp: '6.3'
             coverage: false
+            phpunit: '7'
 
     steps:
       - name: Checkout
@@ -266,6 +274,7 @@ jobs:
           extensions: curl, date, dom, gd, iconv, json, libxml, mysql, spl
           coverage: ${{ matrix.coverage && 'pcov' || 'none' }}
           ini-values: pcov.directory=.
+          tools: phpunit:${{ matrix.phpunit }}
 
       - name: Shutdown default MySQL service
         run: sudo service mysql stop
@@ -327,12 +336,12 @@ jobs:
 
       - name: Run tests
         if: ${{ matrix.coverage == false }}
-        run: vendor/bin/phpunit
+        run: phpunit
         working-directory: ${{ env.WP_CORE_DIR }}/src/wp-content/plugins/pwa
 
       - name: Run tests with coverage
         if: ${{ matrix.coverage == true }}
-        run: vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        run: phpunit --coverage-clover build/logs/clover.xml
         working-directory: ${{ env.WP_CORE_DIR }}/src/wp-content/plugins/pwa
 
       - name: Upload code coverage report
