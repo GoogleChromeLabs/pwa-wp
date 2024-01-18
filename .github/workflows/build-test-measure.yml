@@ -314,6 +314,13 @@ jobs:
       - name: Build plugin
         run: npm run build
 
+      # Avoid conflicts with globally installed PHPUnit.
+      - name: Remove locally installed PHPUnit
+        if: needs.pre-run.outputs.changed-php-count > 0
+        run: |
+            rm -rf vendor/phpunit
+            composer dump-autoload -o
+
       # Scan the logs for failing tests and surface that information by creating annotations and log file decorations.
       - name: Setup problem matcher to provide annotations for PHPUnit
         # The JSON file is provided by the `shivammathur/setup-php` action. See https://github.com/shivammathur/setup-php#problem-matchers.
