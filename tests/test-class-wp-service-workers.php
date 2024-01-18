@@ -24,9 +24,9 @@ class Test_WP_Service_Workers extends TestCase {
 	 *
 	 * @inheritdoc
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wp_actions, $wp_service_workers;
-		parent::setUp();
+		parent::set_up();
 		unset( $wp_actions['wp_default_service_workers'] );
 		$wp_service_workers = null;
 
@@ -36,8 +36,8 @@ class Test_WP_Service_Workers extends TestCase {
 	/**
 	 * Tear down.
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 		unset( $GLOBALS['wp_service_workers'] );
 	}
 

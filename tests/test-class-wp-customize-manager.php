@@ -24,8 +24,8 @@ class Test_WP_Customize_Manager extends TestCase {
 	 *
 	 * @inheritdoc
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $this->user_id );
 
@@ -39,10 +39,10 @@ class Test_WP_Customize_Manager extends TestCase {
 	/**
 	 * Tear down.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		$this->wp_customize = null;
 		unset( $GLOBALS['wp_customize'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
