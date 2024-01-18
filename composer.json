@@ -9,13 +9,13 @@
     "ext-json": "*"
   },
   "require-dev": {
-    "automattic/vipwpcs": "^2.3",
+    "automattic/vipwpcs": "3.0.0",
     "civicrm/composer-downloads-plugin": "^3.0",
     "dealerdirect/phpcodesniffer-composer-installer": "0.7.2",
     "php-stubs/wordpress-stubs": "^6.3.2",
     "phpcompatibility/phpcompatibility-wp": "2.1.4",
     "wp-cli/wp-cli": "^2.9",
-    "wp-coding-standards/wpcs": "2.3.0",
+    "wp-coding-standards/wpcs": "3.0.1",
     "yoast/wp-test-utils": "1.2.0"
   },
   "minimum-stability": "dev",
