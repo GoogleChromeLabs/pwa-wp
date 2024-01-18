@@ -21,8 +21,8 @@
   "prefer-stable": true,
   "config": {
     "allow-plugins": {
-      "dealerdirect/phpcodesniffer-composer-installer": true,
-      "civicrm/composer-downloads-plugin": true
+      "civicrm/composer-downloads-plugin": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
     },
     "platform": {
       "php": "8.0"
