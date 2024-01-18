@@ -227,9 +227,20 @@ jobs:
         php: ['7.3', '7.2', '7.1']
         wp: ['latest']
         include:
-          - php: '8.0'
+          - php: '8.3'
             wp: 'trunk'
-            experimental: true
+            coverage: false
+
+          - php: '8.2'
+            wp: 'trunk'
+            coverage: false
+
+          - php: '8.1'
+            wp: 'latest'
+            coverage: false
+
+          - php: '8.0'
+            wp: 'latest'
             coverage: false
 
           - php: '7.4'
@@ -241,15 +252,7 @@ jobs:
             coverage: true
 
           - php: '7.0'
-            wp: '5.1'
-            coverage: false
-
-          - php: '5.6'
-            wp: '5.0'
-            coverage: false
-
-          - php: '5.6'
-            wp: '4.9'
+            wp: '6.3'
             coverage: false
 
     steps:
