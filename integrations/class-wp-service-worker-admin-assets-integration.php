@@ -140,13 +140,13 @@ final class WP_Service_Worker_Admin_Assets_Integration extends WP_Service_Worker
 	/**
 	 * Get routes from file paths list.
 	 *
-	 * @param string[] $list   List of file paths.
+	 * @param string[] $paths  List of file paths.
 	 * @param string   $folder Folder -- either 'wp-admin' or 'wp-includes'.
 	 * @return array List of routes.
 	 */
-	protected function get_routes_from_file_list( $list, $folder ) {
+	protected function get_routes_from_file_list( $paths, $folder ) {
 		$routes = array();
-		foreach ( $list as $filename ) {
+		foreach ( $paths as $filename ) {
 			$ext = pathinfo( $filename, PATHINFO_EXTENSION );
 			if ( ! in_array( $ext, array( 'png', 'gif', 'svg' ), true ) ) {
 				continue;

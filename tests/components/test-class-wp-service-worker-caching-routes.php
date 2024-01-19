@@ -26,8 +26,8 @@ class Test_WP_Service_Worker_Caching_Routes extends TestCase {
 	 *
 	 * @inheritdoc
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->instance = new WP_Service_Worker_Caching_Routes();
 	}

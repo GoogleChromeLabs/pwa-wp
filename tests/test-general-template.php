@@ -22,21 +22,21 @@ class Test_General_Template extends TestCase {
 			'homepage' => array(
 				home_url( '/' ),
 				true,
-				static function() {
+				static function () {
 					return ! is_500() && ! is_offline();
 				},
 			),
 			'500'      => array(
 				home_url( '/?wp_error_template=500' ),
 				false,
-				static function() {
+				static function () {
 					return is_500() && ! is_offline();
 				},
 			),
 			'offline'  => array(
 				home_url( '/?wp_error_template=offline' ),
 				false,
-				static function() {
+				static function () {
 					return ! is_500() && is_offline();
 				},
 			),

@@ -19,7 +19,7 @@
 
 define( 'PWA_VERSION', '0.8.0-alpha' );
 define( 'PWA_PLUGIN_FILE', __FILE__ );
-define( 'PWA_PLUGIN_DIR', dirname( __FILE__ ) );
+define( 'PWA_PLUGIN_DIR', __DIR__ );
 define( 'PWA_WORKBOX_VERSION', json_decode( file_get_contents( PWA_PLUGIN_DIR . '/package.json' ), true )['devDependencies']['workbox-cli'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents,PHPCompatibility.Syntax.NewFunctionArrayDereferencing.Found -- Replaced with version literal build.
 define( 'PWA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 

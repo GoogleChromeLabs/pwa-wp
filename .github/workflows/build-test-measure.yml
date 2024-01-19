@@ -208,6 +208,8 @@ jobs:
     if: needs.pre-run.outputs.changed-file-count > 0
     env:
       WP_CORE_DIR: /tmp/wordpress
+      WP_TESTS_DIR: /tmp/wordpress-tests-lib
+      WP_ENVIRONMENT_TYPE: local
     services:
       mysql:
         image: mariadb:latest
@@ -226,31 +228,42 @@ jobs:
         coverage: [false]
         php: ['7.3', '7.2', '7.1']
         wp: ['latest']
+        phpunit: ['7']
         include:
-          - php: '8.0'
+          - php: '8.3'
             wp: 'trunk'
-            experimental: true
             coverage: false
+            phpunit: '9.6'
+
+          - php: '8.2'
+            wp: 'trunk'
+            coverage: false
+            phpunit: '9.6'
+
+          - php: '8.1'
+            wp: 'latest'
+            coverage: false
+            phpunit: '9.6'
+
+          - php: '8.0'
+            wp: 'latest'
+            coverage: false
+            phpunit: '9.3'
 
           - php: '7.4'
             wp: 'latest'
             coverage: false
+            phpunit: '9.3'
 
           - php: '7.4'
             wp: 'latest'
             coverage: true
+            phpunit: '9.3'
 
           - php: '7.0'
-            wp: '5.1'
+            wp: '6.3'
             coverage: false
-
-          - php: '5.6'
-            wp: '5.0'
-            coverage: false
-
-          - php: '5.6'
-            wp: '4.9'
-            coverage: false
+            phpunit: '6'
 
     steps:
       - name: Checkout
@@ -261,8 +274,8 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           extensions: curl, date, dom, gd, iconv, json, libxml, mysql, spl
-          coverage: ${{ matrix.coverage && 'pcov' || 'none' }}
-          ini-values: pcov.directory=.
+          coverage: ${{ matrix.coverage && 'xdebug' || 'none' }}
+          tools: phpunit:${{ matrix.phpunit }}
 
       - name: Shutdown default MySQL service
         run: sudo service mysql stop
@@ -302,6 +315,13 @@ jobs:
       - name: Build plugin
         run: npm run build
 
+      # Avoid conflicts with globally installed PHPUnit.
+      - name: Remove locally installed PHPUnit
+        if: needs.pre-run.outputs.changed-php-count > 0
+        run: |
+            rm -rf vendor/phpunit
+            composer dump-autoload -o
+
       # Scan the logs for failing tests and surface that information by creating annotations and log file decorations.
       - name: Setup problem matcher to provide annotations for PHPUnit
         # The JSON file is provided by the `shivammathur/setup-php` action. See https://github.com/shivammathur/setup-php#problem-matchers.
@@ -310,26 +330,17 @@ jobs:
       - name: Install WP tests
         run: bash bin/ci/install-wp-tests.sh wordpress_test root '' 127.0.0.1:${{ job.services.mysql.ports['3306'] }} ${{ matrix.wp }} true
 
-      - name: Setup PCOV
-        if: ${{ matrix.coverage == true }}
-        # phpdocumentor/reflection has to be removed as it makes use of an outdated dependency, making pcov/clobber
-        # unable to be installed.
-        run: |
-          composer remove --dev phpdocumentor/reflection
-          composer require --dev --ignore-platform-reqs pcov/clobber
-          vendor/bin/pcov clobber
-
       - name: Copy plugin to WP plugins directory
         run: cp -r "$PWD" "$WP_CORE_DIR/src/wp-content/plugins/pwa"
 
       - name: Run tests
         if: ${{ matrix.coverage == false }}
-        run: vendor/bin/phpunit
+        run: phpunit --verbose
         working-directory: ${{ env.WP_CORE_DIR }}/src/wp-content/plugins/pwa
 
       - name: Run tests with coverage
         if: ${{ matrix.coverage == true }}
-        run: vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        run: phpunit --verbose --coverage-clover build/logs/clover.xml
         working-directory: ${{ env.WP_CORE_DIR }}/src/wp-content/plugins/pwa
 
       - name: Upload code coverage report

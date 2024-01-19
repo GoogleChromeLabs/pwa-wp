@@ -355,16 +355,16 @@ final class WP_Service_Worker_Caching_Routes {
 	 *
 	 * @since 0.6
 	 *
-	 * @param string $string Possibly snake_case string.
+	 * @param string $str Possibly snake_case string.
 	 * @return string CamelCase string.
 	 */
-	protected static function convert_snake_case_to_camel_case( $string ) {
+	protected static function convert_snake_case_to_camel_case( $str ) {
 		return preg_replace_callback(
 			'/_[a-z]/',
 			static function ( $matches ) {
 				return strtoupper( ltrim( $matches[0], '_' ) );
 			},
-			$string
+			$str
 		);
 	}
 
@@ -373,16 +373,16 @@ final class WP_Service_Worker_Caching_Routes {
 	 *
 	 * @since 0.6
 	 *
-	 * @param string $string Possibly snake_case string.
+	 * @param string $str Possibly snake_case string.
 	 * @return string CamelCase string.
 	 */
-	protected static function convert_camel_case_to_snake_case( $string ) {
+	protected static function convert_camel_case_to_snake_case( $str ) {
 		return preg_replace_callback(
 			'/(?<=.)([A-Z])/',
 			static function ( $matches ) {
 				return '_' . strtolower( $matches[0] );
 			},
-			$string
+			$str
 		);
 	}
 }

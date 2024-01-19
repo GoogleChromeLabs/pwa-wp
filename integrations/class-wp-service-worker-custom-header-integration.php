@@ -36,10 +36,8 @@ final class WP_Service_Worker_Custom_Header_Integration extends WP_Service_Worke
 			} elseif ( ! empty( $_wp_default_headers ) ) {
 				if ( 'random-default-image' === $header_image_mod ) {
 					$headers = $_wp_default_headers;
-				} else {
-					if ( current_theme_supports( 'custom-header', 'random-default' ) ) {
+				} elseif ( current_theme_supports( 'custom-header', 'random-default' ) ) {
 						$headers = $_wp_default_headers;
-					}
 				}
 			}
 

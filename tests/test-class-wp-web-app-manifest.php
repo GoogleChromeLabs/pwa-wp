@@ -61,8 +61,8 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	 *
 	 * @inheritdoc
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->instance = new WP_Web_App_Manifest();
 	}
 
@@ -71,7 +71,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	 *
 	 * @inheritdoc
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		global $_wp_theme_features;
 
 		// Calling remove_theme_mod( 'custom-background' ) causes an undefined index error unless 'wp-head-callback' is set.
@@ -80,7 +80,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		delete_option( 'site_icon' );
 		remove_filter( 'pwa_background_color', array( $this, 'mock_background_color' ) );
 		remove_filter( 'rest_api_init', array( $this->instance, 'register_manifest_rest_route' ) );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -274,7 +274,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 			if ( ! isset( $purposes[ $icon['purpose'] ] ) ) {
 				$purposes[ $icon['purpose'] ] = 0;
 			} else {
-				$purposes[ $icon['purpose'] ]++;
+				++$purposes[ $icon['purpose'] ];
 			}
 		}
 		$this->assertEquals(
@@ -292,7 +292,7 @@ class Test_WP_Web_App_Manifest extends TestCase {
 			if ( ! isset( $purposes[ $icon['purpose'] ] ) ) {
 				$purposes[ $icon['purpose'] ] = 0;
 			} else {
-				$purposes[ $icon['purpose'] ]++;
+				++$purposes[ $icon['purpose'] ];
 			}
 		}
 		$this->assertEquals(
@@ -372,9 +372,10 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	 * @covers ::validate_site_icon()
 	 */
 	public function test_validate_site_icon_not_png() {
-		if ( PHP_MAJOR_VERSION === 7 && PHP_MINOR_VERSION === 1 ) {
+		if ( version_compare( PHP_VERSION, '7.2.0', '<' ) ) {
 			$this->markTestSkipped( 'See https://github.com/GoogleChromeLabs/pwa-wp/pull/702#issuecomment-1042776987' );
 		}
+
 		$attachment_id = $this->factory()->attachment->create_upload_object( __DIR__ . '/data/images/512x512.jpg' );
 		update_option( 'site_icon', $attachment_id );
 		$actual_site_icon_validation_errors   = $this->instance->validate_site_icon()->get_error_code();

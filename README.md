@@ -6,11 +6,11 @@ WordPress feature plugin to bring Progressive Web App (PWA) capabilities to Core
 
 **Contributors:** [google](https://profiles.wordpress.org/google), [xwp](https://profiles.wordpress.org/xwp), [rtcamp](https://profiles.wordpress.org/rtcamp), [westonruter](https://profiles.wordpress.org/westonruter), [albertomedina](https://profiles.wordpress.org/albertomedina)  
 **Tags:** [pwa](https://wordpress.org/plugins/tags/pwa), [progressive web apps](https://wordpress.org/plugins/tags/progressive-web-apps), [service workers](https://wordpress.org/plugins/tags/service-workers), [web app manifest](https://wordpress.org/plugins/tags/web-app-manifest)  
-**Requires at least:** 5.5  
+**Requires at least:** 6.3  
 **Tested up to:** 6.3  
 **Stable tag:** 0.7.1  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
-**Requires PHP:** 5.6
+**Requires PHP:** 7.0
 
 [![Build Status](https://github.com/GoogleChromeLabs/pwa-wp/workflows/Build,%20test%20&%20measure/badge.svg)](https://github.com/GoogleChromeLabs/pwa-wp/actions?query=branch%3Adevelop+workflow%3A%22Build%2C+test+%26+measure%22)
 [![Built with Grunt](https://gruntjs.com/cdn/builtwith.svg)](http://gruntjs.com)
