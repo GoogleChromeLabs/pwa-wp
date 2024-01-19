@@ -212,7 +212,7 @@ function wp_service_worker_loaded( WP_Query $query ) {
 		return;
 	}
 
-	// Handle case where rewrite rules have not yet been flushed.
+	// Do not require rewrite rules to have been flushed.
 	if ( 'wp.serviceworker' === $wp->request ) {
 		$query->set( WP_Service_Workers::QUERY_VAR, 1 );
 	}
