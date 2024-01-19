@@ -40,10 +40,21 @@
         "path": "vendor/bin/phpstan",
         "type": "phar",
         "url": "https://github.com/phpstan/phpstan/releases/latest/download/phpstan.phar"
+      },
+      "phpunit": {
+        "path": "vendor/bin/_phpunit",
+        "type": "phar",
+        "url": "https://phar.phpunit.de/phpunit-9.phar"
       }
     }
   },
   "scripts": {
+    "post-install-cmd": [
+      "@php -r \"if (file_exists('vendor/bin/_phpunit')) { rename('vendor/bin/_phpunit', 'vendor/bin/phpunit'); }\""
+    ],
+    "post-update-cmd": [
+      "composer run-script post-install-cmd"
+    ],
     "analyze": "if [ -z $TEST_SKIP_PHPSTAN ]; then phpstan --version; phpstan analyze --ansi --memory-limit=1G; fi",
     "pre-commit": [
       "npm run lint:staged"
