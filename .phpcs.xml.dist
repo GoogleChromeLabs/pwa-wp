@@ -35,7 +35,7 @@
 
 	<!-- For help in understanding this testVersion:
 		https://github.com/PHPCompatibility/PHPCompatibility#sniffing-your-code-for-compatibility-with-specific-php-versions -->
-	<config name="testVersion" value="5.6-"/>
+	<config name="testVersion" value="7.0-"/>
 
 	<!-- Rules: WordPress Coding Standards - see
 			https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards -->
@@ -45,7 +45,7 @@
 
 	<!-- For help in understanding these custom sniff properties:
 			https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/wiki/Customizable-sniff-properties -->
-	<config name="minimum_supported_wp_version" value="5.1"/>
+	<config name="minimum_supported_wp_version" value="6.3"/>
 
 	<rule ref="WordPress.WP.I18n">
 		<properties>

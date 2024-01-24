@@ -6,10 +6,7 @@ module.exports = {
 	"**/*.js": [
 		"npm run lint:js"
 	],
-	"**/!(pwa).php": [
+	"**/*.php": [
 		"npm run lint:php"
-	],
-	"pwa.php": [
-		"vendor/bin/phpcs --runtime-set testVersion 5.2-"
 	]
 };
