@@ -12,21 +12,11 @@
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  */
 function pwa_add_rewrite_rules() {
-	global $wp_rewrite;
-	$rewrite_rule_regex = '^wp\.serviceworker$';
-	$rules              = $wp_rewrite->wp_rewrite_rules();
-
-	if ( ! isset( $rules[ $rewrite_rule_regex ] ) ) {
-		// Note: This logic will not be required as part of core merge since rewrite rules are flushed upon DB upgrade (as long as the DB version is bumped).
-		add_action(
-			'admin_init',
-			function () {
-				flush_rewrite_rules( false ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- Not theme code.
-			}
-		);
-	}
-	add_rewrite_rule( $rewrite_rule_regex, 'index.php?' . WP_Service_Workers::QUERY_VAR . '=' . WP_Service_Workers::SCOPE_FRONT, 'top' );
-
+	add_rewrite_rule(
+		'^wp\.serviceworker$',
+		'index.php?' . WP_Service_Workers::QUERY_VAR . '=' . WP_Service_Workers::SCOPE_FRONT,
+		'top'
+	);
 	add_rewrite_tag( '%' . WP_Service_Workers::QUERY_VAR . '%', '([^?]+)' );
 }
 
