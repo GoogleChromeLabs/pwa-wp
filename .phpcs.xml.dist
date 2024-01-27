@@ -13,6 +13,7 @@
 	<exclude-pattern>./node_modules/</exclude-pattern>
 	<exclude-pattern>./vendor/</exclude-pattern>
 	<exclude-pattern>./build/</exclude-pattern>
+	<exclude-pattern>./wp-includes/js/dist/</exclude-pattern>
 
 	<!-- How to scan -->
 	<arg value="sp"/> <!-- Show sniff and progress -->

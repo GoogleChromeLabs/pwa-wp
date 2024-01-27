@@ -68,9 +68,11 @@ final class WP_Web_App_Manifest {
 		add_action( 'rest_api_init', array( $this, 'register_manifest_rest_route' ) );
 		add_filter( 'site_status_tests', array( $this, 'add_pwa_site_health_tests' ) );
 
-		add_action( 'rest_api_init', array( $this, 'register_short_name_setting' ) );
-		add_action( 'admin_init', array( $this, 'register_short_name_setting' ) );
+		add_action( 'rest_api_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_init', array( $this, 'add_short_name_settings_field' ) );
+		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_site_icon_maskable_block_editor_assets' ) );
+
 	}
 
 	/**
@@ -533,9 +535,15 @@ final class WP_Web_App_Manifest {
 	}
 
 	/**
-	 * Register setting for short_name.
+	 * Register pwa settings to the settings-API and make them visible to the REST API.
+	 *
+	 * @since 0.7.0
+	 * @since 0.8.0-alpha Added registration of 'site_icon_maskable' setting.
+	 * 
+	 * @return void
 	 */
-	public function register_short_name_setting() {
+	public function register_settings() {
+		// Register setting for short_name.
 		register_setting(
 			'general',
 			self::SHORT_NAME_OPTION,
@@ -543,6 +551,29 @@ final class WP_Web_App_Manifest {
 				'type'              => 'string',
 				'description'       => __( 'Short version of site title which is suitable for app icon on home screen.', 'pwa' ),
 				'sanitize_callback' => array( $this, 'sanitize_short_name' ),
+				'show_in_rest'      => true,
+			)
+		);
+
+		/*
+		 * Register setting for maskable site-icon.
+		 *
+		 * Even that this option is not exposed 
+		 * to the settings UI within normal admin options pages,
+		 * the registration is needed to make the option 
+		 * available to the REST API, which is used by
+		 * the site-editor.
+		 *
+		 * In the site-editor, this option can be set with the help of 
+		 * UI that is added to the 'site-logo' core block.
+		 */
+		register_setting(
+			'general',
+			'site_icon_maskable',
+			array(
+				'type'              => 'boolean',
+				'description'       => __( 'Wether the current site icon is maskable or not, as this is needed by some devices.', 'pwa' ),
+				'sanitize_callback' => 'rest_sanitize_boolean',
 				'show_in_rest'      => true,
 			)
 		);
@@ -667,5 +698,38 @@ final class WP_Web_App_Manifest {
 			);
 		</script>
 		<?php
+	}
+
+	/**
+	 * Load 'wp/site-logo'-block filter
+	 *
+	 * Handle the 'site_icon_maskable' setting in a full-site-editing context,
+	 * by enqueing a filter to the 'wp:site-logo' block within the site-editor.
+	 *
+	 * @since  0.8.0-alpha
+	 * @see    https://developer.wordpress.org/reference/hooks/enqueue_block_editor_assets/
+	 *
+	 * @return void
+	 */
+	public function enqueue_site_icon_maskable_block_editor_assets() {
+		$dir  = '/wp-includes/js/dist';
+		$path = PWA_PLUGIN_DIR . $dir;
+
+		// Stop, if needed file was not built successfully.
+		$script_asset_path = "$path/site-icon-maskable.asset.php";
+		if ( ! file_exists( $script_asset_path ) ) {
+			return;
+		}
+
+		$script_asset = require $script_asset_path;
+		$index_js     = "$dir/site-icon-maskable.js";
+		wp_enqueue_script(
+			'pwa-site-icon-maskable-block-editor',
+			plugins_url( $index_js, PWA_PLUGIN_FILE ),
+			$script_asset['dependencies'],
+			$script_asset['version'],
+			true
+		);
+		wp_set_script_translations( 'pwa-site-icon-maskable-block-editor', 'pwa' );
 	}
 }
