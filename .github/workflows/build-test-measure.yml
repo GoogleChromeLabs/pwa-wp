@@ -345,7 +345,7 @@ jobs:
 
       - name: Upload code coverage report
         if: ${{ matrix.coverage == true }}
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: ${{ env.WP_CORE_DIR }}/src/wp-content/plugins/pwa/build/logs/clover.xml
           flags: php,unit
