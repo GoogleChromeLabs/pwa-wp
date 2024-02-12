@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "af55f37e7e44496016a7a2eff19f75c0",
+    "content-hash": "21f6d8d62c45a164f7746eecac544362",
     "packages": [],
     "packages-dev": [
         {
@@ -2904,16 +2904,16 @@
         },
         {
             "name": "wp-cli/wp-cli",
-            "version": "v2.9.0",
+            "version": "v2.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-cli/wp-cli.git",
-                "reference": "8a3befba2d947fbf5cc6d1941edf2dd99da4d4b7"
+                "reference": "a339dca576df73c31af4b4d8054efc2dab9a0685"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-cli/wp-cli/zipball/8a3befba2d947fbf5cc6d1941edf2dd99da4d4b7",
-                "reference": "8a3befba2d947fbf5cc6d1941edf2dd99da4d4b7",
+                "url": "https://api.github.com/repos/wp-cli/wp-cli/zipball/a339dca576df73c31af4b4d8054efc2dab9a0685",
+                "reference": "a339dca576df73c31af4b4d8054efc2dab9a0685",
                 "shasum": ""
             },
             "require": {
@@ -2943,7 +2943,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "2.9.x-dev"
+                    "dev-main": "2.10.x-dev"
                 }
             },
             "autoload": {
@@ -2970,7 +2970,7 @@
                 "issues": "https://github.com/wp-cli/wp-cli/issues",
                 "source": "https://github.com/wp-cli/wp-cli"
             },
-            "time": "2023-10-25T09:06:37+00:00"
+            "time": "2024-02-08T16:52:43+00:00"
         },
         {
             "name": "wp-coding-standards/wpcs",
