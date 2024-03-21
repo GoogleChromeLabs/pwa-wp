@@ -7,14 +7,52 @@
  * @package PWA
  */
 
-// Ensure service workers are printed on frontend, admin, Customizer, login, sign-up, and activate pages.
-foreach ( array( 'wp_print_footer_scripts', 'admin_print_scripts', 'customize_controls_print_scripts', 'login_footer', 'after_signup_form', 'activate_wp_head' ) as $filter ) {
-	add_filter( $filter, 'wp_print_service_workers', 9 );
+$service_worker_actions = wp_get_actions_with_registered_service_worker_scripts();
+
+// Array of filter hooks that are used to trigger the service worker.
+$hooks = array(
+	'front' => array(
+		'wp_print_footer_scripts',
+	),
+	'admin' => array(
+		'admin_print_scripts',
+		'customize_controls_print_scripts',
+		'login_footer',
+		'after_signup_form',
+		'activate_wp_head',
+	),
+);
+
+if ( get_option( 'offline_browsing' ) ) {
+	// Ensure service workers are printed on frontend, admin, Customizer, login, sign-up, and activate pages.
+	foreach ( array_merge( $hooks['front'], $hooks['admin'] ) as $filter ) {
+		add_filter( $filter, 'wp_print_service_workers', 9 );
+	}
+
+	add_action( 'parse_query', 'wp_service_worker_loaded' );
+	add_action( 'wp_ajax_wp_service_worker', 'wp_ajax_wp_service_worker' );
+	add_action( 'wp_ajax_nopriv_wp_service_worker', 'wp_ajax_wp_service_worker' );
+} else if ( ! empty( $service_worker_actions ) ) {
+	if ( in_array( 'wp_front_service_worker', $service_worker_actions, true ) ) {
+		// Ensure service workers are printed on frontend.
+		foreach ( $hooks['front'] as $filter ) {
+			add_filter( $filter, 'wp_print_service_workers', 9 );
+		}
+
+		add_action( 'parse_query', 'wp_service_worker_loaded' );
+	}
+
+	if ( in_array( 'wp_admin_service_worker', $service_worker_actions, true ) ) {
+		// Ensure service workers are printed on admin, Customizer, login, sign-up, and activate pages.
+		foreach ( $hooks['admin'] as $filter ) {
+			add_filter( $filter, 'wp_print_service_workers', 9 );
+		}
+
+		add_action( 'wp_ajax_wp_service_worker', 'wp_ajax_wp_service_worker' );
+		add_action( 'wp_ajax_nopriv_wp_service_worker', 'wp_ajax_wp_service_worker' );
+	}
 }
 
-add_action( 'parse_query', 'wp_service_worker_loaded' );
-add_action( 'wp_ajax_wp_service_worker', 'wp_ajax_wp_service_worker' );
-add_action( 'wp_ajax_nopriv_wp_service_worker', 'wp_ajax_wp_service_worker' );
 add_action( 'parse_query', 'wp_unauthenticate_error_template_requests' );
 
 if ( version_compare( strtok( get_bloginfo( 'version' ), '-' ), '5.7', '>=' ) ) {

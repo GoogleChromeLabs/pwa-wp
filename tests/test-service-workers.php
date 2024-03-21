@@ -114,4 +114,50 @@ class Test_Service_Workers_Includes extends TestCase {
 			wp_get_service_worker_url( WP_Service_Workers::SCOPE_ADMIN )
 		);
 	}
+
+	/**
+	 * Test wp_get_actions_with_registered_service_worker_scripts() when no scripts are added.
+	 *
+	 * @covers ::wp_get_actions_with_registered_service_worker_scripts()
+	 */
+	public function test_wp_get_actions_with_registered_service_worker_scripts_with_no_scripts() {
+
+		remove_all_actions( 'wp_front_service_worker' );
+		remove_all_actions( 'wp_admin_service_worker' );
+
+		$this->assertEquals(
+			array(),
+			wp_get_actions_with_registered_service_worker_scripts()
+		);
+	}
+
+	/**
+	 * Test wp_get_actions_with_registered_service_worker_scripts() when scripts are added.
+	 *
+	 * @covers ::wp_get_actions_with_registered_service_worker_scripts()
+	 */
+	public function test_wp_get_actions_with_registered_service_worker_scripts_with_registered_scripts() {
+		// Register for the admin service worker.
+		add_action( 'wp_front_service_worker', 'register_foo_sw' );
+
+		$this->assertEquals(
+			array( 'wp_front_service_worker' ),
+			wp_get_actions_with_registered_service_worker_scripts()
+		);
+	}
+
+	/**
+	 * Register a service worker.
+	 *
+	 * @param WP_Service_Worker_Scripts $scripts Registry instance.
+	 */
+	public function register_foo_sw( $scripts ) {
+		$scripts->register(
+			'foo',
+			array(
+				'src'  => array( $this, 'return_foo_sw' ),
+				'deps' => array(),
+			)
+		);
+	}
 }
