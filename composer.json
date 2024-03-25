@@ -14,7 +14,7 @@
     "php-stubs/wordpress-stubs": "^6.4.3",
     "phpcompatibility/phpcompatibility-wp": "2.1.4",
     "wp-cli/wp-cli": "^2.10",
-    "wp-coding-standards/wpcs": "3.0.1",
+    "wp-coding-standards/wpcs": "3.1.0",
     "wp-phpunit/wp-phpunit": "^6.4",
     "yoast/wp-test-utils": "1.2.0"
   },
