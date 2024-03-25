@@ -21,9 +21,9 @@
   },
   "private": true,
   "devDependencies": {
-    "@wordpress/env": "9.5.0",
-    "@wordpress/eslint-plugin": "17.10.0",
-    "@wordpress/scripts": "27.4.0",
+    "@wordpress/env": "9.6.0",
+    "@wordpress/eslint-plugin": "17.11.0",
+    "@wordpress/scripts": "27.5.0",
     "eslint": "8.57.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.29.1",
