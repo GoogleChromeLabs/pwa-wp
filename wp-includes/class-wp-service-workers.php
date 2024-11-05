@@ -135,14 +135,19 @@ final class WP_Service_Workers {
 		// See wp_debug_mode() for how this is also done for REST API responses.
 		@ini_set( 'display_errors', '0' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_ini_set, WordPress.PHP.IniSet.display_errors_Disallowed
 
-		/*
+		/**
+		 * Filters the value of the "Cache-Control" header.
+		 *
 		 * Per Workbox <https://developers.google.com/web/tools/workbox/guides/service-worker-checklist#cache-control_of_your_service_worker_file>:
 		 * "Generally, most developers will want to set the Cache-Control header to no-cache,
 		 * forcing browsers to always check the server for a new service worker file."
 		 * Nevertheless, an ETag header is also sent with support for Conditional Requests
 		 * to save on needlessly re-downloading the same service worker with each page load.
+		 *
+		 * @param string $cache_control The value of the "Cache-Control" header. Defaults to "no-cache".
 		 */
-		@header( 'Cache-Control: no-cache' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged
+		$cache_control = apply_filters( 'wp_service_worker_cache_control', 'no-cache' );
+		@header( "Cache-Control: $cache_control" ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged
 
 		@header( 'X-Robots-Tag: noindex, follow' ); // phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.NoSilencedErrors.Discouraged
 
