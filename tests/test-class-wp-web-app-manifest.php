@@ -266,6 +266,14 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		);
 		$this->assertEquals( $expected_manifest, $actual_manifest );
 
+		// Update display.
+		update_option( 'web_app_manifest_display', 'standalone' );
+
+		$actual_manifest              = $this->instance->get_manifest();
+		$expected_manifest['display'] = 'standalone';
+
+		$this->assertEquals( $expected_manifest, $actual_manifest );
+
 		// Check that icon purpose is `any maskable` if site icon is maskable.
 		$actual_manifest = $this->instance->get_manifest();
 		$this->assertEquals( $expected_manifest, $actual_manifest );
