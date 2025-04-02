@@ -4,6 +4,7 @@
 /phpcs.xml
 /.phpcs.xml
 *.zip
+/wp-includes/js/dist/*
 /wp-includes/js/workbox*
 /wiki
 .vscode

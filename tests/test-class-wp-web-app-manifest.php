@@ -94,8 +94,8 @@ class Test_WP_Web_App_Manifest extends TestCase {
 		$this->assertEquals( 10, has_action( 'wp_head', array( $this->instance, 'manifest_link_and_meta' ) ) );
 		$this->assertEquals( 10, has_action( 'rest_api_init', array( $this->instance, 'register_manifest_rest_route' ) ) );
 
-		$this->assertEquals( 10, has_action( 'rest_api_init', array( $this->instance, 'register_short_name_setting' ) ) );
-		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'register_short_name_setting' ) ) );
+		$this->assertEquals( 10, has_action( 'rest_api_init', array( $this->instance, 'register_settings' ) ) );
+		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'register_settings' ) ) );
 		$this->assertEquals( 10, has_action( 'admin_init', array( $this->instance, 'add_short_name_settings_field' ) ) );
 	}
 
@@ -533,22 +533,34 @@ class Test_WP_Web_App_Manifest extends TestCase {
 	}
 
 	/**
-	 * Test register_short_name_setting.
+	 * Test register_settings.
 	 *
-	 * @covers ::register_short_name_setting()
+	 * @covers ::register_settings()
 	 */
-	public function test_register_short_name_setting() {
+	public function test_register_settings() {
 		global $wp_registered_settings;
 		unset( $wp_registered_settings['short_name'] );
 
 		$this->assertArrayNotHasKey( 'short_name', $wp_registered_settings );
-		$this->instance->register_short_name_setting();
+		$this->instance->register_settings();
 		$this->assertArrayHasKey( 'short_name', $wp_registered_settings );
 		$setting = $wp_registered_settings['short_name'];
 
 		$this->assertEquals( 'string', $setting['type'] );
 		$this->assertEquals( 'general', $setting['group'] );
 		$this->assertEquals( array( $this->instance, 'sanitize_short_name' ), $setting['sanitize_callback'] );
+		$this->assertEquals( true, $setting['show_in_rest'] );
+
+		unset( $wp_registered_settings['site_icon_maskable'] );
+
+		$this->assertArrayNotHasKey( 'site_icon_maskable', $wp_registered_settings );
+		$this->instance->register_settings();
+		$this->assertArrayHasKey( 'site_icon_maskable', $wp_registered_settings );
+		$setting = $wp_registered_settings['site_icon_maskable'];
+
+		$this->assertEquals( 'boolean', $setting['type'] );
+		$this->assertEquals( 'general', $setting['group'] );
+		$this->assertEquals( 'rest_sanitize_boolean', $setting['sanitize_callback'] );
 		$this->assertEquals( true, $setting['show_in_rest'] );
 	}
 
