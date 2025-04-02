@@ -258,3 +258,17 @@ function wp_service_worker_skip_waiting() {
 	 */
 	return (bool) apply_filters( 'wp_service_worker_skip_waiting', true );
 }
+
+/**
+ * Function to check if service worker scripts are registered on
+ * `wp_front_service_worker` or `wp_admin_service_worker` action hooks.
+ *
+ * @return array Array of hooks to which the actions are registered.
+ */
+function wp_get_actions_with_registered_service_worker_scripts() {
+	$actions = array();
+	has_action( 'wp_front_service_worker' ) ? $actions[] = 'wp_front_service_worker' : null;
+	has_action( 'wp_admin_service_worker' ) ? $actions[] = 'wp_admin_service_worker' : null;
+
+	return $actions;
+}
