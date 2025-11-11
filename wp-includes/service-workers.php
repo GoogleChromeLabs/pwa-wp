@@ -196,7 +196,7 @@ function wp_print_service_workers() {
 	</script>
 	<?php
 	wp_print_inline_script_tag(
-		str_replace( array( '<script>', '</script>' ),'', ob_get_clean() ),
+		str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ),
 		array( 'type' => 'module' )
 	);
 }
