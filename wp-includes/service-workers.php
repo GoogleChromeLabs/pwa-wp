@@ -180,20 +180,25 @@ function wp_print_service_workers() {
 		'scope' => $scope,
 	);
 
+	ob_start();
 	?>
-	<script type="module">
+	<script>
 		import { Workbox } from <?php echo wp_json_encode( $workbox_window_src ); ?>;
 
 		if ( 'serviceWorker' in navigator ) {
 			window.wp = window.wp || {};
 			window.wp.serviceWorkerWindow = new Workbox(
-				<?php echo wp_json_encode( $sw_src ); ?>,
-				<?php echo wp_json_encode( $register_options ); ?>
+				<?php echo wp_json_encode( $sw_src, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>,
+				<?php echo wp_json_encode( $register_options, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>
 			);
 			window.wp.serviceWorkerWindow.register();
 		}
 	</script>
 	<?php
+	wp_print_inline_script_tag(
+		str_replace( array( '<script>', '</script>' ),'', ob_get_clean() ),
+		array( 'type' => 'module' )
+	);
 }
 
 /**
