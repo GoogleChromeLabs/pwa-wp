@@ -114,4 +114,24 @@ class Test_Service_Workers_Includes extends TestCase {
 			wp_get_service_worker_url( WP_Service_Workers::SCOPE_ADMIN )
 		);
 	}
+
+	/**
+	 * Test that in the admin the service worker script module is printed after the importmap.
+	 *
+	 * @see https://github.com/GoogleChromeLabs/pwa-wp/issues/1241
+	 * @covers ::wp_print_service_workers()
+	 */
+	public function test_admin_service_worker_printed_after_importmap() {
+		$this->assertFalse( has_action( 'admin_print_scripts', 'wp_print_service_workers' ) );
+
+		$priority = has_action( 'admin_print_footer_scripts', 'wp_print_service_workers' );
+		$this->assertIsInt( $priority );
+
+		if ( ! function_exists( 'wp_script_modules' ) ) {
+			$this->markTestSkipped( 'Script modules require WordPress 6.5.' );
+		}
+		$importmap_priority = has_action( 'admin_print_footer_scripts', array( wp_script_modules(), 'print_import_map' ) );
+		$this->assertIsInt( $importmap_priority );
+		$this->assertGreaterThan( $importmap_priority, $priority );
+	}
 }

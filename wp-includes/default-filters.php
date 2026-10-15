@@ -7,10 +7,18 @@
  * @package PWA
  */
 
-// Ensure service workers are printed on frontend, admin, Customizer, login, sign-up, and activate pages.
-foreach ( array( 'wp_print_footer_scripts', 'admin_print_scripts', 'customize_controls_print_scripts', 'login_footer', 'after_signup_form', 'activate_wp_head' ) as $filter ) {
+// Ensure service workers are printed on frontend, Customizer, login, sign-up, and activate pages.
+foreach ( array( 'wp_print_footer_scripts', 'customize_controls_print_scripts', 'login_footer', 'after_signup_form', 'activate_wp_head' ) as $filter ) {
 	add_filter( $filter, 'wp_print_service_workers', 9 );
 }
+
+/*
+ * In the admin, the service worker script module must be printed after the importmap, which WP_Script_Modules prints
+ * at admin_print_footer_scripts priority 9. A script module printed earlier (e.g. in the HEAD) causes browsers to
+ * ignore the later importmap, breaking all other script modules on the page.
+ * See <https://github.com/GoogleChromeLabs/pwa-wp/issues/1241>.
+ */
+add_action( 'admin_print_footer_scripts', 'wp_print_service_workers', 10 );
 
 add_action( 'parse_query', 'wp_service_worker_loaded' );
 add_action( 'wp_ajax_wp_service_worker', 'wp_ajax_wp_service_worker' );
